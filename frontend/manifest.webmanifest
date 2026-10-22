@@ -1,0 +1,56 @@
+{
+  "name": "NPU-Assistant 校园助手",
+  "short_name": "校园助手",
+  "description": "辅导员数字分身 · LLM Wiki 知识库 · 移动端快速收录",
+  "id": "/",
+  "start_url": "/#/knowledge",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "theme_color": "#0b3d91",
+  "background_color": "#0b3d91",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "快速收录",
+      "short_name": "收录",
+      "url": "/#/knowledge",
+      "description": "粘贴链接或文字，一键收录进 Wiki"
+    },
+    {
+      "name": "对话",
+      "short_name": "对话",
+      "url": "/#/chat",
+      "description": "向辅导员数字分身提问"
+    }
+  ]
+}

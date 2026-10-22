@@ -23,10 +23,16 @@ from starlette.requests import Request
 
 from . import config, db
 from .routers import bots, chat, knowledge, models, system, wiki
+from .security import verify_admin_token
 
 logger = logging.getLogger("npu-assistant")
 
 API_PREFIX = "/api"
+SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
+# Student-facing Q&A stays public; bot webhooks authenticate with their own
+# channel tokens; every other write requires the admin token when configured.
+PUBLIC_POST_PATHS = {"/api/chat"}
+BOT_WEBHOOK_PREFIXES = ("/api/bots/onebot/", "/api/bots/wechat/")
 
 
 @asynccontextmanager
@@ -52,6 +58,7 @@ async def lifespan(_: FastAPI):
 def create_app() -> FastAPI:
     config.ensure_dirs()
     db.init_db()
+    mimetypes.add_type("application/manifest+json", ".webmanifest")
     app = FastAPI(
         title=config.APP_NAME,
         version=config.APP_VERSION,
@@ -68,6 +75,24 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.middleware("http")
+    async def admin_guard(request: Request, call_next):
+        """Protect all admin/write APIs when NPU_ADMIN_TOKEN is configured.
+
+        Public: GET/HEAD/OPTIONS, student Q&A (POST /api/chat), bot webhooks
+        (they use their own channel token / signature). Everything else
+        (uploads, imports, wiki edits, model/bot management, settings, rebuild)
+        requires ``X-Admin-Token``.
+        """
+        if config.ADMIN_TOKEN and request.method not in SAFE_METHODS:
+            path = request.url.path
+            if path not in PUBLIC_POST_PATHS and not path.startswith(BOT_WEBHOOK_PREFIXES):
+                try:
+                    verify_admin_token(request.headers.get("X-Admin-Token"))
+                except HTTPException as exc:
+                    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+        return await call_next(request)
 
     app.include_router(system.router, prefix=API_PREFIX)
     app.include_router(chat.router, prefix=API_PREFIX)
@@ -111,5 +136,9 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)-7s | %(name)s | %(message)s",
     datefmt="%H:%M:%S",
 )
+# httpx INFO logs full request URLs (including sensitive query strings) — keep
+# them at WARNING so imported links / provider keys never leak into logs.
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 app = create_app()

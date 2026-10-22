@@ -11,6 +11,7 @@
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -37,10 +38,50 @@ DEFAULT_CHANNEL_CONFIGS: dict[str, dict[str, str]] = {
         "self_id": "",
         # 群聊默认「仅被 @ 时回复」，设为 false 恢复为回复所有群消息
         "group_mention_only": "true",
+        # 管理员转发即入库（docs/MOBILE-OPS.md §2.2）：QQ 号逗号分隔
+        "admin_user_ids": "",
+        "import_enabled": "true",
     },
-    CHANNEL_WECHAT: {"token": "npu-assistant", "app_id": "", "welcome": ""},
-    CHANNEL_CONSOLE: {},
+    CHANNEL_WECHAT: {
+        "token": "npu-assistant",
+        "app_id": "",
+        "welcome": "",
+        # 管理员 openid 逗号分隔（可在后端日志中查看 FromUserName）
+        "admin_user_ids": "",
+        "import_enabled": "true",
+    },
+    CHANNEL_CONSOLE: {
+        "admin_user_ids": "",
+        "import_enabled": "true",
+    },
 }
+
+# 管理员 ID 列表的分隔符：英文/中文逗号、分号、空白
+_ADMIN_ID_SPLIT_RE = re.compile(r"[,，;；\s]+")
+
+
+def normalize_admin_user_ids(value: Any) -> str:
+    """把 ``admin_user_ids`` 整理成 ``"id1,id2"`` 字符串。
+
+    接受字符串（逗号/中文逗号/分号/空白分隔）或数组；去重并保持顺序。
+    """
+    if value is None:
+        return ""
+    if isinstance(value, (list, tuple, set)):
+        parts = [str(item).strip() for item in value]
+    else:
+        parts = _ADMIN_ID_SPLIT_RE.split(str(value))
+    ordered: list[str] = []
+    for part in parts:
+        if part and part not in ordered:
+            ordered.append(part)
+    return ",".join(ordered)
+
+
+def parse_admin_user_ids(value: Any) -> set[str]:
+    """把通道 config 的 ``admin_user_ids`` 解析为集合，供机器人管线比对。"""
+    normalized = normalize_admin_user_ids(value)
+    return {item for item in normalized.split(",") if item}
 
 
 def normalize_channel_type(value: Any) -> str:
@@ -64,9 +105,13 @@ def normalize_channel_config(channel_type: str, config: Any) -> dict:
     cleaned: dict[str, str] = {}
     for key, default in defaults.items():
         value = raw.get(key, default)
-        if value is None:
-            value = ""
-        cleaned[key] = str(value).strip() if key != "token" else str(value).strip()
+        if key == "admin_user_ids":
+            # 支持 "id1,id2" 字符串或数组，统一存字符串
+            cleaned[key] = normalize_admin_user_ids(value)
+        elif key == "import_enabled":
+            cleaned[key] = "true" if config_bool(value, True) else "false"
+        else:
+            cleaned[key] = str(value).strip() if value is not None else ""
     return cleaned
 
 

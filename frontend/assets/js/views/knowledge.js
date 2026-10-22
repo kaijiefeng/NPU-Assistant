@@ -19,6 +19,9 @@ import {
   getWikiPage,
   getWikiStats,
   getWikiTree,
+  importBatch,
+  importText,
+  importUrl,
   listDocuments,
   listWikiPages,
   rebuildWiki,
@@ -91,6 +94,14 @@ const state = {
   uploads: [],
   build: null,
   buildTimer: 0,
+  capture: {
+    mode: 'links',
+    collapsed: false,
+    importingLinks: false,
+    importingText: false,
+    linkResults: [],
+    textResult: null,
+  },
 };
 
 function uid() {
@@ -1176,6 +1187,288 @@ function refreshWiki({ silent = false } = {}) {
 }
 
 /* ------------------------------------------------------------------ */
+/* 快速收录（链接 / 文本 / 文件）                                      */
+/* ------------------------------------------------------------------ */
+function parseTagsInput(value) {
+  return String(value || '')
+    .split(/[,，]/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 10);
+}
+
+function parseCaptureUrls(text) {
+  const lines = String(text || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const urls = [];
+  const invalid = [];
+  const duplicated = [];
+  lines.forEach((line, index) => {
+    if (!/^https?:\/\//i.test(line)) {
+      invalid.push(index + 1);
+      return;
+    }
+    if (urls.includes(line)) {
+      duplicated.push(line);
+      return;
+    }
+    urls.push(line);
+  });
+  return { urls, invalid, duplicated };
+}
+
+function importPageChips(pages) {
+  if (!Array.isArray(pages) || !pages.length) return '';
+  return `<div class="capture-pages">${pages
+    .filter((page) => page && page.id)
+    .map(
+      (page) =>
+        `<button class="tag-chip is-link" type="button" data-action="open-page" data-id="${esc(
+          page.id,
+        )}">${icon('chevron-right')}${esc(page.title || '查看词条')}</button>`,
+    )
+    .join('')}</div>`;
+}
+
+function linkResultHtml(item) {
+  const meta = {
+    pending: { icon: 'clock', cls: 'is-pending', text: item.message || '等待收录' },
+    fetching: { icon: 'sparkles', cls: 'is-fetching', text: item.message || '抓取正文 / 编译词条中…' },
+    success: { icon: 'check', cls: 'is-success', text: item.message || '已收录' },
+    duplicated: { icon: 'copy', cls: 'is-duplicated', text: item.message || '已收录过，跳过编译' },
+    error: { icon: 'alert', cls: 'is-error', text: item.message || '收录失败' },
+  }[item.status] || { icon: 'clock', cls: 'is-pending', text: '' };
+  const iconHtml =
+    item.status === 'fetching'
+      ? '<span class="spinner spinner-xs" aria-hidden="true"></span>'
+      : icon(meta.icon);
+  return `<div class="capture-result-item ${meta.cls}">
+    <span class="capture-result-icon">${iconHtml}</span>
+    <div class="capture-result-main">
+      <span class="capture-result-url" title="${esc(item.url)}">${esc(item.url)}</span>
+      <span class="capture-result-msg">${esc(meta.text)}</span>
+      ${item.title ? `<span class="capture-result-doc">源文件：${esc(item.title)}</span>` : ''}
+      ${importPageChips(item.pages)}
+    </div>
+  </div>`;
+}
+
+function renderCaptureResults() {
+  const linkHolder = document.getElementById('captureLinkResults');
+  if (linkHolder) {
+    linkHolder.innerHTML = state.capture.linkResults.length
+      ? state.capture.linkResults.map(linkResultHtml).join('')
+      : '';
+  }
+  const textHolder = document.getElementById('captureTextResults');
+  if (textHolder) {
+    const result = state.capture.textResult;
+    if (!result) {
+      textHolder.innerHTML = '';
+    } else if (result.status === 'fetching') {
+      textHolder.innerHTML = `<div class="capture-result-item is-fetching"><span class="capture-result-icon"><span class="spinner spinner-xs"></span></span><div class="capture-result-main"><span class="capture-result-msg">正在编译词条，请稍候…</span></div></div>`;
+    } else if (result.status === 'success' || result.status === 'duplicated') {
+      textHolder.innerHTML = `<div class="capture-result-item ${result.status === 'duplicated' ? 'is-duplicated' : 'is-success'}">
+        <span class="capture-result-icon">${icon(result.status === 'duplicated' ? 'copy' : 'check')}</span>
+        <div class="capture-result-main">
+          <span class="capture-result-msg">${esc(result.message)}</span>
+          ${result.title ? `<span class="capture-result-doc">源文件：${esc(result.title)}</span>` : ''}
+          ${importPageChips(result.pages)}
+        </div>
+      </div>`;
+    } else {
+      textHolder.innerHTML = `<div class="capture-result-item is-error"><span class="capture-result-icon">${icon(
+        'alert',
+      )}</span><div class="capture-result-main"><span class="capture-result-msg">${esc(
+        result.message || '收录失败',
+      )}</span></div></div>`;
+    }
+  }
+}
+
+function importErrorMessage(err) {
+  if (err?.status === 404 || err?.status === 405) {
+    return '收录接口暂不可用（后端可能仍在部署），请稍后重试或直接上传文件';
+  }
+  return err?.message || '收录失败';
+}
+
+function normalizeSingleImport(data) {  const document = data?.document || {};
+  const pages = Array.isArray(data?.pages) ? data.pages : [];
+  const duplicated = Boolean(data?.duplicated);
+  return {
+    status: duplicated ? 'duplicated' : 'success',
+    title: document.title || '',
+    pages,
+    message: duplicated
+      ? `已收录过，跳过编译${pages.length ? ` · 现有 ${pages.length} 个词条` : ''}`
+      : `已收录《${document.title || '新资料'}》${pages.length ? ` · 生成 ${pages.length} 个词条` : ''}`,
+  };
+}
+
+async function runImportLinks(button) {
+  if (state.capture.importingLinks) return;
+  const urlsInput = document.getElementById('captureUrls');
+  const tagsInput = document.getElementById('captureUrlTags');
+  const { urls, invalid, duplicated } = parseCaptureUrls(urlsInput?.value || '');
+  if (invalid.length) {
+    toast(`第 ${invalid.join('、')} 行不是有效的 http(s) 链接`, 'error');
+    return;
+  }
+  if (!urls.length) {
+    toast('请粘贴至少一个网页链接（一行一个）', 'warning');
+    urlsInput?.focus();
+    return;
+  }
+  if (urls.length > 5) {
+    toast('一次最多收录 5 个链接，请分批提交', 'error');
+    return;
+  }
+  const tags = parseTagsInput(tagsInput?.value);
+  state.capture.importingLinks = true;
+  state.capture.linkResults = urls.map((url) => ({
+    url,
+    status: 'fetching',
+    message: urls.length === 1 ? '抓取正文 / 编译词条中…' : '排队收录中（抓取 → 编译词条）…',
+    pages: [],
+  }));
+  renderCaptureResults();
+  setButtonBusy(button, true, '收录中…');
+  try {
+    if (urls.length === 1) {
+      const data = await importUrl({ url: urls[0], ...(tags.length ? { tags } : {}) });
+      const normalized = normalizeSingleImport(data);
+      state.capture.linkResults = [
+        { url: urls[0], ...normalized, pages: normalized.pages },
+      ];
+    } else {
+      const data = await importBatch({ urls, ...(tags.length ? { tags } : {}) });
+      const items = Array.isArray(data?.items) ? data.items : [];
+      state.capture.linkResults = urls.map((url, index) => {
+        const item = items[index] || items.find((entry) => entry?.url === url) || {};
+        if (item.ok === false || item.error) {
+          return { url, status: 'error', message: item.error || '收录失败', pages: [] };
+        }
+        const pages = Array.isArray(item.pages) ? item.pages : [];
+        return {
+          url,
+          status: item.duplicated ? 'duplicated' : 'success',
+          title: item.document_title || item.title || '',
+          pages,
+          message: item.duplicated
+            ? '已收录过，跳过编译'
+            : `已收录${pages.length ? ` · 生成 ${pages.length} 个词条` : ''}`,
+        };
+      });
+    }
+    const okCount = state.capture.linkResults.filter((item) => item.status === 'success').length;
+    const dupCount = state.capture.linkResults.filter((item) => item.status === 'duplicated').length;
+    const failCount = state.capture.linkResults.filter((item) => item.status === 'error').length;
+    if (okCount) {
+      toast(`链接收录完成：新增 ${okCount} 条${dupCount ? `，重复 ${dupCount} 条` : ''}${failCount ? `，失败 ${failCount} 条` : ''}`, 'success');
+    } else if (dupCount) {
+      toast(`所选链接均已收录过（${dupCount} 条），未重复编译`, 'info');
+    } else {
+      toast('链接收录失败，请查看逐条原因', 'error');
+    }
+    if (duplicated.length) toast(`已忽略 ${duplicated.length} 个重复输入链接`, 'info');
+    if (okCount || dupCount) {
+      if (urlsInput) urlsInput.value = '';
+      refreshWiki({ silent: true });
+    }
+  } catch (err) {
+    state.capture.linkResults = state.capture.linkResults.map((item) => ({
+      ...item,
+      status: 'error',
+      message: importErrorMessage(err),
+    }));
+    toast(importErrorMessage(err), 'error');
+  } finally {
+    state.capture.importingLinks = false;
+    setButtonBusy(button, false);
+    renderCaptureResults();
+  }
+}
+
+async function runImportText(button) {
+  if (state.capture.importingText) return;
+  const titleInput = document.getElementById('captureTitle');
+  const textInput = document.getElementById('captureText');
+  const tagsInput = document.getElementById('captureTextTags');
+  const text = String(textInput?.value || '').trim();
+  const title = String(titleInput?.value || '').trim();
+  const tags = parseTagsInput(tagsInput?.value);
+  if (text.length < 30) {
+    toast('正文至少 30 字，请粘贴完整通知内容', 'warning');
+    textInput?.focus();
+    return;
+  }
+  if (text.length > 200000) {
+    toast('正文超过 200000 字上限，请拆分后收录', 'error');
+    return;
+  }
+  state.capture.importingText = true;
+  state.capture.textResult = { status: 'fetching' };
+  renderCaptureResults();
+  setButtonBusy(button, true, '编译中…');
+  try {
+    const data = await importText({ title, text, ...(tags.length ? { tags } : {}) });
+    const normalized = normalizeSingleImport(data);
+    state.capture.textResult = { ...normalized };
+    toast(
+      normalized.status === 'duplicated' ? '该文本资料已收录过，跳过编译' : `文本收录成功${normalized.pages.length ? `，生成 ${normalized.pages.length} 个词条` : ''}`,
+      normalized.status === 'duplicated' ? 'info' : 'success',
+    );
+    if (textInput) textInput.value = '';
+    if (titleInput) titleInput.value = '';
+    refreshWiki({ silent: true });
+  } catch (err) {
+    state.capture.textResult = { status: 'error', message: importErrorMessage(err) };
+    toast(importErrorMessage(err), 'error');
+  } finally {
+    state.capture.importingText = false;
+    setButtonBusy(button, false);
+    renderCaptureResults();
+  }
+}
+
+function setCaptureMode(mode) {
+  const next = ['links', 'text', 'file'].includes(mode) ? mode : 'links';
+  state.capture.mode = next;
+  const panels = {
+    links: document.getElementById('captureLinksPanel'),
+    text: document.getElementById('captureTextPanel'),
+    file: document.getElementById('captureFilePanel'),
+  };
+  Object.entries(panels).forEach(([key, panel]) => {
+    if (panel) panel.hidden = key !== next;
+  });
+  document.querySelectorAll('.capture-tab').forEach((tab) => {
+    const active = tab.dataset.mode === next;
+    tab.classList.toggle('is-active', active);
+    tab.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+}
+
+function setCaptureCollapsed(collapsed) {
+  state.capture.collapsed = Boolean(collapsed);
+  const card = document.getElementById('quickCapture');
+  const body = document.getElementById('quickCaptureBody');
+  const toggle = document.querySelector('[data-action="toggle-capture"]');
+  if (card) card.classList.toggle('is-collapsed', state.capture.collapsed);
+  if (body) body.hidden = state.capture.collapsed;
+  if (toggle) toggle.setAttribute('aria-expanded', state.capture.collapsed ? 'false' : 'true');
+  try {
+    localStorage.setItem('npu.capture.collapsed', state.capture.collapsed ? '1' : '0');
+  } catch {
+    /* ignore */
+  }
+}
+
+
+/* ------------------------------------------------------------------ */
 /* 视图入口                                                            */
 /* ------------------------------------------------------------------ */
 export function mount(root, context = {}) {
@@ -1187,6 +1480,70 @@ export function mount(root, context = {}) {
   stopBuildPolling();
 
   root.innerHTML = `<div class="page knowledge-page">
+    <section class="card quick-capture" id="quickCapture">
+      <header class="quick-capture-head">
+        <div class="quick-capture-title">
+          <span class="quick-capture-icon">${icon('plus')}</span>
+          <div>
+            <h2>快速收录 <span class="badge badge-teal">移动端</span></h2>
+            <p>粘贴链接或文字，或上传文件；LLM 自动编译为 Wiki 词条</p>
+          </div>
+        </div>
+        <button class="icon-btn quick-capture-toggle" type="button" data-action="toggle-capture" aria-expanded="true" aria-controls="quickCaptureBody" title="收起 / 展开快速收录">
+          ${icon('chevron-down')}
+        </button>
+      </header>
+      <div class="quick-capture-body" id="quickCaptureBody">
+        <div class="capture-tabs" role="tablist" aria-label="收录方式">
+          <button class="capture-tab is-active" type="button" role="tab" aria-selected="true" data-action="capture-mode" data-mode="links">${icon(
+            'link',
+          )}<span>链接</span></button>
+          <button class="capture-tab" type="button" role="tab" aria-selected="false" data-action="capture-mode" data-mode="text">${icon(
+            'message',
+          )}<span>文本</span></button>
+          <button class="capture-tab" type="button" role="tab" aria-selected="false" data-action="capture-mode" data-mode="file">${icon(
+            'upload',
+          )}<span>文件</span></button>
+        </div>
+
+        <div class="capture-panel" id="captureLinksPanel">
+          <textarea class="input capture-textarea" id="captureUrls" rows="3" placeholder="一行一个链接，最多 5 个&#10;例如：https://mp.weixin.qq.com/s/xxxx"></textarea>
+          <div class="capture-row">
+            <input class="input" id="captureUrlTags" placeholder="标签（可选，逗号分隔）" />
+            <button class="btn btn-primary capture-submit" type="button" data-action="import-links" id="importLinksBtn">${icon(
+              'link',
+            )}<span>收录链接</span></button>
+          </div>
+          <p class="capture-hint">${icon('info')}<span>微信 / QQ 可直接把链接转发给机器人（需管理员）；手机上复制链接粘贴到这里也可以。</span></p>
+          <div class="capture-results" id="captureLinkResults"></div>
+        </div>
+
+        <div class="capture-panel" id="captureTextPanel" hidden>
+          <input class="input" id="captureTitle" maxlength="120" placeholder="标题（可选，留空取正文首行）" />
+          <textarea class="input capture-textarea" id="captureText" rows="5" placeholder="粘贴微信 / QQ 转发的文字资料（30–200000 字）"></textarea>
+          <div class="capture-row">
+            <input class="input" id="captureTextTags" placeholder="标签（可选，逗号分隔）" />
+            <button class="btn btn-primary capture-submit" type="button" data-action="import-text" id="importTextBtn">${icon(
+              'file',
+            )}<span>收录文本</span></button>
+          </div>
+          <p class="capture-hint">${icon('info')}<span>适合群通知、口头通知等无链接内容；会生成源文件并编译词条。</span></p>
+          <div class="capture-results" id="captureTextResults"></div>
+        </div>
+
+        <div class="capture-panel" id="captureFilePanel" hidden>
+          <div class="dropzone capture-dropzone" id="dropzone" role="button" tabindex="0" aria-label="上传源文件">
+            <div class="dropzone-icon">${icon('upload')}</div>
+            <strong>拖拽文件到这里，或点击选择文件</strong>
+            <span>保存 → 解析 → LLM 编译词条（需要可用模型）</span>
+            <input type="file" id="fileInput" multiple hidden />
+          </div>
+          <p class="capture-hint" id="uploadHint">支持 md / txt / pdf / docx / xlsx / csv / json / html，单个文件 ≤ 20MB；上传后由 LLM 同步编译为 Wiki 词条。</p>
+          <div class="upload-queue" id="uploadQueue" hidden></div>
+        </div>
+      </div>
+    </section>
+
     <section class="stats-grid" id="wikiStats" aria-label="Wiki 统计"></section>
 
     <section class="card wiki-toolbar-card">
@@ -1224,39 +1581,21 @@ export function mount(root, context = {}) {
       <div id="wikiPagesBody">${loadingHtml('正在加载 Wiki 词条…')}</div>
     </section>
 
-    <section id="sourcesPanel" hidden>
-      <div class="grid-2 knowledge-tools">
-        <section class="card upload-card">
-          <header class="card-head">
-            <div>
-              <h2>${icon('upload')}上传源文件</h2>
-              <p id="uploadHint">支持 md / txt / pdf / docx / xlsx / csv / json / html，单个文件 ≤ 20MB；上传后由 LLM 同步编译为 Wiki 词条。</p>
-            </div>
-          </header>
-          <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="上传源文件">
-            <div class="dropzone-icon">${icon('upload')}</div>
-            <strong>拖拽文件到这里，或点击选择文件</strong>
-            <span>保存 → 解析 → LLM 编译词条（需要可用模型）</span>
-            <input type="file" id="fileInput" multiple hidden />
+    <section id="sourcesPanel" class="sources-panel" hidden>
+      <section class="card wiki-guide-card">
+        <header class="card-head">
+          <div>
+            <h2>${icon('sparkles')}Wiki 编译说明</h2>
+            <p>源文件是唯一事实来源，词条是从源文件编译出的结构化页面。</p>
           </div>
-          <div class="upload-queue" id="uploadQueue" hidden></div>
-        </section>
-
-        <section class="card wiki-guide-card">
-          <header class="card-head">
-            <div>
-              <h2>${icon('sparkles')}Wiki 编译说明</h2>
-              <p>源文件是唯一事实来源，词条是从源文件编译出的结构化页面。</p>
-            </div>
-          </header>
-          <ul class="wiki-guide-list">
-            <li>${icon('file')}<span>上传后调用 LLM 按章节编译 1–3 个词条，并校验「原文摘录」可逐字回溯。</span></li>
-            <li>${icon('link')}<span>每个词条附带来源锚点（文件 · 章节 · 原文摘录），对话引用可双层核对。</span></li>
-            <li>${icon('refresh')}<span>源文件更新后「重新编译」；批量更新可「全部重建」并轮询构建结果。</span></li>
-            <li>${icon('download')}<span>没有可用模型时，可先在「设置 → 模型」配置，或导入预编译快照浏览。</span></li>
-          </ul>
-        </section>
-      </div>
+        </header>
+        <ul class="wiki-guide-list">
+          <li>${icon('file')}<span>上传后调用 LLM 按章节编译 1–3 个词条，并校验「原文摘录」可逐字回溯。</span></li>
+          <li>${icon('link')}<span>每个词条附带来源锚点（文件 · 章节 · 原文摘录），对话引用可双层核对。</span></li>
+          <li>${icon('refresh')}<span>源文件更新后「重新编译」；批量更新可「全部重建」并轮询构建结果。</span></li>
+          <li>${icon('download')}<span>没有可用模型时，可先在「设置 → 模型」配置，或导入预编译快照浏览。</span></li>
+        </ul>
+      </section>
 
       <section class="card docs-card">
         <header class="card-head">
@@ -1283,6 +1622,16 @@ export function mount(root, context = {}) {
   const searchInput = root.querySelector('#wikiSearchInput');
   const dropzone = root.querySelector('#dropzone');
   const fileInput = root.querySelector('#fileInput');
+
+  /* 快速收录：恢复折叠状态 / 默认模式 */
+  try {
+    state.capture.collapsed = localStorage.getItem('npu.capture.collapsed') === '1';
+  } catch {
+    state.capture.collapsed = false;
+  }
+  setCaptureCollapsed(state.capture.collapsed);
+  setCaptureMode('links');
+  renderCaptureResults();
 
   const switchTab = (tab) => {
     state.tab = tab === 'sources' ? 'sources' : 'pages';
@@ -1375,8 +1724,21 @@ export function mount(root, context = {}) {
         runSeed(trigger);
         break;
       case 'pick-file':
-        switchTab('sources');
-        pickFile();
+        setCaptureCollapsed(false);
+        setCaptureMode('file');
+        window.setTimeout(pickFile, 60);
+        break;
+      case 'toggle-capture':
+        setCaptureCollapsed(!state.capture.collapsed);
+        break;
+      case 'capture-mode':
+        setCaptureMode(trigger.dataset.mode);
+        break;
+      case 'import-links':
+        runImportLinks(trigger);
+        break;
+      case 'import-text':
+        runImportText(trigger);
         break;
       case 'refresh-docs':
         loadDocs();

@@ -47,6 +47,8 @@ CREATE TABLE IF NOT EXISTS documents (
     tags         TEXT NOT NULL DEFAULT '[]',
     char_count   INTEGER NOT NULL DEFAULT 0,
     page_count   INTEGER NOT NULL DEFAULT 0,
+    source_type  TEXT NOT NULL DEFAULT 'file',      -- file|url|text
+    source_url   TEXT NOT NULL DEFAULT '',
     created_at   TEXT NOT NULL,
     updated_at   TEXT NOT NULL
 );
@@ -271,6 +273,12 @@ def init_db() -> None:
             execute("ALTER TABLE documents DROP COLUMN chunk_count")
         except sqlite3.OperationalError:  # pragma: no cover - older SQLite
             pass
+    # Mobile quick-ingest: track where a document came from (file/url/text).
+    if "source_type" not in columns:
+        execute("ALTER TABLE documents ADD COLUMN source_type TEXT NOT NULL DEFAULT 'file'")
+    if "source_url" not in columns:
+        execute("ALTER TABLE documents ADD COLUMN source_url TEXT NOT NULL DEFAULT ''")
+    execute("CREATE INDEX IF NOT EXISTS idx_documents_source_url ON documents(source_url)")
 
     # 3) Drop settings that only existed for BM25 retrieval.
     for key in config.OBSOLETE_SETTINGS:

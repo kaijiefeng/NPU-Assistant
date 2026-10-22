@@ -91,6 +91,32 @@ def verify_hmac_signature(token: str, body: bytes, signature: str) -> bool:
     return hmac.compare_digest(expected, value.lower())
 
 
+# 富消息段（JSON 卡片 / 分享 / XML）可能没有 text 段，但其中带有链接
+_RICH_SEGMENT_TYPES = {"json", "share", "xml"}
+
+
+def has_rich_url(message: Any) -> bool:
+    """判断消息段数组中是否含带 http(s) 链接的 JSON 卡片/分享/XML 段。
+
+    用于管理员「转发即入库」：这类卡片消息没有 text 段，但链接就在卡片 JSON 里；
+    纯图片/表情/语音等非文本消息仍返回 False（由调用方忽略）。
+    """
+    if isinstance(message, (list, tuple)):
+        for segment in message:
+            if not isinstance(segment, dict):
+                continue
+            if str(segment.get("type") or "").lower() not in _RICH_SEGMENT_TYPES:
+                continue
+            data = segment.get("data")
+            if isinstance(data, dict):
+                blob = " ".join(str(value) for value in data.values())
+            else:
+                blob = str(data or "")
+            if "http" in blob.lower():
+                return True
+    return False
+
+
 def extract_text(message: Any) -> str:
     """从 OneBot 消息字段提取纯文本。
 
@@ -170,7 +196,10 @@ def normalize_event(event: Any, *, channel_id: str, config: dict | None = None,
         fallback_text = extract_text(event.get("raw_message"))
         text = fallback_text
     if not text.strip():
-        return None
+        # JSON 卡片 / 分享 / XML 富消息常常没有 text 段，但其中带链接：
+        # 仍归一化并交给 bot_pipeline 做管理员「转发即入库」判定。
+        if not has_rich_url(event.get("message")):
+            return None
 
     sender = event.get("sender")
     sender = sender if isinstance(sender, dict) else {}

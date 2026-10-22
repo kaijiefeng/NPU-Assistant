@@ -8,6 +8,7 @@
  */
 
 const API_BASE = `${location.origin}/api`;
+const ADMIN_TOKEN_KEY = 'npu_admin_token';
 
 export class ApiError extends Error {
   constructor(message, { status = 0, detail = '', payload = null } = {}) {
@@ -16,6 +17,63 @@ export class ApiError extends Error {
     this.status = status;
     this.detail = detail;
     this.payload = payload;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 管理令牌（localStorage，所有请求自动附加 X-Admin-Token）              */
+/* ------------------------------------------------------------------ */
+let unauthorizedHandler = null;
+
+export function getAdminToken() {
+  try {
+    return (localStorage.getItem(ADMIN_TOKEN_KEY) || '').trim();
+  } catch {
+    return '';
+  }
+}
+
+export function setAdminToken(token) {
+  try {
+    const value = String(token || '').trim();
+    if (value) localStorage.setItem(ADMIN_TOKEN_KEY, value);
+    else localStorage.removeItem(ADMIN_TOKEN_KEY);
+    return value;
+  } catch {
+    return '';
+  }
+}
+
+export function clearAdminToken() {
+  try {
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function hasAdminToken() {
+  return Boolean(getAdminToken());
+}
+
+/** 注册 401 处理器（app.js 用来 toast 引导用户去设置页填写令牌）。 */
+export function setUnauthorizedHandler(handler) {
+  unauthorizedHandler = typeof handler === 'function' ? handler : null;
+}
+
+function withAdminToken(headers = {}) {
+  const token = getAdminToken();
+  if (token) headers['X-Admin-Token'] = token;
+  return headers;
+}
+
+function notifyUnauthorized(detail) {
+  if (unauthorizedHandler) {
+    try {
+      unauthorizedHandler(detail);
+    } catch {
+      /* ignore */
+    }
   }
 }
 
@@ -57,13 +115,14 @@ async function parseResponse(res) {
   }
   if (!res.ok) {
     const detail = extractDetail(data, res.status);
+    if (res.status === 401) notifyUnauthorized(detail);
     throw new ApiError(detail, { status: res.status, detail, payload: data });
   }
   return data;
 }
 
 async function request(method, path, { body, query, signal } = {}) {
-  const init = { method, headers: {}, signal };
+  const init = { method, headers: withAdminToken({}), signal };
   if (body !== undefined) {
     init.headers['Content-Type'] = 'application/json';
     init.body = JSON.stringify(body);
@@ -113,6 +172,13 @@ export const reindexDocument = (id) =>
   post(`/knowledge/documents/${encodeURIComponent(id)}/reindex`);
 export const getKnowledgeStats = () => get('/knowledge/stats');
 
+/* ------------------------------------------------------------------ */
+/* 快速收录（v0.3，需管理令牌）                                          */
+/* ------------------------------------------------------------------ */
+export const importUrl = (payload) => post('/knowledge/import/url', payload);
+export const importText = (payload) => post('/knowledge/import/text', payload);
+export const importBatch = (payload) => post('/knowledge/import/batch', payload);
+
 /** 导入预编译 Wiki 快照（/knowledge/seed 优先，404 时回退 /wiki/seed）。 */
 export async function seedWiki() {
   try {
@@ -156,6 +222,8 @@ export function uploadDocument(file, { title = '', tags = [], onProgress } = {})
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${API_BASE}/knowledge/documents`);
     xhr.responseType = 'text';
+    const token = getAdminToken();
+    if (token) xhr.setRequestHeader('X-Admin-Token', token);
     xhr.upload.onprogress = (event) => {
       if (!onProgress) return;
       if (event.lengthComputable && event.total > 0) {
@@ -180,6 +248,7 @@ export function uploadDocument(file, { title = '', tags = [], onProgress } = {})
         return;
       }
       const detail = extractDetail(data, xhr.status);
+      if (xhr.status === 401) notifyUnauthorized(detail);
       reject(new ApiError(detail, { status: xhr.status, detail, payload: data }));
     };
     const form = new FormData();

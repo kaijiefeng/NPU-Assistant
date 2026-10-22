@@ -122,3 +122,14 @@ def test_settings_reject_invalid_values(client):
     assert client.put("/api/settings", json={"wiki_answer_max_chars": "abc"}).status_code == 400
     # 旧 RAG 设置项不再可编辑
     assert client.put("/api/settings", json={"retrieval_top_k": 4}).status_code == 400
+
+
+def test_system_info_reflects_admin_token_requirement(client, monkeypatch):
+    from app import config
+
+    assert client.get("/api/system/info").json()["admin_token_required"] is False
+
+    monkeypatch.setattr(config, "ADMIN_TOKEN", "mobile-secret-token")
+    assert client.get("/api/system/info").json()["admin_token_required"] is True
+    # 只读接口与设置读取不受影响（写操作鉴权由 middleware 负责）
+    assert client.get("/api/settings").status_code == 200

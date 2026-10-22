@@ -1,15 +1,21 @@
-"""知识库入库（LLM Wiki 版）：上传保存 → 解析 → 同步编译词条。
+"""知识库入库（LLM Wiki 版）：保存源文件 → 解析 → 同步编译词条。
 
-对外接口（见 docs/CONTRACT.md §5.3 / §6）::
+对外接口（见 docs/CONTRACT.md §5.3 / §6、docs/MOBILE-OPS.md §2.1）::
 
     document_to_dict(row) -> dict
-    ingest_upload(filename, data, title=None, tags=None) -> dict
+    ingest_upload(filename, data, title=None, tags=None, *,
+                  source_type="file", source_url="") -> dict
+    ingest_text(title, text, *, tags=None) -> dict     # 移动端「文本收录」
+    ingest_url(title, text, *, url, tags=None) -> dict # 移动端「链接收录」
     reindex_document(doc_id) -> dict          # → {document, build}
     delete_document(doc_id) -> dict            # → {ok, pages_removed}
 
 经典 RAG 的 ``chunks`` 切片、``retrieval`` 索引与 BM25 已彻底移除：
 
-* 上传成功后立即调用 :func:`services.wiki_builder.compile_document` 同步编译词条；
+* 所有入库路径（文件上传 / 文本 / URL）最终都走 :func:`_ingest_bytes`，即
+  **只有一个编译入口**：保存 ``uploads/<doc_id>.md`` 后立即调用
+  :func:`services.wiki_builder.compile_document` 同步编译词条；
+* ``documents.source_type`` 记录来源（``file|url|text``），``source_url`` 记录原文链接；
 * 解析/编译失败把文档标记为 ``failed`` 并写中文 error，保留文件以便重试；
 * 删除文档会清理其独占词条、共享词条来源与物理文件。
 """
@@ -53,6 +59,9 @@ def document_to_dict(row: dict | None) -> dict:
         "tags": [str(tag) for tag in tags if isinstance(tag, (str, int, float))],
         "char_count": int(row.get("char_count") or 0),
         "page_count": int(row.get("page_count") or 0),
+        # 移动端快速收录：来源类型（file|url|text）与原文链接
+        "source_type": str(row.get("source_type") or "file"),
+        "source_url": str(row.get("source_url") or ""),
         "created_at": row["created_at"],
         "updated_at": row["updated_at"],
     }
@@ -121,15 +130,44 @@ def _mark_failed(doc_id: str, error: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# 上传入库（保存 → 解析 → 同步编译）
+# 入库主流程（上传 / 文本 / URL 共用：保存 → 解析 → 同步编译）
 # ---------------------------------------------------------------------------
-def ingest_upload(
+_ALLOWED_SOURCE_TYPES = {"file", "url", "text"}
+_WS_RE = re.compile(r"\s+")
+_FILENAME_BAD_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f]+')
+
+
+def _normalize_source(source_type: str | None, source_url: str | None) -> tuple[str, str]:
+    """规范化来源字段：非法类型回退 ``file``；非 URL 来源不保留 ``source_url``。"""
+    kind = str(source_type or "file").strip().lower()
+    if kind not in _ALLOWED_SOURCE_TYPES:
+        kind = "file"
+    url = str(source_url or "").strip()
+    if kind != "url":
+        url = ""
+    return kind, url
+
+
+def _one_line(text: str | None) -> str:
+    return _WS_RE.sub(" ", str(text or "")).strip()
+
+
+def _filename_base(title: str | None, fallback: str) -> str:
+    """把标题转成安全文件名（去非法字符、限长），为空时用兜底前缀。"""
+    base = _FILENAME_BAD_RE.sub("-", _one_line(title)).strip(" .-")
+    return base[:60].strip(" .-") or fallback
+
+
+def _ingest_bytes(
     filename: str,
     data: bytes,
     title: str | None = None,
     tags: list[str] | str | None = None,
+    *,
+    source_type: str = "file",
+    source_url: str = "",
 ) -> dict:
-    """保存上传文件、解析并同步编译 Wiki 词条，返回最新 doc 对象。
+    """保存字节流并同步编译 Wiki 词条（**唯一**编译入口）。
 
     * 文件保存到 ``backend/data/uploads/<doc_id><ext>``；
     * 参数非法 / 扩展名不支持抛 ``ValueError``（路由层转 400/413）；
@@ -138,6 +176,7 @@ def ingest_upload(
     """
     original_name = Path((filename or "").strip()).name or "未命名文件"
     ext = _ensure_supported(original_name, data)
+    source_kind, source_url_value = _normalize_source(source_type, source_url)
 
     requested_title = (title or "").strip()
     fallback_title = Path(original_name).stem or original_name
@@ -151,8 +190,8 @@ def ingest_upload(
     timestamp = db.now()
     db.execute(
         "INSERT INTO documents(id, title, filename, stored_path, file_ext, size_bytes, status, "
-        "error, tags, char_count, page_count, created_at, updated_at) "
-        "VALUES(?, ?, ?, ?, ?, ?, 'processing', NULL, ?, 0, 0, ?, ?)",
+        "error, tags, char_count, page_count, source_type, source_url, created_at, updated_at) "
+        "VALUES(?, ?, ?, ?, ?, ?, 'processing', NULL, ?, 0, 0, ?, ?, ?, ?)",
         (
             doc_id,
             requested_title or fallback_title,
@@ -161,6 +200,8 @@ def ingest_upload(
             ext,
             len(data),
             db.to_json(normalize_tags(tags)),
+            source_kind,
+            source_url_value,
             timestamp,
             timestamp,
         ),
@@ -193,6 +234,89 @@ def ingest_upload(
         logger.exception("文档编译发生未预期异常：%s", original_name)
 
     return document_to_dict(db.get_document(doc_id))
+
+
+def _ingest_markdown(
+    title: str | None,
+    body: str,
+    tags: list[str] | str | None,
+    *,
+    source_type: str,
+    source_url: str = "",
+    filename_prefix: str,
+) -> dict:
+    """把「一级标题 + 正文」写成 Markdown 源文件后入库编译。"""
+    clean_title = _one_line(title) or "未命名资料"
+    body_text = str(body or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    if not body_text:
+        raise ValueError("正文内容为空，无法收录")
+    markdown = f"# {clean_title}\n\n{body_text}\n"
+    filename = f"{_filename_base(clean_title, filename_prefix)}.md"
+    return _ingest_bytes(
+        filename,
+        markdown.encode("utf-8"),
+        clean_title,
+        tags,
+        source_type=source_type,
+        source_url=source_url,
+    )
+
+
+def ingest_upload(
+    filename: str,
+    data: bytes,
+    title: str | None = None,
+    tags: list[str] | str | None = None,
+    *,
+    source_type: str = "file",
+    source_url: str = "",
+) -> dict:
+    """保存上传文件、解析并同步编译 Wiki 词条，返回最新 doc 对象。
+
+    ``source_type`` / ``source_url`` 供机器人或移动端标注来源（默认普通文件上传）。
+    """
+    return _ingest_bytes(
+        filename,
+        data,
+        title,
+        tags,
+        source_type=source_type,
+        source_url=source_url,
+    )
+
+
+def ingest_text(
+    title: str | None,
+    text: str,
+    *,
+    tags: list[str] | str | None = None,
+) -> dict:
+    """移动端「文本收录」：写 Markdown 源文件 → 入库 → 同步编译（``source_type=text``）。"""
+    return _ingest_markdown(
+        title,
+        text,
+        tags,
+        source_type="text",
+        filename_prefix="文本收录",
+    )
+
+
+def ingest_url(
+    title: str | None,
+    text: str,
+    *,
+    url: str,
+    tags: list[str] | str | None = None,
+) -> dict:
+    """移动端「链接收录」：写 Markdown 源文件 → 入库 → 同步编译（``source_type=url``）。"""
+    return _ingest_markdown(
+        title,
+        text,
+        tags,
+        source_type="url",
+        source_url=url,
+        filename_prefix="网页收录",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -307,6 +431,8 @@ __all__ = [
     "estimate_tokens",
     "normalize_tags",
     "ingest_upload",
+    "ingest_text",
+    "ingest_url",
     "reindex_document",
     "delete_document",
 ]

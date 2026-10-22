@@ -1,10 +1,18 @@
 /**
  * views/settings.js — 设置页
  *
- * 分身名称 / 系统提示词 / 欢迎语 / 快捷问题 / 检索参数 / 引用开关 / 回复尾注。
- * 接口：GET /api/settings、PUT /api/settings
+ * 分身人设 / 快捷问题 / Wiki 阅读与引用 / 移动端与管理令牌 / 回复尾注。
+ * 接口：GET/PUT /api/settings、GET /api/system/info
  */
-import { getSettings, saveSettings } from '../api.js';
+import {
+  clearAdminToken,
+  deleteDocument,
+  getAdminToken,
+  getSettings,
+  getSystemInfo,
+  saveSettings,
+  setAdminToken,
+} from '../api.js';
 import {
   esc,
   errorHtml,
@@ -20,6 +28,7 @@ const state = {
   error: '',
   settings: null,
   snapshot: '',
+  serverTokenRequired: null,
 };
 
 function collect() {
@@ -173,6 +182,34 @@ function renderShell() {
           </div>
         </section>
 
+        <section class="card admin-token-card" id="adminTokenCard">
+          <header class="card-head">
+            <div>
+              <h2>${icon('shield')}移动端与管理令牌</h2>
+              <p>公网 / 局域网多人使用时，写操作需要 NPU_ADMIN_TOKEN；令牌仅保存在本机浏览器</p>
+            </div>
+            <span class="card-tag">安全</span>
+          </header>
+          <div class="form">
+            <label class="field">
+              <span class="field-label">管理令牌 <span class="field-tip">（与服务端环境变量 NPU_ADMIN_TOKEN 一致）</span></span>
+              <div class="token-input-row">
+                <input class="input mono" id="adminTokenInput" type="password" autocomplete="new-password" placeholder="未启用令牌时可留空" />
+                <button class="icon-btn" type="button" data-action="toggle-token-visibility" title="显示 / 隐藏令牌" aria-label="显示或隐藏令牌">${icon(
+                  'eye',
+                )}</button>
+              </div>
+            </label>
+            <div class="token-status" id="adminTokenStatus">${icon('info')}<span>读取中…</span></div>
+            <div class="token-actions">
+              <button class="btn btn-primary btn-sm" type="button" data-action="save-token">${icon('check')}<span>保存令牌</span></button>
+              <button class="btn btn-ghost btn-sm" type="button" data-action="test-token">${icon('link')}<span>测试连接</span></button>
+              <button class="btn btn-ghost btn-sm is-danger" type="button" data-action="clear-token">${icon('trash')}<span>清除令牌</span></button>
+            </div>
+            <div class="form-hint">${icon('info')}<span>保存后所有 API 请求自动携带 <code>X-Admin-Token</code> 请求头；令牌缺失或不正确时，写操作会返回 401 并提示。手机上可先在此登录一次，之后直接使用快速收录与编辑功能。</span></div>
+          </div>
+        </section>
+
         <section class="card">
           <header class="card-head">
             <div>
@@ -265,6 +302,7 @@ async function loadSettings({ silent = false } = {}) {
     state.loaded = true;
     state.error = '';
     fillForm(settings);
+    initTokenCard();
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) saveBtn.disabled = true;
   } catch (err) {
@@ -275,6 +313,78 @@ async function loadSettings({ silent = false } = {}) {
       shell.querySelector('[data-action="retry"]')?.addEventListener('click', () => loadSettings());
     }
     if (!silent) toast(state.error, 'error');
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 移动端与管理令牌                                                    */
+/* ------------------------------------------------------------------ */
+function renderTokenStatus(message = '') {
+  const holder = document.getElementById('adminTokenStatus');
+  if (!holder) return;
+  const token = getAdminToken();
+  const parts = [];
+  if (message) parts.push(message);
+  else parts.push(token ? `已保存令牌（${token.length} 字符）` : '未配置令牌');
+  if (state.serverTokenRequired === true) parts.push('服务端已启用令牌校验');
+  else if (state.serverTokenRequired === false) parts.push('服务端未启用令牌（本机演示）');
+  const ok = Boolean(token) || state.serverTokenRequired === false;
+  holder.className = `token-status ${ok ? 'is-ok' : 'is-empty'}`;
+  holder.innerHTML = `${icon(ok ? 'shield' : 'info')}<span>${esc(parts.join(' · '))}</span>`;
+}
+
+async function refreshTokenServerState() {
+  try {
+    const info = await getSystemInfo();
+    state.serverTokenRequired = Boolean(info?.admin_token_required);
+  } catch {
+    state.serverTokenRequired = null;
+  }
+  renderTokenStatus();
+}
+
+function initTokenCard() {
+  const input = document.getElementById('adminTokenInput');
+  if (input) input.value = getAdminToken();
+  renderTokenStatus();
+  refreshTokenServerState();
+}
+
+async function testAdminToken(button) {
+  setButtonBusy(button, true, '测试中…');
+  try {
+    const info = await getSystemInfo();
+    state.serverTokenRequired = Boolean(info?.admin_token_required);
+    if (!state.serverTokenRequired) {
+      renderTokenStatus('服务端未启用管理令牌，当前无需令牌即可操作');
+      toast('连接正常：服务端未启用管理令牌，无需填写', 'success', { title: '测试连接' });
+      return;
+    }
+    if (!getAdminToken()) {
+      renderTokenStatus('服务端已启用令牌，但本机尚未保存');
+      toast('服务端已启用管理令牌，请先填写并保存令牌', 'warning', { title: '测试连接' });
+      return;
+    }
+    // 用一个不存在的文档 ID 探测受保护的写接口：401=令牌错误，404=令牌有效
+    try {
+      await deleteDocument('__npu_admin_token_probe__');
+      renderTokenStatus('令牌有效，可执行管理操作');
+      toast('令牌有效，管理操作可用', 'success', { title: '测试连接' });
+    } catch (err) {
+      if (err?.status === 401) {
+        renderTokenStatus('令牌不正确，请核对服务端 NPU_ADMIN_TOKEN');
+        toast('令牌不正确：服务端拒绝了该令牌', 'error', { title: '测试连接' });
+      } else if (err?.status === 404) {
+        renderTokenStatus('令牌有效，可执行管理操作');
+        toast('令牌有效，管理操作可用', 'success', { title: '测试连接' });
+      } else {
+        throw err;
+      }
+    }
+  } catch (err) {
+    toast(err?.message || '测试连接失败', 'error');
+  } finally {
+    setButtonBusy(button, false);
   }
 }
 
@@ -358,6 +468,46 @@ function bindActions() {
     rows[rows.length - 1]?.querySelector('[data-quick]')?.focus();
     updateDirty();
     renderPreview();
+  });
+
+  /* 管理令牌：保存 / 清除 / 测试 / 显示隐藏 */
+  document.querySelector('[data-action="save-token"]')?.addEventListener('click', () => {
+    const input = document.getElementById('adminTokenInput');
+    const value = String(input?.value || '').trim();
+    if (!value) {
+      toast('请填写管理令牌；若服务端未启用令牌，可直接点击「清除令牌」', 'warning');
+      input?.focus();
+      return;
+    }
+    if (value.length < 8) {
+      toast('令牌长度偏短，建议使用服务端配置的完整随机串', 'warning');
+    }
+    setAdminToken(value);
+    if (input) input.value = getAdminToken();
+    renderTokenStatus();
+    toast('管理令牌已保存，后续请求将自动携带 X-Admin-Token', 'success', { title: '已保存' });
+  });
+
+  document.querySelector('[data-action="clear-token"]')?.addEventListener('click', () => {
+    clearAdminToken();
+    const input = document.getElementById('adminTokenInput');
+    if (input) {
+      input.value = '';
+      input.type = 'password';
+    }
+    renderTokenStatus();
+    toast('已清除本机管理令牌', 'success');
+  });
+
+  document.querySelector('[data-action="test-token"]')?.addEventListener('click', (event) => {
+    testAdminToken(event.currentTarget);
+  });
+
+  document.querySelector('[data-action="toggle-token-visibility"]')?.addEventListener('click', (event) => {
+    const input = document.getElementById('adminTokenInput');
+    if (!input) return;
+    input.type = input.type === 'password' ? 'text' : 'password';
+    event.currentTarget.classList.toggle('is-on', input.type === 'text');
   });
 }
 

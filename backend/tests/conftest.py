@@ -22,6 +22,8 @@ import re
 import shutil
 import sys
 import tempfile
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import pytest
@@ -41,6 +43,9 @@ os.environ["NPU_ADMIN_TOKEN"] = ""
 os.environ["NPU_MAX_UPLOAD_MB"] = "20"
 # 预编译快照指向临时目录，保证测试不受仓库 wiki_seed.json 是否存在影响
 os.environ["NPU_WIKI_SEED_PATH"] = str(_TMP_ROOT / "wiki_seed.json")
+# URL 收录测试使用本地 127.0.0.1 http.server，需要在 import app 前允许私网地址；
+# 默认拒绝私网的用例会在测试内 monkeypatch config.URL_IMPORT_ALLOW_PRIVATE=False。
+os.environ["NPU_URL_IMPORT_ALLOW_PRIVATE"] = "1"
 
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
@@ -408,6 +413,112 @@ def seeded_wiki(client, wiki_seed_file):
     assert data.get("imported") is True, data
     assert data.get("pages") == 3, data
     return data
+
+
+# ---------------------------------------------------------------------------
+# 4) 移动端 URL 收录：本地 HTTP 服务 + fake importer
+# ---------------------------------------------------------------------------
+ARTICLE_TEXT = (
+    "国家奖学金用于奖励特别优秀的全日制本科在校生，申请材料包括申请表、成绩单、"
+    "个人事迹材料与获奖证明。每年 9 月中旬发布通知，9 月下旬学院截止收材料。"
+    "本段为公众号样式正文，用于验证 #js_content 提取与正文清洗。"
+)
+ARTICLE_HTML = f"""<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8" />
+<meta property="og:title" content="国家奖学金申请指南（公众号）" />
+<title>公众号文章 - 国家奖学金</title>
+</head>
+<body>
+<nav>首页 / 通知公告 / 学工动态</nav>
+<header>西北工业大学学生工作部</header>
+<div class="rich_media_content" id="js_content">
+  <p>{ARTICLE_TEXT}</p>
+  <p>具体时间、金额、电话均为示例，请以学校官方通知为准。</p>
+</div>
+<script>console.log("不应进入正文");</script>
+<footer>版权所有</footer>
+</body></html>
+"""
+
+
+class _ArticleHandler(BaseHTTPRequestHandler):
+    """极简 HTTP 服务：HTML / JSON / 超大响应 / 404，用于 URL 收录测试。"""
+
+    def log_message(self, *args) -> None:  # noqa: D401 - 静默日志
+        return
+
+    def do_GET(self) -> None:  # noqa: N802 - http.server 约定
+        path = self.path.split("?", 1)[0]
+        if path == "/article":
+            body = ARTICLE_HTML.encode("utf-8")
+            self._respond(200, "text/html; charset=utf-8", body)
+        elif path == "/json":
+            self._respond(200, "application/json", b'{"hello": "world"}')
+        elif path == "/large":
+            body = ("<html><body><p>" + "超" * (4 * 1024 * 1024) + "</p></body></html>").encode(
+                "utf-8"
+            )
+            self._respond(200, "text/html; charset=utf-8", body)
+        else:
+            self._respond(404, "text/html; charset=utf-8", b"<html>not found</html>")
+
+    def _respond(self, status: int, content_type: str, body: bytes) -> None:
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+
+@pytest.fixture()
+def article_server():
+    """本地 127.0.0.1 HTTP 服务（返回公众号样式 HTML），产出 ``base_url``。"""
+    from types import SimpleNamespace
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _ArticleHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base_url = f"http://127.0.0.1:{server.server_address[1]}"
+    try:
+        yield SimpleNamespace(base_url=base_url)
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+class FakeImporter:
+    """记录机器人入库调用，可配置返回结果 / 抛错 / 阻塞（用于微信 ack 测试）。"""
+
+    def __init__(self) -> None:
+        self.calls: list[dict] = []
+        self.event = threading.Event()
+        self.error: Exception | None = None
+        self.result: dict = {
+            "duplicated": False,
+            "document": {"id": "doc-bot-1", "title": "机器人收录的文章", "page_count": 2},
+            "pages": [
+                {"id": "page-a", "title": "词条A", "summary": "摘要A"},
+                {"id": "page-b", "title": "词条B", "summary": "摘要B"},
+            ],
+        }
+
+    def import_url(self, url, title=None, tags=None):
+        self.calls.append({"url": url, "title": title, "tags": list(tags or [])})
+        self.event.set()
+        if self.error is not None:
+            raise self.error
+        return self.result
+
+
+@pytest.fixture()
+def fake_importer(monkeypatch):
+    """monkeypatch ``app.services.importer.import_url``，避免机器人测试真实抓取网页。"""
+    from app.services import importer
+
+    fake = FakeImporter()
+    monkeypatch.setattr(importer, "import_url", fake.import_url)
+    return fake
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -11,7 +11,7 @@
 |------|------|
 | 前缀 | 所有接口位于 `/api` 下，JSON 响应（上传为 multipart，公众号为 XML） |
 | 错误格式 | `HTTPException(status_code, detail="中文可读信息")`，前端按 `detail` 展示 |
-| 鉴权 | 默认无鉴权；设置环境变量 `NPU_ADMIN_TOKEN` 后，**写操作**需请求头 `X-Admin-Token: <token>` |
+| 鉴权 | 默认无鉴权；设置环境变量 `NPU_ADMIN_TOKEN` 后，除 `POST /api/chat`、`GET/HEAD/OPTIONS` 与机器人 webhook（自带通道 token/签名）外的**写操作**需请求头 `X-Admin-Token: <token>`；缺失/错误 → 401 |
 | 时间格式 | ISO 字符串（本地时间），ID 为 32 位 hex |
 | 上传限制 | 单文件 ≤ 20MB（`NPU_MAX_UPLOAD_MB`），支持 `.md/.markdown/.txt/.pdf/.docx/.xlsx/.csv/.json/.html/.htm` |
 | 知识模型 | `knowledge_mode: "llm-wiki"`；无 embedding / 向量库 / rerank / chunk 检索 |
@@ -24,6 +24,7 @@
 | 系统 | `GET /health`、`GET /system/info`、`GET /system/stats`、`GET/PUT /settings` | 健康检查（含 `knowledge_mode`、`wiki_pages`）、运行信息、统计、可编辑设置 |
 | 对话 | `POST /chat`、`GET /chat/conversations`、`GET /chat/conversations/{id}/messages`、`DELETE /chat/conversations/{id}` | Wiki 导航问答 + 双层引用 + `navigation` 元信息 |
 | 源文件 | `POST/GET /knowledge/documents`、`GET/DELETE /knowledge/documents/{id}`、`POST .../reindex`、`POST /knowledge/seed`、`GET /knowledge/stats` | 上传并**同步编译**、列表/详情/删除/重建、导入预编译快照、统计 |
+| 快速收录 | `POST /knowledge/import/url`、`POST /knowledge/import/text`、`POST /knowledge/import/batch` | 移动端：URL 抓取正文、粘贴文本、批量链接（≤5）→ 生成源文件并编译词条（见 [MOBILE-OPS.md](MOBILE-OPS.md)） |
 | Wiki | `GET /wiki/tree`、`GET /wiki/pages`、`GET/PUT/DELETE /wiki/pages/{id}`、`POST /wiki/search`、`GET /wiki/stats`、`POST /wiki/rebuild`、`GET /wiki/builds`、`GET /wiki/builds/{id}`、`POST /wiki/seed` | 目录、浏览、搜索、编辑、重建与构建记录 |
 | 模型 | `GET/POST /models/providers`、`PUT/DELETE /models/providers/{id}`、`POST .../test`、`GET/POST /models`、`PUT/DELETE /models/{id}`、`POST /models/{id}/default`、`POST /models/{id}/test` | Provider / 模型 CRUD、默认模型、连通性测试 |
 | 机器人 | `GET/POST /bots/channels`、`PUT/DELETE /bots/channels/{id}`、`POST .../test`、`GET /bots/logs`、`WS /bots/onebot/{id}/ws`、`POST /bots/onebot/{id}/event`、`GET/POST /bots/wechat/{id}` | 通道管理、控制台模拟、OneBot / 公众号回调；回答复用 counselor |
@@ -192,6 +193,7 @@ Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/knowledge/documents -Fo
   "id": "…", "title": "演示文件", "filename": "DEMO.md", "file_ext": ".md",
   "size_bytes": 8123, "status": "ready", "error": null,
   "tags": ["演示", "测试"], "char_count": 3000, "page_count": 2,
+  "source_type": "file", "source_url": "",
   "created_at": "…", "updated_at": "…"
 }
 ```
@@ -224,6 +226,68 @@ Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/knowledge/seed
 Invoke-RestMethod http://127.0.0.1:8000/api/knowledge/stats
 # → {"documents":10,"ready_documents":10,"pages":20,"sources":23}
 ```
+
+### 5.4 快速收录（移动端 / 机器人管理员）
+
+> 完整行为见 [MOBILE-OPS.md](MOBILE-OPS.md) §2。三个接口均属管理类写操作：设置 `NPU_ADMIN_TOKEN` 后必须带 `X-Admin-Token`，否则 401。
+
+**收录网页 / 公众号链接** `POST /knowledge/import/url`
+
+```powershell
+$body = @{ url = "https://mp.weixin.qq.com/s/xxxx"; tags = @("公众号", "奖助") } | ConvertTo-Json
+Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/knowledge/import/url `
+  -ContentType "application/json; charset=utf-8" -Body $body
+```
+
+```jsonc
+// 201 Created（新链接；同一 URL 再次收录返回 200 + duplicated=true，不重复编译）
+{
+  "duplicated": false,
+  "document": {
+    "id": "…", "title": "国家奖学金申请指南（公众号）", "status": "ready",
+    "page_count": 3, "source_type": "url", "source_url": "https://mp.weixin.qq.com/s/xxxx",
+    "error": null
+  },
+  "pages": [{ "id": "…", "title": "国家奖学金申请", "summary": "……" }]
+}
+```
+
+- 仅支持 `http/https`；手动跟随 ≤5 次重定向、超时 30s、响应 ≤3MB、仅接受 HTML/纯文本；
+- 默认**拒绝私网/回环地址**（内网部署可设 `NPU_URL_IMPORT_ALLOW_PRIVATE=1`）；`file://`、带账号密码 URL 一律 400；
+- 正文提取优先 `#js_content` / `.rich_media_content` / `article|main`，去脚本导航页脚；提取不到正文 → 400 中文原因。
+
+**收录文本** `POST /knowledge/import/text`
+
+```powershell
+$body = @{ title = "请假政策（转自班级群）"; text = "……"; tags = @("微信", "请假") } | ConvertTo-Json
+Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/knowledge/import/text `
+  -ContentType "application/json; charset=utf-8" -Body $body
+```
+
+- `text` 30–200000 字；`title` 为空时取首行（≤40 字）或「未命名资料-时间」；
+- 返回结构与 URL 收录一致，`document.source_type="text"`。
+
+**批量收录链接** `POST /knowledge/import/batch`
+
+```powershell
+$body = @{ urls = @("https://a.example/1", "https://b.example/2"); tags = @("待整理") } | ConvertTo-Json
+Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/knowledge/import/batch `
+  -ContentType "application/json; charset=utf-8" -Body $body
+```
+
+```jsonc
+// 200 OK：单次 ≤5 条，顺序处理，单条失败不影响其它
+{
+  "items": [
+    { "url": "https://a.example/1", "ok": true, "duplicated": false,
+      "document_id": "…", "pages": [{ "id": "…", "title": "…" }], "error": null },
+    { "url": "https://b.example/2", "ok": false, "duplicated": false,
+      "document_id": null, "pages": [], "error": "网页抓取失败：…" }
+  ]
+}
+```
+
+> 文档对象新增 `source_type`（`file|url|text`）与 `source_url`，在 `/knowledge/documents` 列表与详情中返回。
 
 ## 6. 对话（双层引用）
 

@@ -134,8 +134,9 @@ NPU-Assistant/
 │  │  │  ├─ text_utils.py   # 分词 / 标题归一化 / slugify
 │  │  │  ├─ llm.py          # OpenAI 兼容 / Ollama / mock Provider 适配
 │  │  │  ├─ ingest.py       # 上传落盘、解析入口、reindex、删除级联
+│  │  │  ├─ importer.py     # URL / 文本快速收录（抓取 + 正文提取 + 复用编译）
 │  │  │  ├─ parsing.py      # 多格式解析（pdf/docx/xlsx/csv/json/html/md/txt）
-│  │  │  └─ bot_pipeline.py # 机器人统一入站处理（复用 counselor）
+│  │  │  └─ bot_pipeline.py # 机器人统一入站处理（复用 counselor；管理员入库命令）
 │  │  └─ adapters/          # onebot（QQ）、wechat_mp（公众号）、base
 │  ├─ data/
 │  │  ├─ seed_docs/         # 10 篇示例源文件（中文 Markdown）
@@ -145,18 +146,23 @@ NPU-Assistant/
 │  └─ requirements.txt
 ├─ frontend/
 │  ├─ index.html            # 单页应用（hash 路由 5 个视图）
-│  └─ assets/               # styles.css + 原生 ES Module（api.js / app.js / ui.js / views/）
+│  ├─ manifest.webmanifest  # PWA 清单（standalone / #0b3d91 / 192/512 图标）
+│  ├─ service-worker.js     # 静态壳缓存（API 一律 network-only）
+│  └─ assets/               # styles.css + 原生 ES Module（api.js / app.js / ui.js / views/）+ icons/
 ├─ scripts/
 │  ├─ run.ps1               # 启动开发服务器
+│  ├─ serve-lan.ps1         # 以 0.0.0.0 启动并打印手机访问地址（局域网）
 │  ├─ check.ps1             # 运行 pytest 全量测试
 │  ├─ bootstrap.ps1         # 一键建环境 + 装依赖 + 启动
 │  ├─ smoke.ps1             # 启动后 Wiki API 冒烟检查
 │  ├─ build_wiki_seed.py    # 用真实 LLM 重新生成 wiki_seed.json
+│  ├─ backup.ps1            # 备份 DB 快照 + uploads + wiki_seed
 │  ├─ screenshot.ps1        # Edge 无头模式五页截图（备用）
 │  └─ ui_check.py           # Chrome CDP 交互冒烟 + 五页截图（推荐）
 ├─ docs/
 │  ├─ CONTRACT.md           # 开发契约（接口事实源）
 │  ├─ WIKI-DESIGN.md        # LLM Wiki 设计与契约（v0.2）
+│  ├─ MOBILE-OPS.md         # 移动端运维与快速收录（v0.3）
 │  ├─ API.md                # 接口速览与调用示例
 │  ├─ ARCHITECTURE.md       # 架构、请求链路、表结构、部署建议
 │  ├─ BOT-INTEGRATION.md    # NapCat / OneBot 11、公众号、控制台接入与排障
@@ -205,7 +211,10 @@ Wiki 编译与高质量回答都依赖真实 LLM；默认的 mock 模型只用�
 | `NPU_WIKI_SEED_PATH` | `backend/data/wiki_seed.json` | 预编译 Wiki 快照路径 |
 | `NPU_MAX_UPLOAD_MB` | `20` | 单文件上传上限 |
 | `NPU_AUTO_SEED` | `1` | 首启是否自动导入 Wiki 快照 |
-| `NPU_ADMIN_TOKEN` | 空 | 设置后写操作需 `X-Admin-Token` 请求头 |
+| `NPU_ADMIN_TOKEN` | 空 | 设置后管理类写操作需 `X-Admin-Token` 请求头（学生问答 `POST /api/chat`、GET、机器人 webhook 不受影响） |
+| `NPU_URL_IMPORT_ALLOW_PRIVATE` | `0` | URL 收录是否允许私网/回环地址（内网资料才临时开启） |
+| `NPU_URL_IMPORT_MAX_BYTES` | `3145728` | URL 抓取响应大小上限（默认 3MB） |
+| `NPU_URL_IMPORT_MAX_URLS` | `5` | 批量收录单次链接上限 |
 
 ## 八、预编译 Wiki 快照（离线演示）
 
@@ -230,7 +239,50 @@ $env:NPU_SEED_MODEL="deepseek-chat"                    # 可选
 
 完整步骤、配置示例与故障排查见 **[docs/BOT-INTEGRATION.md](docs/BOT-INTEGRATION.md)**。
 
-## 十、运行测试
+## 十、移动端运维（v0.3）
+
+> 完整设计、部署与安全清单见 **[docs/MOBILE-OPS.md](docs/MOBILE-OPS.md)**。目标是「手机就能运维」：手机上查看状态、上传文件、把网页/公众号文章链接或转发文字一键收录进 Wiki；QQ/微信机器人管理员转发链接即可自动入库。
+
+### 10.1 手机访问方式
+
+| 方式 | 适用 | HTTPS | 说明 |
+|------|------|-------|------|
+| 局域网 | 手机与电脑同一 Wi-Fi，先跑通 | 否 | `.\scripts\serve-lan.ps1` 后手机访问 `http://<电脑IP>:8000`；HTTP 下 PWA 不能安装，网页可用 |
+| 公网隧道（推荐试用） | 手机 4G/5G、公众号回调、PWA 安装 | 是 | Cloudflare Tunnel / ngrok / frp，一条命令得到 `https://xxx` 地址 |
+| 云服务器 | 7×24 生产 | 是 | systemd + Caddy/Nginx 反代 + 定期备份 |
+
+**管理令牌**：设置环境变量 `NPU_ADMIN_TOKEN`（建议 ≥24 位随机串）后，除学生问答 `POST /api/chat`、只读 GET 与机器人 webhook 外的写操作都要求请求头 `X-Admin-Token`。手机在「设置 → 移动端与管理令牌」登录一次，令牌保存在 `localStorage`，所有 API 自动携带；收到 401 时会引导回设置页。未设置令牌时完全放行（仅限本机演示）。
+
+### 10.2 快速收录（手机 / 桌面通用）
+
+「知识库」页顶部「快速收录」卡片提供三种模式：
+
+- **链接**：一行一个、最多 5 个，调用 `POST /api/knowledge/import/url`（单条）或 `/import/batch`（批量）→ 抓取正文 → 生成源文件 → LLM 编译词条；重复 URL 返回 `duplicated=true` 不重复编译；
+- **文本**：粘贴微信/QQ 转发的文字 + 可选标题，调用 `POST /api/knowledge/import/text`（30–200000 字）；
+- **文件**：原有上传入口（`POST /api/knowledge/documents`）。
+
+URL 抓取默认拒绝私网/回环地址（内网部署可设 `NPU_URL_IMPORT_ALLOW_PRIVATE=1`），仅接受 HTML/纯文本，响应 ≤3MB。收录成功后可直接点开生成的词条查看。
+
+### 10.3 机器人管理员入库
+
+在机器人通道配置中填写 `admin_user_ids`（QQ 号 / 公众号 openid，逗号分隔或数组）后，管理员在 QQ / 微信中：
+
+| 发送内容 | 行为 |
+|----------|------|
+| 纯链接或包含链接的文字、`#入库 <链接>`、`#收录 <链接>` | 抓取并入库，回复「已收录《标题》：生成 N 个词条…」 |
+| `#状态` | 回复版本、Wiki 词条数、源文件数、默认模型、最近构建状态 |
+| `#帮助` | 回复命令说明 |
+
+- **QQ**：同步入库后直接回复结果；
+- **微信公众号**：受 5 秒被动回复限制，先立即回复「收到，已开始收录，请稍后到 Wiki 查看」，后台线程完成入库（MVP 不做客服消息异步推送）；
+- 非管理员发链接不触发入库，按普通问题回答；`import_enabled=false` 可关闭该通道入库。
+
+### 10.4 PWA 与备份
+
+- PWA：`frontend/manifest.webmanifest` + `service-worker.js` + 192/512 图标；`display=standalone`，主色 `#0b3d91`；Service Worker 只缓存静态壳、不缓存 API；安装需 HTTPS（隧道/反代）。
+- 备份：`.\scripts\backup.ps1` 生成 `backups/npu-assistant-<时间>.zip`（DB 快照 + uploads + seed），恢复时停服覆盖 `backend/data`。
+
+## 十一、运行测试
 
 ```powershell
 # 全量测试（pytest，工作目录 backend）
@@ -252,7 +304,7 @@ cd backend
 
 接口调试：启动后访问 Swagger UI <http://127.0.0.1:8000/api/docs>，或 `GET /api/health`（含 `knowledge_mode`、`wiki_pages`）；常用示例见 [docs/API.md](docs/API.md)。
 
-## 十一、常见问题
+## 十二、常见问题
 
 **Q1：启动报错「未找到虚拟环境」？**
 先执行 `python -m venv .venv`，再 `.\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt`。
@@ -275,7 +327,7 @@ Wiki 编译需要真实 LLM。请到「模型」页检查默认模型是否为 D
 **Q7：中文乱码？**
 项目文件统一 UTF-8。PowerShell 使用 `chcp 65001` 或保持 `$env:PYTHONUTF8=1`（脚本已设置）。
 
-## 十二、已知限制
+## 十三、已知限制
 
 1. **编译依赖真实 LLM**：无 Key 不能上传编译；每次编译会产生 1–N 次 LLM 调用（按编译单元计数，成本与文件长度相关）。
 2. **编译可能产生 `needs_review` 词条**：LLM 输出解析失败或来源无法校验时保留原文兜底，只展示、不参与问答，需人工编辑后转 `ready`。
@@ -286,7 +338,7 @@ Wiki 编译需要真实 LLM。请到「模型」页检查默认模型是否为 D
 7. **公众号仅明文模式**，问答超过约 4.5 秒会先回兜底提示（无异步客服消息推送）。
 8. **问候/闲聊由 LLM 自然回应，不引用 Wiki（`navigation.method=chitchat`）**；非校园话题仅做「服务范围」说明，不做开放域闲聊，也不编造政策。
 
-## 十三、免责声明与安全提醒
+## 十四、免责声明与安全提醒
 
 - 本项目为**教学演示 / MVP**，不是学校的官方信息系统。Wiki 示例词条内容为虚构的示例政策，时间、金额、电话、地点均不可作为实际办事依据；请以学校官方通知、学生手册与负责部门答复为准。
 - AI 编译与回答可能存在遗漏或偏差，涉及奖学金、学籍、毕业、贷款等关键事项，请务必核对引用来源并与辅导员或职能部门核实。
@@ -294,6 +346,6 @@ Wiki 编译需要真实 LLM。请到「模型」页检查默认模型是否为 D
 - 部署到公网前请务必设置 `NPU_ADMIN_TOKEN`、使用 HTTPS 反向代理、限制上传大小与来源 IP，并遵守《个人信息保护法》与学校数据管理规定；**上传真实文件与调用第三方 LLM 前请完成数据合规评估**。
 - 接入 QQ / 微信公众号需遵守对应平台协议；公众号仅实现明文模式，生产环境建议改为加密模式并做消息验签加固。
 
-## 十四、许可
+## 十五、许可
 
 本项目仅用于教学与内部演示。如需在真实院系试点，请先完成数据合规评估与内容审核流程。

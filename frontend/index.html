@@ -5,8 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="NPU-Assistant 校园助手：辅导员数字分身、LLM Wiki 知识库、模型管理与微信/QQ 机器人。" />
   <meta name="theme-color" content="#0b3d91" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="校园助手" />
   <title>NPU-Assistant · 辅导员数字分身</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='12' fill='%230b3d91'/%3E%3Cpath d='M24 12 38 19 24 26 10 19Z' fill='%2338e1d4'/%3E%3Cpath d='M15 23v7c0 3 4 5 9 5s9-2 9-5v-7l-9 4.5Z' fill='%23ffffff' opacity='.85'/%3E%3C/svg%3E" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png" />
   <link rel="stylesheet" href="./assets/styles.css" />
 </head>
 <body>
@@ -81,6 +87,10 @@
             <svg class="i i-xs" aria-hidden="true"><use href="#i-external"></use></svg>
           </a>
         </div>
+        <button class="btn btn-ghost btn-sm btn-block install-btn" id="installAppBtn" type="button" hidden>
+          <svg class="i" aria-hidden="true"><use href="#i-download"></use></svg>
+          <span>安装到桌面</span>
+        </button>
       </div>
     </aside>
     <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>

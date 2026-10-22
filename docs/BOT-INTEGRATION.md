@@ -40,7 +40,9 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
   "api_base": "http://127.0.0.1:3000",
   "access_token": "change-me-to-a-random-token",
   "self_id": "",
-  "group_mention_only": "true"
+  "group_mention_only": "true",
+  "admin_user_ids": "123456789",
+  "import_enabled": "true"
 }
 ```
 
@@ -52,6 +54,8 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 | `access_token` | 与 NapCat 网络配置中填写的 Token 保持一致；为空表示不鉴权 |
 | `self_id` | 机器人 QQ 号；填空时由事件中的 `self_id` 自动识别（建议首次收到消息后按日志补全） |
 | `group_mention_only` | 群聊是否仅在被 @ 时回复，默认 `"true"`；设为 `"false"` / `"0"` 可回复所有群消息（建议保持默认，避免刷屏） |
+| `admin_user_ids` | 允许「转发链接即入库」的管理员 QQ 号，逗号分隔（也可传数组）；为空表示关闭该通道的入库权限 |
+| `import_enabled` | 是否启用机器人入库，默认 `"true"`；`"false"` 时管理员发链接只提示已关闭 |
 
 保存后，通道卡片会显示形如下面的地址（`{id}` 为通道 ID）：
 
@@ -112,6 +116,23 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 - 发送失败（NapCat 未启动、端口错误、Token 不匹配）**只记录日志**，不影响 webhook 的 HTTP 响应；通道状态可能显示为 `error`；HTTP 客户端已设置 `trust_env=False`，不会被系统代理接管；
 - OneBot HTTP API 请求规则：私聊 `POST {api_base}/send_private_msg`，群聊 `POST {api_base}/send_group_msg`，Body `{user_id|group_id, message}`，有 Token 时带 `Authorization: Bearer <token>`。
 
+### 3.5 管理员「转发即入库」
+
+在通道配置中把本人/值班老师的 QQ 号填入 `admin_user_ids` 后，管理员可以直接在 QQ 里把网页 / 公众号文章链接转发给机器人，自动抓取正文并编译成 Wiki 词条（详见 [MOBILE-OPS.md](MOBILE-OPS.md) §2.2）：
+
+| 消息 | 行为 |
+|------|------|
+| 纯链接 / 含链接的文字（如「帮我收录 https://…」） | 抓取并入库，回复「已收录《标题》：生成 N 个词条：…」 |
+| `#入库 <链接>`、`#收录 <链接>` | 同上 |
+| `#状态` | 回复版本、Wiki 词条数、源文件数、默认模型、最近构建状态 |
+| `#帮助` | 回复命令说明；未配置管理员时会提示当前发送者 ID，便于填入 `admin_user_ids` |
+
+- 命令与入库消息**不进入问答会话**（不占用学生的聊天上下文）；
+- 非管理员发链接：不触发入库，按普通问题回答；
+- `import_enabled="false"`：管理员发链接也只回复「机器人收录功能已关闭」；
+- 入库文档 `tags` 自动追加 `bot`/`QQ`（微信为 `bot`/`微信`），`source_type="url"`；
+- 重复链接回复「该链接已收录过」，不会重复编译。
+
 ## 4. 微信公众号（明文模式）
 
 > MVP 只实现**明文模式**，用于内网演示与流程验证。生产环境请改用安全模式（加密模式）并做消息验签加固。
@@ -124,7 +145,9 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 {
   "token": "npu-assistant",
   "app_id": "",
-  "welcome": ""
+  "welcome": "",
+  "admin_user_ids": "oXxxOpenId1",
+  "import_enabled": "true"
 }
 ```
 
@@ -133,6 +156,10 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 | `token` | 自定义字符串，必须与公众号后台「服务器配置 → Token」完全一致（区分大小写） |
 | `app_id` | 公众号 AppID，可留空（仅记录用） |
 | `welcome` | 关注欢迎语，可留空使用默认欢迎语 |
+| `admin_user_ids` | 允许「转发链接即入库」的管理员 openid，逗号分隔；openid 可在后端日志的 `FromUserName` 中查看 |
+| `import_enabled` | 是否启用机器人入库，默认 `"true"` |
+
+> 微信管理员发链接时，受 5 秒被动回复限制：服务端会**立即 ack**「收到，已开始收录，请稍后到 Wiki 查看」，随后由后台线程完成抓取与编译；MVP 不做客服消息异步推送，稍后到知识库页刷新即可（重复发送会提示已收录）。
 
 保存后得到回调地址：`/api/bots/wechat/{id}`。
 

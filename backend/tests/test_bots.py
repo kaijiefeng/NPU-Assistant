@@ -25,7 +25,8 @@ def _find_channel(client, channel_type: str) -> dict:
     return next(item for item in _channels(client) if item["type"] == channel_type)
 
 
-def _create_onebot(client, *, access_token: str = "evt-token") -> dict:
+def _create_onebot(client, *, access_token: str = "evt-token",
+                   admin_user_ids: str = "", import_enabled: str = "true") -> dict:
     response = client.post(
         "/api/bots/channels",
         json={
@@ -35,6 +36,8 @@ def _create_onebot(client, *, access_token: str = "evt-token") -> dict:
                 "api_base": "http://127.0.0.1:9",
                 "access_token": access_token,
                 "self_id": "10001",
+                "admin_user_ids": admin_user_ids,
+                "import_enabled": import_enabled,
             },
         },
     )
@@ -42,10 +45,19 @@ def _create_onebot(client, *, access_token: str = "evt-token") -> dict:
     return response.json()
 
 
-def _create_wechat(client, *, token: str = WECHAT_TOKEN) -> dict:
+def _create_wechat(client, *, token: str = WECHAT_TOKEN,
+                   admin_user_ids: str = "", import_enabled: str = "true") -> dict:
     response = client.post(
         "/api/bots/channels",
-        json={"type": "wechat_mp", "name": "测试公众号", "config": {"token": token}},
+        json={
+            "type": "wechat_mp",
+            "name": "测试公众号",
+            "config": {
+                "token": token,
+                "admin_user_ids": admin_user_ids,
+                "import_enabled": import_enabled,
+            },
+        },
     )
     assert response.status_code == 201, response.text
     return response.json()
@@ -57,10 +69,11 @@ def _signature(token: str = WECHAT_TOKEN, timestamp: str = TIMESTAMP,
     return hashlib.sha1(raw.encode("utf-8")).hexdigest()
 
 
-def _wechat_xml(msg_type: str = "text", content: str = "请假流程是什么？") -> bytes:
+def _wechat_xml(msg_type: str = "text", content: str = "请假流程是什么？",
+                from_user: str = "openid-001") -> bytes:
     return f"""<xml>
   <ToUserName><![CDATA[gh_test_account]]></ToUserName>
-  <FromUserName><![CDATA[openid-001]]></FromUserName>
+  <FromUserName><![CDATA[{from_user}]]></FromUserName>
   <CreateTime>{TIMESTAMP}</CreateTime>
   <MsgType><![CDATA[{msg_type}]]></MsgType>
   <Content><![CDATA[{content}]]></Content>
@@ -397,3 +410,150 @@ def test_onebot_ws_accepts_valid_token_and_heartbeat(client):
             )
     except WebSocketDisconnect as exc:  # pragma: no cover
         pytest.fail(f"合法 token 的 OneBot WS 不应被拒绝：{exc}")
+
+
+# ---------------------------------------------------------------------------
+# 管理员转发即入库（docs/MOBILE-OPS.md §2.2）
+# ---------------------------------------------------------------------------
+def _simulate_onebot(client, channel: dict, message: str, user_id: str = "10002"):
+    return client.post(
+        f"/api/bots/channels/{channel['id']}/test",
+        json={"message": message, "user_id": user_id, "user_name": "管理员"},
+    )
+
+
+def test_admin_link_triggers_import_and_reply(client, fake_importer):
+    channel = _create_onebot(client, admin_user_ids="10002")
+    response = _simulate_onebot(
+        client, channel, "帮我收录 https://example.com/article?id=1", user_id="10002"
+    )
+    assert response.status_code == 200, response.text
+    data = response.json()
+
+    assert fake_importer.calls, "管理员发链接应触发 import_url"
+    call = fake_importer.calls[0]
+    assert call["url"] == "https://example.com/article?id=1"
+    assert {"bot", "QQ"}.issubset(set(call["tags"]))
+    assert "已收录" in data["reply"]
+    assert "词条A" in data["reply"]
+    assert data["citations"] == []
+    # 命令/入库消息不进入问答会话
+    assert data["conversation_id"] is None
+    assert data["outbound"]["type"] == "onebot11"
+
+
+def test_admin_import_command_triggers_import(client, fake_importer):
+    channel = _create_onebot(client, admin_user_ids="10002")
+    response = _simulate_onebot(
+        client, channel, "#入库 https://example.com/command", user_id="10002"
+    )
+    assert response.status_code == 200
+    assert fake_importer.calls
+    assert fake_importer.calls[0]["url"] == "https://example.com/command"
+    assert "已收录" in response.json()["reply"]
+
+
+def test_non_admin_link_is_not_imported(client, fake_importer):
+    channel = _create_onebot(client, admin_user_ids="10002")
+    response = _simulate_onebot(
+        client, channel, "https://example.com/article", user_id="99999"
+    )
+    assert response.status_code == 200
+    assert fake_importer.calls == [], "非管理员发链接不得触发入库"
+    assert "已收录" not in response.json()["reply"]
+
+
+def test_admin_status_and_help_commands(client, fake_importer):
+    channel = _create_onebot(client, admin_user_ids="10002")
+
+    status = _simulate_onebot(client, channel, "#状态", user_id="10002").json()
+    assert "运行状态" in status["reply"]
+    assert "Wiki 词条" in status["reply"]
+    assert "版本" in status["reply"]
+    assert status["citations"] == []
+
+    help_reply = _simulate_onebot(client, channel, "#帮助", user_id="10002").json()
+    assert "#入库" in help_reply["reply"]
+    assert "#状态" in help_reply["reply"]
+    assert "#帮助" in help_reply["reply"]
+    assert fake_importer.calls == []
+
+    # 非管理员发命令：提示仅限管理员
+    restricted = _simulate_onebot(client, channel, "#状态", user_id="99999").json()
+    assert "仅限管理员" in restricted["reply"]
+
+
+def test_admin_import_disabled_does_not_import(client, fake_importer):
+    channel = _create_onebot(
+        client, admin_user_ids="10002", import_enabled="false"
+    )
+    response = _simulate_onebot(
+        client, channel, "https://example.com/article", user_id="10002"
+    ).json()
+    assert "已关闭" in response["reply"]
+    assert fake_importer.calls == []
+
+
+def test_wechat_admin_link_acks_fast_and_imports_in_background(client, fake_importer):
+    import time as _time
+
+    wechat = _create_wechat(client, admin_user_ids="openid-admin")
+    params = {"signature": _signature(), "timestamp": TIMESTAMP, "nonce": NONCE}
+    started = _time.perf_counter()
+    response = client.post(
+        f"/api/bots/wechat/{wechat['id']}",
+        params=params,
+        content=_wechat_xml("text", "https://example.com/wx-article", from_user="openid-admin"),
+        headers={"Content-Type": "application/xml"},
+    )
+    elapsed = _time.perf_counter() - started
+
+    assert response.status_code == 200
+    assert elapsed < 2.0, f"公众号入库必须先快速 ack（实测 {elapsed:.2f}s）"
+    root = ET.fromstring(response.content)
+    assert "已开始收录" in (root.findtext("Content") or "")
+    # 后台线程最终完成入库
+    assert fake_importer.event.wait(5.0), "后台线程未调用 import_url"
+    assert fake_importer.calls[0]["url"] == "https://example.com/wx-article"
+    assert {"bot", "微信"}.issubset(set(fake_importer.calls[0]["tags"]))
+
+
+def test_wechat_non_admin_link_falls_back_to_qa(client, fake_importer):
+    wechat = _create_wechat(client, admin_user_ids="openid-admin")
+    params = {"signature": _signature(), "timestamp": TIMESTAMP, "nonce": NONCE}
+    response = client.post(
+        f"/api/bots/wechat/{wechat['id']}",
+        params=params,
+        content=_wechat_xml("text", "https://example.com/non-admin"),
+        headers={"Content-Type": "application/xml"},
+    )
+    assert response.status_code == 200
+    root = ET.fromstring(response.content)
+    assert "已开始收录" not in (root.findtext("Content") or "")
+    assert fake_importer.calls == []
+
+
+def test_channel_test_endpoint_for_onebot_and_wechat_channels(client):
+    """回归：非 console 通道的 /test 也必须可用（历史上 incoming_for_channel 缺 import 导致 500）。"""
+    onebot = _create_onebot(client)
+    onebot_response = client.post(
+        f"/api/bots/channels/{onebot['id']}/test",
+        json={"message": "你好，国家奖学金怎么申请？", "user_id": "10002"},
+    )
+    assert onebot_response.status_code == 200, onebot_response.text
+    onebot_data = onebot_response.json()
+    assert onebot_data["channel"] == "onebot11"
+    assert onebot_data["reply"]
+    assert onebot_data["outbound"]["action"] == "send_private_msg"
+    assert onebot_data["outbound"]["payload"]["user_id"] == 10002
+
+    wechat = _create_wechat(client)
+    wechat_response = client.post(
+        f"/api/bots/channels/{wechat['id']}/test",
+        json={"message": "请假流程是什么？", "user_id": "openid-001"},
+    )
+    assert wechat_response.status_code == 200, wechat_response.text
+    wechat_data = wechat_response.json()
+    assert wechat_data["channel"] == "wechat_mp"
+    assert wechat_data["reply"]
+    assert str(wechat_data["outbound"]["xml"]).startswith("<xml>")

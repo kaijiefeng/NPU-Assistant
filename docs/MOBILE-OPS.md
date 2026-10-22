@@ -1,0 +1,201 @@
+# NPU-Assistant 移动端运维与快速收录（v0.3 设计/操作手册）
+
+> v0.3 目标：**手机就能运维**——查看状态、上传文件、把网页/公众号文章链接、微信/QQ 里转发的文字，一键收录进 LLM Wiki；QQ/微信机器人管理员转发链接即可自动入库。
+> 本文档同时是**实现契约**：API 字段、机器人命令、PWA、安全边界。接口实现后以本文档为准。
+
+---
+
+## 1. 总体方案
+
+```
+手机浏览器 / PWA ──HTTPS──┐
+微信/QQ 机器人（管理员）──┴──> NPU-Assistant FastAPI（单机）
+                                  ├─ 快速收录 API：URL 抓取 → 正文提取 → 源文件 → LLM 编译词条
+                                  ├─ 机器人入库：管理员转发链接/文字 → 入库 → 回复结果（微信即时 ack）
+                                  ├─ LLM Wiki / 模型 / 机器人 / 设置 管理页（响应式）
+                                  └─ SQLite + uploads（文档副本）+ wiki_seed 快照
+```
+
+访问方式（按场景选一个）：
+| 方式 | 适用 | HTTPS | 成本 | 说明 |
+|---|---|---|---|---|
+| 局域网 | 手机与电脑同一 Wi-Fi，先跑通 | 否 | 0 | `.\scripts\serve-lan.ps1`，手机访问 `http://<电脑IP>:8000`；PWA 不能安装（非 HTTPS），但网页可用 |
+| 公网隧道（推荐试用） | 手机 4G/5G、公众号回调、PWA 安装 | 是 | 0 | Cloudflare Tunnel / ngrok / frp，一条命令得到 `https://xxx` 地址 |
+| 云服务器/VPS | 7×24 生产 | 是 | 低 | systemd + Caddy/Nginx 反代 + 备份；手机随时访问 |
+
+**鉴权**：设置 `NPU_ADMIN_TOKEN` 后，除「学生问答 `POST /api/chat`、只读 GET、机器人 webhook」外的所有写操作都要求请求头 `X-Admin-Token`。移动端在「设置 → 管理令牌」登录一次，令牌存 localStorage，所有 API 自动带上。未设置令牌时完全放行（仅限本机演示）。
+
+---
+
+## 2. 快速收录 API（新增）
+
+### 2.1 收录网页 / 公众号文章链接
+
+`POST /api/knowledge/import/url`（需管理令牌）
+
+```jsonc
+// request
+{"url": "https://mp.weixin.qq.com/s/xxxx", "title": "可选标题", "tags": ["公众号", "奖助"]}
+// 201 response
+{
+  "duplicated": false,
+  "document": { "id": "...", "title": "...", "status": "ready", "page_count": 3,
+                "source_type": "url", "source_url": "https://...", "error": null },
+  "pages": [{"id": "...", "title": "国家奖学金", "summary": "..."}]
+}
+```
+- 已收录过的同一 URL（`documents.source_url` 相同）→ `200 {"duplicated": true, "document": ..., "pages": [...]}`，不重复编译。
+- 抓取限制：仅 `http/https`；手动跟随 ≤5 次重定向；超时 30s；响应 ≤3MB；仅接受 HTML/纯文本；默认**禁止私网/回环 IP**（内网部署可设 `NPU_URL_IMPORT_ALLOW_PRIVATE=1`）。
+- 正文提取：优先 `#js_content` / `.rich_media_content`（微信公众号）、`article/main/[role=main]`，否则取 body 最大文本块；去掉 script/style/nav/footer；标题取 `og:title`/`<title>`/`h1`。提取不到正文 → 400。
+- 图片/附件不下载（MVP）；需要图片内容时用「文本收录」粘贴或上传文件。
+
+`POST /api/knowledge/import/text`（需管理令牌）
+
+```jsonc
+{"title": "请假政策（转自班级群）", "text": "……", "tags": ["微信", "请假"]}
+```
+- `text` 30–200000 字；`title` 为空时取首行（≤40 字）或「未命名资料-时间」；生成源文件并编译词条，返回结构同上（`source_type="text"`）。
+
+`POST /api/knowledge/import/batch`（需管理令牌）
+
+```jsonc
+{"urls": ["https://a", "https://b"], "tags": ["待整理"]}
+// 200
+{"items": [{"url": "https://a", "ok": true, "duplicated": false, "document_id": "...",
+            "pages": [{"id": "...", "title": "..."}], "error": null}, ...]}
+```
+- 单次 ≤5 条，顺序处理；单条失败不影响其它。
+
+文档对象新增字段：`source_type`（`file|url|text`）、`source_url`。列表/详情接口返回。
+
+### 2.2 机器人管理员入库（QQ / 微信）
+
+通道配置（`POST/PUT /api/bots/channels` 的 `config`）新增：
+- `admin_user_ids`: `"QQ号或openid，逗号分隔"`（也接受数组）。只有这些用户发来的「收录指令」才会入库，防止资料被污染。
+- 可选 `import_enabled`: `"true"|"false"`（默认 true）。
+
+管理员在 QQ/微信里发送：
+| 消息 | 行为 |
+|---|---|
+| 纯链接（或包含一个链接的文字，如“帮我收录 https://…”） | 抓取该链接并入库 |
+| `#入库 <链接>` | 同上 |
+| `#收录 <链接>` | 同上 |
+| `#状态` | 回复：版本、Wiki 词条数、源文件数、默认模型、最近构建状态 |
+| `#帮助` | 回复命令说明 |
+
+回复策略：
+- **QQ（OneBot）**：同步入库（通常 2–8 秒），直接回复「已收录《标题》：生成 N 个词条：…」或失败原因。
+- **微信公众号**：受 5 秒被动回复限制，**先立即回复**「收到，已开始收录，请稍后到 Wiki 查看」，后台线程完成入库；MVP 不做客服消息异步推送（再次发送链接会提示已收录）。
+- 非管理员发链接：不触发入库，按普通问题回答（避免滥用）。
+- 机器人入库的文档 `source_type="url"`，`tags` 自动追加 `bot`/`QQ`/`微信`。
+
+---
+
+## 3. 移动端 Web / PWA
+
+1. **快速收录卡片**（知识库页顶部，移动端优先）：
+   - 三个模式 Tab：`链接`（支持一行一个、最多 5 个，批量收录 + 逐条结果）、`文本`（标题 + 正文粘贴）、`文件`（原有上传）。
+   - 收录中显示进度（抓取 → 编译词条）；成功后展示生成的词条标题，可直接点开查看；失败逐条显示原因。
+   - 卡片内提示：微信/QQ 可把链接直接发给机器人（需管理员），或在手机上复制链接到此。
+2. **管理令牌登录**：设置页新增「管理令牌」卡片（输入 + 保存 + 测试连接）；保存到 `localStorage["npu_admin_token"]`；`api.js` 所有请求自动附加 `X-Admin-Token`；收到 401 时 toast 引导去设置页。
+3. **PWA**：`manifest.webmanifest` + `service-worker.js` + 192/512 图标；`display: standalone`，主色 `#0b3d91`；安装后桌面图标打开直达知识库快速收录。Service Worker 只缓存静态壳（HTML/CSS/JS/图标），**不缓存 API 响应**。
+4. **移动端适配**：390px 宽度无横向滚动；快速收录卡片首屏可见；上传/编辑抽屉全屏化；触控目标 ≥44px。
+
+---
+
+## 4. 部署与运维
+
+### 4.1 局域网（最快）
+```powershell
+.\scripts\serve-lan.ps1            # 内部设置 NPU_HOST=0.0.0.0 启动并打印手机访问地址
+# 首次需放行防火墙（管理员 PowerShell）：
+New-NetFirewallRule -DisplayName "NPU-Assistant 8000" -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow
+```
+手机浏览器打开 `http://<电脑局域网IP>:8000`。注意：HTTP 下 PWA 不能安装；不要在不可信 Wi-Fi 下开 `0.0.0.0` 且不设令牌。
+
+### 4.2 公网 HTTPS（推荐：Cloudflare Tunnel）
+```powershell
+winget install Cloudflare.cloudflared
+$env:NPU_ADMIN_TOKEN = "<长随机串>"; .\scripts\run.ps1
+# 另开终端：
+cloudflared tunnel --url http://127.0.0.1:8000
+# 得到 https://xxxx.trycloudflare.com → 手机访问 / PWA 安装 / 公众号回调
+```
+长期使用建议命名隧道 + 自有域名；ngrok/frp 同理。**公网必须设置 `NPU_ADMIN_TOKEN`，不要把 8000 端口直接映射到公网**。
+
+### 4.3 云服务器（7×24）
+- `uvicorn app.main:app --host 127.0.0.1 --port 8000` + Caddy/Nginx 反代 HTTPS；
+- systemd 服务示例、备份 cron 见附录；
+- 数据目录 `backend/data`（`app.db` + `uploads` + `wiki_seed.json`）定期备份。
+
+### 4.4 备份 / 恢复
+```powershell
+.\scripts\backup.ps1                 # 生成 backups/npu-assistant-<时间>.zip（DB 快照 + uploads + seed）
+```
+恢复：停止服务 → 解压覆盖 `backend/data` → 启动。**不要**直接复制运行中的 `app.db-wal` 而不停服务。
+
+### 4.5 安全清单
+- [ ] 设置强随机 `NPU_ADMIN_TOKEN`（≥24 字符），手机设置页保存；
+- [ ] 公网只走 HTTPS 隧道/反代；管理接口不直接暴露裸端口；
+- [ ] 机器人 `admin_user_ids` 只填本人/值班老师账号；
+- [ ] URL 抓取默认禁私网（`NPU_URL_IMPORT_ALLOW_PRIVATE=0`）；内网资料才临时开启；
+- [ ] 反向代理加限流/请求体上限（例如 5MB）与访问日志；
+- [ ] 定期备份 `backend/data`，升级前先备份；
+- [ ] 公众号仅明文模式 + Token 校验；QQ 通道 access_token 强随机。
+
+---
+
+## 5. 验收标准（v0.3）
+
+- [ ] `POST /api/knowledge/import/text` 收录文字 → `documents.source_type=text`、`page_count>0`、词条可在 `/api/wiki/tree` 看到
+- [ ] `POST /api/knowledge/import/url` 抓取本地测试网页/公众号样式 HTML → 正确提取正文与标题、生成词条；重复 URL 返回 `duplicated=true` 且不重复建词条
+- [ ] URL 抓取拒绝 `file://`、私网 IP、超大响应、非 HTML；失败返回 400 中文原因
+- [ ] 批量链接 ≤5 条，逐条返回 ok/error
+- [ ] 设置 `NPU_ADMIN_TOKEN` 后：POST 导入/上传/编辑/重建无令牌 → 401；带 `X-Admin-Token` → 200；`POST /api/chat` 与 GET 不受影响；机器人 webhook 不受影响
+- [ ] QQ 管理员发链接 → 入库并回复结果；非管理员发链接 → 不入库；`#状态` 返回统计
+- [ ] 微信管理员发链接 → 5 秒内先 ack，后台完成入库
+- [ ] 手机 390px 下快速收录卡片可完成「链接/文本/文件」三种收录；无横向滚动；管理令牌登录后管理操作成功
+- [ ] PWA：manifest、service worker、192/512 图标可访问；Chrome 可安装；离线打开显示静态壳与错误提示
+- [ ] `pytest` 新增导入/鉴权/机器人入库用例全绿；smoke/真实 E2E 通过；文档更新
+
+> **验收记录（2026-10-22，QA 实测）**：pytest **83 passed**；8000 API 18/18、8011（`NPU_ADMIN_TOKEN`）24/24、390px UI 5/5 全部通过；触控目标经 web-ui 修复（≤720px 媒体查询统一 ≥44px）后复测 **0/64 个控件 <44px**，无遗留阻塞项。
+
+---
+
+## 6. 附录
+
+### 6.1 机器人通道配置示例
+```jsonc
+// QQ OneBot
+{"api_base":"http://127.0.0.1:3000","access_token":"强随机","self_id":"123456789",
+ "group_mention_only":"true","admin_user_ids":"123456789,987654321"}
+// 微信公众号
+{"token":"公众号后台Token","app_id":"","welcome":"","admin_user_ids":"oXxxOpenId1,oXxxOpenId2"}
+```
+
+### 6.2 systemd 示例
+```ini
+[Unit]
+Description=NPU-Assistant
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/NPU-Assistant
+Environment=NPU_HOST=127.0.0.1 NPU_PORT=8000 NPU_ADMIN_TOKEN=replace-me
+ExecStart=/opt/NPU-Assistant/.venv/bin/python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### 6.3 常见问题
+| 现象 | 处理 |
+|---|---|
+| 手机打不开局域网地址 | 同一 Wi-Fi？防火墙放行 8000？电脑 IP 正确（`ipconfig`）？ |
+| 手机管理操作提示 401/需要令牌 | 设置页填 `NPU_ADMIN_TOKEN` 同样的值并保存；刷新重试 |
+| 公众号回调校验失败 | URL 必须公网 80/443、Token 与通道 config 完全一致、明文模式；检查隧道是否在线 |
+| 微信发链接只回“已开始收录”没有结果 | 设计如此（5 秒限制）；稍后到 Wiki 页刷新查看，或再发一次会提示已收录 |
+| URL 收录报“无法访问私网地址” | 内网资料：设 `NPU_URL_IMPORT_ALLOW_PRIVATE=1` 后重启（仅限可信网络） |
+| 收录成功但词条质量差 | 到知识库编辑词条/补别名，或改进源文档结构（标题清晰） |
+| PWA 装不上 | 需要 HTTPS（Cloudflare Tunnel / 反代）；LAN HTTP 不支持安装 |

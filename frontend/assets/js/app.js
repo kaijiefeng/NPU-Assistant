@@ -4,7 +4,7 @@
  * 5 个视图（#/chat #/knowledge #/models #/bots #/settings）按需动态导入，
  * 每个视图模块导出 `mount(container)`，可返回清理函数。
  */
-import { getHealth } from './api.js';
+import { getHealth, setUnauthorizedHandler } from './api.js';
 import { esc, icon, toast } from './ui.js';
 
 const ROUTES = {
@@ -239,11 +239,80 @@ function bindGlobalErrorHandlers() {
 }
 
 /* ------------------------------------------------------------------ */
+/* 管理令牌 401 引导                                                   */
+/* ------------------------------------------------------------------ */
+let lastUnauthorizedAt = 0;
+
+function bindUnauthorizedGuide() {
+  setUnauthorizedHandler((detail) => {
+    const now = Date.now();
+    if (now - lastUnauthorizedAt < 6000) return;
+    lastUnauthorizedAt = now;
+    toast(
+      detail ||
+        '该操作需要管理员令牌：请到「设置 → 移动端与管理令牌」填写 NPU_ADMIN_TOKEN 后重试。',
+      'error',
+      { title: '需要管理令牌', duration: 9000 },
+    );
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* PWA：Service Worker 注册 + 安装提示                                 */
+/* ------------------------------------------------------------------ */
+let deferredInstallPrompt = null;
+
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  const isSecure =
+    location.protocol === 'https:' ||
+    ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
+  if (!isSecure) return; // HTTP 局域网访问不支持 SW/PWA 安装
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch((err) => {
+      console.warn('[NPU-Assistant] Service Worker 注册失败', err);
+    });
+  });
+}
+
+function bindInstallPrompt() {
+  const button = document.getElementById('installAppBtn');
+  if (!button) return;
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    button.hidden = false;
+  });
+  button.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) {
+      button.hidden = true;
+      return;
+    }
+    deferredInstallPrompt.prompt();
+    try {
+      await deferredInstallPrompt.userChoice;
+    } catch {
+      /* ignore */
+    }
+    deferredInstallPrompt = null;
+    button.hidden = true;
+  });
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    button.hidden = true;
+    toast('已安装到桌面，可从桌面图标直达快速收录', 'success', { title: '安装成功' });
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /* 启动                                                                */
 /* ------------------------------------------------------------------ */
 function boot() {
   bindShell();
   bindGlobalErrorHandlers();
+  bindUnauthorizedGuide();
+  bindInstallPrompt();
+  registerServiceWorker();
   if (!location.hash) {
     location.replace(`#/${DEFAULT_VIEW}`);
     return;

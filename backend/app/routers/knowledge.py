@@ -1,15 +1,20 @@
-"""知识库路由（LLM Wiki）：源文件上传 / 列表 / 详情 / 删除 / 重编译 / 快照 / 统计。
+"""知识库路由（LLM Wiki）：源文件上传 / 移动端快速收录 / 列表 / 详情 / 删除 / 重编译。
 
-严格遵循 ``docs/CONTRACT.md`` §5.3 与 ``docs/WIKI-DESIGN.md`` §4.1：
+严格遵循 ``docs/CONTRACT.md`` §5.3、``docs/WIKI-DESIGN.md`` §4.1 与
+``docs/MOBILE-OPS.md`` §2.1：
 
 * ``POST   /api/knowledge/documents``             multipart 上传，保存+解析+**同步编译**
-* ``GET    /api/knowledge/documents``             列表（含 page_count）
+* ``POST   /api/knowledge/import/url``            收录网页/公众号链接（抓取+正文提取+编译）
+* ``POST   /api/knowledge/import/text``           收录粘贴文本（微信/QQ 转发内容）
+* ``POST   /api/knowledge/import/batch``          批量收录链接（≤5 条，逐条返回结果）
+* ``GET    /api/knowledge/documents``             列表（含 page_count、source_type、source_url）
 * ``GET    /api/knowledge/documents/{id}``        详情 + 贡献的 wiki_pages
 * ``DELETE /api/knowledge/documents/{id}``        删除文档 / 独占词条 / 物理文件
 * ``POST   /api/knowledge/documents/{id}/reindex`` 重新解析+编译 → {document, build}
 * ``POST   /api/knowledge/seed``                  导入预编译快照（幂等）
 * ``GET    /api/knowledge/stats``                 文档 / 词条 / 来源统计
 
+管理令牌由 ``app.main.admin_guard`` 中间件统一校验，路由内不重复加依赖。
 **已移除**（RAG 遗留）：``GET /knowledge/documents/{id}/chunks``、
 ``POST /knowledge/search``、chunks 表相关字段。
 """
@@ -18,10 +23,11 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile
+from pydantic import BaseModel, Field
 
 from .. import config, db
-from ..services import ingest, wiki_builder
+from ..services import importer, ingest, wiki_builder
 
 logger = logging.getLogger("npu-assistant")
 
@@ -45,6 +51,32 @@ def require_document(doc_id: str) -> dict:
 
 def _document_json(row: dict) -> dict:
     return ingest.document_to_dict(row)
+
+
+# ---------------------------------------------------------------------------
+# 移动端快速收录：请求体（docs/MOBILE-OPS.md §2.1）
+# ---------------------------------------------------------------------------
+class ImportUrlRequest(BaseModel):
+    """``POST /knowledge/import/url`` 请求体。"""
+
+    url: str | None = None
+    title: str | None = None
+    tags: list[str] | str | None = None
+
+
+class ImportTextRequest(BaseModel):
+    """``POST /knowledge/import/text`` 请求体。"""
+
+    title: str | None = None
+    text: str | None = None
+    tags: list[str] | str | None = None
+
+
+class ImportBatchRequest(BaseModel):
+    """``POST /knowledge/import/batch`` 请求体（最多 5 条链接）。"""
+
+    urls: list[str] | None = Field(default=None)
+    tags: list[str] | str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -96,6 +128,54 @@ def upload_document(
     except OSError as exc:
         raise HTTPException(status_code=500, detail=f"文件保存失败：{exc}") from exc
     return doc
+
+
+# ---------------------------------------------------------------------------
+# 移动端快速收录（链接 / 文本 / 批量）—— 见 docs/MOBILE-OPS.md §2.1
+# ---------------------------------------------------------------------------
+@router.post("/knowledge/import/url", status_code=201)
+def import_url(payload: ImportUrlRequest, response: Response) -> dict:
+    """收录网页/公众号文章链接：抓取 → 正文提取 → 查重 → 源文件 → 编译词条。
+
+    * 新链接 → 201；同一 URL 已收录 → 200 + ``duplicated=true``（不重复编译）；
+    * 抓取失败 / 非 HTML 文本 / 私网地址（SSRF 防护）等 → 400 中文 ``detail``。
+    """
+    try:
+        result = importer.import_url(
+            payload.url or "",
+            title=payload.title,
+            tags=payload.tags,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=importer.error_text(exc)) from exc
+    if result.get("duplicated"):
+        response.status_code = 200
+    return result
+
+
+@router.post("/knowledge/import/text", status_code=201)
+def import_text(payload: ImportTextRequest) -> dict:
+    """收录一段粘贴文本（微信/QQ 转发内容），生成源文件并编译词条。
+
+    ``text`` 需 30–200000 字；``title`` 为空时取首行（≤40 字）或「未命名资料-时间」。
+    """
+    try:
+        return importer.import_text(
+            payload.title,
+            payload.text or "",
+            tags=payload.tags,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=importer.error_text(exc)) from exc
+
+
+@router.post("/knowledge/import/batch")
+def import_batch(payload: ImportBatchRequest) -> dict:
+    """批量收录链接（≤5 条，顺序处理）；单条失败不影响其它，逐条返回 ok/error。"""
+    try:
+        return importer.import_batch(payload.urls, tags=payload.tags)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=importer.error_text(exc)) from exc
 
 
 # ---------------------------------------------------------------------------
@@ -155,9 +235,19 @@ def reindex(doc_id: str) -> dict:
     """重新解析并编译单篇源文件，返回 ``{document, build}``。"""
     require_document(doc_id)
     try:
-        return ingest.reindex_document(doc_id)
+        result = ingest.reindex_document(doc_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    # wiki_builder 返回的 doc 对象不含来源字段，这里按数据库最新值补齐
+    row = db.get_document(doc_id)
+    if row and isinstance(result.get("document"), dict):
+        result["document"].update(
+            {
+                "source_type": row.get("source_type") or "file",
+                "source_url": row.get("source_url") or "",
+            }
+        )
+    return result
 
 
 # ---------------------------------------------------------------------------

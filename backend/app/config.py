@@ -42,6 +42,22 @@ MAX_UPLOAD_BYTES = int(os.environ.get("NPU_MAX_UPLOAD_MB", "20")) * 1024 * 1024
 SUPPORTED_EXTS = {".md", ".markdown", ".txt", ".pdf", ".docx", ".xlsx", ".csv", ".json", ".html", ".htm"}
 
 # ---------------------------------------------------------------------------
+# URL / text import (mobile quick-ingest)
+# ---------------------------------------------------------------------------
+URL_IMPORT_TIMEOUT_SECONDS = int(os.environ.get("NPU_URL_IMPORT_TIMEOUT", "30"))
+URL_IMPORT_MAX_BYTES = int(os.environ.get("NPU_URL_IMPORT_MAX_BYTES", str(3 * 1024 * 1024)))
+URL_IMPORT_MAX_REDIRECTS = int(os.environ.get("NPU_URL_IMPORT_MAX_REDIRECTS", "5"))
+URL_IMPORT_MAX_URLS = int(os.environ.get("NPU_URL_IMPORT_MAX_URLS", "5"))
+URL_IMPORT_MAX_TEXT_CHARS = int(os.environ.get("NPU_URL_IMPORT_MAX_TEXT_CHARS", "60000"))
+# Allow fetching private/loopback hosts (only for intranet deployments/tests).
+URL_IMPORT_ALLOW_PRIVATE = os.environ.get("NPU_URL_IMPORT_ALLOW_PRIVATE", "0").strip().lower() in {"1", "true", "yes", "on"}
+URL_IMPORT_USER_AGENT = os.environ.get(
+    "NPU_URL_IMPORT_UA",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 "
+    "(KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+)
+
+# ---------------------------------------------------------------------------
 # LLM Wiki settings
 # ---------------------------------------------------------------------------
 # A compile unit is the chunk of source text handed to the LLM per call.
