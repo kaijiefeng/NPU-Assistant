@@ -140,10 +140,10 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 
 | 验证项 | 命令 | 实测结果 |
 |--------|------|----------|
-| pytest 全量 | `.\scripts\check.ps1` | **55 passed**，1 warning（`StarletteDeprecationWarning`，依赖提示，无影响），耗时约 20s |
-| 用例分布 | — | test_wiki 18 / test_chat 8 / test_system 7 / test_models 5 / test_bots 17 |
+| pytest 全量 | `.\scripts\check.ps1` | **62 passed**，1 warning（`StarletteDeprecationWarning`，依赖提示，无影响），耗时约 22s |
+| 用例分布 | — | test_wiki 18 / test_bots 17 / test_chat 15 / test_system 7 / test_models 5 |
 | 测试隔离 | `conftest.py` | 临时 `NPU_DATA_DIR`/`NPU_DB_PATH`/`NPU_WIKI_SEED_PATH`；每用例重置数据库与上传目录；不污染 `backend/data/app.db` |
-| fake LLM | `conftest.py` | 按提示词分流：编译返回固定 JSON（含逐字 `source_quote`）、合并返回固定结果、导航返回 `page_ids`、回答返回带 `[1]` 文本；另有失败模式验证降级路径 |
+| fake LLM | `conftest.py` | 按提示词分流：编译返回固定 JSON（含逐字 `source_quote`）、合并返回固定结果、导航返回 `page_ids`、回答返回带 `[1]` 文本、寒暄返回自然回复；另有失败模式验证降级路径 |
 
 ### 9.2 真实服务端到端（8000 + DeepSeek，30 项检查全部通过，总耗时约 16s）
 
@@ -155,6 +155,7 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 | 导航搜索 | 「国家奖学金怎么申请」→ `method=exact`、命中正确词条；无命中问题 → `method=none` |
 | 真实问答（双层引用） | `fallback=false`，DeepSeek 回答耗时约 **1973ms**；citations 含 `page_id`/`page_title`/`snippet` 与 `sources[].section/quote`；`[1]` 与引用编号一致；`navigation.method=exact` |
 | 无命中兜底 | 返回「校园 Wiki 暂未收录」+ 咨询渠道，`citations=[]` |
+| 寒暄 / 闲聊（真实 LLM） | 「你好」「谢谢」「你是谁」→ 自然回复（`navigation.method=chitchat`、`citations=[]`、不再误报暂未收录）；「今天天气怎么样」→ 友好服务范围说明（`method=none`、`citations=[]`）；政策问题仍走 Wiki 引用（回归通过） |
 | 真实上传编译 | 上传 1 篇新 `.md` → `status=ready`、**3 个词条**、来源锚点指向新文件，编译耗时约 **3.22s**；新词条可被搜索命中 |
 | 词条编辑 | `PUT /api/wiki/pages/{id}` 成功，`version 1→2`，摘要立即生效 |
 | 单篇 reindex | `POST /knowledge/documents/{id}/reindex` → `build.status=ready`，耗时约 **4.24s**，不产生重复词条；`/api/wiki/builds` 有记录 |
@@ -183,4 +184,5 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 6. **Web 会话无用户体系**：历史会话全局可见，多租户/登录鉴权为契约非目标。
 7. **公众号仅明文模式**：问答超过约 4.5s 先回兜底提示，需重发；加密模式为非目标。
 8. **单进程 SQLite**：部署保持单实例，不要多 worker。
-9. 依赖库提示 `httpx` + `starlette.testclient` 的 `StarletteDeprecationWarning`，仅测试告警。
+9. **问候 / 闲聊由 LLM 自然回应，不引用 Wiki**：寒暄、致谢、告别、自我介绍（`navigation.method=chitchat`）不检索词条、`citations=[]`；非校园话题仅做「服务范围」说明，不做开放域闲聊，也不编造政策。
+10. 依赖库提示 `httpx` + `starlette.testclient` 的 `StarletteDeprecationWarning`，仅测试告警。

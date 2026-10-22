@@ -148,3 +148,87 @@ def test_conversation_list_and_delete(client, seeded_wiki, fake_llm, real_model)
     assert client.delete(f"/api/chat/conversations/{conversation_id}").status_code == 404
     remaining = client.get("/api/chat/conversations").json()["items"]
     assert all(item["id"] != conversation_id for item in remaining)
+
+
+# ---------------------------------------------------------------------------
+# 寒暄 / 闲聊意图（chitchat）：不检索 Wiki、不返回引用，也不再误报“暂未收录”
+# ---------------------------------------------------------------------------
+def test_chat_greeting_uses_chitchat_with_real_model(client, seeded_wiki, fake_llm, real_model):
+    data = _chat(client, "你好").json()
+
+    assert data["reply"].strip()
+    assert "暂未收录" not in data["reply"]
+    assert "辅导员数字分身" in data["reply"] or "小南" in data["reply"]
+    assert data["citations"] == []
+    assert data["sources_used"] == 0
+    assert data["navigation"] == {"method": "chitchat", "pages": []}
+    # 真实 LLM 成功时不算降级
+    assert data["fallback"] is False
+
+
+def test_chat_thanks_uses_chitchat_template_with_mock_model(client, seeded_wiki):
+    # 默认 mock 模型：寒暄走模板回复（fallback=true），但依然是自然寒暄而非“未收录”
+    data = _chat(client, "谢谢").json()
+
+    assert data["reply"].strip()
+    assert "暂未收录" not in data["reply"]
+    assert "不客气" in data["reply"]
+    assert data["citations"] == []
+    assert data["navigation"]["method"] == "chitchat"
+    assert data["fallback"] is True
+
+
+def test_chat_identity_uses_chitchat_with_real_model(client, fake_llm, real_model):
+    data = _chat(client, "你是谁").json()
+
+    assert "暂未收录" not in data["reply"]
+    assert "辅导员数字分身" in data["reply"] or "小南" in data["reply"]
+    assert data["citations"] == []
+    assert data["navigation"]["method"] == "chitchat"
+
+
+def test_chat_identity_falls_back_to_template_when_llm_broken(
+    client, real_model, broken_llm
+):
+    data = _chat(client, "你是谁").json()
+
+    assert data["reply"].strip()
+    assert "暂未收录" not in data["reply"]
+    assert "数字分身" in data["reply"]
+    assert data["citations"] == []
+    assert data["navigation"]["method"] == "chitchat"
+    assert data["fallback"] is True
+
+
+def test_chat_farewell_uses_chitchat(client, fake_llm, real_model):
+    data = _chat(client, "再见").json()
+
+    assert data["reply"].strip()
+    assert "暂未收录" not in data["reply"]
+    assert data["citations"] == []
+    assert data["navigation"]["method"] == "chitchat"
+
+
+def test_chat_policy_question_still_uses_wiki_citations(
+    client, seeded_wiki, fake_llm, real_model
+):
+    # 回归：政策问题不能被寒暄/闲聊逻辑误判
+    data = _chat(client, QUESTION).json()
+
+    assert data["navigation"]["method"] != "chitchat"
+    assert data["citations"], "政策问题必须继续返回 Wiki 词条引用"
+    assert data["citations"][0]["page_id"] == "a" * 32
+    assert data["citations"][0]["sources"][0]["section"]
+
+
+def test_chat_non_campus_question_returns_scope_explanation(
+    client, seeded_wiki, fake_llm, real_model
+):
+    data = _chat(client, "今天天气怎么样").json()
+
+    assert data["reply"].strip()
+    assert data["citations"] == []
+    assert data["sources_used"] == 0
+    # 非校园话题：友好说明服务范围，而不是“政策未收录”
+    assert "校园政策" in data["reply"] or "服务范围" in data["reply"]
+    assert "暂未收录" not in data["reply"]

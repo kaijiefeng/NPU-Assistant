@@ -241,7 +241,7 @@ cd backend
 ..\.venv\Scripts\python.exe -m pytest tests -q
 ```
 
-当前 **55 个用例全部通过**（约 20s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、对话双层引用与降级、模型管理、机器人、系统设置。
+当前 **62 个用例全部通过**（约 22s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本 / 寒暄回复，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、对话双层引用与降级、寒暄与闲聊意图（chitchat / 服务范围说明）、模型管理、机器人、系统设置。
 
 服务启动后还可运行真实 HTTP 冒烟与前端交互检查：
 
@@ -284,6 +284,7 @@ Wiki 编译需要真实 LLM。请到「模型」页检查默认模型是否为 D
 5. **快照会过期**：`wiki_seed.json` 与源文件/提示词版本相关，源文件更新后需重新编译并导出快照。
 6. **单进程 SQLite**：部署保持单实例，不要多 worker（见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)）。
 7. **公众号仅明文模式**，问答超过约 4.5 秒会先回兜底提示（无异步客服消息推送）。
+8. **问候/闲聊由 LLM 自然回应，不引用 Wiki（`navigation.method=chitchat`）**；非校园话题仅做「服务范围」说明，不做开放域闲聊，也不编造政策。
 
 ## 十三、免责声明与安全提醒
 

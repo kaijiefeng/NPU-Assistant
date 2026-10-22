@@ -186,6 +186,10 @@ class FakeLLM:
         self.answer_text = (
             "根据校园 Wiki 词条，国家奖学金需要提交申请表、成绩单与个人事迹材料 [1]。"
         )
+        self.chitchat_text = (
+            "同学你好～我是辅导员数字分身「小南」，可以回答奖助学金、请假考勤、"
+            "心理服务等校园政策问题。"
+        )
         self.compile_title: str | None = None
 
     # -- 内部工具 ---------------------------------------------------------
@@ -258,6 +262,19 @@ class FakeLLM:
         if "【可用章节】" in prompt:
             entries = [self._compile_entry(prompt)]
             return self._result(json.dumps(entries, ensure_ascii=False))
+        if "【当前场景】" in prompt and "寒暄" in prompt:
+            # 寒暄 / 致谢 / 告别 / 自我介绍：自然回复，不引用 Wiki
+            return self._result(
+                json.dumps(
+                    {
+                        "content": self.chitchat_text,
+                        "model": "Fake DeepSeek",
+                        "provider_type": "openai",
+                        "fallback": False,
+                    },
+                    ensure_ascii=False,
+                )
+            )
         # 问答
         return self._result(
             json.dumps(
