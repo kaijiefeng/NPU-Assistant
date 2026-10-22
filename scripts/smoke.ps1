@@ -1,4 +1,4 @@
-﻿# 端到端 API 冒烟测试（需服务已启动）
+﻿# 端到端 API 冒烟测试（LLM Wiki 版，需服务已启动）
 # 用法: .\scripts\smoke.ps1 [-BaseUrl http://127.0.0.1:8000]
 param(
     [string]$BaseUrl = "http://127.0.0.1:8000"
@@ -18,7 +18,7 @@ function Step($name, [scriptblock]$action) {
 }
 
 function Invoke-Json($method, $path, $body) {
-    $params = @{ Uri = "$BaseUrl$path"; Method = $method; TimeoutSec = 120 }
+    $params = @{ Uri = "$BaseUrl$path"; Method = $method; TimeoutSec = 180 }
     if ($null -ne $body) {
         $params.ContentType = "application/json; charset=utf-8"
         $params.Body = ($body | ConvertTo-Json -Depth 8 -Compress)
@@ -26,29 +26,37 @@ function Invoke-Json($method, $path, $body) {
     Invoke-RestMethod @params
 }
 
-Write-Host "== NPU-Assistant 冒烟测试 ($BaseUrl) ==" -ForegroundColor Cyan
+Write-Host "== NPU-Assistant (LLM Wiki) 冒烟测试 ($BaseUrl) ==" -ForegroundColor Cyan
 
 Step "健康检查 /api/health" {
     $r = Invoke-Json GET "/api/health" $null
     if ($r.status -ne "ok") { throw "status != ok" }
+    if ($r.knowledge_mode -ne "llm-wiki") { throw "knowledge_mode != llm-wiki" }
+    if ($r.wiki_pages -lt 1) { throw "Wiki 词条为空（请先 seed）" }
 }
-Step "运行统计 /api/system/stats" {
-    $r = Invoke-Json GET "/api/system/stats" $null
-    if ($null -eq $r.documents) { throw "缺少 documents" }
-}
-Step "导入示例知识库 /api/knowledge/seed" {
+Step "导入预编译 Wiki 快照 /api/knowledge/seed" {
     $r = Invoke-Json POST "/api/knowledge/seed" @{}
-    if ($r.total_documents -lt 1) { throw "种子文档为空" }
+    $stats = Invoke-Json GET "/api/wiki/stats" $null
+    if ($stats.pages -lt 1) { throw "Wiki 词条为 0" }
+    Write-Host ("     -> imported=" + $r.imported + " skipped=" + $r.skipped + " 当前词条=" + $stats.pages) -ForegroundColor DarkGray
 }
-Step "知识库检索 /api/knowledge/search" {
-    $r = Invoke-Json POST "/api/knowledge/search" @{ query = "国家奖学金怎么申请"; top_k = 3 }
-    if ($r.items.Count -lt 1) { throw "无检索结果" }
+Step "Wiki 目录 /api/wiki/tree" {
+    $r = Invoke-Json GET "/api/wiki/tree" $null
+    if ($r.total -lt 1) { throw "词条为空" }
 }
-Step "对话问答 /api/chat" {
+Step "Wiki 导航搜索 /api/wiki/search" {
+    $r = Invoke-Json POST "/api/wiki/search" @{ query = "国家奖学金怎么申请"; limit = 3 }
+    if ($r.candidates.Count -lt 1 -and $r.selected.Count -lt 1) { throw "无候选词条" }
+    if ($r.method -eq "none") { throw "导航 method=none" }
+}
+Step "对话问答 /api/chat（双层引用）" {
     $r = Invoke-Json POST "/api/chat" @{ message = "国家奖学金怎么申请？需要哪些材料？"; session_key = "web:smoke" }
     if (-not $r.reply) { throw "无回复" }
-    if ($r.sources_used -lt 1 -and $r.fallback -eq $false) { throw "非降级模式却无引用" }
-    Write-Host ("     -> 引用 " + $r.citations.Count + " 条 | 模型 " + $r.model + " | " + $r.latency_ms + "ms") -ForegroundColor DarkGray
+    if ($r.citations.Count -lt 1) { throw "无引用" }
+    $first = $r.citations[0]
+    if (-not $first.page_id) { throw "citation 缺少 page_id" }
+    if (-not $first.sources -or $first.sources.Count -lt 1) { throw "citation 缺少 sources 来源锚点" }
+    Write-Host ("     -> fallback=" + $r.fallback + " | 引用 " + $r.citations.Count + " 条 | 导航=" + $r.navigation.method + " | " + $r.latency_ms + "ms") -ForegroundColor DarkGray
 }
 Step "模型列表 /api/models" {
     $r = Invoke-Json GET "/api/models" $null

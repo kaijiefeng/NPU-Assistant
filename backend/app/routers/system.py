@@ -15,11 +15,13 @@ EDITABLE_SETTINGS = {
     "system_prompt",
     "welcome_message",
     "quick_questions",
-    "retrieval_top_k",
-    "retrieval_min_score",
+    "wiki_max_pages",
+    "wiki_answer_max_chars",
     "citations_enabled",
     "bot_reply_footer",
 }
+
+INT_SETTINGS = ("wiki_max_pages", "wiki_answer_max_chars")
 
 
 def current_settings() -> dict:
@@ -28,15 +30,11 @@ def current_settings() -> dict:
         settings["quick_questions"] = json.loads(settings.get("quick_questions", "[]"))
     except json.JSONDecodeError:
         settings["quick_questions"] = []
-    for key in ("retrieval_top_k",):
+    for key in INT_SETTINGS:
         try:
-            settings[key] = int(settings.get(key, config.DEFAULT_TOP_K))
+            settings[key] = int(settings.get(key, 0))
         except (TypeError, ValueError):
-            settings[key] = config.DEFAULT_TOP_K
-    try:
-        settings["retrieval_min_score"] = float(settings.get("retrieval_min_score", 0))
-    except (TypeError, ValueError):
-        settings["retrieval_min_score"] = 0.0
+            settings[key] = 0
     settings["citations_enabled"] = db.get_bool_setting("citations_enabled", True)
     return settings
 
@@ -49,6 +47,8 @@ def health() -> dict:
         "app": config.APP_NAME,
         "version": config.APP_VERSION,
         "time": datetime.now().isoformat(timespec="seconds"),
+        "knowledge_mode": "llm-wiki",
+        "wiki_pages": db.wiki_page_count(),
         "default_model": (
             {
                 "id": model["id"],
@@ -67,9 +67,12 @@ def system_info() -> dict:
     return {
         "app": config.APP_NAME,
         "version": config.APP_VERSION,
+        "knowledge_mode": "llm-wiki",
         "data_dir": str(config.DATA_DIR),
         "upload_dir": str(config.UPLOAD_DIR),
         "db_path": str(config.DB_PATH),
+        "wiki_seed_path": str(config.WIKI_SEED_PATH),
+        "wiki_seed_available": config.WIKI_SEED_PATH.is_file(),
         "frontend_ready": (config.FRONTEND_DIR / "index.html").is_file(),
         "supported_exts": sorted(config.SUPPORTED_EXTS),
         "max_upload_mb": config.MAX_UPLOAD_BYTES // (1024 * 1024),
@@ -88,7 +91,8 @@ def system_stats() -> dict:
     return {
         "documents": count("documents"),
         "ready_documents": count("documents", "WHERE status = 'ready'"),
-        "chunks": count("chunks"),
+        "wiki_pages": count("wiki_pages"),
+        "wiki_sources": count("wiki_sources"),
         "messages": count("messages"),
         "conversations": count("conversations"),
         "providers": count("providers"),
@@ -115,8 +119,14 @@ def update_settings(payload: dict) -> dict:
             value = json.dumps(value, ensure_ascii=False)
         elif key == "citations_enabled":
             value = "true" if value else "false"
-        elif key in {"retrieval_top_k", "retrieval_min_score"}:
-            value = str(value)
+        elif key in INT_SETTINGS:
+            try:
+                number = int(value)
+            except (TypeError, ValueError):
+                raise HTTPException(status_code=400, detail=f"{key} 必须是整数")
+            if number <= 0:
+                raise HTTPException(status_code=400, detail=f"{key} 必须大于 0")
+            value = str(number)
         elif not isinstance(value, str):
             raise HTTPException(status_code=400, detail=f"{key} 必须是字符串")
         db.set_setting(key, value)

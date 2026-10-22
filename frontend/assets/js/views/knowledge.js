@@ -1,23 +1,35 @@
 /**
- * views/knowledge.js — 知识库页
+ * views/knowledge.js — LLM Wiki 知识库页
  *
- * 拖拽上传、文档表格（状态徽标）、详情抽屉（切片预览）、检索测试、
- * 删除 / 重建索引 / 一键导入示例资料 / 统计卡片。
- * 接口：/api/knowledge/*
+ * 双 Tab：
+ *  - 词条：/api/wiki/search 导航搜索（method/分数）、标签筛选、词条卡片、详情抽屉
+ *          （body_html、别名/标签、来源锚点、相关词条、编辑/删除）；
+ *  - 源文件：拖拽上传（LLM 同步编译）、文档表格（状态/词条数）、单篇重建、删除、
+ *            导入预编译快照、全部重建（轮询 /api/wiki/builds/{id}）。
+ *
+ * 接口：/api/wiki/*、/api/knowledge/*
  */
 import {
   deleteDocument,
+  deleteWikiPage,
   getDocument,
-  getDocumentChunks,
   getKnowledgeStats,
   getSystemInfo,
+  getWikiBuild,
+  getWikiPage,
+  getWikiStats,
+  getWikiTree,
   listDocuments,
+  listWikiPages,
+  rebuildWiki,
   reindexDocument,
-  searchKnowledge,
-  seedKnowledge,
+  seedWiki,
+  searchWiki,
+  updateWikiPage,
   uploadDocument,
 } from '../api.js';
 import {
+  badge,
   confirmDialog,
   emptyHtml,
   errorHtml,
@@ -29,32 +41,56 @@ import {
   icon,
   loadingHtml,
   openDrawer,
+  openModal,
   setButtonBusy,
   toast,
 } from '../ui.js';
 
 const FALLBACK_EXTS = ['.md', '.markdown', '.txt', '.pdf', '.docx', '.xlsx', '.csv', '.json', '.html', '.htm'];
-const TOP_K_OPTIONS = [1, 2, 3, 4, 5, 6, 8, 10];
 const DOC_STATUS = {
-  pending: { label: '等待处理', tone: 'slate' },
-  processing: { label: '解析中', tone: 'amber' },
+  pending: { label: '等待编译', tone: 'slate' },
+  processing: { label: '编译中', tone: 'amber' },
   ready: { label: '已就绪', tone: 'green' },
-  failed: { label: '解析失败', tone: 'red' },
+  failed: { label: '失败', tone: 'red' },
+};
+const PAGE_STATUS = {
+  ready: { label: '可问答', tone: 'green' },
+  needs_review: { label: '待校对', tone: 'amber' },
+};
+const METHOD_META = {
+  exact: { label: '标题/别名精确命中', tone: 'green' },
+  keyword: { label: '关键词匹配', tone: 'blue' },
+  llm: { label: 'LLM 选页', tone: 'violet' },
+  none: { label: '未命中', tone: 'slate' },
+};
+const BUILD_STATUS = {
+  running: { label: '编译中', tone: 'amber' },
+  pending: { label: '排队中', tone: 'amber' },
+  ready: { label: '已完成', tone: 'green' },
+  completed: { label: '已完成', tone: 'green' },
+  failed: { label: '失败', tone: 'red' },
 };
 
 const state = {
+  tab: 'pages',
+  wikiStats: null,
+  kStats: null,
+  info: null,
+  tree: [],
+  treeReady: false,
+  pages: [],
+  pagesTotal: 0,
+  pagesLoaded: false,
+  pagesLoading: false,
+  pagesError: '',
+  activeTag: '',
+  search: { query: '', running: false, result: null, error: '' },
   docs: [],
   docsLoaded: false,
   docsError: '',
-  stats: null,
-  info: null,
   uploads: [],
-  searching: false,
-  searched: false,
-  searchError: '',
-  searchQuery: '',
-  searchResults: [],
-  searchLatency: null,
+  build: null,
+  buildTimer: 0,
 };
 
 function uid() {
@@ -75,45 +111,51 @@ function extClass(ext) {
   return extLabel(ext).toLowerCase().replace(/[^a-z0-9]/g, '') || 'file';
 }
 
-function statusMeta(status) {
+function docStatus(status) {
   return DOC_STATUS[status] || { label: status || '未知', tone: 'slate' };
 }
 
-function statusBadge(status, error) {
-  const meta = statusMeta(status);
-  return `<span class="badge badge-${meta.tone} status-badge" title="${esc(error || meta.label)}">
-    <span class="badge-dot"></span>${esc(meta.label)}</span>`;
+function pageStatus(status) {
+  return PAGE_STATUS[status] || { label: status || '未知', tone: 'slate' };
 }
 
-function savedTopK() {
-  try {
-    const value = Number(localStorage.getItem('npu:searchTopK'));
-    if (TOP_K_OPTIONS.includes(value)) return value;
-  } catch {
-    /* ignore */
+function docStatusBadge(status, error) {
+  const meta = docStatus(status);
+  return `<span class="badge badge-${meta.tone} status-badge" title="${esc(error || meta.label)}"><span class="badge-dot"></span>${esc(meta.label)}</span>`;
+}
+
+function pageStatusBadge(status) {
+  const meta = pageStatus(status);
+  return `<span class="badge badge-${meta.tone}"><span class="badge-dot"></span>${esc(meta.label)}</span>`;
+}
+
+function normalizeList(value) {
+  if (Array.isArray(value)) return value.map((item) => String(item)).filter(Boolean);
+  if (typeof value === 'string') {
+    return value
+      .split(/[,，]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
   }
-  return 4;
+  return [];
+}
+
+function tagChips(tags, limit = 4) {
+  const list = normalizeList(tags);
+  if (!list.length) return '';
+  return list
+    .slice(0, limit)
+    .map((tag) => `<span class="tag-chip">${esc(tag)}</span>`)
+    .join('');
+}
+
+function spinnerHtml(cls = 'spinner-sm') {
+  return `<span class="spinner ${cls}" aria-hidden="true"></span>`;
 }
 
 /* ------------------------------------------------------------------ */
 /* 统计卡片                                                            */
 /* ------------------------------------------------------------------ */
-function computedStats() {
-  const docs = state.docs;
-  const byType = {};
-  let chunks = 0;
-  let chars = 0;
-  let ready = 0;
-  docs.forEach((doc) => {
-    chunks += Number(doc.chunk_count || 0);
-    chars += Number(doc.char_count || 0);
-    if (doc.status === 'ready') ready += 1;
-    const ext = doc.file_ext || extOf(doc.filename);
-    byType[ext] = (byType[ext] || 0) + 1;
-  });
-  return { documents: docs.length, ready_documents: ready, chunks, chars, by_file_type: byType };
-}
-
 function statCard({ iconName, label, value, hint, extra = '' }) {
   return `<article class="stat-card">
     <div class="stat-icon">${icon(iconName)}</div>
@@ -126,10 +168,28 @@ function statCard({ iconName, label, value, hint, extra = '' }) {
   </article>`;
 }
 
+function lastBuildInfo() {
+  const build = state.wikiStats?.last_build;
+  if (!build) return { value: '—', hint: '暂无编译记录' };
+  if (typeof build === 'string') return { value: '有记录', hint: build };
+  const meta = BUILD_STATUS[build.status] || { label: build.status || '未知', tone: 'slate' };
+  const time = build.finished_at || build.started_at;
+  const parts = [];
+  if (build.pages_created) parts.push(`新增 ${build.pages_created}`);
+  if (build.pages_updated) parts.push(`更新 ${build.pages_updated}`);
+  if (build.pages_removed) parts.push(`删除 ${build.pages_removed}`);
+  return {
+    value: time ? fmtRelative(time) : '—',
+    label: meta.label,
+    tone: meta.tone,
+    hint: parts.length ? parts.join(' / ') : `${build.model || ''}`.trim() || '编译任务记录',
+  };
+}
+
 function renderStats() {
-  const holder = document.getElementById('knowledgeStats');
+  const holder = document.getElementById('wikiStats');
   if (!holder) return;
-  if (!state.docsLoaded && !state.stats) {
+  if (!state.wikiStats && !state.kStats) {
     holder.innerHTML = Array.from({ length: 4 })
       .map(
         () => `<article class="stat-card is-skeleton"><span class="skeleton-line w-40"></span><span class="skeleton-line w-70"></span></article>`,
@@ -137,55 +197,592 @@ function renderStats() {
       .join('');
     return;
   }
-  const stats = state.stats || computedStats();
-  const byType = stats.by_file_type || {};
-  const typeChips = Object.entries(byType)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 4)
-    .map(([ext, count]) => `<span class="type-chip">${esc(extLabel(ext))}<b>${Number(count)}</b></span>`)
-    .join('');
-  const ready = stats.ready_documents ?? computedStats().ready_documents;
+  const pages = state.wikiStats?.pages ?? state.kStats?.pages ?? state.pagesTotal ?? 0;
+  const sources = state.wikiStats?.sources ?? state.kStats?.sources ?? 0;
+  const documents = state.wikiStats?.documents ?? state.kStats?.documents ?? state.docs.length ?? 0;
+  const build = lastBuildInfo();
+  const readyCount = state.kStats?.ready_documents;
   holder.innerHTML = [
     statCard({
-      iconName: 'file',
-      label: '文档总数',
-      value: fmtNumber(stats.documents || 0),
-      hint: `已就绪 ${fmtNumber(ready || 0)} 篇`,
-    }),
-    statCard({
-      iconName: 'database',
-      label: '知识切片',
-      value: fmtNumber(stats.chunks || 0),
-      hint: '用于检索与引用',
-    }),
-    statCard({
       iconName: 'book',
-      label: '文本总量',
-      value: `${fmtNumber(stats.chars || 0)}`,
-      hint: '字符（含标点）',
+      label: 'Wiki 词条',
+      value: fmtNumber(pages),
+      hint: '由源文件编译的结构化页面',
     }),
     statCard({
-      iconName: 'folder',
-      label: '文件类型',
-      value: String(Object.keys(byType).length || 0),
-      hint: '',
-      extra: `<div class="stat-types">${typeChips || '<span class="stat-hint">暂无</span>'}</div>`,
+      iconName: 'link',
+      label: '来源锚点',
+      value: fmtNumber(sources),
+      hint: '文件 · 章节 · 原文摘录',
+    }),
+    statCard({
+      iconName: 'file',
+      label: '源文件',
+      value: fmtNumber(documents),
+      hint: readyCount !== undefined ? `已就绪 ${fmtNumber(readyCount)} 篇` : '校园原始资料',
+    }),
+    statCard({
+      iconName: 'refresh',
+      label: '最近构建',
+      value: esc(build.value),
+      hint: build.hint,
+      extra: build.label ? `<div class="stat-types">${badge(build.label, build.tone || 'slate')}</div>` : '',
     }),
   ].join('');
+  const tabPages = document.getElementById('tabPageCount');
+  if (tabPages) tabPages.textContent = state.pagesTotal ? `· ${state.pagesTotal}` : '';
+  const tabDocs = document.getElementById('tabDocCount');
+  if (tabDocs) tabDocs.textContent = state.docs.length ? `· ${state.docs.length}` : '';
+  const docCount = document.getElementById('docCount');
+  if (docCount) docCount.textContent = state.docsLoaded ? `（${state.docs.length}）` : '';
 }
 
 /* ------------------------------------------------------------------ */
-/* 上传                                                                */
+/* 数据加载                                                            */
+/* ------------------------------------------------------------------ */
+async function loadStats() {
+  const [wikiResult, knowledgeResult] = await Promise.allSettled([getWikiStats(), getKnowledgeStats()]);
+  if (wikiResult.status === 'fulfilled') state.wikiStats = wikiResult.value || null;
+  if (knowledgeResult.status === 'fulfilled') state.kStats = knowledgeResult.value || null;
+  renderStats();
+}
+
+async function loadTree() {
+  try {
+    const data = await getWikiTree();
+    state.tree = Array.isArray(data?.groups) ? data.groups : [];
+    state.treeReady = true;
+  } catch {
+    state.tree = [];
+    state.treeReady = false;
+  }
+  renderTagFilter();
+}
+
+async function loadPages({ silent = false } = {}) {
+  state.pagesLoading = true;
+  if (!silent) {
+    state.pagesLoaded = false;
+    state.pagesError = '';
+  }
+  renderPages();
+  try {
+    const data = await listWikiPages({ tag: state.activeTag, limit: 50, offset: 0 });
+    state.pages = Array.isArray(data?.items) ? data.items : [];
+    state.pagesTotal = Number(data?.total ?? state.pages.length);
+    state.pagesError = '';
+    state.pagesLoaded = true;
+    state.pagesLoading = false;
+    renderPages();
+    renderStats();
+  } catch (err) {
+    state.pagesLoading = false;
+    state.pagesLoaded = false;
+    state.pagesError = err?.message || '词条列表加载失败';
+    renderPages();
+    if (!silent) toast(state.pagesError, 'error');
+  }
+}
+
+async function loadDocs({ silent = false } = {}) {
+  if (!silent) {
+    state.docsLoaded = false;
+    state.docsError = '';
+    renderDocs();
+  }
+  try {
+    const data = await listDocuments();
+    state.docs = Array.isArray(data?.items) ? data.items : [];
+    state.docsError = '';
+    state.docsLoaded = true;
+    renderDocs();
+    renderStats();
+  } catch (err) {
+    state.docsLoaded = false;
+    state.docsError = err?.message || '源文件列表加载失败';
+    renderDocs();
+    if (!silent) toast(state.docsError, 'error');
+  }
+}
+
+async function loadSystemInfo() {
+  try {
+    state.info = await getSystemInfo();
+    const hint = document.getElementById('uploadHint');
+    if (hint) {
+      const preferred = ['.md', '.txt', '.pdf', '.docx', '.xlsx', '.csv', '.json', '.html'];
+      const available = new Set(
+        (state.info?.supported_exts || FALLBACK_EXTS).map((ext) => String(ext).toLowerCase()),
+      );
+      const labels = preferred.filter((ext) => available.has(ext)).map((ext) => ext.replace('.', '').toUpperCase());
+      hint.textContent = `支持 ${labels.join(' / ')} 等格式，单个 ≤ ${
+        state.info?.max_upload_mb || 20
+      }MB；上传后由 LLM 同步编译为 Wiki 词条。`;
+    }
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) fileInput.accept = (state.info?.supported_exts || FALLBACK_EXTS).join(',');
+  } catch {
+    state.info = null;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 标签筛选                                                            */
+/* ------------------------------------------------------------------ */
+function renderTagFilter() {
+  const holder = document.getElementById('tagFilter');
+  if (!holder) return;
+  if (!state.treeReady || !state.tree.length) {
+    holder.hidden = true;
+    holder.innerHTML = '';
+    return;
+  }
+  holder.hidden = false;
+  const total = state.tree.reduce((sum, group) => sum + Number(group.count || 0), 0);
+  holder.innerHTML = `<button class="tag-filter-item ${state.activeTag ? '' : 'is-active'}" type="button" data-action="filter-tag" data-tag="">全部<b>${fmtNumber(
+    total,
+  )}</b></button>${state.tree
+    .map(
+      (group) =>
+        `<button class="tag-filter-item ${
+          state.activeTag === group.tag ? 'is-active' : ''
+        }" type="button" data-action="filter-tag" data-tag="${esc(group.tag)}">${esc(group.tag)}<b>${fmtNumber(
+          group.count || 0,
+        )}</b></button>`,
+    )
+    .join('')}`;
+}
+
+/* ------------------------------------------------------------------ */
+/* 词条 Tab                                                            */
+/* ------------------------------------------------------------------ */
+function pageCardHtml(page) {
+  const status = pageStatus(page.status);
+  return `<article class="wiki-card ${page.status === 'needs_review' ? 'is-review' : ''}" role="button" tabindex="0"
+      data-action="open-page" data-id="${esc(page.id)}" aria-label="打开词条 ${esc(page.title)}">
+    <div class="wiki-card-head">
+      <h3>${esc(page.title || '未命名词条')}</h3>
+      ${page.status === 'needs_review' ? badge(status.label, status.tone) : ''}
+    </div>
+    <p class="wiki-summary">${esc(page.summary || '暂无摘要，点击查看正文与来源。')}</p>
+    <div class="wiki-card-foot">
+      <div class="wiki-tags">${tagChips(page.tags)}</div>
+      <span class="wiki-meta">${fmtNumber(page.source_count || 0)} 个来源 · ${esc(fmtRelative(page.updated_at))}</span>
+    </div>
+  </article>`;
+}
+
+function methodBadge(method) {
+  const meta = METHOD_META[method] || { label: method || '未知方式', tone: 'slate' };
+  return `<span class="badge badge-${meta.tone}"><span class="badge-dot"></span>${esc(meta.label)}</span>`;
+}
+
+function candidateCardHtml(item, index, selectedIds) {
+  const id = item.page_id || item.id;
+  const selected = selectedIds.has(id);
+  return `<article class="candidate-card ${selected ? 'is-selected' : ''}" role="button" tabindex="0"
+      data-action="open-page" data-id="${esc(id)}">
+    <div class="candidate-head">
+      <span class="rank">${index + 1}</span>
+      <strong>${esc(item.title || '未命名词条')}</strong>
+      ${item.score !== undefined && item.score !== null ? `<span class="score">${fmtScore(item.score)}</span>` : ''}
+      ${selected ? badge('LLM 选中', 'violet') : ''}
+    </div>
+    <p class="candidate-summary">${esc(item.summary || '')}</p>
+    ${item.reason ? `<p class="candidate-reason">${icon('sparkles')}<span>${esc(item.reason)}</span></p>` : ''}
+  </article>`;
+}
+
+function renderSearchResult() {
+  const holder = document.getElementById('wikiSearchResult');
+  if (!holder) return;
+  const { running, result, error, query } = state.search;
+  if (!running && !result && !error) {
+    holder.hidden = true;
+    holder.innerHTML = '';
+    return;
+  }
+  holder.hidden = false;
+  if (running) {
+    holder.innerHTML = `<div class="card search-result-card">${loadingHtml(
+      `正在通过 Wiki 导航定位「${query}」…`,
+      'state-compact',
+    )}</div>`;
+    return;
+  }
+  if (error) {
+    holder.innerHTML = `<div class="card search-result-card"><div class="inline-error">${icon('alert')}<span>${esc(
+      error,
+    )}</span></div><button class="btn btn-sm btn-ghost" type="button" data-action="clear-search">${icon(
+      'x',
+    )}<span>清除搜索</span></button></div>`;
+    return;
+  }
+  const data = result || {};
+  const candidates = Array.isArray(data.candidates) ? data.candidates : [];
+  const selected = Array.isArray(data.selected) ? data.selected : [];
+  const selectedIds = new Set(selected.map((item) => item.page_id || item.id));
+  const latency = Number.isFinite(Number(data.latency_ms)) ? ` · ${Math.round(Number(data.latency_ms))} ms` : '';
+  const body =
+    candidates.length || selected.length
+      ? `<div class="search-result-candidates">${candidates
+          .map((item, index) => candidateCardHtml(item, index, selectedIds))
+          .join('')}</div>
+        ${
+          selected.length
+            ? `<div class="search-result-selected"><span class="field-label">对话时会送入词条</span><div class="wiki-tags">${selected
+                .map((item) => `<span class="tag-chip is-selected">${esc(item.title || '')}</span>`)
+                .join('')}</div></div>`
+            : ''
+        }`
+      : `<div class="search-hint">${icon('search')}<p>未命中任何词条</p><span>换个说法，或先在「源文件」Tab 上传 / 导入快照。</span></div>`;
+  holder.innerHTML = `<div class="card search-result-card">
+    <header class="search-result-head">
+      <div class="search-result-title">
+        ${icon('search')}<strong>「${esc(data.query || query)}」的 Wiki 导航结果</strong>
+        ${methodBadge(data.method)}<span class="muted">${latency}</span>
+      </div>
+      <button class="btn btn-sm btn-ghost" type="button" data-action="clear-search">${icon('x')}<span>清除</span></button>
+    </header>
+    ${body}
+  </div>`;
+}
+
+function renderPages() {
+  const body = document.getElementById('wikiPagesBody');
+  const resultHolder = document.getElementById('wikiSearchResult');
+  if (!body) return;
+  const searching = Boolean(state.search.result || state.search.running || state.search.error);
+  if (resultHolder) renderSearchResult();
+  body.hidden = searching;
+  if (searching) return;
+
+  if (state.pagesError) {
+    body.innerHTML = errorHtml(state.pagesError);
+    return;
+  }
+  if (!state.pagesLoaded) {
+    body.innerHTML = loadingHtml('正在加载 Wiki 词条…');
+    return;
+  }
+  if (!state.pages.length) {
+    body.innerHTML = emptyHtml({
+      icon: 'book',
+      title: state.activeTag ? `标签「${state.activeTag}」下暂无词条` : '校园 Wiki 还没有词条',
+      desc: '上传源文件后由 LLM 编译为结构化词条，或导入预编译快照立即体验浏览与问答。',
+      action: `<button class="btn btn-primary" type="button" data-action="switch-tab" data-tab="sources">${icon(
+        'upload',
+      )}<span>去上传源文件</span></button>
+        <button class="btn btn-ghost" type="button" data-action="seed">${icon('download')}<span>导入预编译快照</span></button>`,
+    });
+    return;
+  }
+  body.innerHTML = `<div class="wiki-grid">${state.pages.map(pageCardHtml).join('')}</div>
+    <p class="table-note">${icon(
+      'info',
+    )} 词条由 LLM 从源文件编译生成，点击进入详情可查看「文件 · 章节 · 原文摘录」来源锚点。</p>`;
+}
+
+async function runWikiSearch(query) {
+  state.search = { query, running: true, result: null, error: '' };
+  renderPages();
+  try {
+    const data = await searchWiki(query);
+    state.search = { query, running: false, result: data || {}, error: '' };
+    renderPages();
+  } catch (err) {
+    state.search = { query, running: false, result: null, error: err?.message || '搜索失败' };
+    renderPages();
+    toast(state.search.error, 'error');
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 词条详情抽屉                                                        */
+/* ------------------------------------------------------------------ */
+function sourceAnchorHtml(source) {
+  const title = source.document_title || source.source_file || '未知来源';
+  return `<article class="source-anchor">
+    <header class="source-anchor-head">${icon('file')}
+      <strong>${esc(title)}</strong>
+      ${source.section ? `<span class="source-section">${icon('chevron-right')}${esc(source.section)}</span>` : ''}
+    </header>
+    ${source.source_file ? `<div class="source-file mono">${esc(source.source_file)}</div>` : ''}
+    ${source.quote ? `<blockquote class="source-quote">${esc(source.quote)}</blockquote>` : ''}
+  </article>`;
+}
+
+function wikiDetailHtml(data) {
+  const page = data?.page || data || {};
+  const sources = Array.isArray(data?.sources) ? data.sources : Array.isArray(page.sources) ? page.sources : [];
+  const links = Array.isArray(data?.links) ? data.links : [];
+  const aliases = normalizeList(page.aliases);
+  const tags = normalizeList(page.tags);
+  return `<div class="wiki-detail">
+    <header class="wiki-detail-head">
+      <div>
+        <h2>${esc(page.title || '未命名词条')}</h2>
+        ${page.summary ? `<p class="wiki-detail-sub">${esc(page.summary)}</p>` : ''}
+      </div>
+      <div class="wiki-detail-actions">
+        <button class="btn btn-sm btn-ghost" type="button" data-action="edit-page" data-id="${esc(page.id)}">${icon(
+          'edit',
+        )}<span>编辑</span></button>
+        <button class="btn btn-sm btn-ghost is-danger" type="button" data-action="delete-page" data-id="${esc(
+          page.id,
+        )}">${icon('trash')}<span>删除</span></button>
+      </div>
+    </header>
+    <div class="wiki-detail-meta">
+      ${page.status ? pageStatusBadge(page.status) : ''}
+      <span class="chip-mono">${fmtNumber(page.source_count || sources.length)} 个来源锚点</span>
+      ${page.updated_at ? `<span class="muted">更新于 ${esc(fmtRelative(page.updated_at))}</span>` : ''}
+      ${page.version ? `<span class="chip-mono">v${esc(page.version)}</span>` : ''}
+    </div>
+    ${
+      aliases.length || tags.length
+        ? `<div class="wiki-alias-rows">
+            ${
+              aliases.length
+                ? `<div class="wiki-alias-row"><span class="field-label">${icon('link')}别名</span><div class="wiki-tags">${aliases
+                    .map((alias) => `<span class="tag-chip">${esc(alias)}</span>`)
+                    .join('')}</div></div>`
+                : ''
+            }
+            ${
+              tags.length
+                ? `<div class="wiki-alias-row"><span class="field-label">${icon('folder')}标签</span><div class="wiki-tags">${tags
+                    .map((tag) => `<span class="tag-chip is-tag">${esc(tag)}</span>`)
+                    .join('')}</div></div>`
+                : ''
+            }
+          </div>`
+        : ''
+    }
+    <section class="wiki-content">
+      <h3 class="wiki-section-title">${icon('book')}词条正文</h3>
+      <div class="wiki-body">${
+        data?.body_html || page.body_html || '<p class="muted">（正文为空，可点击「编辑」补充）</p>'
+      }</div>
+    </section>
+    <section class="wiki-sources">
+      <h3 class="wiki-section-title">${icon('link')}来源锚点 <span>${sources.length}</span></h3>
+      ${
+        sources.length
+          ? sources.map(sourceAnchorHtml).join('')
+          : '<p class="muted wiki-empty-note">该词条暂无来源锚点，可能由人工创建或待重建。</p>'
+      }
+    </section>
+    ${
+      links.length
+        ? `<section class="wiki-links">
+            <h3 class="wiki-section-title">${icon('sparkles')}相关词条</h3>
+            <div class="wiki-link-list">${links
+              .map(
+                (link) =>
+                  `<button class="tag-chip is-link" type="button" data-action="open-page" data-id="${esc(
+                    link.page_id || link.id,
+                  )}">${icon('chevron-right')}${esc(link.title || '未命名关联')}</button>`,
+              )
+              .join('')}</div>
+          </section>`
+        : ''
+    }
+  </div>`;
+}
+
+function clearHashPage() {
+  const raw = String(location.hash || '');
+  if (!raw.includes('?')) return;
+  const [path] = raw.split('?');
+  try {
+    history.replaceState(null, '', path || '#/knowledge');
+  } catch {
+    /* ignore */
+  }
+}
+
+async function openWikiPage(id, { fromHash = false } = {}) {
+  if (!id) return;
+  let current = { id, data: null };
+  const drawer = openDrawer({
+    title: '词条详情',
+    subtitle: '正在加载…',
+    size: 'lg',
+    body: loadingHtml('正在加载词条…'),
+    onClose: () => {
+      if (fromHash) clearHashPage();
+    },
+  });
+
+  const paint = () => {
+    if (!drawer.overlay.isConnected) return;
+    const page = current.data?.page || current.data || {};
+    const titleEl = drawer.overlay.querySelector('.drawer-title');
+    const subtitleEl = drawer.overlay.querySelector('.drawer-subtitle');
+    if (titleEl) titleEl.textContent = page.title || '词条详情';
+    if (subtitleEl) subtitleEl.textContent = current.data?.summary || page.summary || '';
+    drawer.body.innerHTML = wikiDetailHtml(current.data);
+  };
+
+  const load = async () => {
+    drawer.body.innerHTML = loadingHtml('正在加载词条…');
+    try {
+      current.data = await getWikiPage(id);
+      paint();
+    } catch (err) {
+      current.data = null;
+      drawer.body.innerHTML = `<div class="inline-error">${icon('alert')}<span>${esc(
+        err?.message || '词条加载失败',
+      )}</span></div><button class="btn btn-ghost btn-sm" type="button" data-action="retry-page" data-id="${esc(
+        id,
+      )}">${icon('refresh')}<span>重新加载</span></button>`;
+    }
+  };
+
+  drawer.overlay.addEventListener('click', async (event) => {
+    const trigger = event.target.closest('[data-action]');
+    if (!trigger) return;
+    const action = trigger.dataset.action;
+    if (action === 'retry-page') {
+      load();
+      return;
+    }
+    if (action === 'edit-page') {
+      openEditPageModal(current.data?.page || current.data, async () => {
+        await load();
+        refreshWiki({ silent: true });
+      });
+      return;
+    }
+    if (action === 'delete-page') {
+      const page = current.data?.page || current.data || {};
+      const ok = await confirmDialog({
+        title: '删除词条',
+        message: `确定删除词条「${page.title || ''}」吗？`,
+        detail: '词条与来源锚点会一并删除；源文件本身不受影响，可通过重建重新生成。',
+        confirmText: '删除',
+        danger: true,
+      });
+      if (!ok) return;
+      try {
+        await deleteWikiPage(page.id || id);
+        toast('词条已删除', 'success');
+        drawer.close();
+        refreshWiki({ silent: true });
+      } catch (err) {
+        toast(err?.message || '删除词条失败', 'error');
+      }
+      return;
+    }
+    if (action === 'open-page') {
+      const targetId = trigger.dataset.id;
+      if (targetId && targetId !== id) {
+        drawer.close();
+        openWikiPage(targetId);
+      }
+    }
+  });
+
+  await load();
+}
+
+/* ------------------------------------------------------------------ */
+/* 词条编辑                                                            */
+/* ------------------------------------------------------------------ */
+function openEditPageModal(page, onSaved) {
+  const data = page || {};
+  const modal = openModal({
+    title: '编辑词条',
+    subtitle: '保存后版本号 +1，并立即用于对话问答',
+    size: 'xl',
+    body: `<form class="form" id="wikiEditForm" novalidate>
+      <div class="form-row">
+        <label class="field">
+          <span class="field-label">标题 <em>*</em></span>
+          <input class="input" name="title" maxlength="120" value="${esc(data.title || '')}" />
+        </label>
+        <label class="field">
+          <span class="field-label">摘要</span>
+          <input class="input" name="summary" maxlength="240" value="${esc(data.summary || '')}" />
+        </label>
+      </div>
+      <div class="form-row">
+        <label class="field">
+          <span class="field-label">别名 <span class="field-tip">（逗号分隔，用于精确匹配）</span></span>
+          <input class="input" name="aliases" value="${esc(normalizeList(data.aliases).join(', '))}" />
+        </label>
+        <label class="field">
+          <span class="field-label">标签 <span class="field-tip">（逗号分隔，用于目录分组）</span></span>
+          <input class="input" name="tags" value="${esc(normalizeList(data.tags).join(', '))}" />
+        </label>
+      </div>
+      <label class="field">
+        <span class="field-label">正文（Markdown）<em>*</em></span>
+        <textarea class="input textarea-code wiki-edit-textarea" name="body_md" rows="18" spellcheck="false">${esc(
+          data.body_md || '',
+        )}</textarea>
+      </label>
+      <div class="form-hint">${icon('info')}<span>支持标准 Markdown（标题、列表、表格、引用）；保存后由后端渲染为 HTML 展示。</span></div>
+    </form>`,
+    footer: `<button class="btn btn-ghost" type="button" data-modal-cancel>取消</button>
+      <button class="btn btn-primary" type="button" data-modal-submit>${icon('check')}<span>保存修改</span></button>`,
+  });
+  const form = modal.body.querySelector('#wikiEditForm');
+  modal.footer.querySelector('[data-modal-cancel]')?.addEventListener('click', () => modal.close());
+  modal.footer.querySelector('[data-modal-submit]')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget;
+    const payload = {
+      title: form.querySelector('[name="title"]').value.trim(),
+      summary: form.querySelector('[name="summary"]').value.trim(),
+      body_md: form.querySelector('[name="body_md"]').value,
+      aliases: normalizeList(form.querySelector('[name="aliases"]').value),
+      tags: normalizeList(form.querySelector('[name="tags"]').value),
+    };
+    if (!payload.title) {
+      toast('词条标题不能为空', 'error');
+      form.querySelector('[name="title"]').focus();
+      return;
+    }
+    if (!payload.body_md.trim()) {
+      toast('词条正文不能为空', 'error');
+      form.querySelector('[name="body_md"]').focus();
+      return;
+    }
+    setButtonBusy(button, true, '保存中…');
+    try {
+      await updateWikiPage(data.id, payload);
+      toast('词条已保存，版本号 +1', 'success');
+      modal.close();
+      onSaved?.();
+    } catch (err) {
+      toast(err?.message || '保存词条失败', 'error');
+      setButtonBusy(button, false);
+    }
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* 源文件 Tab：上传                                                    */
 /* ------------------------------------------------------------------ */
 function uploadItemHtml(item) {
-  const toneClass = item.status === 'uploading' ? 'is-uploading' : item.status === 'error' ? 'is-error' : item.status === 'warning' ? 'is-warning' : 'is-success';
-  const statusText =
+  const toneClass =
     item.status === 'uploading'
+      ? 'is-uploading'
+      : item.status === 'error'
+        ? 'is-error'
+        : item.status === 'warning'
+          ? 'is-warning'
+          : 'is-success';
+  const compiling = item.status === 'uploading' && item.percent >= 99;
+  const statusText = compiling
+    ? '编译中（LLM 生成词条）…'
+    : item.status === 'uploading'
       ? `上传中 ${item.percent}%`
       : item.status === 'success'
-        ? item.message || '上传成功'
+        ? item.message || '已就绪'
         : item.status === 'warning'
-          ? item.message || '解析失败'
+          ? item.message || '编译失败'
           : item.status === 'error'
             ? item.message || '上传失败'
             : '';
@@ -259,19 +856,15 @@ async function handleFiles(fileList) {
     })
       .then((doc) => {
         if (doc?.status === 'failed') {
-          updateUpload(id, {
-            percent: 100,
-            status: 'warning',
-            message: doc.error || '解析失败',
-          });
-          toast(`《${doc.title || file.name}》解析失败：${doc.error || '未知原因'}`, 'error');
+          updateUpload(id, { percent: 100, status: 'warning', message: doc.error || '编译失败' });
+          toast(`《${doc.title || file.name}》编译失败：${doc.error || '未知原因'}`, 'error');
         } else {
           updateUpload(id, {
             percent: 100,
             status: 'success',
-            message: `已入库 · ${Number(doc?.chunk_count || 0)} 个切片`,
+            message: `已编译 · ${Number(doc?.page_count || 0)} 个词条`,
           });
-          toast(`《${doc?.title || file.name}》上传成功`, 'success');
+          toast(`《${doc?.title || file.name}》已编译 ${Number(doc?.page_count || 0)} 个词条`, 'success');
         }
       })
       .catch((err) => {
@@ -281,548 +874,430 @@ async function handleFiles(fileList) {
   }
 
   if (queued) {
-    // 等上传全部结束再刷新列表与统计（最多等待 120 秒）
     const started = Date.now();
     const timer = window.setInterval(() => {
       const pending = state.uploads.some((item) => item.status === 'uploading');
-      if (!pending || Date.now() - started > 120000) {
+      if (!pending || Date.now() - started > 600000) {
         window.clearInterval(timer);
-        loadDocuments({ silent: true });
-        loadStats();
+        refreshWiki({ silent: true });
       }
-    }, 600);
+    }, 800);
   }
 }
 
 /* ------------------------------------------------------------------ */
-/* 文档列表                                                            */
+/* 源文件表格                                                          */
 /* ------------------------------------------------------------------ */
 function renderDocs() {
   const holder = document.getElementById('docsBody');
   if (!holder) return;
-  const countEl = document.getElementById('docCount');
-  if (countEl) countEl.textContent = state.docsLoaded ? `（${state.docs.length}）` : '';
-
   if (state.docsError) {
     holder.innerHTML = errorHtml(state.docsError);
     return;
   }
   if (!state.docsLoaded) {
-    holder.innerHTML = loadingHtml('正在加载文档列表…');
+    holder.innerHTML = loadingHtml('正在加载源文件…');
     return;
   }
   if (!state.docs.length) {
     holder.innerHTML = emptyHtml({
-      icon: 'book',
-      title: '知识库还没有文档',
-      desc: '上传校园通知、学生手册或制度文件，或直接导入示例资料快速体验。',
-      action: `<button class="btn btn-primary" type="button" data-action="pick-file">${icon('upload')}<span>上传文档</span></button>
-        <button class="btn btn-ghost" type="button" data-action="seed">${icon('download')}<span>一键导入示例资料</span></button>`,
+      icon: 'file',
+      title: '还没有源文件',
+      desc: '上传校园通知、学生手册或制度文件，LLM 会把它编译成结构化 Wiki 词条。',
+      action: `<button class="btn btn-primary" type="button" data-action="pick-file">${icon('upload')}<span>上传源文件</span></button>
+        <button class="btn btn-ghost" type="button" data-action="seed">${icon('download')}<span>导入预编译快照</span></button>`,
     });
     return;
   }
-
-  const rows = state.docs
-    .map((doc) => {
-      const ext = doc.file_ext || extOf(doc.filename);
-      const meta = statusMeta(doc.status);
-      const errorLine = doc.error
-        ? `<span class="doc-error" title="${esc(doc.error)}">${esc(doc.error)}</span>`
-        : '';
-      return `<tr data-id="${esc(doc.id)}" class="${doc.status === 'failed' ? 'is-failed' : ''}">
-        <td data-label="文档">
-          <div class="doc-cell">
-            <span class="file-ico ext-${esc(extClass(ext))}">${esc(extLabel(ext))}</span>
-            <div class="doc-cell-main">
-              <strong>${esc(doc.title || doc.filename)}</strong>
-              <span class="doc-filename">${esc(doc.filename)}</span>
-              ${errorLine}
-            </div>
-          </div>
-        </td>
-        <td data-label="类型"><span class="badge badge-blue">${esc(extLabel(ext))}</span></td>
-        <td data-label="状态">${statusBadge(doc.status, doc.error)}</td>
-        <td data-label="切片">${fmtNumber(doc.chunk_count || 0)}</td>
-        <td data-label="大小">${fmtBytes(doc.size_bytes)}</td>
-        <td data-label="上传时间"><span title="${esc(doc.created_at || '')}">${esc(fmtRelative(doc.updated_at || doc.created_at))}</span></td>
-        <td data-label="操作" class="td-actions">
-          <button class="icon-btn" type="button" data-action="doc-detail" data-id="${esc(doc.id)}" title="查看详情" aria-label="查看详情">${icon('eye')}</button>
-          <button class="icon-btn" type="button" data-action="reindex" data-id="${esc(doc.id)}" title="重建索引" aria-label="重建索引">${icon('refresh')}</button>
-          <button class="icon-btn is-danger" type="button" data-action="doc-delete" data-id="${esc(doc.id)}" title="删除文档" aria-label="删除文档">${icon('trash')}</button>
-        </td>
-      </tr>`;
-    })
-    .join('');
-
   holder.innerHTML = `<div class="table-wrap">
     <table class="table docs-table">
       <thead><tr>
-        <th>文档</th><th>类型</th><th>状态</th><th>切片</th><th>大小</th><th>上传时间</th><th class="th-actions">操作</th>
+        <th>源文件</th><th>类型</th><th>状态</th><th>词条数</th><th>大小</th><th>更新时间</th><th class="th-actions">操作</th>
       </tr></thead>
-      <tbody>${rows}</tbody>
+      <tbody>${state.docs
+        .map((doc) => {
+          const ext = doc.file_ext || extOf(doc.filename);
+          const errorLine = doc.error
+            ? `<span class="doc-error" title="${esc(doc.error)}">${esc(doc.error)}</span>`
+            : '';
+          return `<tr data-id="${esc(doc.id)}" class="${doc.status === 'failed' ? 'is-failed' : ''}">
+            <td data-label="源文件">
+              <div class="doc-cell">
+                <span class="file-ico ext-${esc(extClass(ext))}">${esc(extLabel(ext))}</span>
+                <div class="doc-cell-main">
+                  <strong>${esc(doc.title || doc.filename)}</strong>
+                  <span class="doc-filename">${esc(doc.filename)}</span>
+                  ${errorLine}
+                </div>
+              </div>
+            </td>
+            <td data-label="类型"><span class="badge badge-blue">${esc(extLabel(ext))}</span></td>
+            <td data-label="状态">${docStatusBadge(doc.status, doc.error)}</td>
+            <td data-label="词条数">${fmtNumber(doc.page_count || 0)}</td>
+            <td data-label="大小">${fmtBytes(doc.size_bytes)}</td>
+            <td data-label="更新时间"><span title="${esc(doc.updated_at || '')}">${esc(
+              fmtRelative(doc.updated_at || doc.created_at),
+            )}</span></td>
+            <td data-label="操作" class="td-actions">
+              <button class="icon-btn" type="button" data-action="doc-pages" data-id="${esc(doc.id)}" title="查看词条" aria-label="查看词条">${icon(
+                'eye',
+              )}</button>
+              <button class="icon-btn" type="button" data-action="reindex" data-id="${esc(doc.id)}" title="重新编译" aria-label="重新编译">${icon(
+                'refresh',
+              )}</button>
+              <button class="icon-btn is-danger" type="button" data-action="doc-delete" data-id="${esc(
+                doc.id,
+              )}" title="删除源文件" aria-label="删除源文件">${icon('trash')}</button>
+            </td>
+          </tr>`;
+        })
+        .join('')}</tbody>
     </table>
   </div>
-  <p class="table-note">${icon('info')} 上传后自动解析切片，对话回答引用命中切片中的原文；解析失败可尝试「重建索引」。</p>`;
+  <p class="table-note">${icon(
+    'info',
+  )} 上传后同步调用 LLM 编译词条；失败时展示错误原因，可点击「重新编译」重试。</p>`;
 }
 
-/* ------------------------------------------------------------------ */
-/* 数据加载                                                            */
-/* ------------------------------------------------------------------ */
-async function loadDocuments({ silent = false } = {}) {
-  if (!silent) {
-    state.docsLoaded = false;
-    state.docsError = '';
-    renderDocs();
-  }
-  try {
-    const data = await listDocuments();
-    state.docs = Array.isArray(data?.items) ? data.items : [];
-    state.docsError = '';
-    state.docsLoaded = true;
-    renderDocs();
-    renderStats();
-  } catch (err) {
-    state.docsLoaded = false;
-    state.docsError = err?.message || '文档列表加载失败';
-    renderDocs();
-    renderStats();
-    if (!silent) toast(state.docsError, 'error');
-  }
-}
-
-async function loadStats() {
-  try {
-    state.stats = await getKnowledgeStats();
-    renderStats();
-  } catch {
-    state.stats = state.docsLoaded ? computedStats() : null;
-    renderStats();
-  }
-}
-
-async function loadSystemInfo() {
-  try {
-    state.info = await getSystemInfo();
-    const hint = document.getElementById('uploadHint');
-    if (hint) {
-      const preferred = ['.md', '.txt', '.pdf', '.docx', '.xlsx', '.csv', '.json', '.html'];
-      const available = new Set(
-        (state.info.supported_exts || FALLBACK_EXTS).map((ext) => String(ext).toLowerCase()),
-      );
-      const labels = preferred
-        .filter((ext) => available.has(ext))
-        .map((ext) => ext.replace('.', '').toUpperCase());
-      hint.textContent = `支持 ${labels.join(' / ')} 等格式，单个文件 ≤ ${state.info.max_upload_mb || 20}MB；解析完成后自动切片入库。`;
-    }
-    const fileInput = document.getElementById('fileInput');
-    if (fileInput) {
-      fileInput.accept = ((state.info.supported_exts || FALLBACK_EXTS) || []).join(',');
-    }
-  } catch {
-    state.info = null;
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* 检索测试                                                            */
-/* ------------------------------------------------------------------ */
-function renderSearch() {
-  const holder = document.getElementById('searchResults');
-  if (!holder) return;
-  if (state.searching) {
-    holder.innerHTML = loadingHtml('正在检索知识库…', 'state-compact');
-    return;
-  }
-  if (state.searchError) {
-    holder.innerHTML = `<div class="inline-error">${icon('alert')}<span>${esc(state.searchError)}</span></div>`;
-    return;
-  }
-  if (!state.searched) {
-    const examples = [
-      '国家奖学金申请条件',
-      '请假办理流程',
-      '心理中心预约方式',
-    ];
-    holder.innerHTML = `<div class="search-hint">${icon('search')}<p>输入一个问题，测试知识库召回效果</p>
-      <div class="search-examples">${examples
-        .map(
-          (query) =>
-            `<button class="example-chip" type="button" data-action="example-search" data-query="${esc(
-              query,
-            )}">${esc(query)}</button>`,
-        )
-        .join('')}</div>
-    </div>`;
-    return;
-  }
-  if (!state.searchResults.length) {
-    holder.innerHTML = emptyHtml({
-      icon: 'search',
-      title: '没有命中相关内容',
-      desc: '换个关键词，或先上传 / 导入与问题相关的校园资料。',
-    });
-    return;
-  }
-  const hits = state.searchResults
-    .map((hit, index) => {
-      const title = hit.document_title || '未命名文档';
-      return `<article class="search-hit" data-hit="${index}">
-        <div class="search-hit-head">
-          <span class="rank">${index + 1}</span>
-          <strong>${esc(title)}</strong>
-          <span class="score">相关度 ${fmtScore(hit.score)}</span>
-        </div>
-        ${hit.section ? `<div class="search-hit-section">${icon('book')}<span>${esc(hit.section)}</span></div>` : ''}
-        <p class="search-hit-snippet">${esc(hit.snippet || '')}</p>
-        <div class="search-hit-full" hidden>${esc(hit.content || '')}</div>
-        <div class="search-hit-actions">
-          <button class="link-btn" type="button" data-action="toggle-hit" data-hit="${index}">
-            ${icon('chevron-down')}<span>展开原文</span>
-          </button>
-          ${
-            hit.document_id
-              ? `<button class="link-btn" type="button" data-action="open-doc" data-id="${esc(hit.document_id)}">${icon('eye')}<span>查看文档</span></button>`
-              : ''
-          }
-        </div>
-      </article>`;
-    })
-    .join('');
-  holder.innerHTML = `<div class="search-summary">命中 <b>${state.searchResults.length}</b> 条${
-    Number.isFinite(Number(state.searchLatency)) ? ` · 耗时 ${Math.round(Number(state.searchLatency))} ms` : ''
-  }</div>${hits}`;
-}
-
-async function runSearch(query, topK) {
-  state.searching = true;
-  state.searchError = '';
-  state.searched = true;
-  state.searchQuery = query;
-  renderSearch();
-  try {
-    const data = await searchKnowledge(query, topK);
-    state.searchResults = Array.isArray(data?.items) ? data.items : [];
-    state.searchLatency = data?.latency_ms ?? null;
-    state.searching = false;
-    renderSearch();
-  } catch (err) {
-    state.searching = false;
-    state.searchResults = [];
-    state.searchError = err?.message || '检索失败';
-    renderSearch();
-    toast(state.searchError, 'error');
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* 文档详情抽屉                                                        */
-/* ------------------------------------------------------------------ */
-function detailBodyHtml(detail) {
-  const doc = detail.doc || {};
-  if (detail.error) {
-    return errorHtml(detail.error, { retryAction: '', retryLabel: '' });
-  }
-  const ext = doc.file_ext || extOf(doc.filename);
-  const chunks = detail.chunks || [];
-  const metaItems = [
-    ['状态', statusBadge(doc.status, doc.error)],
-    ['类型', `<span class="badge badge-blue">${esc(extLabel(ext))}</span>`],
-    ['大小', fmtBytes(doc.size_bytes)],
-    ['字符数', fmtNumber(doc.char_count || 0)],
-    ['切片数', fmtNumber(doc.chunk_count || 0)],
-    ['更新时间', esc(fmtRelative(doc.updated_at || doc.created_at))],
-  ]
-    .map(
-      ([label, value]) =>
-        `<div class="detail-meta-item"><span>${esc(label)}</span><div>${value}</div></div>`,
-    )
-    .join('');
-  const tags = Array.isArray(doc.tags) && doc.tags.length
-    ? doc.tags.map((tag) => `<span class="tag">${esc(tag)}</span>`).join('')
-    : '<span class="muted">未设置标签</span>';
-  const chunkList = chunks.length
-    ? chunks
-        .map(
-          (chunk) => `<article class="chunk-card">
-            <header><span class="chunk-seq">#${Number(chunk.seq ?? 0) + 1}</span>
-              ${chunk.section ? `<span class="chunk-section">${esc(chunk.section)}</span>` : ''}
-              <span class="chunk-tokens">${fmtNumber(chunk.tokens || 0)} tokens</span>
-            </header>
-            <p>${esc(chunk.content || '')}</p>
-          </article>`,
-        )
-        .join('')
-    : `<div class="state state-empty state-compact">${icon('file')}<p>该文档暂无切片</p></div>`;
-  const more = detail.total > chunks.length
-    ? `<button class="btn btn-ghost btn-block" type="button" data-action="detail-more">${icon('chevron-down')}<span>加载更多切片（已显示 ${chunks.length} / ${detail.total}）</span></button>`
-    : '';
-  return `<div class="detail-top">
-      <div class="detail-file">
-        <span class="file-ico file-ico-lg ext-${esc(extClass(ext))}">${esc(extLabel(ext))}</span>
-        <div><strong>${esc(doc.title || doc.filename || '未命名文档')}</strong>
-        <span class="doc-filename">${esc(doc.filename || '')}</span></div>
-      </div>
-      <div class="detail-tags">${tags}</div>
-    </div>
-    <div class="detail-meta">${metaItems}</div>
-    ${doc.error ? `<div class="alert alert-error">${icon('alert')}<div><strong>解析失败</strong><p>${esc(doc.error)}</p></div></div>` : ''}
-    <div class="detail-actions">
-      <button class="btn btn-sm btn-ghost" type="button" data-action="detail-reindex" data-id="${esc(doc.id)}">${icon('refresh')}<span>重建索引</span></button>
-      <button class="btn btn-sm btn-ghost" type="button" data-action="detail-delete" data-id="${esc(doc.id)}">${icon('trash')}<span>删除文档</span></button>
-      <a class="btn btn-sm btn-ghost" href="#/chat" data-action="detail-chat">${icon('chat')}<span>去对话测试</span></a>
-    </div>
-    <h3 class="detail-section-title">切片预览 <span>（${chunks.length} / ${fmtNumber(detail.total || chunks.length)}）</span></h3>
-    <div class="chunk-list">${chunkList}</div>
-    ${more}`;
-}
-
-async function openDocDetail(id) {
-  const detail = { doc: null, chunks: [], total: 0, offset: 0, error: '', loadingMore: false };
-  const drawer = openDrawer({
-    title: '文档详情',
-    subtitle: '正在加载…',
+async function openDocPages(docId) {
+  const doc = state.docs.find((item) => item.id === docId);
+  const modal = openModal({
+    title: doc?.title || '源文件词条',
+    subtitle: doc?.filename || '',
     size: 'lg',
-    body: loadingHtml('正在加载文档详情…'),
+    body: loadingHtml('正在加载该源文件编译的词条…'),
   });
-
-  const paint = () => {
-    if (!drawer.overlay.isConnected) return;
-    if (detail.doc) {
-      const titleEl = drawer.overlay.querySelector('.drawer-title');
-      const subtitleEl = drawer.overlay.querySelector('.drawer-subtitle');
-      if (titleEl) titleEl.textContent = detail.doc.title || '文档详情';
-      if (subtitleEl) subtitleEl.textContent = detail.doc.filename || '';
-    }
-    drawer.body.innerHTML = detailBodyHtml(detail);
-  };
-
-  const loadMore = () => {
-    if (detail.loadingMore) return;
-    detail.loadingMore = true;
-    getDocumentChunks(id, detail.chunks.length, 50)
-      .then((data) => {
-        const items = Array.isArray(data?.items) ? data.items : [];
-        detail.chunks = detail.chunks.concat(items);
-        detail.total = Number(data?.total || detail.total || detail.chunks.length);
-        detail.loadingMore = false;
-        paint();
-      })
-      .catch((err) => {
-        detail.loadingMore = false;
-        toast(err?.message || '切片加载失败', 'error');
-      });
-  };
-
-  drawer.body.addEventListener('click', async (event) => {
-    const trigger = event.target.closest('[data-action]');
-    if (!trigger) return;
-    const action = trigger.dataset.action;
-    if (action === 'detail-more') {
-      loadMore();
-      return;
-    }
-    if (action === 'detail-reindex') {
-      setButtonBusy(trigger, true, '重建中…');
-      try {
-        const updated = await reindexDocument(detail.doc.id);
-        toast(`《${updated?.title || detail.doc.title}》已重建索引`, 'success');
-        detail.doc = updated || detail.doc;
-        detail.chunks = [];
-        detail.offset = 0;
-        const chunksData = await getDocumentChunks(detail.doc.id, 0, 50);
-        detail.chunks = Array.isArray(chunksData?.items) ? chunksData.items : [];
-        detail.total = Number(chunksData?.total || detail.chunks.length);
-        paint();
-        loadDocuments({ silent: true });
-        loadStats();
-      } catch (err) {
-        toast(err?.message || '重建索引失败', 'error');
-        setButtonBusy(trigger, false);
-      }
-      return;
-    }
-    if (action === 'detail-delete') {
-      const ok = await confirmDialog({
-        title: '删除文档',
-        message: `确定删除《${detail.doc.title || detail.doc.filename}》吗？`,
-        detail: '文档的物理文件与全部切片会一并删除，且不可恢复。',
-        confirmText: '删除',
-        danger: true,
-      });
-      if (!ok) return;
-      try {
-        await deleteDocument(detail.doc.id);
-        toast('文档已删除', 'success');
-        drawer.close();
-        loadDocuments({ silent: true });
-        loadStats();
-      } catch (err) {
-        toast(err?.message || '删除失败', 'error');
-      }
-      return;
-    }
-    if (action === 'detail-chat') {
-      drawer.close();
-    }
-  });
-
   try {
-    const [detailResult, chunksResult] = await Promise.allSettled([
-      getDocument(id),
-      getDocumentChunks(id, 0, 50),
-    ]);
-    if (detailResult.status === 'rejected') {
-      detail.error = detailResult.reason?.message || '文档详情加载失败';
-    } else {
-      detail.doc = detailResult.value || {};
-    }
-    if (chunksResult.status === 'fulfilled') {
-      detail.chunks = Array.isArray(chunksResult.value?.items) ? chunksResult.value.items : [];
-      detail.total = Number(chunksResult.value?.total || detail.chunks.length);
-    } else if (!detail.error) {
-      detail.error = chunksResult.reason?.message || '切片加载失败';
-    }
-    paint();
+    const data = await getDocument(docId);
+    const pages = Array.isArray(data?.wiki_pages) ? data.wiki_pages : [];
+    modal.body.innerHTML = `<div class="doc-pages-list">${
+      pages.length
+        ? pages
+            .map(
+              (page) => `<button class="doc-page-item" type="button" data-page-id="${esc(page.id)}">
+                <span class="doc-page-title">${esc(page.title || '未命名词条')}</span>
+                ${pageStatusBadge(page.status)}
+                ${icon('chevron-right')}
+              </button>`,
+            )
+            .join('')
+        : `<div class="state state-empty state-compact">${icon(
+            'book',
+          )}<p>该源文件暂未编译出词条</p><span>可点击「重新编译」重试，或检查模型配置。</span></div>`
+    }</div>
+    ${
+      data?.error
+        ? `<div class="alert alert-error">${icon('alert')}<div><strong>编译错误</strong><p>${esc(
+            data.error,
+          )}</p></div></div>`
+        : ''
+    }`;
+    modal.body.addEventListener('click', (event) => {
+      const trigger = event.target.closest('[data-page-id]');
+      if (!trigger) return;
+      modal.close();
+      openWikiPage(trigger.dataset.pageId);
+    });
   } catch (err) {
-    detail.error = err?.message || '文档详情加载失败';
-    paint();
+    modal.body.innerHTML = `<div class="inline-error">${icon('alert')}<span>${esc(
+      err?.message || '加载失败',
+    )}</span></div>`;
   }
 }
 
 /* ------------------------------------------------------------------ */
-/* 删除 / 重建 / seed                                                   */
+/* 构建（全部重建）                                                    */
 /* ------------------------------------------------------------------ */
+function stopBuildPolling() {
+  if (state.buildTimer) {
+    window.clearInterval(state.buildTimer);
+    state.buildTimer = 0;
+  }
+}
+
+function renderBuildBanner() {
+  const holder = document.getElementById('buildBanner');
+  if (!holder) return;
+  const build = state.build;
+  if (!build) {
+    holder.hidden = true;
+    holder.innerHTML = '';
+    return;
+  }
+  holder.hidden = false;
+  const meta = BUILD_STATUS[build.status] || { label: build.status || '处理中', tone: 'slate' };
+  const running = build.status === 'running' || build.status === 'pending';
+  const parts = [];
+  if (build.model) parts.push(esc(build.model));
+  if (build.pages_created !== undefined) parts.push(`新增 ${fmtNumber(build.pages_created)}`);
+  if (build.pages_updated !== undefined) parts.push(`更新 ${fmtNumber(build.pages_updated)}`);
+  if (build.pages_removed !== undefined) parts.push(`删除 ${fmtNumber(build.pages_removed)}`);
+  holder.innerHTML = `<div class="build-banner ${
+    running ? 'is-running' : build.status === 'failed' ? 'is-failed' : 'is-done'
+  }">
+    ${running ? spinnerHtml() : icon(build.status === 'failed' ? 'alert' : 'check')}
+    <div class="build-banner-main">
+      <strong>全部重建：${esc(meta.label)}</strong>
+      <span>${parts.join(' · ') || '正在重新编译全部源文件，请稍候…'}</span>
+      ${build.error ? `<span class="build-error">${esc(build.error)}</span>` : ''}
+    </div>
+    ${running ? '' : `<button class="btn btn-sm btn-ghost" type="button" data-action="dismiss-build">关闭</button>`}
+  </div>`;
+}
+
+function pollBuild(buildId) {
+  stopBuildPolling();
+  let attempts = 0;
+  state.buildTimer = window.setInterval(async () => {
+    attempts += 1;
+    if (attempts > 240) {
+      stopBuildPolling();
+      state.build = { ...(state.build || {}), status: 'failed', error: '构建轮询超时，请稍后刷新查看结果。' };
+      renderBuildBanner();
+      return;
+    }
+    try {
+      const build = await getWikiBuild(buildId);
+      state.build = build || state.build;
+      renderBuildBanner();
+      const status = build?.status;
+      if (status && status !== 'running' && status !== 'pending') {
+        stopBuildPolling();
+        if (status === 'failed') toast(build?.error || '全部重建失败', 'error');
+        else toast('全部重建完成，Wiki 词条已更新', 'success');
+        refreshWiki({ silent: true });
+      }
+    } catch (err) {
+      if (attempts > 20) {
+        stopBuildPolling();
+        state.build = { ...(state.build || {}), status: 'failed', error: err?.message || '构建状态查询失败' };
+        renderBuildBanner();
+      }
+    }
+  }, 2500);
+}
+
+async function runRebuildAll(button) {
+  setButtonBusy(button, true, '提交中…');
+  try {
+    const result = await rebuildWiki({});
+    const buildId = result?.build_id || result?.id;
+    state.build = {
+      id: buildId,
+      status: result?.status || 'running',
+      pages_created: 0,
+      pages_updated: 0,
+      pages_removed: 0,
+    };
+    renderBuildBanner();
+    toast('已提交全部重建任务，编译期间可继续其他操作', 'info');
+    if (buildId) pollBuild(buildId);
+    else {
+      state.build = { ...state.build, status: 'failed', error: '接口未返回 build_id，无法轮询状态' };
+      renderBuildBanner();
+    }
+  } catch (err) {
+    toast(err?.message || '提交重建任务失败', 'error');
+  } finally {
+    setButtonBusy(button, false);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 源文件操作                                                          */
+/* ------------------------------------------------------------------ */
+async function reindexDoc(id, button) {
+  setButtonBusy(button, true, '编译中…');
+  try {
+    const result = await reindexDocument(id);
+    const build = result?.build || result;
+    const doc = result?.document || result;
+    if (build?.status === 'failed' || doc?.status === 'failed') {
+      toast(`重新编译失败：${build?.error || doc?.error || '未知原因'}`, 'error');
+    } else {
+      toast(`已重新编译，生成 ${Number(doc?.page_count ?? build?.pages_created ?? 0)} 个词条`, 'success');
+    }
+    refreshWiki({ silent: true });
+  } catch (err) {
+    toast(err?.message || '重新编译失败', 'error');
+  } finally {
+    setButtonBusy(button, false);
+  }
+}
+
 async function removeDoc(id) {
   const doc = state.docs.find((item) => item.id === id);
   const ok = await confirmDialog({
-    title: '删除文档',
-    message: `确定删除《${doc?.title || doc?.filename || '该文档'}》吗？`,
-    detail: '文档的物理文件与全部切片会一并删除，且不可恢复。',
+    title: '删除源文件',
+    message: `确定删除《${doc?.title || doc?.filename || '该文件'}》吗？`,
+    detail: '其独占词条会一并删除；共享词条只移除该来源，物理文件不可恢复。',
     confirmText: '删除',
     danger: true,
   });
   if (!ok) return;
   try {
-    await deleteDocument(id);
-    toast('文档已删除', 'success');
-    loadDocuments({ silent: true });
-    loadStats();
-  } catch (err) {
-    toast(err?.message || '删除失败', 'error');
-  }
-}
-
-async function reindexDoc(id, button) {
-  const doc = state.docs.find((item) => item.id === id);
-  setButtonBusy(button, true, '重建中…');
-  try {
-    const updated = await reindexDocument(id);
+    const result = await deleteDocument(id);
     toast(
-      updated?.status === 'failed'
-        ? `《${updated?.title || doc?.title || '文档'}》重建失败：${updated?.error || '未知原因'}`
-        : `《${updated?.title || doc?.title || '文档'}》已重建索引`,
-      updated?.status === 'failed' ? 'error' : 'success',
+      `源文件已删除${result?.pages_removed ? `，移除 ${result.pages_removed} 个独占词条` : ''}`,
+      'success',
     );
-    loadDocuments({ silent: true });
-    loadStats();
+    refreshWiki({ silent: true });
   } catch (err) {
-    toast(err?.message || '重建索引失败', 'error');
-  } finally {
-    setButtonBusy(button, false);
+    toast(err?.message || '删除源文件失败', 'error');
   }
 }
 
 async function runSeed(button) {
   setButtonBusy(button, true, '导入中…');
   try {
-    const result = await seedKnowledge();
-    const ingested = Array.isArray(result?.ingested) ? result.ingested.length : 0;
-    const skipped = Array.isArray(result?.skipped) ? result.skipped.length : 0;
-    toast(
-      `示例资料导入完成：新增 ${ingested} 篇，跳过已存在 ${skipped} 篇${
-        result?.total_documents !== undefined ? `，当前共 ${result.total_documents} 篇` : ''
-      }`,
-      'success',
-      { title: '导入完成' },
-    );
-    loadDocuments({ silent: true });
-    loadStats();
+    const result = await seedWiki();
+    const parts = [];
+    if (result?.imported !== undefined) parts.push(`导入 ${result.imported} 条`);
+    if (result?.documents !== undefined) parts.push(`源文件 ${result.documents}`);
+    if (result?.pages !== undefined) parts.push(`词条 ${result.pages}`);
+    if (result?.sources !== undefined) parts.push(`来源 ${result.sources}`);
+    if (result?.skipped !== undefined) parts.push(`跳过 ${result.skipped}`);
+    toast(`预编译快照导入完成${parts.length ? `：${parts.join(' / ')}` : ''}`, 'success', {
+      title: '导入完成',
+    });
+    refreshWiki({ silent: true });
   } catch (err) {
-    toast(err?.message || '示例资料导入失败', 'error');
+    toast(err?.message || '导入预编译快照失败', 'error');
   } finally {
     setButtonBusy(button, false);
   }
 }
 
+function refreshWiki({ silent = false } = {}) {
+  loadStats();
+  loadTree();
+  loadPages({ silent });
+  loadDocs({ silent });
+}
+
 /* ------------------------------------------------------------------ */
 /* 视图入口                                                            */
 /* ------------------------------------------------------------------ */
-export function mount(root) {
+export function mount(root, context = {}) {
   let alive = true;
-  const topK = savedTopK();
+  const initialPageId = context?.query?.get('page') || '';
+  state.tab = 'pages';
+  state.search = { query: '', running: false, result: null, error: '' };
+  state.build = null;
+  stopBuildPolling();
 
   root.innerHTML = `<div class="page knowledge-page">
-    <section class="stats-grid" id="knowledgeStats" aria-label="知识库统计"></section>
+    <section class="stats-grid" id="wikiStats" aria-label="Wiki 统计"></section>
 
-    <div class="grid-2 knowledge-tools">
-      <section class="card upload-card">
+    <section class="card wiki-toolbar-card">
+      <div class="wiki-toolbar">
+        <div class="tabs" role="tablist" aria-label="知识库视图">
+          <button class="tab is-active" type="button" role="tab" aria-selected="true" data-action="switch-tab" data-tab="pages">${icon(
+            'book',
+          )}<span>词条</span><b id="tabPageCount"></b></button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-action="switch-tab" data-tab="sources">${icon(
+            'file',
+          )}<span>源文件</span><b id="tabDocCount"></b></button>
+        </div>
+
+        <div class="toolbar-actions" id="pagesActions">
+          <form class="wiki-search" id="wikiSearchForm">
+            <input class="input" id="wikiSearchInput" type="search" placeholder="搜索词条，如：国家奖学金怎么申请" aria-label="搜索词条" />
+            <button class="btn btn-primary" type="submit" id="wikiSearchBtn">${icon('search')}<span>搜索</span></button>
+          </form>
+          <button class="btn btn-ghost btn-sm" type="button" data-action="refresh-pages">${icon('refresh')}<span>刷新</span></button>
+        </div>
+
+        <div class="toolbar-actions" id="sourcesActions" hidden>
+          <button class="btn btn-primary btn-sm" type="button" data-action="pick-file">${icon('upload')}<span>上传源文件</span></button>
+          <button class="btn btn-ghost btn-sm" type="button" data-action="seed">${icon('download')}<span>导入快照</span></button>
+          <button class="btn btn-ghost btn-sm" type="button" data-action="rebuild-all">${icon('refresh')}<span>全部重建</span></button>
+        </div>
+      </div>
+      <div class="tag-filter" id="tagFilter" hidden></div>
+    </section>
+
+    <div class="build-banner" id="buildBanner" hidden></div>
+
+    <section id="pagesPanel">
+      <div id="wikiSearchResult" hidden></div>
+      <div id="wikiPagesBody">${loadingHtml('正在加载 Wiki 词条…')}</div>
+    </section>
+
+    <section id="sourcesPanel" hidden>
+      <div class="grid-2 knowledge-tools">
+        <section class="card upload-card">
+          <header class="card-head">
+            <div>
+              <h2>${icon('upload')}上传源文件</h2>
+              <p id="uploadHint">支持 md / txt / pdf / docx / xlsx / csv / json / html，单个文件 ≤ 20MB；上传后由 LLM 同步编译为 Wiki 词条。</p>
+            </div>
+          </header>
+          <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="上传源文件">
+            <div class="dropzone-icon">${icon('upload')}</div>
+            <strong>拖拽文件到这里，或点击选择文件</strong>
+            <span>保存 → 解析 → LLM 编译词条（需要可用模型）</span>
+            <input type="file" id="fileInput" multiple hidden />
+          </div>
+          <div class="upload-queue" id="uploadQueue" hidden></div>
+        </section>
+
+        <section class="card wiki-guide-card">
+          <header class="card-head">
+            <div>
+              <h2>${icon('sparkles')}Wiki 编译说明</h2>
+              <p>源文件是唯一事实来源，词条是从源文件编译出的结构化页面。</p>
+            </div>
+          </header>
+          <ul class="wiki-guide-list">
+            <li>${icon('file')}<span>上传后调用 LLM 按章节编译 1–3 个词条，并校验「原文摘录」可逐字回溯。</span></li>
+            <li>${icon('link')}<span>每个词条附带来源锚点（文件 · 章节 · 原文摘录），对话引用可双层核对。</span></li>
+            <li>${icon('refresh')}<span>源文件更新后「重新编译」；批量更新可「全部重建」并轮询构建结果。</span></li>
+            <li>${icon('download')}<span>没有可用模型时，可先在「设置 → 模型」配置，或导入预编译快照浏览。</span></li>
+          </ul>
+        </section>
+      </div>
+
+      <section class="card docs-card">
         <header class="card-head">
           <div>
-            <h2>${icon('upload')}上传知识文档</h2>
-            <p id="uploadHint">支持 md / txt / pdf / docx / xlsx / csv / json / html，单个文件 ≤ 20MB</p>
+            <h2>${icon('folder')}源文件 <span class="count" id="docCount"></span></h2>
+            <p>状态显示编译结果；失败时展示错误原因并可重新编译</p>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-ghost btn-sm" type="button" data-action="refresh-docs">${icon('refresh')}<span>刷新</span></button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="seed">${icon('download')}<span>导入快照</span></button>
           </div>
         </header>
-        <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="上传知识文档">
-          <div class="dropzone-icon">${icon('upload')}</div>
-          <strong>拖拽文件到这里，或点击选择文件</strong>
-          <span>解析 → 切片 → 建立索引，完成后即可在对话中引用</span>
-          <input type="file" id="fileInput" multiple hidden />
-        </div>
-        <div class="upload-queue" id="uploadQueue" hidden></div>
+        <div id="docsBody">${loadingHtml('正在加载源文件…')}</div>
       </section>
-
-      <section class="card search-card">
-        <header class="card-head">
-          <div>
-            <h2>${icon('search')}检索测试</h2>
-            <p>输入问题，查看知识库实际召回的内容与相关度</p>
-          </div>
-        </header>
-        <form class="search-bar" id="searchForm">
-          <input class="input search-input" id="searchInput" type="search" placeholder="例如：国家奖学金申请条件" aria-label="检索关键词" />
-          <select class="input select topk-select" id="searchTopK" aria-label="召回数量">
-            ${TOP_K_OPTIONS.map(
-              (value) => `<option value="${value}" ${value === topK ? 'selected' : ''}>top ${value}</option>`,
-            ).join('')}
-          </select>
-          <button class="btn btn-primary" type="submit" id="searchBtn">${icon('search')}<span>搜索</span></button>
-        </form>
-        <div class="search-results" id="searchResults"></div>
-      </section>
-    </div>
-
-    <section class="card docs-card">
-      <header class="card-head">
-        <div>
-          <h2>${icon('book')}文档列表 <span class="count" id="docCount"></span></h2>
-          <p>解析失败的文档可尝试重建索引；删除会同时移除切片</p>
-        </div>
-        <div class="card-actions">
-          <button class="btn btn-ghost btn-sm" type="button" data-action="refresh-docs">${icon('refresh')}<span>刷新</span></button>
-          <button class="btn btn-primary btn-sm" type="button" data-action="seed">${icon('download')}<span>一键导入示例资料</span></button>
-        </div>
-      </header>
-      <div id="docsBody">${loadingHtml('正在加载文档列表…')}</div>
     </section>
   </div>`;
 
-  const dropzone = root.querySelector('#dropzone');
   const page = root.querySelector('.knowledge-page');
+  const pagesPanel = root.querySelector('#pagesPanel');
+  const sourcesPanel = root.querySelector('#sourcesPanel');
+  const pagesActions = root.querySelector('#pagesActions');
+  const sourcesActions = root.querySelector('#sourcesActions');
+  const searchForm = root.querySelector('#wikiSearchForm');
+  const searchInput = root.querySelector('#wikiSearchInput');
+  const dropzone = root.querySelector('#dropzone');
   const fileInput = root.querySelector('#fileInput');
-  const searchForm = root.querySelector('#searchForm');
-  const searchInput = root.querySelector('#searchInput');
-  const searchTopK = root.querySelector('#searchTopK');
-  const searchBtn = root.querySelector('#searchBtn');
+
+  const switchTab = (tab) => {
+    state.tab = tab === 'sources' ? 'sources' : 'pages';
+    pagesPanel.hidden = state.tab !== 'pages';
+    sourcesPanel.hidden = state.tab !== 'sources';
+    pagesActions.hidden = state.tab !== 'pages';
+    sourcesActions.hidden = state.tab !== 'sources';
+    page.querySelectorAll('.tab').forEach((btn) => {
+      const active = btn.dataset.tab === state.tab;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    if (state.tab === 'sources' && !state.docsLoaded && !state.docsError) loadDocs();
+  };
+  switchTab('pages');
 
   /* 上传交互 */
   const pickFile = () => fileInput?.click();
@@ -858,78 +1333,77 @@ export function mount(root) {
     if (event.dataTransfer?.files?.length) handleFiles(event.dataTransfer.files);
   });
 
-  /* 检索交互 */
+  /* 搜索 */
   searchForm?.addEventListener('submit', (event) => {
     event.preventDefault();
     const query = searchInput.value.trim();
     if (!query) {
-      toast('请输入检索关键词', 'warning');
+      toast('请输入搜索关键词', 'warning');
       searchInput.focus();
       return;
     }
-    const topKValue = Number(searchTopK.value) || 4;
-    try {
-      localStorage.setItem('npu:searchTopK', String(topKValue));
-    } catch {
-      /* ignore */
-    }
-    runSearch(query, topKValue);
+    runWikiSearch(query);
   });
 
-  /* 全局委托 */
   page.addEventListener('click', (event) => {
     const trigger = event.target.closest('[data-action]');
     if (!trigger || !page.contains(trigger)) return;
     const action = trigger.dataset.action;
     switch (action) {
-      case 'refresh-docs':
-        loadDocuments();
+      case 'switch-tab':
+        switchTab(trigger.dataset.tab);
+        break;
+      case 'refresh-pages':
+        loadPages();
+        loadTree();
         loadStats();
-        toast('正在刷新文档列表…', 'info', { duration: 1600 });
+        break;
+      case 'filter-tag':
+        state.activeTag = trigger.dataset.tag || '';
+        renderTagFilter();
+        loadPages();
+        break;
+      case 'open-page':
+        openWikiPage(trigger.dataset.id);
+        break;
+      case 'clear-search':
+        state.search = { query: '', running: false, result: null, error: '' };
+        if (searchInput) searchInput.value = '';
+        renderPages();
         break;
       case 'seed':
         runSeed(trigger);
         break;
       case 'pick-file':
+        switchTab('sources');
         pickFile();
         break;
-      case 'doc-detail':
-        openDocDetail(trigger.dataset.id);
+      case 'refresh-docs':
+        loadDocs();
         break;
-      case 'doc-delete':
-        removeDoc(trigger.dataset.id);
+      case 'rebuild-all':
+        runRebuildAll(trigger);
+        break;
+      case 'doc-pages':
+        openDocPages(trigger.dataset.id);
         break;
       case 'reindex':
         reindexDoc(trigger.dataset.id, trigger);
+        break;
+      case 'doc-delete':
+        removeDoc(trigger.dataset.id);
         break;
       case 'clear-uploads':
         state.uploads = state.uploads.filter((item) => item.status === 'uploading');
         renderUploads();
         break;
-      case 'toggle-hit': {
-        const hit = root.querySelector(`[data-hit="${trigger.dataset.hit}"]`);
-        if (!hit) break;
-        const full = hit.querySelector('.search-hit-full');
-        const open = full.hidden;
-        full.hidden = !open;
-        hit.classList.toggle('is-open', open);
-        trigger.innerHTML = open
-          ? `${icon('chevron-down')}<span>收起原文</span>`
-          : `${icon('chevron-right')}<span>展开原文</span>`;
+      case 'dismiss-build':
+        state.build = null;
+        renderBuildBanner();
         break;
-      }
-      case 'open-doc':
-        openDocDetail(trigger.dataset.id);
-        break;
-      case 'example-search': {
-        const query = trigger.dataset.query || '';
-        searchInput.value = query;
-        const topKValue = Number(searchTopK.value) || 4;
-        runSearch(query, topKValue);
-        break;
-      }
       case 'retry':
-        loadDocuments();
+        loadPages();
+        loadDocs();
         loadStats();
         break;
       default:
@@ -937,13 +1411,27 @@ export function mount(root) {
     }
   });
 
-  /* 首次加载 */
+  page.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    const trigger = event.target.closest('[data-action="open-page"]');
+    if (!trigger) return;
+    event.preventDefault();
+    openWikiPage(trigger.dataset.id);
+  });
+
+  /* 初始加载 */
   renderStats();
-  renderUploads();
-  renderSearch();
-  Promise.all([loadSystemInfo(), loadDocuments(), loadStats()]);
+  renderTagFilter();
+  renderDocs();
+  loadStats();
+  loadTree();
+  loadPages();
+  loadSystemInfo();
+  loadDocs({ silent: true });
+  if (initialPageId) openWikiPage(initialPageId, { fromHash: true });
 
   return () => {
     alive = false;
+    stopBuildPolling();
   };
 }

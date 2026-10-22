@@ -1,13 +1,23 @@
-"""SQLite persistence layer for NPU-Assistant.
+"""SQLite persistence layer for NPU-Assistant (LLM Wiki edition).
 
 Design notes
 ------------
 * No ORM: a thin helper layer over the stdlib ``sqlite3`` keeps the MVP
   dependency-free and easy to audit.
-* One short-lived connection per operation (``check_same_thread=False`` is not
-  needed because every call opens its own connection). WAL mode is enabled for
-  better concurrent reads from the bot gateway and the web UI.
+* One short-lived connection per operation. WAL mode is enabled for better
+  concurrent reads from the bot gateway and the web UI.
 * All timestamps are ISO-8601 strings in local server time.
+* Knowledge is stored as **wiki pages** (compiled by an LLM) plus **source
+  documents**.  The old RAG ``chunks`` table is removed by migration.
+
+Knowledge model
+---------------
+* ``documents``    – uploaded source files (the ground truth).
+* ``wiki_pages``   – LLM-compiled, human-readable knowledge entries.
+* ``wiki_sources`` – provenance anchors: which document / section / quote a
+  wiki page was compiled from.
+* ``wiki_links``   – related-page links inside the wiki.
+* ``wiki_builds``  – compilation audit log (status, model, page counters).
 """
 from __future__ import annotations
 
@@ -36,21 +46,60 @@ CREATE TABLE IF NOT EXISTS documents (
     error        TEXT,
     tags         TEXT NOT NULL DEFAULT '[]',
     char_count   INTEGER NOT NULL DEFAULT 0,
-    chunk_count  INTEGER NOT NULL DEFAULT 0,
+    page_count   INTEGER NOT NULL DEFAULT 0,
     created_at   TEXT NOT NULL,
     updated_at   TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS chunks (
+CREATE TABLE IF NOT EXISTS wiki_pages (
     id           TEXT PRIMARY KEY,
-    document_id  TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
-    seq          INTEGER NOT NULL,
-    section      TEXT,
-    content      TEXT NOT NULL,
-    tokens       INTEGER NOT NULL DEFAULT 0,
-    created_at   TEXT NOT NULL
+    slug         TEXT NOT NULL UNIQUE,
+    title        TEXT NOT NULL,
+    summary      TEXT NOT NULL DEFAULT '',
+    body_md      TEXT NOT NULL DEFAULT '',
+    aliases      TEXT NOT NULL DEFAULT '[]',
+    tags         TEXT NOT NULL DEFAULT '[]',
+    status       TEXT NOT NULL DEFAULT 'ready',     -- ready|needs_review
+    version      INTEGER NOT NULL DEFAULT 1,
+    source_count INTEGER NOT NULL DEFAULT 0,
+    created_at   TEXT NOT NULL,
+    updated_at   TEXT NOT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_chunks_document ON chunks(document_id);
+CREATE INDEX IF NOT EXISTS idx_wiki_pages_title ON wiki_pages(title);
+
+CREATE TABLE IF NOT EXISTS wiki_sources (
+    id               TEXT PRIMARY KEY,
+    page_id          TEXT NOT NULL REFERENCES wiki_pages(id) ON DELETE CASCADE,
+    document_id      TEXT NOT NULL,
+    document_title   TEXT NOT NULL,
+    source_file      TEXT NOT NULL,
+    section          TEXT,
+    quote            TEXT NOT NULL DEFAULT '',
+    created_at       TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_wiki_sources_page ON wiki_sources(page_id);
+CREATE INDEX IF NOT EXISTS idx_wiki_sources_document ON wiki_sources(document_id);
+
+CREATE TABLE IF NOT EXISTS wiki_links (
+    id            TEXT PRIMARY KEY,
+    from_page_id  TEXT NOT NULL REFERENCES wiki_pages(id) ON DELETE CASCADE,
+    to_page_id    TEXT NOT NULL REFERENCES wiki_pages(id) ON DELETE CASCADE,
+    relation      TEXT NOT NULL DEFAULT 'related',
+    UNIQUE(from_page_id, to_page_id)
+);
+
+CREATE TABLE IF NOT EXISTS wiki_builds (
+    id             TEXT PRIMARY KEY,
+    document_id    TEXT,
+    status         TEXT NOT NULL DEFAULT 'running',  -- running|ready|failed
+    model          TEXT,
+    pages_created  INTEGER NOT NULL DEFAULT 0,
+    pages_updated  INTEGER NOT NULL DEFAULT 0,
+    pages_removed  INTEGER NOT NULL DEFAULT 0,
+    error          TEXT,
+    started_at     TEXT NOT NULL,
+    finished_at    TEXT
+);
 
 CREATE TABLE IF NOT EXISTS providers (
     id               TEXT PRIMARY KEY,
@@ -198,22 +247,43 @@ def all_settings() -> dict[str, str]:
 
 
 # ---------------------------------------------------------------------------
-# Bootstrap
+# Bootstrap & migrations (RAG -> LLM Wiki)
 # ---------------------------------------------------------------------------
+def _column_names(table: str) -> set[str]:
+    return {row["name"] for row in query(f"PRAGMA table_info({table})")}
+
+
 def init_db() -> None:
     config.ensure_dirs()
     with connect() as conn:
         conn.executescript(SCHEMA)
         conn.commit()
 
+    # 1) Remove the legacy RAG chunk table entirely.
+    execute("DROP TABLE IF EXISTS chunks")
+
+    # 2) Legacy documents schema had chunk_count instead of page_count.
+    columns = _column_names("documents")
+    if "page_count" not in columns:
+        execute("ALTER TABLE documents ADD COLUMN page_count INTEGER NOT NULL DEFAULT 0")
+    if "chunk_count" in columns:
+        try:
+            execute("ALTER TABLE documents DROP COLUMN chunk_count")
+        except sqlite3.OperationalError:  # pragma: no cover - older SQLite
+            pass
+
+    # 3) Drop settings that only existed for BM25 retrieval.
+    for key in config.OBSOLETE_SETTINGS:
+        execute("DELETE FROM settings WHERE key = ?", (key,))
+
     for key, value in config.DEFAULT_SETTINGS.items():
         if get_setting(key) is None:
             set_setting(key, value)
 
     # A zero-configuration demo model so the product is usable before the
-    # administrator wires up a real LLM provider.
+    # administrator wires up a real LLM provider.  Note: compiling wiki pages
+    # requires a real model; the mock only supports demo/fallback answers.
     if not query_one("SELECT id FROM providers LIMIT 1"):
-
         provider_id = new_id()
         execute(
             "INSERT INTO providers(id, name, type, base_url, api_key, embedding_model, extra, created_at) "
@@ -223,7 +293,7 @@ def init_db() -> None:
         execute(
             "INSERT INTO models_registry(id, provider_id, model_name, display_name, temperature, max_tokens, "
             "is_default, enabled, created_at) VALUES(?, ?, ?, ?, ?, ?, 1, 1, ?)",
-            (new_id(), provider_id, "local-rag", "本地知识库问答（演示）", 0.2, 1200, now()),
+            (new_id(), provider_id, "local-wiki", "本地 Wiki 阅读（演示）", 0.2, 1200, now()),
         )
 
     # A console channel is always available for local debugging of the bot
@@ -295,3 +365,40 @@ def add_message(conversation_id: str, role: str, content: str, citations: list |
     )
     execute("UPDATE conversations SET updated_at = ? WHERE id = ?", (now(), conversation_id))
     return query_one("SELECT * FROM messages WHERE id = ?", (message_id,))  # type: ignore[return-value]
+
+
+# ---------------------------------------------------------------------------
+# Wiki helpers (shared by routers/services; SQL-heavy logic lives in
+# services/wiki_builder.py and services/wiki_nav.py)
+# ---------------------------------------------------------------------------
+def wiki_page_count() -> int:
+    row = query_one("SELECT COUNT(*) AS n FROM wiki_pages")
+    return int(row["n"]) if row else 0
+
+
+def get_wiki_page(page_id: str) -> dict | None:
+    return query_one("SELECT * FROM wiki_pages WHERE id = ?", (page_id,))
+
+
+def get_wiki_page_by_slug(slug: str) -> dict | None:
+    return query_one("SELECT * FROM wiki_pages WHERE slug = ?", (slug,))
+
+
+def get_page_sources(page_id: str) -> list[dict]:
+    return query("SELECT * FROM wiki_sources WHERE page_id = ? ORDER BY created_at", (page_id,))
+
+
+def wiki_stats() -> dict:
+    pages = wiki_page_count()
+    sources = query_one("SELECT COUNT(*) AS n FROM wiki_sources")
+    documents = query_one("SELECT COUNT(*) AS n FROM documents WHERE status = 'ready'")
+    tags: dict[str, int] = {}
+    for row in query("SELECT tags FROM wiki_pages"):
+        for tag in from_json(row.get("tags"), []) or []:
+            tags[tag] = tags.get(tag, 0) + 1
+    return {
+        "pages": pages,
+        "sources": int(sources["n"]) if sources else 0,
+        "documents": int(documents["n"]) if documents else 0,
+        "by_tag": tags,
+    }

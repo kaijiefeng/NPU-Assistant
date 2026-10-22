@@ -366,9 +366,9 @@ function renderConsoleOutput() {
               ? `<div class="console-citations">${citations
                   .map(
                     (cite, index) =>
-                      `<span class="citation-mini" title="${esc(cite.snippet || '')}">[${
+                      `<span class="citation-mini" title="${esc(cite.snippet || cite.summary || '')}">[${
                         cite.index ?? index + 1
-                      }] ${esc(cite.document_title || '引用文档')}</span>`,
+                      }] ${esc(cite.page_title || cite.document_title || '引用词条')}</span>`,
                   )
                   .join('')}</div>`
               : ''

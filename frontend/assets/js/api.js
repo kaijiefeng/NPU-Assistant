@@ -104,18 +104,46 @@ export const deleteConversation = (conversationId) =>
   del(`/chat/conversations/${encodeURIComponent(conversationId)}`);
 
 /* ------------------------------------------------------------------ */
-/* 知识库                                                              */
+/* 知识库（LLM Wiki）：源文件 + 词条                                    */
 /* ------------------------------------------------------------------ */
 export const listDocuments = () => get('/knowledge/documents');
 export const getDocument = (id) => get(`/knowledge/documents/${encodeURIComponent(id)}`);
 export const deleteDocument = (id) => del(`/knowledge/documents/${encodeURIComponent(id)}`);
 export const reindexDocument = (id) =>
   post(`/knowledge/documents/${encodeURIComponent(id)}/reindex`);
-export const getDocumentChunks = (id, offset = 0, limit = 50) =>
-  get(`/knowledge/documents/${encodeURIComponent(id)}/chunks`, { offset, limit });
-export const searchKnowledge = (query, topK) => post('/knowledge/search', { query, top_k: topK });
-export const seedKnowledge = () => post('/knowledge/seed');
 export const getKnowledgeStats = () => get('/knowledge/stats');
+
+/** 导入预编译 Wiki 快照（/knowledge/seed 优先，404 时回退 /wiki/seed）。 */
+export async function seedWiki() {
+  try {
+    return await post('/knowledge/seed');
+  } catch (err) {
+    if (err && (err.status === 404 || err.status === 405)) {
+      return await post('/wiki/seed');
+    }
+    throw err;
+  }
+}
+
+/** 兼容旧调用点：seed 语义与 seedWiki 一致。 */
+export const seedKnowledge = seedWiki;
+
+/* ------------------------------------------------------------------ */
+/* Wiki 词条                                                           */
+/* ------------------------------------------------------------------ */
+export const getWikiTree = () => get('/wiki/tree');
+export const listWikiPages = ({ q = '', tag = '', limit = 50, offset = 0 } = {}) =>
+  get('/wiki/pages', { q, tag, limit, offset });
+export const getWikiPage = (id) => get(`/wiki/pages/${encodeURIComponent(id)}`);
+export const updateWikiPage = (id, body) =>
+  put(`/wiki/pages/${encodeURIComponent(id)}`, body);
+export const deleteWikiPage = (id) => del(`/wiki/pages/${encodeURIComponent(id)}`);
+export const searchWiki = (query, limit) =>
+  post('/wiki/search', limit ? { query, limit } : { query });
+export const getWikiStats = () => get('/wiki/stats');
+export const rebuildWiki = (body = {}) => post('/wiki/rebuild', body);
+export const getWikiBuild = (id) => get(`/wiki/builds/${encodeURIComponent(id)}`);
+export const listWikiBuilds = (limit = 10) => get('/wiki/builds', { limit });
 
 /**
  * 上传知识文档（multipart）。使用 XHR 以便拿到真实上传进度。

@@ -15,7 +15,7 @@ const ROUTES = {
   },
   knowledge: {
     title: '知识库',
-    subtitle: '上传校园资料，自动解析切片，作为数字分身回答的依据。',
+    subtitle: '上传源文件，由 LLM 编译为结构化 Wiki 词条；浏览、搜索、编辑并追溯来源。',
     load: () => import('./views/knowledge.js'),
   },
   models: {
@@ -30,7 +30,7 @@ const ROUTES = {
   },
   settings: {
     title: '设置',
-    subtitle: '调整分身人设、欢迎语、快捷问题、检索参数与回复样式。',
+    subtitle: '调整分身人设、欢迎语、快捷问题、Wiki 阅读参数与回复样式。',
     load: () => import('./views/settings.js'),
   },
 };
@@ -61,8 +61,9 @@ let renderToken = 0;
 /* ------------------------------------------------------------------ */
 function parseHash() {
   const raw = String(location.hash || '').replace(/^#\/?/, '');
-  const name = raw.split('?')[0].split('/')[0].trim();
-  return name || DEFAULT_VIEW;
+  const [pathPart, queryPart = ''] = raw.split('?');
+  const name = (pathPart.split('/')[0] || '').trim() || DEFAULT_VIEW;
+  return { name, query: new URLSearchParams(queryPart) };
 }
 
 function setActiveNav(viewName) {
@@ -87,7 +88,7 @@ function showFatal(message) {
 }
 
 async function renderRoute() {
-  const requested = parseHash();
+  const { name: requested, query } = parseHash();
   const viewName = ROUTES[requested] ? requested : DEFAULT_VIEW;
 
   if (requested !== viewName) {
@@ -120,7 +121,7 @@ async function renderRoute() {
   try {
     const module = await route.load();
     if (token !== renderToken) return;
-    const cleanup = module.mount ? module.mount(dom.view) : undefined;
+    const cleanup = module.mount ? module.mount(dom.view, { query }) : undefined;
     if (token !== renderToken) {
       if (typeof cleanup === 'function') cleanup();
       return;

@@ -1,11 +1,12 @@
-"""FastAPI application entrypoint.
+"""FastAPI application entrypoint (LLM Wiki edition).
 
 The app is assembled here (Lead-owned file).  Each feature area lives in its own
 router module and is mounted under ``/api``:
 
 * ``system``    – health, stats, settings          (Lead)
 * ``chat``      – counselor chat + history         (backend-core)
-* ``knowledge`` – LLM Wiki upload / search          (kb-rag)
+* ``knowledge`` – source documents (upload/parse)   (kb-rag)
+* ``wiki``      – compiled wiki pages + navigation  (wiki-core)
 * ``models``    – LLM providers & model registry    (backend-core)
 * ``bots``      – WeChat / QQ bot gateway           (bot-gateway)
 """
@@ -14,7 +15,6 @@ from __future__ import annotations
 import logging
 import mimetypes
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,7 +22,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from starlette.requests import Request
 
 from . import config, db
-from .routers import bots, chat, knowledge, models, system
+from .routers import bots, chat, knowledge, models, system, wiki
 
 logger = logging.getLogger("npu-assistant")
 
@@ -32,15 +32,19 @@ API_PREFIX = "/api"
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     db.init_db()
-    if config.AUTO_SEED:
+    if config.AUTO_SEED and db.wiki_page_count() == 0:
         try:
-            from .services.ingest import seed_documents
+            from .services.wiki_builder import load_seed_wiki
 
-            result = seed_documents()
-            if result.get("ingested"):
-                logger.info("已自动导入示例知识库文档：%s", result["ingested"])
+            result = load_seed_wiki()
+            if result.get("imported"):
+                logger.info(
+                    "已导入预编译 Wiki 快照：%s 个词条 / %s 个来源",
+                    result.get("pages"),
+                    result.get("sources"),
+                )
         except Exception:  # pragma: no cover - optional convenience
-            logger.exception("示例知识库自动导入失败（已忽略，可手动触发 /api/knowledge/seed）")
+            logger.exception("预编译 Wiki 快照导入失败（已忽略，可在知识库页手动导入）")
     logger.info("NPU-Assistant 已启动 | data=%s", config.DATA_DIR)
     yield
 
@@ -68,6 +72,7 @@ def create_app() -> FastAPI:
     app.include_router(system.router, prefix=API_PREFIX)
     app.include_router(chat.router, prefix=API_PREFIX)
     app.include_router(knowledge.router, prefix=API_PREFIX)
+    app.include_router(wiki.router, prefix=API_PREFIX)
     app.include_router(models.router, prefix=API_PREFIX)
     app.include_router(bots.router, prefix=API_PREFIX)
 

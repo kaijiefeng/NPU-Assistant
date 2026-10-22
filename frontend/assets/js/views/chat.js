@@ -25,7 +25,7 @@ import {
 const FALLBACK_SETTINGS = {
   counselor_name: '小南',
   welcome_message:
-    '同学你好，我是辅导员数字分身「小南」👋 学校政策、奖助学金、请假流程、心理与就业服务等问题都可以问我。回答会标注引用的知识库文件，方便你核对原文。',
+    '同学你好，我是辅导员数字分身「小南」👋 学校政策、奖助学金、请假流程、心理与就业服务等问题都可以问我。回答会标注引用的 Wiki 词条和原始文件来源，方便你核对原文。',
   quick_questions: [
     '国家奖学金怎么申请？需要哪些材料？',
     '请假流程是什么？病假需要什么证明？',
@@ -33,7 +33,8 @@ const FALLBACK_SETTINGS = {
     '毕业生档案和报到证怎么办？',
   ],
   citations_enabled: true,
-  retrieval_top_k: 4,
+  wiki_max_pages: 3,
+  wiki_answer_max_chars: 9000,
 };
 
 const state = {
@@ -84,33 +85,55 @@ function renderContent(content, withCites = true) {
   });
 }
 
+function citationSourcesHtml(sources) {
+  if (!Array.isArray(sources) || !sources.length) return '';
+  return `<div class="citation-sources">${sources
+    .map((source) => {
+      const title = source.document_title || source.source_file || '来源文件';
+      return `<div class="citation-source">
+        <div class="citation-source-head">${icon('file')}<span>${esc(title)}</span>${
+          source.section ? `<span class="citation-source-section">${esc(source.section)}</span>` : ''
+        }</div>
+        ${source.quote ? `<blockquote class="citation-source-quote">${esc(source.quote)}</blockquote>` : ''}
+      </div>`;
+    })
+    .join('')}</div>`;
+}
+
 function citationsHtml(citations, messageIndex) {
   if (!Array.isArray(citations) || !citations.length) return '';
   const cards = citations
     .map((cite, i) => {
       const index = cite?.index ?? i + 1;
-      const title = cite?.document_title || '未命名文档';
-      const score = cite?.score;
+      const title = cite?.page_title || cite?.document_title || '未命名词条';
+      const sources = Array.isArray(cite?.sources) ? cite.sources : [];
       return `<div class="citation-card" data-citation="${messageIndex}-${index}">
         <button class="citation-summary" type="button" data-action="toggle-citation" data-target="${messageIndex}-${index}" aria-expanded="false">
           <span class="citation-index">${esc(index)}</span>
           <span class="citation-title">${esc(title)}</span>
-          ${score !== undefined && score !== null ? `<span class="citation-score">${fmtScore(score)}</span>` : ''}
+          ${sources.length ? `<span class="citation-score">${sources.length} 来源</span>` : ''}
           <span class="citation-chevron">${icon('chevron-down')}</span>
         </button>
         <div class="citation-body">
-          ${cite?.section ? `<div class="citation-section">${icon('book')}<span>${esc(cite.section)}</span></div>` : ''}
-          <p class="citation-snippet">${esc(cite?.snippet || '（无摘要）')}</p>
+          ${cite?.summary ? `<p class="citation-summary-text">${esc(cite.summary)}</p>` : ''}
+          ${cite?.snippet ? `<p class="citation-snippet">${esc(cite.snippet)}</p>` : ''}
+          ${citationSourcesHtml(sources)}
           <div class="citation-meta">
-            ${cite?.document_id ? `<span title="${esc(cite.document_id)}">文档 ${esc(String(cite.document_id).slice(0, 8))}</span>` : ''}
-            ${cite?.chunk_id ? `<span title="${esc(cite.chunk_id)}">切片 ${esc(String(cite.chunk_id).slice(0, 8))}</span>` : ''}
+            ${
+              cite?.page_id
+                ? `<button class="link-btn" type="button" data-action="open-wiki-page" data-page-id="${esc(
+                    cite.page_id,
+                  )}">${icon('book')}<span>查看词条详情</span></button>`
+                : ''
+            }
+            ${sources.length ? `<span>${sources.length} 条来源锚点</span>` : ''}
           </div>
         </div>
       </div>`;
     })
     .join('');
   return `<div class="citations">
-    <div class="citations-head">${icon('book')}<span>引用来源</span><span class="citations-count">${citations.length}</span></div>
+    <div class="citations-head">${icon('book')}<span>引用词条</span><span class="citations-count">${citations.length}</span></div>
     ${cards}
   </div>`;
 }
@@ -302,7 +325,7 @@ export function mount(root) {
           : ''
       }
       <div class="welcome-tips">
-        <span>${icon('book')} 回答会标注知识库引用</span>
+        <span>${icon('book')} 回答会标注 Wiki 词条引用</span>
         <span>${icon('message')} 支持多轮追问</span>
         <span>${icon('shield')} 重要事项以官方通知为准</span>
       </div>
@@ -579,6 +602,11 @@ export function mount(root) {
         } else {
           toast('该引用未包含在当前回答中', 'info');
         }
+        break;
+      }
+      case 'open-wiki-page': {
+        const pageId = trigger.dataset.pageId;
+        if (pageId) location.hash = `#/knowledge?page=${encodeURIComponent(pageId)}`;
         break;
       }
       case 'retry-send':

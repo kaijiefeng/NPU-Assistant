@@ -4,11 +4,13 @@
 
 | 文件 | 对应页面 | 内容 |
 |------|----------|------|
-| `chat.png` | `#/chat` 对话 | 带 `[1][2][3]` 引用的回答 + 展开的引用来源卡片 + 历史会话侧栏 |
-| `knowledge.png` | `#/knowledge` 知识库 | 文档列表（状态徽标 / 切片数）+ 统计卡片 + 检索测试 |
+| `chat.png` | `#/chat` 对话 | 带 `[1][2][3]` 引用的回答 + 展开的**双层引用卡片**（词条 + 来源文件·章节 + 原文摘录）+ 历史会话侧栏 |
+| `knowledge.png` | `#/knowledge` 知识库 | 「词条 / 源文件」双 Tab：Wiki 目录与搜索、来源锚点、源文件编译状态 |
 | `models.png` | `#/models` 模型 | Provider 卡片（Key 脱敏）+ 模型列表与默认模型高亮 |
 | `bots.png` | `#/bots` 机器人 | 三个通道卡片 + Webhook 地址 + 控制台模拟对话 |
-| `settings.png` | `#/settings` 设置 | 分身名称、系统提示词、检索参数与引用开关 |
+| `settings.png` | `#/settings` 设置 | 分身名称、系统提示词、Wiki 导航页数（`wiki_max_pages`）、回答上下文字数（`wiki_answer_max_chars`）与引用开关 |
+
+截图由 Lead 在 **LLM Wiki 版**界面下用 `scripts/ui_check.py` 重新生成；如界面有更新，按下方命令重跑即可覆盖。
 
 ## 重新生成
 

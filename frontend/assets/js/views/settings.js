@@ -32,8 +32,8 @@ function collect() {
     welcome_message: document.getElementById('settingWelcome')?.value || '',
     system_prompt: document.getElementById('settingPrompt')?.value || '',
     quick_questions: quickQuestions,
-    retrieval_top_k: Number(document.getElementById('settingTopK')?.value || 4),
-    retrieval_min_score: Number(document.getElementById('settingMinScore')?.value || 0.05),
+    wiki_max_pages: Number(document.getElementById('settingWikiMaxPages')?.value || 3),
+    wiki_answer_max_chars: Number(document.getElementById('settingWikiChars')?.value || 9000),
     citations_enabled: Boolean(document.getElementById('settingCitations')?.checked),
     bot_reply_footer: document.getElementById('settingFooter')?.value || '',
   };
@@ -92,8 +92,8 @@ function renderPreview() {
       values.bot_reply_footer ? esc(values.bot_reply_footer) : ''
     }</div>
     <div class="preview-tags">
-      <span class="chip-mono">top_k ${esc(values.retrieval_top_k)}</span>
-      <span class="chip-mono">阈值 ${esc(values.retrieval_min_score)}</span>
+      <span class="chip-mono">词条 ${esc(values.wiki_max_pages)} 个</span>
+      <span class="chip-mono">上下文 ${esc(values.wiki_answer_max_chars)} 字</span>
       <span class="chip-mono">引用${values.citations_enabled ? '开启' : '关闭'}</span>
     </div>
   </div>`;
@@ -124,10 +124,10 @@ function fillForm(settings) {
   if (welcome) welcome.value = settings.welcome_message ?? '';
   const prompt = document.getElementById('settingPrompt');
   if (prompt) prompt.value = settings.system_prompt ?? '';
-  const topK = document.getElementById('settingTopK');
-  if (topK) topK.value = settings.retrieval_top_k ?? 4;
-  const minScore = document.getElementById('settingMinScore');
-  if (minScore) minScore.value = settings.retrieval_min_score ?? 0.05;
+  const wikiMaxPages = document.getElementById('settingWikiMaxPages');
+  if (wikiMaxPages) wikiMaxPages.value = settings.wiki_max_pages ?? 3;
+  const wikiChars = document.getElementById('settingWikiChars');
+  if (wikiChars) wikiChars.value = settings.wiki_answer_max_chars ?? 9000;
   const citations = document.getElementById('settingCitations');
   if (citations) citations.checked = settings.citations_enabled !== false;
   const footer = document.getElementById('settingFooter');
@@ -187,27 +187,27 @@ function renderShell() {
         <section class="card">
           <header class="card-head">
             <div>
-              <h2>${icon('search')}检索与引用</h2>
-              <p>控制知识库召回数量、相关度阈值与回答中的引用展示</p>
+              <h2>${icon('book')}Wiki 阅读与引用</h2>
+              <p>控制对话时送入模型的词条数量、读取上限与引用展示</p>
             </div>
-            <span class="card-tag">RAG</span>
+            <span class="card-tag">Wiki</span>
           </header>
           <div class="form">
             <div class="form-row">
               <label class="field">
-                <span class="field-label">检索条数 top_k</span>
-                <input class="input" id="settingTopK" type="number" min="1" max="10" step="1" />
-                <span class="field-help">每次问答最多带入的切片数量，建议 3 ~ 6</span>
+                <span class="field-label">单次读取词条数上限</span>
+                <input class="input" id="settingWikiMaxPages" type="number" min="1" max="5" step="1" />
+                <span class="field-help">导航命中的词条最多读取几个，范围 1 ~ 5，建议 3</span>
               </label>
               <label class="field">
-                <span class="field-label">相关性阈值</span>
-                <input class="input" id="settingMinScore" type="number" min="0" max="1" step="0.01" />
-                <span class="field-help">低于该分数的切片视为无命中，建议 0.03 ~ 0.1</span>
+                <span class="field-label">回答上下文字符上限</span>
+                <input class="input" id="settingWikiChars" type="number" min="2000" max="20000" step="500" />
+                <span class="field-help">词条正文送入模型的字符总量，范围 2000 ~ 20000</span>
               </label>
             </div>
             <label class="field field-inline">
               <input type="checkbox" id="settingCitations" />
-              <span>在回答中展示引用来源卡片</span>
+              <span>在回答中展示引用词条与来源锚点</span>
             </label>
             <label class="field">
               <span class="field-label">机器人回复尾注</span>
@@ -232,11 +232,11 @@ function renderShell() {
             <div><h2>${icon('info')}配置建议</h2></div>
           </header>
           <ul class="tips-list">
-            <li>提示词中明确「资料没有覆盖时说明知识库未收录，并给出咨询渠道」，可减少编造。</li>
-            <li>引用编号由后端自动标注，回答中的 [1][2] 与来源卡片一一对应。</li>
-            <li>提高 top_k 会带来更多上下文，但也会增加模型调用成本与延迟。</li>
+            <li>提示词中明确「词条没有覆盖时说明 Wiki 未收录，并给出咨询渠道」，可减少编造。</li>
+            <li>引用编号由后端自动标注，回答中的 [1][2] 与词条引用卡片一一对应。</li>
+            <li>提高「单次读取词条数」会带来更完整的上下文，但也会增加模型调用成本与延迟。</li>
             <li>修改后如对话页仍显示旧欢迎语，重新进入对话页即可刷新。</li>
-            <li>知识库文档决定回答质量，建议先在<a href="#/knowledge">知识库</a>导入与学生手册相关的资料。</li>
+            <li>Wiki 词条来自源文件编译，建议先在<a href="#/knowledge">知识库</a>上传或导入学生手册相关资料。</li>
           </ul>
         </section>
       </aside>
@@ -300,18 +300,18 @@ function bindActions() {
       document.getElementById('settingPrompt')?.focus();
       return;
     }
-    if (!Number.isInteger(values.retrieval_top_k) || values.retrieval_top_k < 1 || values.retrieval_top_k > 10) {
-      toast('检索条数 top_k 需为 1 ~ 10 的整数', 'error');
-      document.getElementById('settingTopK')?.focus();
+    if (!Number.isInteger(values.wiki_max_pages) || values.wiki_max_pages < 1 || values.wiki_max_pages > 5) {
+      toast('单次读取词条数需为 1 ~ 5 的整数', 'error');
+      document.getElementById('settingWikiMaxPages')?.focus();
       return;
     }
     if (
-      !Number.isFinite(values.retrieval_min_score) ||
-      values.retrieval_min_score < 0 ||
-      values.retrieval_min_score > 1
+      !Number.isInteger(values.wiki_answer_max_chars) ||
+      values.wiki_answer_max_chars < 2000 ||
+      values.wiki_answer_max_chars > 20000
     ) {
-      toast('相关性阈值需在 0 ~ 1 之间', 'error');
-      document.getElementById('settingMinScore')?.focus();
+      toast('回答上下文字符上限需在 2000 ~ 20000 之间', 'error');
+      document.getElementById('settingWikiChars')?.focus();
       return;
     }
     if (values.quick_questions.length > 12) {

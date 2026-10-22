@@ -140,7 +140,7 @@ async def main() -> None:
             )
             citations = 0
             reply_ok = False
-            deadline = time.time() + 25
+            deadline = time.time() + 45
             while time.time() < deadline:
                 await asyncio.sleep(0.5)
                 citations = await cdp.evaluate("document.querySelectorAll('.citation-card').length") or 0
@@ -161,7 +161,7 @@ async def main() -> None:
             print(f"[PASS] 对话页：发送问题并收到回答 + {citations} 张引用卡片（已截图）")
 
             for name, path, needle in [
-                ("knowledge", "#/knowledge", "知识库"),
+                ("knowledge", "#/knowledge", "词条"),
                 ("models", "#/models", "模型"),
                 ("bots", "#/bots", "机器人"),
                 ("settings", "#/settings", "设置"),
