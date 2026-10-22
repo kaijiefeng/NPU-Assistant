@@ -46,6 +46,8 @@ async def lifespan(_: FastAPI):
 
 
 def create_app() -> FastAPI:
+    config.ensure_dirs()
+    db.init_db()
     app = FastAPI(
         title=config.APP_NAME,
         version=config.APP_VERSION,

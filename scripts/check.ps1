@@ -1,4 +1,4 @@
-# 运行后端测试
+﻿# 运行后端测试
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $python = Join-Path $root ".venv\Scripts\python.exe"

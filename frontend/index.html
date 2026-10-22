@@ -3,18 +3,163 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NPU-Assistant 校园助手</title>
-  <style>
-    body { font-family: "Microsoft YaHei", system-ui, sans-serif; background: #0b1220; color: #e6edf7;
-           display: grid; place-items: center; min-height: 100vh; margin: 0; }
-    .card { background: #111c33; border: 1px solid #23406e; border-radius: 16px; padding: 32px 40px; }
-    code { color: #5eead4; }
-  </style>
+  <meta name="description" content="NPU-Assistant 校园助手：辅导员数字分身、LLM Wiki 知识库、模型管理与微信/QQ 机器人。" />
+  <meta name="theme-color" content="#0b3d91" />
+  <title>NPU-Assistant · 辅导员数字分身</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='12' fill='%230b3d91'/%3E%3Cpath d='M24 12 38 19 24 26 10 19Z' fill='%2338e1d4'/%3E%3Cpath d='M15 23v7c0 3 4 5 9 5s9-2 9-5v-7l-9 4.5Z' fill='%23ffffff' opacity='.85'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./assets/styles.css" />
 </head>
 <body>
-  <div class="card">
-    <h1>NPU-Assistant</h1>
-    <p>前端正在由 web-ui 开发中。接口文档：<code>/api/docs</code></p>
+  <a class="skip-link" href="#view">跳到主要内容</a>
+
+  <div class="app" id="app">
+    <!-- ============================ 左侧导航 ============================ -->
+    <aside class="sidebar" id="sidebar" aria-label="主导航">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">
+          <svg viewBox="0 0 48 48" width="38" height="38">
+            <defs>
+              <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#1668dc" />
+                <stop offset="1" stop-color="#0b3d91" />
+              </linearGradient>
+            </defs>
+            <rect width="48" height="48" rx="13" fill="url(#brandGrad)" />
+            <path d="M24 10.5 39 18l-15 7.5L9 18Z" fill="#4ff0e2" />
+            <path d="M14 22.5V31c0 3.3 4.5 5.8 10 5.8s10-2.5 10-5.8v-8.5l-10 5Z" fill="#ffffff" opacity=".9" />
+            <path d="M39 18v8" stroke="#4ff0e2" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <strong>NPU-Assistant</strong>
+          <span>辅导员数字分身</span>
+        </div>
+        <button class="icon-btn sidebar-close" id="sidebarClose" type="button" aria-label="关闭导航">
+          <svg class="i" aria-hidden="true"><use href="#i-x"></use></svg>
+        </button>
+      </div>
+
+      <nav class="nav" id="nav">
+        <a class="nav-item" href="#/chat" data-view="chat">
+          <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-chat"></use></svg></span>
+          <span class="nav-label">对话</span>
+          <span class="nav-desc">Ask 小南</span>
+        </a>
+        <a class="nav-item" href="#/knowledge" data-view="knowledge">
+          <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-book"></use></svg></span>
+          <span class="nav-label">知识库</span>
+          <span class="nav-desc">LLM Wiki</span>
+        </a>
+        <a class="nav-item" href="#/models" data-view="models">
+          <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-cpu"></use></svg></span>
+          <span class="nav-label">模型</span>
+          <span class="nav-desc">Providers</span>
+        </a>
+        <a class="nav-item" href="#/bots" data-view="bots">
+          <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-robot"></use></svg></span>
+          <span class="nav-label">机器人</span>
+          <span class="nav-desc">QQ / 微信</span>
+        </a>
+        <a class="nav-item" href="#/settings" data-view="settings">
+          <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-settings"></use></svg></span>
+          <span class="nav-label">设置</span>
+          <span class="nav-desc">人设与检索</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="health-card" id="healthCard" title="后端服务状态">
+          <span class="health-dot is-pending" id="healthDot"></span>
+          <div class="health-text">
+            <strong id="healthTitle">正在连接服务…</strong>
+            <span id="healthModel">NPU-Assistant</span>
+          </div>
+        </div>
+        <div class="sidebar-meta">
+          <span>v0.1.0 · MVP</span>
+          <a href="/api/docs" target="_blank" rel="noopener">API 文档
+            <svg class="i i-xs" aria-hidden="true"><use href="#i-external"></use></svg>
+          </a>
+        </div>
+      </div>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+    <!-- ============================ 右侧主区 ============================ -->
+    <div class="shell">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="打开导航">
+          <svg class="i" aria-hidden="true"><use href="#i-menu"></use></svg>
+        </button>
+        <div class="topbar-title">
+          <h1 id="pageTitle">对话</h1>
+          <p id="pageSubtitle">与辅导员数字分身「小南」对话，回答基于知识库并标注引用。</p>
+        </div>
+        <div class="topbar-actions" id="topbarActions"></div>
+      </header>
+      <main class="view" id="view" tabindex="-1">
+        <div class="boot-screen">
+          <div class="spinner spinner-lg" aria-hidden="true"></div>
+          <p>正在加载页面…</p>
+        </div>
+      </main>
+    </div>
   </div>
+
+  <!-- 全局浮层 -->
+  <div class="toast-root" id="toastRoot" role="status" aria-live="polite" aria-atomic="false"></div>
+  <div id="modalRoot"></div>
+  <div id="drawerRoot"></div>
+
+  <!-- ============================ 内联 SVG 图标库 ============================ -->
+  <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H5.2L3 22V11.5a8.5 8.5 0 0 1 8.5-8.5h1A8.5 8.5 0 0 1 21 11.5Z"/><path d="M8 10h8M8 14h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M9 7h7M9 11h5"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2.5"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 1.5v2.5M15 1.5v2.5M9 20v2.5M15 20v2.5M1.5 9H4M1.5 15H4M20 9h2.5M20 15h2.5"/></symbol>
+    <symbol id="i-robot" viewBox="0 0 24 24"><rect x="3.5" y="7" width="17" height="12.5" rx="3.5"/><path d="M12 7V4M12 2.5h.01"/><circle cx="8.6" cy="12.6" r="1.15" fill="currentColor" stroke="none"/><circle cx="15.4" cy="12.6" r="1.15" fill="currentColor" stroke="none"/><path d="M9.5 16.2h5"/><path d="M3.5 11H1.8M3.5 15H1.8M20.5 11h1.7M20.5 15h1.7"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.08A1.7 1.7 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.08a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M21.5 2.5 10.8 13.2"/><path d="M21.5 2.5 14.7 21.5 10.8 13.2 2.5 9.3 21.5 2.5Z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3.5 6h17M8.5 6V4a1.5 1.5 0 0 1 1.5-1.5h4A1.5 1.5 0 0 1 15.5 4v2"/><path d="M18.5 6 17.6 19.4a2 2 0 0 1-2 1.9H8.4a2 2 0 0 1-2-1.9L5.5 6"/><path d="M10 10.5v6M14 10.5v6"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 1 1-2.8-6.3L20.5 8"/><path d="M20.5 3.5V8H16"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="7.3"/><path d="m21 21-4.7-4.7"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3.5"/><path d="m6.5 9 5.5-5.5L17.5 9"/><path d="M4 20.5h16"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5V16"/><path d="m6.5 10.5 5.5 5.5 5.5-5.5"/><path d="M4 20.5h16"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2.2"/><path d="M5.5 15H4.5a2 2 0 0 1-2-2V4.5a2 2 0 0 1 2-2h8.5a2 2 0 0 1 2 2v1"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5L20 6.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5Z"/><path d="M14 2.5v5h5"/><path d="M8.5 13h7M8.5 16.5h4.5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6.8V12l3.4 2"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4.5M12 17h.01"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.7h.01"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20.5h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4.2 1.2L4 16Z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2.5 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 18.3l-6.2 3.2 1.2-6.8-5-4.9 6.9-1L12 2.5Z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m6.5 4 14 8-14 8V4Z"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13.5a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.5 1.5"/><path d="M14 10.5a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.5-1.5"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.9-6.4"/><path d="M3.5 3.5V8H8"/><path d="M12 7.5V12l3.2 1.8"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H7.6L3 22V6a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/><path d="M8 9h8M8 13h5"/></symbol>
+    <symbol id="i-wechat" viewBox="0 0 24 24"><path d="M9 3.2C5.1 3.2 2 5.9 2 9.2c0 1.8.9 3.4 2.4 4.5l-.7 2.5 2.7-1.3c.7.2 1.5.3 2.3.3h.6"/><path d="M22 14.3c0-2.8-2.6-5.1-5.8-5.1s-5.8 2.3-5.8 5.1 2.6 5.1 5.8 5.1c.7 0 1.5-.1 2.1-.3l2.6 1.2-.6-2.2c1-.9 1.7-2 1.7-3.8Z"/></symbol>
+    <symbol id="i-qq" viewBox="0 0 24 24"><path d="M12 2.8c-3 0-4.6 2.4-4.6 5.2 0 1-.4 1.7-1 2.6-1.1 1.6-1.6 3-1.6 4.2 0 1.7 1.2 2.6 2.4 2.6.6 0 1.1-.2 1.6-.5.8 1.3 2 2.1 3.2 2.1s2.4-.8 3.2-2.1c.5.3 1 .5 1.6.5 1.2 0 2.4-.9 2.4-2.6 0-1.2-.5-2.6-1.6-4.2-.6-.9-1-1.6-1-2.6 0-2.8-1.6-5.2-4.6-5.2Z"/><circle cx="9.8" cy="8.6" r=".9" fill="currentColor" stroke="none"/><circle cx="14.2" cy="8.6" r=".9" fill="currentColor" stroke="none"/><path d="M10.4 13.2c.9.6 2.3.6 3.2 0"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2.5"/><path d="m6.5 9 3 3-3 3M12.5 15.5h5"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M18 13.5v5.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5.5"/><path d="M15 3h6v6"/><path d="M10.5 13.5 21 3"/></symbol>
+    <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5.2" rx="8" ry="3.2"/><path d="M4 5.2v13.6c0 1.8 3.6 3.2 8 3.2s8-1.4 8-3.2V5.2"/><path d="M4 12c0 1.8 3.6 3.2 8 3.2s8-1.4 8-3.2"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="m12 3 1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9L12 3Z"/><path d="M18.6 14.4l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1 1-2.4Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 21.5s8-3.7 8-9.5V5.2L12 2.2 4 5.2v6.8c0 5.8 8 9.5 8 9.5Z"/><path d="m8.8 11.6 2.2 2.2 4.2-4.3"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2.8v8.4"/><path d="M6.4 6.2a8.5 8.5 0 1 0 11.2 0"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2.2 2.2H19a2 2 0 0 1 2 2v8.8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-graduation" viewBox="0 0 24 24"><path d="m22 8.8-10-5-10 5 10 5 10-5Z"/><path d="M6 11.2V17c0 1.6 2.7 3 6 3s6-1.4 6-3v-5.8"/><path d="M22 8.8v5.4"/></symbol>
+    <symbol id="i-offline" viewBox="0 0 24 24"><path d="M2.5 8.5a15 15 0 0 1 5-2.9M21.5 8.5a15 15 0 0 0-9.7-3.2M5.5 12.5a10 10 0 0 1 3-1.6M18.5 12.5a10 10 0 0 0-3.9-1.8"/><path d="M8.7 16.4a5.5 5.5 0 0 1 6.6 0"/><path d="M12 20h.01"/><path d="m2 2 20 20"/></symbol>
+  </svg>
+
+  <noscript>
+    <div class="noscript">NPU-Assistant 需要启用 JavaScript 才能运行，请在浏览器设置中允许 JavaScript。</div>
+  </noscript>
+  <script type="module" src="./assets/js/app.js"></script>
 </body>
 </html>

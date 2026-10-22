@@ -1,4 +1,4 @@
-# 启动 NPU-Assistant 开发服务器
+﻿# 启动 NPU-Assistant 开发服务器
 # 用法:  .\scripts\run.ps1 [-Port 8000] [-BindHost 127.0.0.1] [-Reload]
 param(
     [int]$Port = 8000,

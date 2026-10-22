@@ -181,9 +181,12 @@ Provider 调用约定：`openai` 走 `{base_url}/chat/completions`（`base_url` 
 | POST | `/bots/wechat/{channel_id}?signature=&timestamp=&nonce=` | 接收 XML 文本消息，回复明文 XML（`ToUserName/FromUserName/CreateTime/MsgType/Content`）；签名错误 403；非文本消息回复引导语 |
 
 通道 `config`：
-- `onebot11`: `{ "api_base": "http://127.0.0.1:3000", "access_token": "", "self_id": "" }`
+- `onebot11`: `{ "api_base": "http://127.0.0.1:3000", "access_token": "", "self_id": "", "group_mention_only": "true" }`
 - `wechat_mp`: `{ "token": "npu-assistant", "app_id": "", "welcome": "" }`
 - `console`: `{}`
+
+OneBot 鉴权（实现已加固）：反向 WS 同时接受 `Authorization: Bearer <access_token>` 与 `?access_token=`（两者都带时必须一致，错误 401）；反向 HTTP 事件接受 query token 或 `X-Signature: sha1=<HMAC-SHA1(body, token)>`，未配置 token 时放行。群聊默认仅在被 @ 时回复（`group_mention_only=false` 可放开），`user_id==self_id` 的消息一律丢弃。WS 与 HTTP 事件同时开启时按 `channel_id+message_id` 进程内去重。
+微信公众号：被动回复 `Content-Type: text/xml; charset=utf-8`；问答链路超过约 4.5s 时先回复兜底提示（MVP 无异步客服消息推送，用户重发即可）。
 
 会话标识：
 - web: `web:{conversation_id 或 anonymous}`

@@ -20,7 +20,9 @@ REPO_DIR = BASE_DIR.parent
 FRONTEND_DIR = REPO_DIR / "frontend"
 DATA_DIR = Path(os.environ.get("NPU_DATA_DIR", BASE_DIR / "data"))
 UPLOAD_DIR = DATA_DIR / "uploads"
-SEED_DOCS_DIR = DATA_DIR / "seed_docs"
+# Seed documents are versioned content shipped with the repo, so they stay in
+# the backend directory even when NPU_DATA_DIR points at a temporary/test dir.
+SEED_DOCS_DIR = Path(os.environ.get("NPU_SEED_DOCS_DIR", BASE_DIR / "data" / "seed_docs"))
 DB_PATH = Path(os.environ.get("NPU_DB_PATH", DATA_DIR / "app.db"))
 
 # Server

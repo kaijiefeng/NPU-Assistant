@@ -9,7 +9,7 @@ __pycache__/
 
 # --- Runtime data ---
 backend/data/app.db
-backend/data/app.db-journal
+backend/data/app.db-*
 backend/data/uploads/*
 !backend/data/uploads/.gitkeep
 backend/data/seed_docs/*.pdf
