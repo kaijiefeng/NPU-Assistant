@@ -17,9 +17,11 @@
 ```
 
 访问方式（按场景选一个）：
+> **同一个服务**：移动端、桌面 Web、PWA、API、机器人回调都由同一个 FastAPI 进程提供，没有单独的移动端服务/端口。默认启动只监听本机 `127.0.0.1`；需要手机访问时加 `-Lan`（自动绑定 `0.0.0.0` 并生成令牌），即「总服务与移动端一起启动」。
+
 | 方式 | 适用 | HTTPS | 成本 | 说明 |
 |---|---|---|---|---|
-| 局域网 | 手机与电脑同一 Wi-Fi，先跑通 | 否 | 0 | `.\scripts\serve-lan.ps1`，手机访问 `http://<电脑IP>:8000`；PWA 不能安装（非 HTTPS），但网页可用 |
+| 局域网 | 手机与电脑同一 Wi-Fi，先跑通 | 否 | 0 | `.\scripts\run.ps1 -Lan`，手机访问 `http://<电脑IP>:8000`；PWA 不能安装（非 HTTPS），但网页可用 |
 | 公网隧道（推荐试用） | 手机 4G/5G、公众号回调、PWA 安装 | 是 | 0 | Cloudflare Tunnel / ngrok / frp，一条命令得到 `https://xxx` 地址 |
 | 云服务器/VPS | 7×24 生产 | 是 | 低 | systemd + Caddy/Nginx 反代 + 备份；手机随时访问 |
 
@@ -105,13 +107,14 @@
 
 ## 4. 部署与运维
 
-### 4.1 局域网（最快）
+### 4.1 局域网（最快，和总服务一起启动）
 ```powershell
-.\scripts\serve-lan.ps1            # 内部设置 NPU_HOST=0.0.0.0 启动并打印手机访问地址
+.\scripts\run.ps1 -Lan             # 绑定 0.0.0.0，自动生成并打印管理令牌 + 手机访问地址
+# 兼容旧命令：.\scripts\serve-lan.ps1  （等价于 run.ps1 -Lan）
 # 首次需放行防火墙（管理员 PowerShell）：
 New-NetFirewallRule -DisplayName "NPU-Assistant 8000" -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow
 ```
-手机浏览器打开 `http://<电脑局域网IP>:8000`。注意：HTTP 下 PWA 不能安装；不要在不可信 Wi-Fi 下开 `0.0.0.0` 且不设令牌。
+手机浏览器打开脚本打印的 `http://<电脑局域网IP>:8000`（同 Wi-Fi）。移动端与 Web/API 是**同一个进程**，无需也不会额外启动端口；`-Lan` 只是改变监听地址。注意：HTTP 下 PWA 不能安装；不要在不可信 Wi-Fi 下开 `0.0.0.0` 且不设令牌（`-Lan` 会自动生成一个，手机在设置页填入）。
 
 ### 4.2 公网 HTTPS（推荐：Cloudflare Tunnel）
 ```powershell
@@ -135,7 +138,7 @@ cloudflared tunnel --url http://127.0.0.1:8000
 恢复：停止服务 → 解压覆盖 `backend/data` → 启动。**不要**直接复制运行中的 `app.db-wal` 而不停服务。
 
 ### 4.5 安全清单
-- [ ] 设置强随机 `NPU_ADMIN_TOKEN`（≥24 字符），手机设置页保存；`.\scripts\serve-lan.ps1` 在未设置时会**自动生成并打印**一次；
+- [ ] 设置强随机 `NPU_ADMIN_TOKEN`（≥24 字符），手机设置页保存；`.\scripts\run.ps1 -Lan` / `.\scripts\serve-lan.ps1` 在未设置时会**自动生成并打印**一次；
 - [ ] 对外监听（非 `127.0.0.1`）必须设置 `NPU_ADMIN_TOKEN`，否则服务拒绝启动；仅可信内网临时演示才设 `NPU_ALLOW_INSECURE_LAN=1`；
 - [ ] CORS 默认关闭（同源 SPA 不需要）；确需跨域时用 `NPU_CORS_ORIGINS` 逗号白名单，禁止 `*`；
 - [ ] 公网只走 HTTPS 隧道/反代；管理接口不直接暴露裸端口；

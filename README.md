@@ -150,8 +150,8 @@ NPU-Assistant/
 │  ├─ service-worker.js     # 静态壳缓存（API 一律 network-only）
 │  └─ assets/               # styles.css + 原生 ES Module（api.js / app.js / ui.js / views/）+ icons/
 ├─ scripts/
-│  ├─ run.ps1               # 启动开发服务器
-│  ├─ serve-lan.ps1         # 以 0.0.0.0 启动并打印手机访问地址（局域网）
+│  ├─ run.ps1               # 启动服务（默认仅本机；-Lan 同时开放手机访问）
+│  ├─ serve-lan.ps1         # 兼容别名：等价于 run.ps1 -Lan
 │  ├─ check.ps1             # 运行 pytest 全量测试
 │  ├─ bootstrap.ps1         # 一键建环境 + 装依赖 + 启动
 │  ├─ smoke.ps1             # 启动后 Wiki API 冒烟检查
@@ -249,13 +249,21 @@ $env:NPU_SEED_MODEL="deepseek-chat"                    # 可选
 
 ### 10.1 手机访问方式
 
+> **移动端不是单独的服务**：网页、手机端、PWA、API、机器人回调都由同一个 FastAPI 进程提供，没有额外端口。默认 `.\scripts\run.ps1` 只监听 `127.0.0.1`（本机）；要让手机访问，启动时加 `-Lan`（等价旧脚本 `serve-lan.ps1`）：
+>
+> ```powershell
+> .\scripts\run.ps1 -Lan          # 绑定 0.0.0.0 + 自动生成并打印管理令牌 + 打印手机地址
+> ```
+>
+> 同一条命令即同时启动「总服务 + 移动端」，无需再开第二个服务；公网部署时把 `-BindHost 0.0.0.0` 交给 systemd/反代即可。
+
 | 方式 | 适用 | HTTPS | 说明 |
 |------|------|-------|------|
-| 局域网 | 手机与电脑同一 Wi-Fi，先跑通 | 否 | `.\scripts\serve-lan.ps1` 后手机访问 `http://<电脑IP>:8000`；HTTP 下 PWA 不能安装，网页可用 |
+| 局域网 | 手机与电脑同一 Wi-Fi，先跑通 | 否 | `.\scripts\run.ps1 -Lan` 后手机访问打印出的 `http://<电脑IP>:8000`；HTTP 下 PWA 不能安装，网页可用 |
 | 公网隧道（推荐试用） | 手机 4G/5G、公众号回调、PWA 安装 | 是 | Cloudflare Tunnel / ngrok / frp，一条命令得到 `https://xxx` 地址 |
 | 云服务器 | 7×24 生产 | 是 | systemd + Caddy/Nginx 反代 + 定期备份 |
 
-**管理令牌**：设置环境变量 `NPU_ADMIN_TOKEN`（建议 ≥24 位随机串）后，除学生问答 `POST /api/chat`、只读 GET 与机器人 webhook 外的写操作都要求请求头 `X-Admin-Token`。手机在「设置 → 移动端与管理令牌」登录一次，令牌保存在 `localStorage`，所有 API 自动携带；收到 401 时会引导回设置页。未设置令牌时完全放行（仅限本机演示）。
+**管理令牌**：设置环境变量 `NPU_ADMIN_TOKEN`（建议 ≥24 位随机串）后，除学生问答 `POST /api/chat`、只读 GET 与机器人 webhook 外的写操作都要求请求头 `X-Admin-Token`。手机在「设置 → 移动端与管理令牌」登录一次，令牌保存在 `localStorage`，所有 API 自动携带；收到 401 时会引导回设置页。未设置令牌时完全放行（仅限本机演示）；`-Lan` 启动会在未设置时自动生成并打印一个令牌。
 
 ### 10.2 快速收录（手机 / 桌面通用）
 
