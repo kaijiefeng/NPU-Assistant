@@ -232,3 +232,58 @@ def test_chat_non_campus_question_returns_scope_explanation(
     # 非校园话题：友好说明服务范围，而不是“政策未收录”
     assert "校园政策" in data["reply"] or "服务范围" in data["reply"]
     assert "暂未收录" not in data["reply"]
+
+
+# ---------------------------------------------------------------------------
+# 历史会话鉴权（含学生隐私）：配置 NPU_ADMIN_TOKEN 后 GET 历史需管理令牌
+# ---------------------------------------------------------------------------
+def test_chat_history_requires_admin_token_when_configured(client, seeded_wiki, monkeypatch):
+    from app import config
+
+    conversation_id = _chat(client, "你好").json()["conversation_id"]
+
+    # 未配置令牌：历史会话接口公开（本地演示）
+    assert client.get("/api/chat/conversations").status_code == 200
+    assert (
+        client.get(f"/api/chat/conversations/{conversation_id}/messages").status_code == 200
+    )
+
+    monkeypatch.setattr(config, "ADMIN_TOKEN", "mobile-secret-token")
+    headers = {"X-Admin-Token": "mobile-secret-token"}
+
+    assert client.get("/api/chat/conversations").status_code == 401
+    assert (
+        client.get(f"/api/chat/conversations/{conversation_id}/messages").status_code == 401
+    )
+    denied = client.get("/api/chat/conversations", headers={"X-Admin-Token": "wrong"})
+    assert denied.status_code == 401
+
+    ok_list = client.get("/api/chat/conversations", headers=headers)
+    assert ok_list.status_code == 200
+    assert any(item["id"] == conversation_id for item in ok_list.json()["items"])
+    ok_messages = client.get(
+        f"/api/chat/conversations/{conversation_id}/messages", headers=headers
+    )
+    assert ok_messages.status_code == 200
+    assert ok_messages.json()["items"]
+
+    # 学生问答始终公开，不受管理令牌影响
+    assert _chat(client, "你好").status_code == 200
+
+
+def test_chat_anonymous_sessions_do_not_share_session_key(client):
+    """匿名（未传 session_key/conversation_id）两次提问应生成不同会话，避免串号。"""
+    first = client.post("/api/chat", json={"message": "你好", "channel": "web"}).json()[
+        "conversation_id"
+    ]
+    second = client.post("/api/chat", json={"message": "谢谢", "channel": "web"}).json()[
+        "conversation_id"
+    ]
+    assert first != second
+
+    items = client.get("/api/chat/conversations", params={"channel": "web"}).json()["items"]
+    matched = {item["id"]: item for item in items if item["id"] in {first, second}}
+    assert set(matched) == {first, second}
+    sessions = {item["session_key"] for item in matched.values()}
+    assert len(sessions) == 2, "两个匿名会话不应共享同一个 session_key"
+    assert all("anonymous-" in session for session in sessions)

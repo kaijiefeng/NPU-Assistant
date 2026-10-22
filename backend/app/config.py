@@ -33,6 +33,12 @@ WIKI_SEED_PATH = Path(os.environ.get("NPU_WIKI_SEED_PATH", BASE_DIR / "data" / "
 HOST = os.environ.get("NPU_HOST", "127.0.0.1")
 PORT = int(os.environ.get("NPU_PORT", "8000"))
 ADMIN_TOKEN = os.environ.get("NPU_ADMIN_TOKEN", "").strip()
+# Comma-separated browser origins allowed to call the API from another site.
+# Empty (default) means: no CORS headers at all — the bundled SPA is same-origin.
+CORS_ORIGINS = [item.strip() for item in os.environ.get("NPU_CORS_ORIGINS", "").split(",") if item.strip()]
+# Escape hatch for trusted intranet demos: allow binding to 0.0.0.0 without a
+# token. Never enable on a public network.
+ALLOW_INSECURE_LAN = os.environ.get("NPU_ALLOW_INSECURE_LAN", "0").strip().lower() in {"1", "true", "yes", "on"}
 
 # First boot convenience: import the bundled wiki snapshot automatically.
 AUTO_SEED = os.environ.get("NPU_AUTO_SEED", "1").strip().lower() not in {"0", "false", "no", "off"}
@@ -45,7 +51,7 @@ SUPPORTED_EXTS = {".md", ".markdown", ".txt", ".pdf", ".docx", ".xlsx", ".csv", 
 # URL / text import (mobile quick-ingest)
 # ---------------------------------------------------------------------------
 URL_IMPORT_TIMEOUT_SECONDS = int(os.environ.get("NPU_URL_IMPORT_TIMEOUT", "30"))
-URL_IMPORT_MAX_BYTES = int(os.environ.get("NPU_URL_IMPORT_MAX_BYTES", str(3 * 1024 * 1024)))
+URL_IMPORT_MAX_BYTES = int(os.environ.get("NPU_URL_IMPORT_MAX_BYTES", str(8 * 1024 * 1024)))
 URL_IMPORT_MAX_REDIRECTS = int(os.environ.get("NPU_URL_IMPORT_MAX_REDIRECTS", "5"))
 URL_IMPORT_MAX_URLS = int(os.environ.get("NPU_URL_IMPORT_MAX_URLS", "5"))
 URL_IMPORT_MAX_TEXT_CHARS = int(os.environ.get("NPU_URL_IMPORT_MAX_TEXT_CHARS", "60000"))

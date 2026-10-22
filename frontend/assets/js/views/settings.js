@@ -343,9 +343,26 @@ async function refreshTokenServerState() {
   renderTokenStatus();
 }
 
-function initTokenCard() {
+function updateTokenInputState() {
   const input = document.getElementById('adminTokenInput');
-  if (input) input.value = getAdminToken();
+  const saveBtn = document.querySelector('[data-action="save-token"]');
+  const token = getAdminToken();
+  if (input) {
+    input.value = '';
+    input.type = 'password';
+    input.placeholder = token
+      ? `当前已保存 ${token.length} 字符，输入新令牌可替换`
+      : '未启用令牌时可留空';
+  }
+  if (saveBtn) {
+    saveBtn.innerHTML = token
+      ? `${icon('refresh')}<span>替换令牌</span>`
+      : `${icon('check')}<span>保存令牌</span>`;
+  }
+}
+
+function initTokenCard() {
+  updateTokenInputState();
   renderTokenStatus();
   refreshTokenServerState();
 }
@@ -483,18 +500,14 @@ function bindActions() {
       toast('令牌长度偏短，建议使用服务端配置的完整随机串', 'warning');
     }
     setAdminToken(value);
-    if (input) input.value = getAdminToken();
+    updateTokenInputState();
     renderTokenStatus();
     toast('管理令牌已保存，后续请求将自动携带 X-Admin-Token', 'success', { title: '已保存' });
   });
 
   document.querySelector('[data-action="clear-token"]')?.addEventListener('click', () => {
     clearAdminToken();
-    const input = document.getElementById('adminTokenInput');
-    if (input) {
-      input.value = '';
-      input.type = 'password';
-    }
+    updateTokenInputState();
     renderTokenStatus();
     toast('已清除本机管理令牌', 'success');
   });

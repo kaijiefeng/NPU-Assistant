@@ -3949,13 +3949,16 @@ textarea.input {
   }
   .table tbody tr {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 9px 12px;
     padding: 12px;
     margin-bottom: 10px;
     border: 1px solid var(--line);
     border-radius: 12px;
     background: #fff;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
   }
   .table tbody tr:hover {
     background: #fff;
@@ -3963,6 +3966,9 @@ textarea.input {
   .table td {
     padding: 0;
     border: 0;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
   }
   .table td::before {
     content: attr(data-label);
@@ -3973,8 +3979,22 @@ textarea.input {
     font-weight: 600;
   }
   .table td[data-label="文档"],
-  .table td[data-label="模型"] {
+  .table td[data-label="模型"],
+  .table td[data-label="源文件"] {
     grid-column: 1 / -1;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .doc-cell {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .doc-cell-main {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
   }
   .table td.td-actions {
     grid-column: 1 / -1;
@@ -3983,6 +4003,7 @@ textarea.input {
     padding-top: 2px;
     border-top: 1px dashed var(--line);
     margin-top: 2px;
+    overflow: visible;
   }
   .table td.td-actions::before {
     display: none;
@@ -5447,6 +5468,122 @@ textarea.input {
   .capture-hint,
   .tips-list {
     font-size: 12px;
+  }
+}
+
+/* ==========================================================================
+   v0.3.1 审查修复：toast 操作、长 URL、机器人凭据、历史 401 空态
+   ========================================================================== */
+
+/* toast 内联操作按钮（401「去设置」） */
+.toast-action {
+  margin-top: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--npu-blue-50);
+  color: var(--npu-blue-600);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+}
+.toast-action:hover {
+  background: var(--npu-blue-100, #dce9ff);
+}
+.toast-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 快速收录：长 URL 两行截断 + 失败行操作 */
+.capture-result-item {
+  align-items: flex-start;
+}
+.capture-result-main {
+  min-width: 0;
+  flex: 1;
+}
+.capture-result-url {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  max-width: 100%;
+}
+.capture-copy {
+  flex: none;
+  margin-left: auto;
+}
+.capture-text-fallback {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+/* 通用换行保护 */
+.inline-error > span,
+.wiki-detail-head h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* 机器人通道：凭据字段与提示 */
+.field-help {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted-2);
+  font-size: 11px;
+  line-height: 1.55;
+}
+.bot-config .token-input-row {
+  align-items: stretch;
+}
+.bot-config .token-input-row .btn {
+  flex: none;
+}
+
+/* 历史会话 401 空态 */
+.history-offline span {
+  display: block;
+  margin: 2px 0 8px;
+  color: var(--muted-2);
+  font-size: 11.5px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .doc-error {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .models-table td:nth-child(3) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .tag-chip.is-link,
+  .citation-summary,
+  .doc-page-item {
+    min-height: 44px;
+  }
+  .capture-result-url {
+    font-size: 11px;
+  }
+  .toast-action {
+    min-height: 44px;
+  }
+  .skip-link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
   }
 }
 

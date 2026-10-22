@@ -394,3 +394,34 @@ def test_knowledge_list_detail_and_stats(client, compile_ready):
         "pages": doc["page_count"],
         "sources": doc["page_count"],
     }
+
+
+# ---------------------------------------------------------------------------
+# 8) body_html 链接协议白名单（存储型 XSS 防护）
+# ---------------------------------------------------------------------------
+def test_wiki_body_html_sanitizes_dangerous_links(client, seeded_wiki):
+    page_id = "a" * 32
+    body_md = (
+        "[js](javascript:alert(1)) [data](data:text/html;base64,PHNjcmlwdD4=) "
+        "[vb](vbscript:msgbox(1)) [file](file:///etc/passwd) "
+        "[proto](//evil.example/x) "
+        "[ok](https://example.com/a) [mail](mailto:test@example.com) [rel](/api/wiki/tree)"
+    )
+    updated = client.put("/api/wiki/pages/" + page_id, json={"body_md": body_md})
+    assert updated.status_code == 200, updated.text
+    html = updated.json()["body_html"]
+
+    lowered = html.lower()
+    assert "javascript:" not in lowered
+    assert "vbscript:" not in lowered
+    assert "data:text/html" not in lowered
+    assert "file://" not in lowered
+    assert 'href="//evil' not in lowered
+    # 危险链接保留文字、移除 href
+    assert ">js<" in html and 'href="javascript' not in lowered
+    # 合法外链补 target/rel；mailto 与站内相对路径保留
+    assert 'href="https://example.com/a"' in html
+    assert 'rel="noopener noreferrer"' in html
+    assert 'target="_blank"' in html
+    assert "mailto:test@example.com" in html
+    assert 'href="/api/wiki/tree"' in html

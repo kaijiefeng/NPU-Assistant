@@ -64,20 +64,24 @@ def health() -> dict:
 
 @router.get("/system/info")
 def system_info() -> dict:
+    # Deliberately no absolute filesystem paths here: this endpoint is public
+    # (the SPA needs it before login) and must not leak deployment layout.
     return {
         "app": config.APP_NAME,
         "version": config.APP_VERSION,
         "knowledge_mode": "llm-wiki",
-        "data_dir": str(config.DATA_DIR),
-        "upload_dir": str(config.UPLOAD_DIR),
-        "db_path": str(config.DB_PATH),
-        "wiki_seed_path": str(config.WIKI_SEED_PATH),
         "wiki_seed_available": config.WIKI_SEED_PATH.is_file(),
         "frontend_ready": (config.FRONTEND_DIR / "index.html").is_file(),
         "supported_exts": sorted(config.SUPPORTED_EXTS),
         "max_upload_mb": config.MAX_UPLOAD_BYTES // (1024 * 1024),
+        "url_import_max_mb": round(config.URL_IMPORT_MAX_BYTES / (1024 * 1024), 1),
+        "url_import_max_urls": config.URL_IMPORT_MAX_URLS,
         "admin_token_required": bool(config.ADMIN_TOKEN),
         "auto_seed": config.AUTO_SEED,
+        "cors_enabled": bool(config.CORS_ORIGINS),
+        "insecure_bind": (config.HOST or "").strip().lower()
+        not in {"127.0.0.1", "localhost", "::1"}
+        and not bool(config.ADMIN_TOKEN),
     }
 
 

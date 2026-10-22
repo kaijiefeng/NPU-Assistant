@@ -22,12 +22,15 @@ Knowledge model
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 import uuid
 from datetime import datetime
 from typing import Any, Iterable
 
 from . import config
+
+logger = logging.getLogger("npu-assistant")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS settings (
@@ -279,6 +282,25 @@ def init_db() -> None:
     if "source_url" not in columns:
         execute("ALTER TABLE documents ADD COLUMN source_url TEXT NOT NULL DEFAULT ''")
     execute("CREATE INDEX IF NOT EXISTS idx_documents_source_url ON documents(source_url)")
+    # URL imports are deduplicated by source_url; enforce it at the DB level too
+    # so concurrent imports cannot create duplicate documents.
+    try:
+        execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_documents_source_url "
+            "ON documents(source_url) WHERE source_url <> ''"
+        )
+    except sqlite3.IntegrityError:  # pragma: no cover - legacy duplicate data
+        # Clean historical duplicates (keep the oldest document per URL) and
+        # retry once; silently skipping the index would break concurrency safety.
+        logger.warning("documents.source_url 存在历史重复，正在清理后重建唯一索引")
+        execute(
+            "DELETE FROM documents WHERE source_url <> '' AND rowid NOT IN "
+            "(SELECT MIN(rowid) FROM documents WHERE source_url <> '' GROUP BY source_url)"
+        )
+        execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_documents_source_url "
+            "ON documents(source_url) WHERE source_url <> ''"
+        )
 
     # 3) Drop settings that only existed for BM25 retrieval.
     for key in config.OBSOLETE_SETTINGS:

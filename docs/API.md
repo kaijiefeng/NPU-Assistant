@@ -11,11 +11,13 @@
 |------|------|
 | 前缀 | 所有接口位于 `/api` 下，JSON 响应（上传为 multipart，公众号为 XML） |
 | 错误格式 | `HTTPException(status_code, detail="中文可读信息")`，前端按 `detail` 展示 |
-| 鉴权 | 默认无鉴权；设置环境变量 `NPU_ADMIN_TOKEN` 后，除 `POST /api/chat`、`GET/HEAD/OPTIONS` 与机器人 webhook（自带通道 token/签名）外的**写操作**需请求头 `X-Admin-Token: <token>`；缺失/错误 → 401 |
+| 鉴权 | 默认无鉴权（本地演示）；设置环境变量 `NPU_ADMIN_TOKEN` 后，除 `POST /api/chat`、`GET/HEAD/OPTIONS` 与机器人 webhook（自带通道 token/签名）外的**写操作**以及**历史会话接口**需请求头 `X-Admin-Token: <token>`；缺失/错误 → 401 |
 | 时间格式 | ISO 字符串（本地时间），ID 为 32 位 hex |
 | 上传限制 | 单文件 ≤ 20MB（`NPU_MAX_UPLOAD_MB`），支持 `.md/.markdown/.txt/.pdf/.docx/.xlsx/.csv/.json/.html/.htm` |
 | 知识模型 | `knowledge_mode: "llm-wiki"`；无 embedding / 向量库 / rerank / chunk 检索 |
 | LLM 依赖 | 上传编译、高质量回答需要真实 LLM；mock 模型下编译会被拒绝、问答降级（`fallback=true`） |
+| 安全响应头 | 所有响应默认带 `Content-Security-Policy`、`X-Frame-Options: DENY`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: same-origin`；CORS 默认关闭（仅 `NPU_CORS_ORIGINS` 白名单） |
+| 部署约束 | 监听非 `127.0.0.1` 时必须设置 `NPU_ADMIN_TOKEN`，否则拒绝启动（仅可信内网临时演示可 `NPU_ALLOW_INSECURE_LAN=1`）；`GET /system/info` 不返回任何绝对路径 |
 
 ## 2. 接口分组
 
@@ -52,7 +54,7 @@ Invoke-RestMethod http://127.0.0.1:8000/api/health
 ```
 
 - `GET /system/stats` 返回 `documents / ready_documents / wiki_pages / wiki_sources / messages / conversations / providers / models / bot_channels / db_size_bytes`。
-- `GET /system/info` 额外返回 `wiki_seed_path`、`wiki_seed_available`、`knowledge_mode` 等。
+- `GET /system/info` 返回公开的运行配置：`app / version / knowledge_mode / wiki_seed_available / frontend_ready / supported_exts / max_upload_mb / url_import_max_mb`（默认 `8.0`）/ `url_import_max_urls`（`5`）/ `admin_token_required` / `auto_seed` / `cors_enabled` / `insecure_bind`；**不返回 `data_dir`/`db_path` 等绝对路径**（防止泄露部署布局）。
 
 ### 3.2 设置
 
@@ -100,6 +102,9 @@ Invoke-RestMethod "http://127.0.0.1:8000/api/wiki/pages?q=奖学金&limit=20"
 # 详情：含 body_html、来源锚点与相关词条
 Invoke-RestMethod http://127.0.0.1:8000/api/wiki/pages/<page_id>
 
+# body_html 由后端 html.escape + markdown 渲染，并做链接协议白名单清洗：
+# javascript:/data:/vbscript:/file: 等危险链接移除 href；外链补 target + rel="noopener noreferrer"。
+
 # 编辑（局部更新，version+1，status 置回 ready）
 $body = @{ summary = "更新后的摘要"; body_md = "## 申请条件`n……"; tags = @("奖助") } | ConvertTo-Json -Depth 5
 Invoke-RestMethod -Method Put http://127.0.0.1:8000/api/wiki/pages/<page_id> `
@@ -113,8 +118,7 @@ Invoke-RestMethod -Method Delete http://127.0.0.1:8000/api/wiki/pages/<page_id>
 // GET /api/wiki/pages/{id}
 {
   "id": "…", "slug": "国家奖学金申请", "title": "国家奖学金申请",
-  "summary": "……", "body_md": "## 申请条件\n……", "body_html": "<h2>申请条件</h2>…",
-  "aliases": ["国奖"], "tags": ["奖助"], "status": "ready", "version": 2,
+  "summary": "……", "body_md": "## 申请条件\n……", "body_html": "<h2>申请条件</h2>…",  "aliases": ["国奖"], "tags": ["奖助"], "status": "ready", "version": 2,
   "source_count": 1, "created_at": "…", "updated_at": "…",
   "sources": [
     { "document_id": "…", "document_title": "国家奖学金与奖助学金评审办法（示例）",
@@ -252,7 +256,7 @@ Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/knowledge/import/url `
 }
 ```
 
-- 仅支持 `http/https`；手动跟随 ≤5 次重定向、超时 30s、响应 ≤3MB、仅接受 HTML/纯文本；
+- 仅支持 `http/https`；手动跟随 ≤5 次重定向、超时 30s、响应 ≤8MB（`NPU_URL_IMPORT_MAX_BYTES` 可调，超限提示会用「文本收录」或调大该变量）、仅接受 HTML/纯文本；
 - 默认**拒绝私网/回环地址**（内网部署可设 `NPU_URL_IMPORT_ALLOW_PRIVATE=1`）；`file://`、带账号密码 URL 一律 400；
 - 正文提取优先 `#js_content` / `.rich_media_content` / `article|main`，去脚本导航页脚；提取不到正文 → 400 中文原因。
 
@@ -329,6 +333,8 @@ Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/chat `
 
 - 无命中：`reply` 为「校园 Wiki 暂未收录」+ 咨询渠道，`citations=[]`，`navigation.method="none"`；
 - 多轮对话：把上一轮 `conversation_id` 传回即可；历史消息中的 `citations` 反序列化为同一结构；
+- 匿名会话：未传 `session_key` / `conversation_id` 时，服务端生成随机 `session_key`（`web:anonymous-<随机>`），两次提问不会串到同一会话；
+- **历史会话接口**（含学生隐私）：`GET /chat/conversations`、`GET /chat/conversations/{id}/messages` 在配置 `NPU_ADMIN_TOKEN` 后需 `X-Admin-Token`（缺失/错误 → 401）；未配置时公开；`POST /chat` 始终公开；
 - 机器人渠道（OneBot / 微信 / console）复用同一回答，仅取 `reply` 发送。
 
 ## 7. 模型管理（不变）
@@ -365,3 +371,5 @@ Invoke-RestMethod -Method Post ("http://127.0.0.1:8000/api/bots/channels/" + $co
 ```
 
 公众号 / OneBot 的回调地址、签名与鉴权规则见 [BOT-INTEGRATION.md](BOT-INTEGRATION.md)。
+
+> **通道安全**：`/bots/channels` 返回的 `config` 中凭据（onebot `access_token` / 微信 `token`）脱敏为 `****`+后 4 位，`admin_user_ids` 只显示 `***（N 个管理员）`，`api_base` 去掉 userinfo/query/fragment 后回显（编辑回填脱敏值=不修改），并以布尔 `has_access_token` 表示是否已配置；PUT 传空串或脱敏占位表示「不修改」。OneBot 创建时未给 token 会自动生成随机值（响应带 `token_generated: true` 与 `token_hint`，明文不可回读）。webhook 空 token 默认 403（本地调试 `NPU_BOT_ALLOW_INSECURE=1`），微信 token 不得为空或 `npu-assistant`，回调校验 ±300 秒时间窗 + nonce 防重放（重复 403，进程内缓存），webhook 请求体上限 2MB（413）。配置 `NPU_ADMIN_TOKEN` 后 `GET /bots/logs` 需 `X-Admin-Token`。

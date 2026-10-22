@@ -43,7 +43,9 @@ DEFAULT_CHANNEL_CONFIGS: dict[str, dict[str, str]] = {
         "import_enabled": "true",
     },
     CHANNEL_WECHAT: {
-        "token": "npu-assistant",
+        # 安全：不提供公开默认 Token；必须由用户填写与公众号后台一致的值，
+        # 空值 / 公开默认值 "npu-assistant" 会被 webhook 拒绝（见 routers/bots.py）。
+        "token": "",
         "app_id": "",
         "welcome": "",
         # 管理员 openid 逗号分隔（可在后端日志中查看 FromUserName）

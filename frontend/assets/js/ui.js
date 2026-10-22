@@ -190,6 +190,7 @@ export function toast(message, type = 'info', options = {}) {
     <div class="toast-body">
       ${title ? `<strong>${esc(title)}</strong>` : ''}
       <p>${esc(message)}</p>
+      ${options.actionLabel ? `<button class="toast-action" type="button">${esc(options.actionLabel)}</button>` : ''}
     </div>
     <button class="toast-close" type="button" aria-label="关闭通知">${icon('x')}</button>`;
   root.appendChild(node);
@@ -203,6 +204,13 @@ export function toast(message, type = 'info', options = {}) {
     window.setTimeout(() => node.remove(), 220);
   };
   node.querySelector('.toast-close')?.addEventListener('click', remove);
+  node.querySelector('.toast-action')?.addEventListener('click', () => {
+    try {
+      options.onAction?.();
+    } finally {
+      remove();
+    }
+  });
   node.addEventListener('mouseenter', () => window.clearTimeout(timer));
   node.addEventListener('mouseleave', () => {
     timer = window.setTimeout(remove, 1600);

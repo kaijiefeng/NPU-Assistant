@@ -19,9 +19,11 @@ from __future__ import annotations
 
 import html
 import logging
+import re
 from typing import Any
 
 import markdown
+from bs4 import BeautifulSoup
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from fastapi.responses import JSONResponse
 
@@ -36,14 +38,86 @@ MARKDOWN_EXTENSIONS = ["tables", "fenced_code", "nl2br"]
 MAX_QUERY_CHARS = 2000
 MAX_PAGE_TITLE_CHARS = 120
 
+# 词条正文允许的链接协议：http(s) 绝对链接、mailto、站内相对路径（# 或 /）。
+# javascript:/data:/vbscript:/file:/协议相对 // 等一律移除。
+_ALLOWED_ABSOLUTE_SCHEMES = ("http://", "https://")
+_ALLOWED_PREFIXES = ("mailto:",)
+_URL_CONTROL_CHARS_RE = re.compile(r"[\s\x00-\x1f\x7f]+")
+
 
 # ---------------------------------------------------------------------------
 # 序列化 / 渲染工具
 # ---------------------------------------------------------------------------
+def _classify_url(value: Any) -> tuple[bool, bool]:
+    """判断 URL 是否安全，返回 ``(是否允许, 是否外部链接)``。
+
+    协议白名单（见安全审查）：
+
+    * 允许：``http://`` / ``https://`` / ``mailto:`` / ``#`` 锚点 / ``/`` 站内相对路径；
+    * 拒绝：``javascript:`` / ``data:`` / ``vbscript:`` / ``file:`` / ``//host`` 等。
+
+    比较前先去掉空白与控制字符，避免 ``java\\nscript:`` 一类绕过。
+    """
+    raw = str(value or "").strip()
+    if not raw:
+        return False, False
+    cleaned = _URL_CONTROL_CHARS_RE.sub("", raw)
+    if not cleaned:
+        return False, False
+    lowered = cleaned.lower()
+    # 站内锚点 / 站内相对路径（排除协议相对的 //host）
+    if lowered.startswith("#"):
+        return True, False
+    if lowered.startswith("/") and not lowered.startswith("//"):
+        return True, False
+    if lowered.startswith("//"):
+        return False, False
+    if lowered.startswith(_ALLOWED_ABSOLUTE_SCHEMES):
+        return True, True
+    if lowered.startswith(_ALLOWED_PREFIXES) and len(lowered) > len("mailto:"):
+        return True, False
+    return False, False
+
+
+def _sanitize_rendered_html(rendered_html: str) -> str:
+    """对 Markdown 渲染结果做链接 / 图片协议白名单处理。
+
+    Python-Markdown 不校验链接协议，``[x](javascript:alert(1))`` 会被原样输出为
+    ``<a href="javascript:...">``。这里用 bs4 解析后逐个处理 ``<a>/<img>``：
+
+    * 危险 ``href/src`` 直接移除；``<a>`` 保留文字，``<img>`` 退化为 alt 文字；
+    * 外部 http(s) 链接补 ``target="_blank" rel="noopener noreferrer"``；
+    * 正文其他标签保持不变。
+    """
+    soup = BeautifulSoup(rendered_html or "", "html.parser")
+    for tag in soup.find_all(["a", "img"]):
+        if tag.name == "a":
+            allowed, external = _classify_url(tag.get("href"))
+            if not allowed:
+                for attribute in ("href", "target", "rel"):
+                    tag.attrs.pop(attribute, None)
+                continue
+            if external:
+                tag["target"] = "_blank"
+                tag["rel"] = "noopener noreferrer"
+            continue
+        # <img src=...>
+        allowed, _external = _classify_url(tag.get("src"))
+        if allowed:
+            continue
+        alt = str(tag.get("alt") or "").strip()
+        if alt:
+            tag.replace_with(alt)
+        else:
+            tag.decompose()
+    return str(soup)
+
+
 def _render_markdown(body_md: str) -> str:
-    """先转义 HTML 再渲染 Markdown，避免词条正文注入脚本（XSS）。"""
+    """先转义 HTML 再渲染 Markdown，并做链接协议白名单，避免存储型 XSS。"""
     escaped = html.escape(str(body_md or ""))
-    return markdown.markdown(escaped, extensions=MARKDOWN_EXTENSIONS)
+    rendered = markdown.markdown(escaped, extensions=MARKDOWN_EXTENSIONS)
+    return _sanitize_rendered_html(rendered)
 
 
 def _page_dict(row: dict | None) -> dict | None:

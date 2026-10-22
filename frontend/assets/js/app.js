@@ -167,6 +167,13 @@ function bindShell() {
   window.addEventListener('hashchange', () => {
     renderRoute();
   });
+  // skip-link 不能使用默认 hash 跳转（会被 SPA 路由当成页面），改为聚焦主内容区
+  document.querySelector('.skip-link')?.addEventListener('click', (event) => {
+    event.preventDefault();
+    if (!dom.view) return;
+    dom.view.focus({ preventScroll: true });
+    dom.view.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -252,7 +259,14 @@ function bindUnauthorizedGuide() {
       detail ||
         '该操作需要管理员令牌：请到「设置 → 移动端与管理令牌」填写 NPU_ADMIN_TOKEN 后重试。',
       'error',
-      { title: '需要管理令牌', duration: 9000 },
+      {
+        title: '需要管理令牌',
+        duration: 9000,
+        actionLabel: '去设置',
+        onAction: () => {
+          location.hash = '#/settings';
+        },
+      },
     );
   });
 }
@@ -313,12 +327,13 @@ function boot() {
   bindUnauthorizedGuide();
   bindInstallPrompt();
   registerServiceWorker();
+  // 无论是否有 hash 都要启动健康轮询（首访无 hash 会重定向到对话页）
+  startHealthPolling();
   if (!location.hash) {
     location.replace(`#/${DEFAULT_VIEW}`);
     return;
   }
   renderRoute();
-  startHealthPolling();
 }
 
 boot();

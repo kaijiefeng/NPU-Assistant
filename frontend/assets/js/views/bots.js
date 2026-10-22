@@ -37,8 +37,20 @@ const CHANNEL_TYPES = {
     desc: 'NapCat / go-cqhttp 等 OneBot 11 实现，支持反向 WebSocket 与反向 HTTP 事件。',
     configFields: [
       { key: 'api_base', label: 'HTTP API 地址', placeholder: 'http://127.0.0.1:3000', hint: 'OneBot HTTP API，用于发送回复' },
-      { key: 'access_token', label: 'Access Token', placeholder: '可留空', type: 'password' },
+      {
+        key: 'access_token',
+        label: 'Access Token',
+        type: 'password',
+        sensitive: true,
+        hint: '已配置时留空表示不修改；留空创建时由后端自动生成',
+      },
       { key: 'self_id', label: '机器人 QQ 号', placeholder: '如 123456789' },
+      {
+        key: 'admin_user_ids',
+        label: '管理员账号',
+        type: 'admin',
+        hint: '允许通过机器人收录资料的管理员 QQ 号，逗号分隔',
+      },
       {
         key: 'group_mention_only',
         label: '群聊仅 @ 回复',
@@ -47,7 +59,7 @@ const CHANNEL_TYPES = {
         hint: '默认开启：群聊中只有 @ 机器人 才生成回复，避免刷屏',
       },
     ],
-    defaults: { api_base: 'http://127.0.0.1:3000', access_token: '', self_id: '', group_mention_only: 'true' },
+    defaults: { api_base: 'http://127.0.0.1:3000', self_id: '', group_mention_only: 'true' },
   },
   wechat_mp: {
     label: '微信公众号',
@@ -55,11 +67,23 @@ const CHANNEL_TYPES = {
     icon: 'wechat',
     desc: '公众号明文模式回调：GET 校验签名，POST 接收 XML 文本消息并回复。',
     configFields: [
-      { key: 'token', label: 'Token', placeholder: 'npu-assistant', hint: '须与公众号后台「服务器配置」一致' },
+      {
+        key: 'token',
+        label: 'Token',
+        type: 'password',
+        sensitive: true,
+        hint: '须与公众号后台「服务器配置」一致（≥16 位随机，不能使用 npu-assistant）',
+      },
       { key: 'app_id', label: 'AppID', placeholder: '可选' },
       { key: 'welcome', label: '关注欢迎语', placeholder: '可选，关注时自动回复' },
+      {
+        key: 'admin_user_ids',
+        label: '管理员账号',
+        type: 'admin',
+        hint: '允许通过机器人收录资料的管理员 openid，逗号分隔',
+      },
     ],
-    defaults: { token: 'npu-assistant', app_id: '', welcome: '' },
+    defaults: { token: '', app_id: '', welcome: '' },
   },
   console: {
     label: '控制台调试',
@@ -128,7 +152,10 @@ function webhookEntries(channel) {
 
   // 接口未给出 webhook_urls 时，按契约路径生成兜底地址。
   const config = configOf(channel);
-  const tokenQuery = config.access_token ? `?access_token=${encodeURIComponent(config.access_token)}` : '';
+  // 脱敏后的 token 不能拼进 URL（避免出现 ****abcd 的无效地址）
+  const rawToken = config.access_token;
+  const tokenQuery =
+    rawToken && !isMaskedValue(rawToken) ? `?access_token=${encodeURIComponent(rawToken)}` : '';
   if (channel.type === 'onebot11') {
     return [
       ['OneBot 反向 WebSocket', `/api/bots/onebot/${channel.id}/ws${tokenQuery}`],
@@ -147,7 +174,12 @@ function absoluteUrl(url) {
   return url;
 }
 
-function fieldHtml(field, value) {
+function isMaskedValue(value) {
+  const text = String(value ?? '');
+  return /^\*{2,}/.test(text) || text.includes('***');
+}
+
+function fieldHtml(field, value, hasSecret = false) {
   if (field.type === 'checkbox') {
     const checked = value === true || value === 'true' || value === '1';
     return `<label class="field-inline bot-toggle">
@@ -158,12 +190,37 @@ function fieldHtml(field, value) {
       </span>
     </label>`;
   }
+  if (field.type === 'admin') {
+    const masked = isMaskedValue(value);
+    const placeholder = masked
+      ? `已配置（${value}），留空表示不修改`
+      : '管理员 QQ / openid，逗号分隔（留空不修改）';
+    return `<label class="field">
+      <span class="field-label">${esc(field.label)}${field.hint ? `<span class="field-tip">${esc(field.hint)}</span>` : ''}</span>
+      <div class="token-input-row">
+        <input class="input" data-config="${esc(field.key)}" data-sensitive="true" data-admin="true"
+          placeholder="${esc(placeholder)}" value="" />
+        <button class="btn btn-ghost btn-sm" type="button" data-action="clear-admin">${icon('trash')}<span>清空</span></button>
+      </div>
+    </label>`;
+  }
+  if (field.sensitive) {
+    const masked = isMaskedValue(value);
+    const placeholder = masked
+      ? `已配置（${value}），留空表示不修改`
+      : hasSecret
+        ? '已配置（已脱敏），留空表示不修改'
+        : '未配置，输入新值后保存';
+    return `<label class="field">
+      <span class="field-label">${esc(field.label)}${field.hint ? `<span class="field-tip">${esc(field.hint)}</span>` : ''}</span>
+      <input class="input mono" data-config="${esc(field.key)}" data-sensitive="true" type="password"
+        autocomplete="new-password" placeholder="${esc(placeholder)}" value="" />
+    </label>`;
+  }
   const input =
     field.type === 'textarea'
       ? `<textarea class="input" rows="2" data-config="${esc(field.key)}" placeholder="${esc(field.placeholder || '')}">${esc(value ?? '')}</textarea>`
-      : `<input class="input ${field.type === 'password' ? 'mono' : ''}" data-config="${esc(field.key)}" ${
-          field.type === 'password' ? 'type="password" autocomplete="new-password"' : ''
-        } placeholder="${esc(field.placeholder || '')}" value="${esc(value ?? '')}" />`;
+      : `<input class="input" data-config="${esc(field.key)}" placeholder="${esc(field.placeholder || '')}" value="${esc(value ?? '')}" />`;
   return `<label class="field">
     <span class="field-label">${esc(field.label)}${field.hint ? `<span class="field-tip">${esc(field.hint)}</span>` : ''}</span>
     ${input}
@@ -191,7 +248,7 @@ function channelCardHtml(channel) {
   const fields = meta.configFields
     .map((field) => {
       const value = config[field.key] !== undefined ? config[field.key] : field.default ?? '';
-      return fieldHtml(field, value);
+      return fieldHtml(field, value, Boolean(channel.has_access_token));
     })
     .join('');
 
@@ -476,13 +533,53 @@ async function loadLogs({ silent = false } = {}) {
 function collectConfig(card) {
   const config = {};
   card.querySelectorAll('[data-config]').forEach((input) => {
+    const key = input.dataset.config;
     if (input.type === 'checkbox') {
-      config[input.dataset.config] = input.checked ? 'true' : 'false';
-    } else {
-      config[input.dataset.config] = input.value.trim();
+      config[key] = input.checked ? 'true' : 'false';
+      return;
     }
+    const value = input.value.trim();
+    // 敏感字段（token / 管理员列表）：留空或回填脱敏占位都表示“不修改”
+    if (input.dataset.sensitive === 'true') {
+      if (!value || isMaskedValue(value)) return;
+      config[key] = value;
+      return;
+    }
+    config[key] = value;
   });
+  // “清空管理员”按钮：显式传空字符串，后端据此清空
+  if (card.dataset.clearAdmin === '1') config.admin_user_ids = '';
   return config;
+}
+
+function validateChannelConfig(channel, card) {
+  const config = configOf(channel);
+  if (channel.type === 'wechat_mp') {
+    const tokenInput = card.querySelector('[data-config="token"]');
+    const newToken = tokenInput?.value.trim() || '';
+    const hasExisting =
+      Boolean(channel.has_access_token || config.has_access_token) ||
+      isMaskedValue(config.token) ||
+      Boolean(config.token);
+    if (!newToken && !hasExisting) {
+      toast('请填写公众号后台一致的自定义 Token（≥16 位随机）', 'error');
+      tokenInput?.focus();
+      return false;
+    }
+    if (newToken) {
+      if (newToken === 'npu-assistant') {
+        toast('不能使用公开默认值 npu-assistant，请填写公众号后台一致的自定义 Token', 'error');
+        tokenInput?.focus();
+        return false;
+      }
+      if (newToken.length < 16) {
+        toast('公众号 Token 至少 16 位随机字符，请与公众号后台「服务器配置」保持一致', 'error');
+        tokenInput?.focus();
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 async function saveChannel(button) {
@@ -496,6 +593,7 @@ async function saveChannel(button) {
     nameInput?.focus();
     return;
   }
+  if (!validateChannelConfig(channel, card)) return;
   setButtonBusy(button, true, '保存中…');
   try {
     const updated = await updateBotChannel(id, { name, config: collectConfig(card) });
@@ -574,7 +672,18 @@ function openAddChannelModal(preferredType = 'onebot11') {
         <span class="field-label">通道名称 <em>*</em></span>
         <input class="input" name="name" maxlength="80" value="${esc(channelTypeMeta(preferredType).label)}" />
       </label>
-      <div class="form-hint">${icon('info')}<span>创建后请在通道卡片中填写连接参数并保存。</span></div>
+      <label class="field" data-create-field="onebot_token" hidden>
+        <span class="field-label">Access Token <span class="field-tip">（可选）</span></span>
+        <input class="input mono" name="onebot_token" type="password" autocomplete="new-password"
+          placeholder="留空则由后端自动生成随机密钥（明文不可回读）" />
+      </label>
+      <label class="field" data-create-field="wechat_token" hidden>
+        <span class="field-label">公众号 Token <em>*</em></span>
+        <input class="input mono" name="wechat_token" type="password" autocomplete="new-password"
+          placeholder="≥16 位随机字符串，与公众号后台「服务器配置」一致" />
+        <span class="field-help">不能为空，也不能使用公开默认值 npu-assistant，否则微信回调会返回 403。</span>
+      </label>
+      <div class="form-hint">${icon('info')}<span>创建后可在通道卡片中继续填写连接参数并保存；敏感凭据不会回显明文。</span></div>
     </form>`,
     footer: `<button class="btn btn-ghost" type="button" data-modal-cancel>取消</button>
       <button class="btn btn-primary" type="button" data-modal-submit>添加通道</button>`,
@@ -582,9 +691,18 @@ function openAddChannelModal(preferredType = 'onebot11') {
   const form = modal.body.querySelector('#channelForm');
   const typeSelect = form.querySelector('[name="type"]');
   const nameInput = form.querySelector('[name="name"]');
+  const onebotTokenField = form.querySelector('[data-create-field="onebot_token"]');
+  const wechatTokenField = form.querySelector('[data-create-field="wechat_token"]');
+  const syncCreateFields = () => {
+    const type = typeSelect.value;
+    onebotTokenField.hidden = type !== 'onebot11';
+    wechatTokenField.hidden = type !== 'wechat_mp';
+  };
   typeSelect.addEventListener('change', () => {
     nameInput.value = channelTypeMeta(typeSelect.value).label;
+    syncCreateFields();
   });
+  syncCreateFields();
   modal.footer.querySelector('[data-modal-cancel]')?.addEventListener('click', () => modal.close());
   modal.footer.querySelector('[data-modal-submit]')?.addEventListener('click', async (event) => {
     const button = event.currentTarget;
@@ -595,10 +713,40 @@ function openAddChannelModal(preferredType = 'onebot11') {
       nameInput.focus();
       return;
     }
+    const config = { ...channelTypeMeta(type).defaults };
+    if (type === 'wechat_mp') {
+      const token = form.querySelector('[name="wechat_token"]').value.trim();
+      if (!token) {
+        toast('请填写公众号后台一致的自定义 Token（≥16 位随机）', 'error');
+        return;
+      }
+      if (token === 'npu-assistant') {
+        toast('不能使用公开默认值 npu-assistant，请填写自定义 Token', 'error');
+        return;
+      }
+      if (token.length < 16) {
+        toast('公众号 Token 至少 16 位随机字符', 'error');
+        return;
+      }
+      config.token = token;
+    } else if (type === 'onebot11') {
+      const token = form.querySelector('[name="onebot_token"]').value.trim();
+      if (token) config.access_token = token;
+      else delete config.access_token; // 留空：由后端自动生成
+    }
     setButtonBusy(button, true, '添加中…');
     try {
-      await createBotChannel({ type, name, config: channelTypeMeta(type).defaults });
-      toast('机器人通道已添加', 'success');
+      const created = await createBotChannel({ type, name, config });
+      const tokenGenerated = Boolean(created?.token_generated || created?.channel?.token_generated);
+      if (tokenGenerated) {
+        toast(
+          '已自动生成通道密钥，请到通道详情重新设置自定义 token（如 NapCat 使用）；明文不可再次查看。',
+          'warning',
+          { title: '已生成通道密钥', duration: 9000 },
+        );
+      } else {
+        toast('机器人通道已添加', 'success');
+      }
       modal.close();
       await loadChannels({ silent: true });
     } catch (err) {
@@ -726,6 +874,18 @@ export function mount(root) {
       case 'save-channel':
         saveChannel(trigger);
         break;
+      case 'clear-admin': {
+        const card = trigger.closest('.bot-card');
+        if (!card) break;
+        card.dataset.clearAdmin = '1';
+        const input = card.querySelector('[data-config="admin_user_ids"]');
+        if (input) {
+          input.value = '';
+          input.placeholder = '已清空管理员，保存后生效';
+        }
+        toast('保存后将清空该通道管理员列表', 'info', { duration: 2600 });
+        break;
+      }
       case 'delete-channel':
         removeChannel(trigger.dataset.id);
         break;

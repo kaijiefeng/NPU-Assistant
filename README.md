@@ -211,9 +211,12 @@ Wiki 编译与高质量回答都依赖真实 LLM；默认的 mock 模型只用�
 | `NPU_WIKI_SEED_PATH` | `backend/data/wiki_seed.json` | 预编译 Wiki 快照路径 |
 | `NPU_MAX_UPLOAD_MB` | `20` | 单文件上传上限 |
 | `NPU_AUTO_SEED` | `1` | 首启是否自动导入 Wiki 快照 |
-| `NPU_ADMIN_TOKEN` | 空 | 设置后管理类写操作需 `X-Admin-Token` 请求头（学生问答 `POST /api/chat`、GET、机器人 webhook 不受影响） |
+| `NPU_ADMIN_TOKEN` | 空 | 设置后管理类写操作与历史会话接口需 `X-Admin-Token` 请求头（学生问答 `POST /api/chat`、GET、机器人 webhook 不受影响） |
+| `NPU_CORS_ORIGINS` | 空 | CORS 白名单（逗号分隔）；默认关闭，同源 SPA 不需要 |
+| `NPU_ALLOW_INSECURE_LAN` | `0` | 对外监听且未设管理令牌时，服务默认拒绝启动；仅可信内网临时演示可设 `1` |
+| `NPU_BOT_ALLOW_INSECURE` | `0` | 机器人 webhook 空 token 逃生开关，仅限本机调试 |
 | `NPU_URL_IMPORT_ALLOW_PRIVATE` | `0` | URL 收录是否允许私网/回环地址（内网资料才临时开启） |
-| `NPU_URL_IMPORT_MAX_BYTES` | `3145728` | URL 抓取响应大小上限（默认 3MB） |
+| `NPU_URL_IMPORT_MAX_BYTES` | `8388608` | URL 抓取响应大小上限（默认 8MB，可调） |
 | `NPU_URL_IMPORT_MAX_URLS` | `5` | 批量收录单次链接上限 |
 
 ## 八、预编译 Wiki 快照（离线演示）
@@ -233,9 +236,10 @@ $env:NPU_SEED_MODEL="deepseek-chat"                    # 可选
 
 ## 九、微信 / QQ 机器人接入
 
-- **QQ（NapCat / OneBot 11）**：NapCat 侧配置「HTTP 服务器」（默认 `127.0.0.1:3000`，Token 与通道 `access_token` 一致，供后端发送回复）与「WebSocket 客户端」（反向 WS，URL 为 `ws://127.0.0.1:8000/api/bots/onebot/{通道ID}/ws`，Token 字段填通道 `access_token`）；也可选用「HTTP 客户端」做反向 HTTP 事件。群聊默认仅 @ 机器人时回复。
-- **微信公众号（明文模式）**：需要公网可达的 URL（可用 ngrok / cpolar 内网穿透），在公众号后台「开发 → 基本配置」填写回调 URL `https://<公网域名>/api/bots/wechat/{通道ID}` 与 Token（与通道 config 一致），完成签名校验后即可收发 XML 文本消息。
+- **QQ（NapCat / OneBot 11）**：NapCat 侧配置「HTTP 服务器」（默认 `127.0.0.1:3000`，Token 与通道 `access_token` 一致，供后端发送回复）与「WebSocket 客户端」（反向 WS，URL 为 `ws://127.0.0.1:8000/api/bots/onebot/{通道ID}/ws`，Token 字段填通道 `access_token`）；也可选用「HTTP 客户端」做反向 HTTP 事件。群聊默认仅 @ 机器人时回复。通道创建时留空 `access_token` 会自动生成随机值（API 只回显脱敏值），空 Token 的 webhook 一律 403。
+- **微信公众号（明文模式）**：需要公网可达的 URL（可用 ngrok / cpolar 内网穿透），在公众号后台「开发 → 基本配置」填写回调 URL `https://<公网域名>/api/bots/wechat/{通道ID}` 与自选强随机 Token（与通道 config 一致，**不能为空或使用公开默认值 `npu-assistant`**），完成签名校验（含 ±300 秒时间窗）后即可收发 XML 文本消息。
 - **控制台调试通道**：无需任何外部账号，在「机器人」页直接模拟学生消息，走完整 `counselor → Wiki 导航 → 词条回答` 链路。
+- **安全**：通道接口的 token 脱敏、`has_access_token`、PUT「留空不修改」、`self_id` 一致性校验及 `NPU_BOT_ALLOW_INSECURE=1` 本地调试开关详见文档。
 
 完整步骤、配置示例与故障排查见 **[docs/BOT-INTEGRATION.md](docs/BOT-INTEGRATION.md)**。
 
@@ -261,7 +265,7 @@ $env:NPU_SEED_MODEL="deepseek-chat"                    # 可选
 - **文本**：粘贴微信/QQ 转发的文字 + 可选标题，调用 `POST /api/knowledge/import/text`（30–200000 字）；
 - **文件**：原有上传入口（`POST /api/knowledge/documents`）。
 
-URL 抓取默认拒绝私网/回环地址（内网部署可设 `NPU_URL_IMPORT_ALLOW_PRIVATE=1`），仅接受 HTML/纯文本，响应 ≤3MB。收录成功后可直接点开生成的词条查看。
+URL 抓取默认拒绝私网/回环地址（内网部署可设 `NPU_URL_IMPORT_ALLOW_PRIVATE=1`），仅接受 HTML/纯文本，响应 ≤8MB（`NPU_URL_IMPORT_MAX_BYTES` 可调）；公众号文章过大或触发反爬时，改用「文本」粘贴正文收录。
 
 ### 10.3 机器人管理员入库
 
@@ -293,7 +297,7 @@ cd backend
 ..\.venv\Scripts\python.exe -m pytest tests -q
 ```
 
-当前 **62 个用例全部通过**（约 22s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本 / 寒暄回复，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、对话双层引用与降级、寒暄与闲聊意图（chitchat / 服务范围说明）、模型管理、机器人、系统设置。
+当前 **104 个用例全部通过**（约 41s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本 / 寒暄回复，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、body_html XSS 链接清洗、对话双层引用与降级、寒暄与闲聊意图（chitchat / 服务范围说明）、历史会话鉴权、移动端 URL/文本/批量收录与 SSRF/8MB/gzip/并发去重、管理员令牌、机器人安全（凭据脱敏、api_base 脱敏、webhook token、微信时间窗 + nonce 防重放、self_id、2MB body 上限、日志鉴权）、模型管理与系统设置。
 
 服务启动后还可运行真实 HTTP 冒烟与前端交互检查：
 
@@ -344,6 +348,9 @@ Wiki 编译需要真实 LLM。请到「模型」页检查默认模型是否为 D
 - AI 编译与回答可能存在遗漏或偏差，涉及奖学金、学籍、毕业、贷款等关键事项，请务必核对引用来源并与辅导员或职能部门核实。
 - 涉及心理危机、人身安全、紧急医疗时，请优先联系辅导员、校保卫处、心理中心，或拨打 **110 / 120**；不要依赖 AI 作答。
 - 部署到公网前请务必设置 `NPU_ADMIN_TOKEN`、使用 HTTPS 反向代理、限制上传大小与来源 IP，并遵守《个人信息保护法》与学校数据管理规定；**上传真实文件与调用第三方 LLM 前请完成数据合规评估**。
+- **安全默认**：CORS 默认关闭（按需 `NPU_CORS_ORIGINS` 白名单）；对外监听（非 `127.0.0.1`）未设管理令牌时服务拒绝启动；历史会话、设置、导入、词条写操作在配置令牌后均需 `X-Admin-Token`；默认下发 CSP / `X-Frame-Options: DENY` / `X-Content-Type-Options: nosniff` 等响应头。
+- **机器人安全**：通道接口不返回 token 明文（脱敏 + `has_access_token`），空 token 的 OneBot webhook 与使用公开默认 token `npu-assistant` 的公众号回调一律 403；微信校验签名与 ±300 秒时间窗；`self_id` 不一致事件忽略；`NPU_BOT_ALLOW_INSECURE=1` 仅限本机调试。
+- **内容安全**：URL 收录默认拒绝私网/回环地址（SSRF 防护）、仅 http(s) 与 HTML/纯文本、响应上限 8MB；Wiki 词条正文渲染前转义并对链接协议白名单清洗，外链带 `rel="noopener noreferrer"`。
 - 接入 QQ / 微信公众号需遵守对应平台协议；公众号仅实现明文模式，生产环境建议改为加密模式并做消息验签加固。
 
 ## 十五、许可

@@ -34,6 +34,7 @@ import {
 import {
   badge,
   confirmDialog,
+  copyText,
   emptyHtml,
   errorHtml,
   esc,
@@ -92,6 +93,7 @@ const state = {
   docsLoaded: false,
   docsError: '',
   uploads: [],
+  uploadTimer: 0,
   build: null,
   buildTimer: 0,
   capture: {
@@ -839,6 +841,22 @@ function updateUpload(id, patch) {
   renderUploads();
 }
 
+/** 上传进度只更新对应节点，避免每个 progress 事件都整表重绘。 */
+function updateUploadProgress(id, percent) {
+  const item = state.uploads.find((entry) => entry.id === id);
+  if (!item) return;
+  item.percent = percent;
+  const node = document.querySelector(`[data-upload="${id}"]`);
+  if (!node) return;
+  const bar = node.querySelector('.progress span');
+  if (bar) bar.style.width = `${Math.max(2, Math.min(100, Number(percent) || 0))}%`;
+  const statusText = node.querySelector('.upload-status span:last-child');
+  if (statusText) {
+    statusText.textContent =
+      percent >= 99 ? '编译中（LLM 生成词条）…' : `上传中 ${Math.round(Number(percent) || 0)}%`;
+  }
+}
+
 async function handleFiles(fileList) {
   const files = Array.from(fileList || []);
   if (!files.length) return;
@@ -863,7 +881,7 @@ async function handleFiles(fileList) {
     state.uploads.unshift({ id, name: file.name, size: file.size, ext, status: 'uploading', percent: 0 });
     renderUploads();
     uploadDocument(file, {
-      onProgress: (percent) => updateUpload(id, { percent }),
+      onProgress: (percent) => updateUploadProgress(id, percent),
     })
       .then((doc) => {
         if (doc?.status === 'failed') {
@@ -885,14 +903,17 @@ async function handleFiles(fileList) {
   }
 
   if (queued) {
+    if (state.uploadTimer) window.clearInterval(state.uploadTimer);
     const started = Date.now();
-    const timer = window.setInterval(() => {
+    const timerId = window.setInterval(() => {
       const pending = state.uploads.some((item) => item.status === 'uploading');
       if (!pending || Date.now() - started > 600000) {
-        window.clearInterval(timer);
+        window.clearInterval(timerId);
+        if (state.uploadTimer === timerId) state.uploadTimer = 0;
         refreshWiki({ silent: true });
       }
     }, 800);
+    state.uploadTimer = timerId;
   }
 }
 
@@ -936,8 +957,8 @@ function renderDocs() {
               <div class="doc-cell">
                 <span class="file-ico ext-${esc(extClass(ext))}">${esc(extLabel(ext))}</span>
                 <div class="doc-cell-main">
-                  <strong>${esc(doc.title || doc.filename)}</strong>
-                  <span class="doc-filename">${esc(doc.filename)}</span>
+                  <strong title="${esc(doc.title || doc.filename)}">${esc(doc.title || doc.filename)}</strong>
+                  <span class="doc-filename" title="${esc(doc.filename)}">${esc(doc.filename)}</span>
                   ${errorLine}
                 </div>
               </div>
@@ -1197,26 +1218,52 @@ function parseTagsInput(value) {
     .slice(0, 10);
 }
 
+const URL_PATTERN = /https?:\/\/[^\s<>"'）】》」』]+/gi;
+const URL_TRAILING = /[，。；、,;:：!！?？…"'）)\]】》」』]+$/;
+
+function normalizeCapturedUrl(raw) {
+  return String(raw || '')
+    .trim()
+    .replace(URL_TRAILING, '')
+    .replace(URL_TRAILING, '');
+}
+
+/**
+ * 容错解析多行链接：
+ * - 支持「标题 + 链接」、行首序号（1. / 1、/（1））、全角空格、全角冒号、链接末尾中文标点；
+ * - 一行多个链接按空白分隔提取；
+ * - 不含链接的非空行标记为 invalid，不阻断整批；
+ * - 去重，超过 5 条截断并返回 truncated 数量。
+ */
 function parseCaptureUrls(text) {
-  const lines = String(text || '')
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-  const urls = [];
-  const invalid = [];
-  const duplicated = [];
-  lines.forEach((line, index) => {
-    if (!/^https?:\/\//i.test(line)) {
-      invalid.push(index + 1);
+  const lines = String(text || '').split(/\r?\n/);
+  const entries = [];
+  lines.forEach((line) => {
+    const normalizedLine = line.replace(/\u3000/g, ' ').trim();
+    if (!normalizedLine) return;
+    const matches = normalizedLine.match(URL_PATTERN) || [];
+    if (!matches.length) {
+      entries.push({ url: '', raw: normalizedLine, valid: false });
       return;
     }
-    if (urls.includes(line)) {
-      duplicated.push(line);
-      return;
-    }
-    urls.push(line);
+    matches.forEach((match) => {
+      const url = normalizeCapturedUrl(match);
+      if (url) entries.push({ url, raw: normalizedLine, valid: true });
+    });
   });
-  return { urls, invalid, duplicated };
+  const seen = new Set();
+  const unique = [];
+  entries.forEach((entry) => {
+    if (!entry.valid) {
+      unique.push(entry);
+      return;
+    }
+    if (seen.has(entry.url)) return;
+    seen.add(entry.url);
+    unique.push(entry);
+  });
+  const truncated = Math.max(0, unique.length - 5);
+  return { entries: unique.slice(0, 5), truncated, urls: unique.slice(0, 5).filter((e) => e.valid).map((e) => e.url) };
 }
 
 function importPageChips(pages) {
@@ -1244,14 +1291,25 @@ function linkResultHtml(item) {
     item.status === 'fetching'
       ? '<span class="spinner spinner-xs" aria-hidden="true"></span>'
       : icon(meta.icon);
+  const copyBtn = item.url
+    ? `<button class="icon-btn capture-copy" type="button" data-action="copy-capture-url" data-url="${esc(
+        item.url,
+      )}" title="复制链接" aria-label="复制链接">${icon('copy')}</button>`
+    : '';
+  const fallbackBtn =
+    item.sizeLimit && item.status === 'error'
+      ? `<button class="link-btn capture-text-fallback" type="button" data-action="use-text-import">${icon('text')}改用文本收录</button>`
+      : '';
   return `<div class="capture-result-item ${meta.cls}">
     <span class="capture-result-icon">${iconHtml}</span>
     <div class="capture-result-main">
-      <span class="capture-result-url" title="${esc(item.url)}">${esc(item.url)}</span>
+      <span class="capture-result-url" title="${esc(item.url || '')}">${esc(item.url || '')}</span>
       <span class="capture-result-msg">${esc(meta.text)}</span>
       ${item.title ? `<span class="capture-result-doc">源文件：${esc(item.title)}</span>` : ''}
+      ${fallbackBtn}
       ${importPageChips(item.pages)}
     </div>
+    ${copyBtn}
   </div>`;
 }
 
@@ -1283,19 +1341,37 @@ function renderCaptureResults() {
         'alert',
       )}</span><div class="capture-result-main"><span class="capture-result-msg">${esc(
         result.message || '收录失败',
-      )}</span></div></div>`;
+      )}</span>${
+        result.sizeLimit
+          ? `<button class="link-btn capture-text-fallback" type="button" data-action="use-text-import">${icon('text')}改用文本收录</button>`
+          : ''
+      }</div></div>`;
     }
   }
 }
 
-function importErrorMessage(err) {
-  if (err?.status === 404 || err?.status === 405) {
-    return '收录接口暂不可用（后端可能仍在部署），请稍后重试或直接上传文件';
+const IMPORT_SIZE_HINT = '可改用「文本」收录粘贴正文，或联系管理员调大 NPU_URL_IMPORT_MAX_BYTES';
+
+function importErrorInfo(err) {
+  const raw = typeof err === 'string' ? err : err?.message || '';
+  const status = typeof err === 'object' && err ? err.status : 0;
+  if (status === 404 || status === 405) {
+    return { message: '收录接口暂不可用（后端可能仍在部署），请稍后重试或直接上传文件', sizeLimit: false };
   }
-  return err?.message || '收录失败';
+  // 网页抓取上限（默认 8MB）超限时给出可执行的替代方案；后端 detail 已含环境变量名则不重复追加
+  if (/过大|MAX_BYTES|抓取上限|上限/i.test(raw)) {
+    const hint = /NPU_URL_IMPORT_MAX_BYTES/i.test(raw) ? '' : `；${IMPORT_SIZE_HINT}`;
+    return { message: `${raw || '网页内容过大，抓取失败'}${hint}`, sizeLimit: true };
+  }
+  return { message: raw || '收录失败', sizeLimit: false };
 }
 
-function normalizeSingleImport(data) {  const document = data?.document || {};
+function importErrorMessage(err) {
+  return importErrorInfo(err).message;
+}
+
+function normalizeSingleImport(data) {
+  const document = data?.document || {};
   const pages = Array.isArray(data?.pages) ? data.pages : [];
   const duplicated = Boolean(data?.duplicated);
   return {
@@ -1312,79 +1388,113 @@ async function runImportLinks(button) {
   if (state.capture.importingLinks) return;
   const urlsInput = document.getElementById('captureUrls');
   const tagsInput = document.getElementById('captureUrlTags');
-  const { urls, invalid, duplicated } = parseCaptureUrls(urlsInput?.value || '');
-  if (invalid.length) {
-    toast(`第 ${invalid.join('、')} 行不是有效的 http(s) 链接`, 'error');
-    return;
-  }
-  if (!urls.length) {
-    toast('请粘贴至少一个网页链接（一行一个）', 'warning');
+  const parsed = parseCaptureUrls(urlsInput?.value || '');
+  if (!parsed.entries.length) {
+    toast('请粘贴至少一个网页链接（一行一个，可带标题）', 'warning');
     urlsInput?.focus();
     return;
   }
-  if (urls.length > 5) {
-    toast('一次最多收录 5 个链接，请分批提交', 'error');
-    return;
+  if (parsed.truncated) {
+    toast(`一次最多收录 5 条链接，已截断后面的 ${parsed.truncated} 条`, 'warning');
   }
   const tags = parseTagsInput(tagsInput?.value);
-  state.capture.importingLinks = true;
-  state.capture.linkResults = urls.map((url) => ({
-    url,
-    status: 'fetching',
-    message: urls.length === 1 ? '抓取正文 / 编译词条中…' : '排队收录中（抓取 → 编译词条）…',
+  const invalidEntries = parsed.entries.filter((entry) => !entry.valid);
+  const validEntries = parsed.entries.filter((entry) => entry.valid);
+  const invalidResult = (entry) => ({
+    url: entry.raw || '（无法识别）',
+    status: 'error',
+    message: '不是有效的 http(s) 链接，请检查后重试',
     pages: [],
-  }));
+  });
+  state.capture.importingLinks = true;
+  state.capture.linkResults = parsed.entries.map((entry) =>
+    entry.valid
+      ? {
+          url: entry.url,
+          status: 'fetching',
+          message:
+            validEntries.length === 1 ? '抓取正文 / 编译词条中…' : '排队收录中（抓取 → 编译词条）…',
+          pages: [],
+        }
+      : invalidResult(entry),
+  );
   renderCaptureResults();
+  if (!validEntries.length) {
+    state.capture.importingLinks = false;
+    toast('未识别到有效链接：请粘贴 http(s) 开头的网页地址', 'error');
+    return;
+  }
   setButtonBusy(button, true, '收录中…');
   try {
-    if (urls.length === 1) {
-      const data = await importUrl({ url: urls[0], ...(tags.length ? { tags } : {}) });
+    let resultByUrl = new Map();
+    if (validEntries.length === 1) {
+      const data = await importUrl({ url: validEntries[0].url, ...(tags.length ? { tags } : {}) });
       const normalized = normalizeSingleImport(data);
-      state.capture.linkResults = [
-        { url: urls[0], ...normalized, pages: normalized.pages },
-      ];
+      resultByUrl.set(validEntries[0].url, { url: validEntries[0].url, ...normalized });
     } else {
+      const urls = validEntries.map((entry) => entry.url);
       const data = await importBatch({ urls, ...(tags.length ? { tags } : {}) });
       const items = Array.isArray(data?.items) ? data.items : [];
-      state.capture.linkResults = urls.map((url, index) => {
-        const item = items[index] || items.find((entry) => entry?.url === url) || {};
+      validEntries.forEach((entry, index) => {
+        const item = items[index] || items.find((candidate) => candidate?.url === entry.url) || {};
         if (item.ok === false || item.error) {
-          return { url, status: 'error', message: item.error || '收录失败', pages: [] };
+          const info = importErrorInfo(item.error || '收录失败');
+          resultByUrl.set(entry.url, {
+            url: entry.url,
+            status: 'error',
+            message: info.message,
+            sizeLimit: info.sizeLimit,
+            pages: [],
+          });
+          return;
         }
         const pages = Array.isArray(item.pages) ? item.pages : [];
-        return {
-          url,
+        resultByUrl.set(entry.url, {
+          url: entry.url,
           status: item.duplicated ? 'duplicated' : 'success',
           title: item.document_title || item.title || '',
           pages,
           message: item.duplicated
             ? '已收录过，跳过编译'
             : `已收录${pages.length ? ` · 生成 ${pages.length} 个词条` : ''}`,
-        };
+        });
       });
     }
+    state.capture.linkResults = parsed.entries.map((entry) =>
+      entry.valid ? resultByUrl.get(entry.url) || { url: entry.url, status: 'error', message: '未返回结果', pages: [] } : invalidResult(entry),
+    );
     const okCount = state.capture.linkResults.filter((item) => item.status === 'success').length;
     const dupCount = state.capture.linkResults.filter((item) => item.status === 'duplicated').length;
     const failCount = state.capture.linkResults.filter((item) => item.status === 'error').length;
     if (okCount) {
-      toast(`链接收录完成：新增 ${okCount} 条${dupCount ? `，重复 ${dupCount} 条` : ''}${failCount ? `，失败 ${failCount} 条` : ''}`, 'success');
+      toast(
+        `链接收录完成：新增 ${okCount} 条${dupCount ? `，重复 ${dupCount} 条` : ''}${failCount ? `，失败 ${failCount} 条` : ''}`,
+        'success',
+      );
     } else if (dupCount) {
       toast(`所选链接均已收录过（${dupCount} 条），未重复编译`, 'info');
     } else {
       toast('链接收录失败，请查看逐条原因', 'error');
     }
-    if (duplicated.length) toast(`已忽略 ${duplicated.length} 个重复输入链接`, 'info');
+    if (invalidEntries.length) {
+      toast(`有 ${invalidEntries.length} 行不是有效链接，已跳过`, 'info');
+    }
+    if (state.capture.linkResults.some((item) => item.sizeLimit)) {
+      toast('有链接抓取超限，可点「改用文本收录」粘贴正文', 'warning', { duration: 7000 });
+    }
     if (okCount || dupCount) {
       if (urlsInput) urlsInput.value = '';
       refreshWiki({ silent: true });
     }
   } catch (err) {
+    const info = importErrorInfo(err);
     state.capture.linkResults = state.capture.linkResults.map((item) => ({
       ...item,
       status: 'error',
-      message: importErrorMessage(err),
+      message: item.status === 'error' ? item.message : info.message,
+      sizeLimit: info.sizeLimit,
     }));
-    toast(importErrorMessage(err), 'error');
+    toast(info.message, 'error');
   } finally {
     state.capture.importingLinks = false;
     setButtonBusy(button, false);
@@ -1425,8 +1535,9 @@ async function runImportText(button) {
     if (titleInput) titleInput.value = '';
     refreshWiki({ silent: true });
   } catch (err) {
-    state.capture.textResult = { status: 'error', message: importErrorMessage(err) };
-    toast(importErrorMessage(err), 'error');
+    const info = importErrorInfo(err);
+    state.capture.textResult = { status: 'error', message: info.message, sizeLimit: info.sizeLimit };
+    toast(info.message, 'error');
   } finally {
     state.capture.importingText = false;
     setButtonBusy(button, false);
@@ -1694,7 +1805,7 @@ export function mount(root, context = {}) {
     runWikiSearch(query);
   });
 
-  page.addEventListener('click', (event) => {
+  page.addEventListener('click', async (event) => {
     const trigger = event.target.closest('[data-action]');
     if (!trigger || !page.contains(trigger)) return;
     const action = trigger.dataset.action;
@@ -1740,6 +1851,19 @@ export function mount(root, context = {}) {
       case 'import-text':
         runImportText(trigger);
         break;
+      case 'copy-capture-url': {
+        const ok = await copyText(trigger.dataset.url || '');
+        toast(ok ? '链接已复制' : '复制失败，请手动选择链接复制', ok ? 'success' : 'error', { duration: 2400 });
+        break;
+      }
+      case 'use-text-import': {
+        setCaptureCollapsed(false);
+        setCaptureMode('text');
+        const textInput = document.getElementById('captureText');
+        textInput?.focus();
+        toast('已切换到「文本」收录：粘贴正文即可，无需担心网页抓取上限', 'info', { duration: 4000 });
+        break;
+      }
       case 'refresh-docs':
         loadDocs();
         break;
@@ -1795,5 +1919,9 @@ export function mount(root, context = {}) {
   return () => {
     alive = false;
     stopBuildPolling();
+    if (state.uploadTimer) {
+      window.clearInterval(state.uploadTimer);
+      state.uploadTimer = 0;
+    }
   };
 }

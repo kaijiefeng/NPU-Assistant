@@ -44,6 +44,7 @@ const state = {
   conversations: [],
   historyReady: false,
   historyLoading: true,
+  historyAuthRequired: false,
   messages: [],
   conversationId: null,
   // 新建会话时使用唯一的匿名 session_key，确保「新建会话」真正创建新会话，
@@ -51,10 +52,14 @@ const state = {
   sessionKey: '',
   meta: null,
   sending: false,
+  inflight: 0,
   loadingConversation: false,
   lastFailedText: '',
   healthModel: '',
 };
+
+// 视图代次：切页后旧的异步请求返回时，禁止其覆盖新的模块级状态
+let generation = 0;
 
 function newSessionKey() {
   return `web:anonymous-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -171,6 +176,11 @@ function messageHtml(message, index) {
 /* ------------------------------------------------------------------ */
 export function mount(root) {
   let alive = true;
+  const gen = ++generation;
+  // 切页后返回：若仍有请求在飞，保持「思考中」而不是直接解禁输入框
+  state.sending = state.inflight > 0;
+  state.loadingConversation = false;
+  state.lastFailedText = '';
   const counselor = state.settings.counselor_name || '小南';
 
   root.innerHTML = `
@@ -247,6 +257,11 @@ export function mount(root) {
   function renderHistory() {
     if (!alive) return;
     const items = state.conversations;
+    if (state.historyAuthRequired) {
+      historyCount.textContent = '需管理员令牌';
+      historyList.innerHTML = `<div class="history-offline">${icon('shield')}<p>历史会话需管理员令牌</p><span>请到「设置 → 移动端与管理令牌」填写 NPU_ADMIN_TOKEN</span><button class="btn btn-sm btn-ghost" type="button" data-action="go-settings">去设置</button></div>`;
+      return;
+    }
     historyCount.textContent = state.historyReady ? `${items.length} 个会话` : '暂不可用';
     if (!state.historyReady && state.historyLoading) {
       historyList.innerHTML = loadingHtml('加载历史会话…', 'state-compact');
@@ -275,20 +290,24 @@ export function mount(root) {
   }
 
   async function loadHistory({ silent = false } = {}) {
+    const my = gen;
     state.historyLoading = true;
     try {
       const data = await listConversations('web', 30);
-      if (!alive) return;
+      if (my !== generation) return;
       state.conversations = Array.isArray(data?.items) ? data.items : [];
       state.historyReady = true;
+      state.historyAuthRequired = false;
       state.historyLoading = false;
-      renderHistory();
+      if (alive) renderHistory();
     } catch (err) {
-      if (!alive) return;
+      if (my !== generation) return;
       state.historyLoading = false;
       if (!state.conversations.length) state.historyReady = false;
-      renderHistory();
-      if (!silent) toast(err.message || '历史会话加载失败', 'error');
+      // 401：历史会话需要管理员令牌，展示空态，不再重复 toast
+      state.historyAuthRequired = err?.status === 401;
+      if (alive) renderHistory();
+      if (!silent && !state.historyAuthRequired) toast(err.message || '历史会话加载失败', 'error');
     }
   }
 
@@ -362,7 +381,16 @@ export function mount(root) {
   }
 
   function removeTyping() {
-    root.querySelector('#typingMessage')?.remove();
+    messageList.querySelector('#typingMessage')?.remove();
+  }
+
+  function showAuthError(message) {
+    chatError.hidden = false;
+    chatError.innerHTML = `<div class="chat-error-inner">${icon('shield')}<div><strong>需要管理员令牌</strong><p>${esc(
+      message || '查看历史会话需要管理员令牌，请到「设置 → 移动端与管理令牌」登录后再试。',
+    )}</p></div><button class="btn btn-sm btn-primary" type="button" data-action="go-settings">去设置</button><button class="icon-btn" type="button" data-action="dismiss-error" aria-label="关闭">${icon(
+      'x',
+    )}</button></div>`;
   }
 
   function showChatError(message) {
@@ -406,6 +434,8 @@ export function mount(root) {
       toast('问题长度不能超过 2000 字', 'error');
       return;
     }
+    const my = gen;
+    state.inflight += 1;
     state.sending = true;
     state.lastFailedText = '';
     hideChatError();
@@ -430,12 +460,13 @@ export function mount(root) {
         session_key: state.conversationId ? `web:${state.conversationId}` : state.sessionKey,
       };
       const response = await sendChat(payload);
-      if (!alive) return;
+      // 代次已变化（切页/新会话）：不得覆盖当前状态
+      if (my !== generation) return;
       removeTyping();
       if (response?.conversation_id) state.conversationId = response.conversation_id;
       if (response?.model) {
         state.healthModel = response.model;
-        if (meta) meta.textContent = `辅导员数字分身 · ${response.model}`;
+        if (alive && meta) meta.textContent = `辅导员数字分身 · ${response.model}`;
       }
       state.messages.push({
         role: 'assistant',
@@ -448,24 +479,44 @@ export function mount(root) {
         sources_used: response?.sources_used,
         created_at: new Date().toISOString(),
       });
-      renderMessages({ smooth: true });
-      loadHistory({ silent: true });
+      if (alive) {
+        renderMessages({ smooth: true });
+        loadHistory({ silent: true });
+      }
     } catch (err) {
-      if (!alive) return;
+      if (my !== generation) return;
       removeTyping();
       state.messages = state.messages.filter((message) => message !== userMessage);
-      renderMessages();
       state.lastFailedText = text;
-      showChatError(err?.message || '请求失败，请稍后重试');
-      toast(err?.message || '请求失败，请稍后重试', 'error');
-      input.value = text;
-      updateComposer();
-      input.focus();
-    } finally {
       if (alive) {
-        state.sending = false;
+        renderMessages();
+        showChatError(err?.message || '请求失败，请稍后重试');
+        toast(err?.message || '请求失败，请稍后重试', 'error');
+        input.value = text;
         updateComposer();
         input.focus();
+      }
+    } finally {
+      // 先递减在飞计数并复位 sending，再根据 alive/代次决定是否更新 DOM
+      state.inflight = Math.max(0, state.inflight - 1);
+      state.sending = state.inflight > 0;
+      if (state.inflight === 0) {
+        // 旧视图的请求收尾时，新视图可能已重建：同步当前页面的输入框/发送按钮/思考气泡
+        document.getElementById('typingMessage')?.remove();
+        const liveInput = document.getElementById('chatInput');
+        const liveSend = document.getElementById('sendBtn');
+        if (liveInput) {
+          liveInput.disabled = false;
+          if (liveSend) {
+            liveSend.disabled = !liveInput.value.trim();
+            liveSend.classList.remove('is-busy');
+            liveSend.innerHTML = `${icon('send')}<span>发送</span>`;
+          }
+        }
+      }
+      if (alive && my === generation) {
+        updateComposer();
+        if (!state.sending) input.focus();
       }
     }
   }
@@ -494,6 +545,7 @@ export function mount(root) {
       toast('请等待当前回答完成后再切换会话', 'warning');
       return;
     }
+    const my = gen;
     state.conversationId = id;
     state.loadingConversation = true;
     hideChatError();
@@ -502,25 +554,42 @@ export function mount(root) {
     renderHistory();
     try {
       const data = await getConversationMessages(id);
-      if (!alive) return;
+      if (my !== generation) return;
       state.messages = Array.isArray(data?.items) ? data.items : [];
       state.meta = data?.conversation || null;
-      state.loadingConversation = false;
-      renderMessages();
-      scrollToBottom(false);
+      if (alive) {
+        renderMessages();
+        scrollToBottom(false);
+      }
     } catch (err) {
-      if (!alive) return;
-      state.loadingConversation = false;
+      if (my !== generation) return;
       state.conversationId = null;
       state.sessionKey = newSessionKey();
       state.messages = [];
-      renderMessages();
-      renderHistory();
-      toast(err?.message || '会话加载失败', 'error');
+      if (err?.status === 401) {
+        state.historyAuthRequired = true;
+        if (alive) {
+          renderHistory();
+          renderMessages();
+          showAuthError('查看历史会话需要管理员令牌，请到「设置 → 移动端与管理令牌」登录后再试。');
+        }
+      } else if (alive) {
+        renderHistory();
+        toast(err?.message || '会话加载失败', 'error');
+      }
+    } finally {
+      if (my !== generation) return;
+      // 先复位加载状态，避免切页后 loadingConversation 永久为 true
+      state.loadingConversation = false;
+      if (alive) {
+        renderMessages();
+        renderHistory();
+      }
     }
   }
 
   async function removeConversation(id) {
+    const my = gen;
     const target = state.conversations.find((item) => item.id === id);
     const ok = await confirmDialog({
       title: '删除会话',
@@ -529,9 +598,10 @@ export function mount(root) {
       confirmText: '删除',
       danger: true,
     });
-    if (!ok) return;
+    if (!ok || my !== generation) return;
     try {
       await deleteConversation(id);
+      if (my !== generation) return;
       state.conversations = state.conversations.filter((item) => item.id !== id);
       if (state.conversationId === id) {
         state.conversationId = null;
@@ -542,6 +612,7 @@ export function mount(root) {
       renderHistory();
       toast('会话已删除', 'success');
     } catch (err) {
+      if (my !== generation) return;
       toast(err?.message || '删除会话失败', 'error');
     }
   }
@@ -568,6 +639,9 @@ export function mount(root) {
       case 'refresh-history':
         historyList.innerHTML = loadingHtml('加载历史会话…', 'state-compact');
         loadHistory();
+        break;
+      case 'go-settings':
+        location.hash = '#/settings';
         break;
       case 'open-conversation':
         openConversation(trigger.dataset.id);
@@ -649,14 +723,20 @@ export function mount(root) {
   updateComposer();
   renderMessages();
   renderHistory();
+  // 若切页前有请求在飞，返回后恢复「思考中」气泡，避免用户误以为已结束
+  if (state.inflight > 0) {
+    showTyping();
+    updateComposer();
+  }
 
   // 每次进入对话页都刷新设置与历史，保证设置页保存后立即生效。
   state.loaded = true;
   Promise.all([
     (async () => {
+      const my = gen;
       try {
         const settings = await getSettings();
-        if (!alive) return;
+        if (my !== generation) return;
         state.settings = { ...FALLBACK_SETTINGS, ...(settings || {}) };
         if (!Array.isArray(state.settings.quick_questions)) {
           state.settings.quick_questions = FALLBACK_SETTINGS.quick_questions;
@@ -667,7 +747,7 @@ export function mount(root) {
         if (avatar) avatar.textContent = initial(state.settings.counselor_name);
         if (!state.messages.length && !state.sending) renderMessages();
       } catch (err) {
-        if (!alive) return;
+        if (my !== generation) return;
         state.settings = FALLBACK_SETTINGS;
         toast(`设置接口暂不可用，已使用默认人设${err?.message ? `：${err.message}` : ''}`, 'warning', {
           title: '降级提示',
@@ -677,9 +757,10 @@ export function mount(root) {
     })(),
     loadHistory({ silent: state.historyReady }),
     (async () => {
+      const my = gen;
       try {
         const health = await getHealth();
-        if (!alive) return;
+        if (my !== generation) return;
         const model = health?.default_model;
         state.healthModel = model ? model.display_name || model.model_name : '';
         if (meta) meta.textContent = `辅导员数字分身${state.healthModel ? ` · ${state.healthModel}` : ''}`;

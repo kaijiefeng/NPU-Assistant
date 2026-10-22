@@ -1,6 +1,8 @@
 """系统接口测试（LLM Wiki）：健康检查、运行信息、统计、设置读写（契约 §5.1 / WIKI-DESIGN §2）。"""
 from __future__ import annotations
 
+import json
+
 
 def test_health_returns_ok_wiki_mode_and_default_model(client):
     response = client.get("/api/health")
@@ -25,34 +27,53 @@ def test_health_wiki_pages_after_seed(client, seeded_wiki):
     assert data["wiki_pages"] == 3
 
 
-def test_system_info_exposes_wiki_seed_configuration(client):
+def test_system_info_exposes_safe_configuration(client):
     data = client.get("/api/system/info").json()
 
     for key in (
         "app",
         "version",
         "knowledge_mode",
-        "data_dir",
-        "upload_dir",
-        "db_path",
-        "wiki_seed_path",
         "wiki_seed_available",
         "frontend_ready",
         "supported_exts",
         "max_upload_mb",
+        "url_import_max_mb",
+        "url_import_max_urls",
         "admin_token_required",
         "auto_seed",
+        "cors_enabled",
+        "insecure_bind",
     ):
         assert key in data, f"缺少字段 {key}"
 
     assert data["knowledge_mode"] == "llm-wiki"
-    assert data["wiki_seed_path"].endswith("wiki_seed.json")
     assert ".md" in data["supported_exts"]
     assert ".pdf" in data["supported_exts"]
     assert data["max_upload_mb"] == 20
+    assert data["url_import_max_mb"] == 8.0
+    assert data["url_import_max_urls"] == 5
     assert data["admin_token_required"] is False
-    # 测试环境必须使用临时目录，避免污染开发库
-    assert "npu_assistant_tests_" in data["data_dir"].replace("\\", "/")
+    assert data["cors_enabled"] is False
+    assert data["insecure_bind"] is False
+
+    # 安全：公开接口不得泄露绝对路径 / 部署目录
+    for forbidden in ("data_dir", "upload_dir", "db_path", "wiki_seed_path"):
+        assert forbidden not in data, f"system/info 不应返回 {forbidden}"
+    serialized = json.dumps(data, ensure_ascii=False)
+    assert ":\\" not in serialized and "npu_assistant_tests_" not in serialized
+
+
+def test_security_headers_and_no_default_cors(client):
+    response = client.get("/api/health")
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["referrer-policy"] == "same-origin"
+    csp = response.headers["content-security-policy"]
+    assert "default-src 'self'" in csp
+    assert "object-src 'none'" in csp
+    # 默认同源部署：不应自动返回 CORS 放行头
+    assert "access-control-allow-origin" not in response.headers
 
 
 def test_system_stats_use_wiki_tables(client, seeded_wiki):

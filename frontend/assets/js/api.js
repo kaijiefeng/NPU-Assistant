@@ -67,6 +67,14 @@ function withAdminToken(headers = {}) {
   return headers;
 }
 
+/** 仅写操作与受保护 GET 携带管理员令牌，避免把令牌发给 /health、/chat 等公开接口。 */
+function needsAdminToken(method, path) {
+  if (!hasAdminToken()) return false;
+  const verb = String(method || 'GET').toUpperCase();
+  if (verb !== 'GET' && verb !== 'HEAD') return true;
+  return path.startsWith('/chat/conversations');
+}
+
 function notifyUnauthorized(detail) {
   if (unauthorizedHandler) {
     try {
@@ -103,7 +111,7 @@ function extractDetail(data, status) {
   return `请求失败（HTTP ${status}）`;
 }
 
-async function parseResponse(res) {
+async function parseResponse(res, { skipAuthToast = false } = {}) {
   let data = null;
   const text = await res.text().catch(() => '');
   if (text) {
@@ -115,14 +123,18 @@ async function parseResponse(res) {
   }
   if (!res.ok) {
     const detail = extractDetail(data, res.status);
-    if (res.status === 401) notifyUnauthorized(detail);
+    if (res.status === 401 && !skipAuthToast) notifyUnauthorized(detail);
     throw new ApiError(detail, { status: res.status, detail, payload: data });
   }
   return data;
 }
 
-async function request(method, path, { body, query, signal } = {}) {
-  const init = { method, headers: withAdminToken({}), signal };
+async function request(method, path, { body, query, signal, skipAuthToast = false } = {}) {
+  const init = {
+    method,
+    headers: needsAdminToken(method, path) ? withAdminToken({}) : {},
+    signal,
+  };
   if (body !== undefined) {
     init.headers['Content-Type'] = 'application/json';
     init.body = JSON.stringify(body);
@@ -134,7 +146,7 @@ async function request(method, path, { body, query, signal } = {}) {
     if (err && err.name === 'AbortError') throw err;
     throw new ApiError('无法连接后端服务，请确认 NPU-Assistant 已启动后重试。', { status: 0 });
   }
-  return parseResponse(res);
+  return parseResponse(res, { skipAuthToast });
 }
 
 const get = (path, query, opts = {}) => request('GET', path, { query, ...opts });
@@ -155,10 +167,15 @@ export const saveSettings = (patch) => put('/settings', patch);
 /* 对话                                                                */
 /* ------------------------------------------------------------------ */
 export const sendChat = (payload) => post('/chat', payload);
+// 历史会话在配置 NPU_ADMIN_TOKEN 后需要管理员令牌；401 由对话页自行展示空态，避免全局 toast 反复打扰
 export const listConversations = (channel = 'web', limit = 30) =>
-  get('/chat/conversations', { channel, limit });
+  get('/chat/conversations', { channel, limit }, { skipAuthToast: true });
 export const getConversationMessages = (conversationId) =>
-  get(`/chat/conversations/${encodeURIComponent(conversationId)}/messages`);
+  get(
+    `/chat/conversations/${encodeURIComponent(conversationId)}/messages`,
+    undefined,
+    { skipAuthToast: true },
+  );
 export const deleteConversation = (conversationId) =>
   del(`/chat/conversations/${encodeURIComponent(conversationId)}`);
 

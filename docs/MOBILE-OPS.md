@@ -45,7 +45,7 @@
 }
 ```
 - 已收录过的同一 URL（`documents.source_url` 相同）→ `200 {"duplicated": true, "document": ..., "pages": [...]}`，不重复编译。
-- 抓取限制：仅 `http/https`；手动跟随 ≤5 次重定向；超时 30s；响应 ≤3MB；仅接受 HTML/纯文本；默认**禁止私网/回环 IP**（内网部署可设 `NPU_URL_IMPORT_ALLOW_PRIVATE=1`）。
+- 抓取限制：仅 `http/https`；手动跟随 ≤5 次重定向；超时 30s；响应 ≤8MB（`NPU_URL_IMPORT_MAX_BYTES` 可调）；仅接受 HTML/纯文本；默认**禁止私网/回环 IP**（内网部署可设 `NPU_URL_IMPORT_ALLOW_PRIVATE=1`）。文章过大或触发微信反爬时，改用「文本收录」粘贴正文。
 - 正文提取：优先 `#js_content` / `.rich_media_content`（微信公众号）、`article/main/[role=main]`，否则取 body 最大文本块；去掉 script/style/nav/footer；标题取 `og:title`/`<title>`/`h1`。提取不到正文 → 400。
 - 图片/附件不下载（MVP）；需要图片内容时用「文本收录」粘贴或上传文件。
 
@@ -135,13 +135,18 @@ cloudflared tunnel --url http://127.0.0.1:8000
 恢复：停止服务 → 解压覆盖 `backend/data` → 启动。**不要**直接复制运行中的 `app.db-wal` 而不停服务。
 
 ### 4.5 安全清单
-- [ ] 设置强随机 `NPU_ADMIN_TOKEN`（≥24 字符），手机设置页保存；
+- [ ] 设置强随机 `NPU_ADMIN_TOKEN`（≥24 字符），手机设置页保存；`.\scripts\serve-lan.ps1` 在未设置时会**自动生成并打印**一次；
+- [ ] 对外监听（非 `127.0.0.1`）必须设置 `NPU_ADMIN_TOKEN`，否则服务拒绝启动；仅可信内网临时演示才设 `NPU_ALLOW_INSECURE_LAN=1`；
+- [ ] CORS 默认关闭（同源 SPA 不需要）；确需跨域时用 `NPU_CORS_ORIGINS` 逗号白名单，禁止 `*`；
 - [ ] 公网只走 HTTPS 隧道/反代；管理接口不直接暴露裸端口；
-- [ ] 机器人 `admin_user_ids` 只填本人/值班老师账号；
-- [ ] URL 抓取默认禁私网（`NPU_URL_IMPORT_ALLOW_PRIVATE=0`）；内网资料才临时开启；
+- [ ] 机器人 `admin_user_ids` 只填本人/值班老师账号；通道接口只回显脱敏 token + `has_access_token`，PUT 留空/脱敏占位表示不修改；
+- [ ] 机器人 webhook 安全：OneBot 空 token 403（创建时自动生成随机 token）、微信 token 不能为空或公开默认值 `npu-assistant`、回调校验 ±300 秒时间窗（服务器开启 NTP）与 nonce 防重放（重复 403；缓存为进程内，多 worker 需共享存储）、webhook 请求体 ≤2MB；`NPU_BOT_ALLOW_INSECURE=1` 仅本地调试；
+- [ ] 机器人日志/配置：设置 `NPU_ADMIN_TOKEN` 后 `GET /api/bots/logs` 需 `X-Admin-Token`；通道 `api_base` 与 outbound `url` 回显脱敏（去 userinfo/query），编辑回填脱敏值=不修改；
+- [ ] URL 抓取默认禁私网（`NPU_URL_IMPORT_ALLOW_PRIVATE=0`）、默认上限 8MB；内网资料才临时开启；
+- [ ] Wiki 词条正文链接协议已白名单清洗（`javascript:`/`data:` 等移除）；后端默认下发 CSP、`X-Frame-Options: DENY`、`X-Content-Type-Options: nosniff` 等安全响应头；
 - [ ] 反向代理加限流/请求体上限（例如 5MB）与访问日志；
 - [ ] 定期备份 `backend/data`，升级前先备份；
-- [ ] 公众号仅明文模式 + Token 校验；QQ 通道 access_token 强随机。
+- [ ] 公众号仅明文模式 + Token 校验；QQ 通道 access_token 强随机，发送不跟随重定向、`api_base` 仅允许 http(s)。
 
 ---
 
@@ -158,7 +163,7 @@ cloudflared tunnel --url http://127.0.0.1:8000
 - [ ] PWA：manifest、service worker、192/512 图标可访问；Chrome 可安装；离线打开显示静态壳与错误提示
 - [ ] `pytest` 新增导入/鉴权/机器人入库用例全绿；smoke/真实 E2E 通过；文档更新
 
-> **验收记录（2026-10-22，QA 实测）**：pytest **83 passed**；8000 API 18/18、8011（`NPU_ADMIN_TOKEN`）24/24、390px UI 5/5 全部通过；触控目标经 web-ui 修复（≤720px 媒体查询统一 ≥44px）后复测 **0/64 个控件 <44px**，无遗留阻塞项。
+> **验收记录（2026-10-22，QA 实测）**：pytest **104 passed**；真实服务 E2E：8000 安全/移动端 17/17、8011（`NPU_ADMIN_TOKEN`）令牌侧 19/19、390px UI/长文件名 10/10 全部通过；触控目标经 web-ui 修复后复测 **0/64 个控件 <44px**，无遗留阻塞项。
 
 ---
 
@@ -197,5 +202,6 @@ WantedBy=multi-user.target
 | 公众号回调校验失败 | URL 必须公网 80/443、Token 与通道 config 完全一致、明文模式；检查隧道是否在线 |
 | 微信发链接只回“已开始收录”没有结果 | 设计如此（5 秒限制）；稍后到 Wiki 页刷新查看，或再发一次会提示已收录 |
 | URL 收录报“无法访问私网地址” | 内网资料：设 `NPU_URL_IMPORT_ALLOW_PRIVATE=1` 后重启（仅限可信网络） |
+| 公众号文章过大 / 抓取失败（反爬、需要验证） | 改用「文本收录」粘贴正文；确需抓取时由管理员调大 `NPU_URL_IMPORT_MAX_BYTES`（默认 8MB） |
 | 收录成功但词条质量差 | 到知识库编辑词条/补别名，或改进源文档结构（标题清晰） |
 | PWA 装不上 | 需要 HTTPS（Cloudflare Tunnel / 反代）；LAN HTTP 不支持安装 |

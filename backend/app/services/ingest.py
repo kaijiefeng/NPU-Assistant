@@ -188,24 +188,32 @@ def _ingest_bytes(
         raise ValueError(f"文件保存失败：{exc}") from exc
 
     timestamp = db.now()
-    db.execute(
-        "INSERT INTO documents(id, title, filename, stored_path, file_ext, size_bytes, status, "
-        "error, tags, char_count, page_count, source_type, source_url, created_at, updated_at) "
-        "VALUES(?, ?, ?, ?, ?, ?, 'processing', NULL, ?, 0, 0, ?, ?, ?, ?)",
-        (
-            doc_id,
-            requested_title or fallback_title,
-            original_name,
-            str(stored_path),
-            ext,
-            len(data),
-            db.to_json(normalize_tags(tags)),
-            source_kind,
-            source_url_value,
-            timestamp,
-            timestamp,
-        ),
-    )
+    try:
+        db.execute(
+            "INSERT INTO documents(id, title, filename, stored_path, file_ext, size_bytes, status, "
+            "error, tags, char_count, page_count, source_type, source_url, created_at, updated_at) "
+            "VALUES(?, ?, ?, ?, ?, ?, 'processing', NULL, ?, 0, 0, ?, ?, ?, ?)",
+            (
+                doc_id,
+                requested_title or fallback_title,
+                original_name,
+                str(stored_path),
+                ext,
+                len(data),
+                db.to_json(normalize_tags(tags)),
+                source_kind,
+                source_url_value,
+                timestamp,
+                timestamp,
+            ),
+        )
+    except Exception:
+        # source_url 唯一索引冲突等插入失败：回收刚写入的源文件，避免孤儿文件
+        try:
+            stored_path.unlink(missing_ok=True)
+        except OSError:  # pragma: no cover - 清理失败不影响原始异常
+            logger.warning("清理未入库的源文件失败：%s", stored_path)
+        raise
 
     try:
         parsed = parsing.parse_document(original_name, data)

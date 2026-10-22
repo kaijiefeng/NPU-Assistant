@@ -19,13 +19,18 @@ import asyncio
 import hmac
 import json
 import logging
+import os
+import secrets
 import threading
+import time
 from collections import OrderedDict
 from typing import Any
+from urllib.parse import urlsplit
 
 from fastapi import (
     APIRouter,
     BackgroundTasks,
+    Depends,
     HTTPException,
     Query,
     Request,
@@ -45,7 +50,9 @@ from ..adapters.base import (
     config_bool,
     normalize_channel_config,
     normalize_channel_type,
+    parse_admin_user_ids,
 )
+from ..security import require_admin_token
 from ..services import bot_pipeline
 
 logger = logging.getLogger("npu-assistant")
@@ -65,6 +72,21 @@ DEFAULT_CHANNEL_NAMES = {
 WECHAT_REPLY_TIMEOUT_SECONDS = 4.5
 WECHAT_TIMEOUT_REPLY = "这个问题需要一点时间查询，请稍后再发送一次，我会结合知识库为你详细解答。"
 
+# 安全：凭据脱敏与 webhook 防护（见 docs/MOBILE-OPS.md §2.2 / BOT-INTEGRATION.md）
+MASK_PREFIX = "****"
+ADMIN_IDS_MASK_PREFIX = "***"
+# 公开默认 Token（历史上用于演示），安全模式下必须更换
+WECHAT_INSECURE_DEFAULT_TOKEN = "npu-assistant"
+# 微信回调时间戳允许偏差（防重放）
+WECHAT_TIMESTAMP_TOLERANCE_SECONDS = 300
+# 本地调试逃生开关：置 1 时允许 webhook 使用空 Token（默认关闭，仅限本机）
+INSECURE_ENV_VAR = "NPU_BOT_ALLOW_INSECURE"
+# 微信 nonce 防重放：进程内缓存（channel_id + nonce），TTL 略大于时间窗，限量防内存膨胀
+WECHAT_NONCE_TTL_SECONDS = 330
+WECHAT_NONCE_CACHE_MAX = 1000
+# webhook 请求体上限（Lead 已在全局中间件限制 2MB，这里再防一手）
+MAX_WEBHOOK_BODY_BYTES = 2 * 1024 * 1024
+
 
 # ---------------------------------------------------------------------------
 # 内部工具
@@ -74,6 +96,243 @@ def _channel_config(row: dict | None) -> dict:
         return {}
     config = db.from_json(row.get("config"), {}) or {}
     return config if isinstance(config, dict) else {}
+
+
+# ---------------------------------------------------------------------------
+# 安全：凭据脱敏 / webhook Token 策略
+# ---------------------------------------------------------------------------
+def _credential_field(channel_type: str) -> str | None:
+    """各渠道的凭据字段名（onebot 用 access_token，微信复用 token）。"""
+    if channel_type == CHANNEL_ONEBOT:
+        return "access_token"
+    if channel_type == CHANNEL_WECHAT:
+        return "token"
+    return None
+
+
+def _get_credential(channel_type: str, config: dict) -> str:
+    key = _credential_field(channel_type)
+    if not key:
+        return ""
+    return str((config or {}).get(key) or "").strip()
+
+
+def _mask_secret(value: Any) -> str:
+    """脱敏凭据：``"****" + 后 4 位``（空值保持空串）。"""
+    text = str(value or "")
+    if not text:
+        return ""
+    suffix = text[-4:] if len(text) > 4 else ""
+    return f"{MASK_PREFIX}{suffix}"
+
+
+def _mask_admin_user_ids(value: Any) -> str:
+    """脱敏管理员列表：只暴露数量，例如 ``"***（2 个管理员）"``。"""
+    admin_ids = parse_admin_user_ids(value)
+    if not admin_ids:
+        return ""
+    return f"{ADMIN_IDS_MASK_PREFIX}（{len(admin_ids)} 个管理员）"
+
+
+def _mask_api_base(value: Any) -> str:
+    """脱敏 ``api_base``：去掉 userinfo 与 query/fragment，避免泄露凭据。
+
+    例如 ``https://user:pass@host:8443/x?token=SECRET#f`` -> ``https://host:8443/x``；
+    无 scheme 的异常写法也去掉 ``?``/``#`` 后的内容并遮蔽 ``user:pass@`` 部分。
+    """
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    try:
+        parts = urlsplit(text)
+    except ValueError:
+        return "[已配置]"
+    if parts.scheme and parts.netloc:
+        host = parts.hostname or ""
+        try:
+            if parts.port:
+                host = f"{host}:{parts.port}"
+        except ValueError:
+            pass
+        return f"{parts.scheme}://{host}{parts.path or ''}"
+    # 无 scheme/netloc 的异常写法：至少去掉 query/fragment 与 userinfo
+    cleaned = text.split("?", 1)[0].split("#", 1)[0]
+    head, _, rest = cleaned.partition("/")
+    if "@" in head:
+        head = "***@" + head.split("@", 1)[1]
+        cleaned = head + ("/" + rest if rest else "")
+    return cleaned
+
+
+def _masked_config(channel_type: str, config: dict) -> dict:
+    """对外返回的通道 config：凭据、管理员 ID、api_base 中的凭据一律脱敏。"""
+    masked = dict(config or {})
+    credential_key = _credential_field(channel_type)
+    if credential_key:
+        masked[credential_key] = _mask_secret(masked.get(credential_key))
+    if "admin_user_ids" in masked:
+        masked["admin_user_ids"] = _mask_admin_user_ids(masked.get("admin_user_ids"))
+    if "api_base" in masked:
+        masked["api_base"] = _mask_api_base(masked.get("api_base"))
+    return masked
+
+
+def _clean_config_update(channel_type: str, updates: dict, existing_config: dict) -> dict:
+    """处理 PUT config 的脱敏回填语义。
+
+    * 凭据字段传空串、或回填脱敏占位（``****xxxx``）→ 视为「不修改」；
+    * api_base 回填脱敏后的值（与当前值脱敏结果相同）→ 不修改；
+    * admin_user_ids 回填脱敏占位（``***（N 个管理员）``）→ 不修改；
+      传空串 / 新值 → 按值更新（空串用于清空）。
+    """
+    cleaned = dict(updates or {})
+    credential_key = _credential_field(channel_type)
+    if credential_key and credential_key in cleaned:
+        raw = cleaned.get(credential_key)
+        value = "" if raw is None else str(raw)
+        if not value.strip() or value.startswith(MASK_PREFIX):
+            cleaned.pop(credential_key, None)
+    if isinstance(cleaned.get("admin_user_ids"), str):
+        if cleaned["admin_user_ids"].startswith(ADMIN_IDS_MASK_PREFIX):
+            cleaned.pop("admin_user_ids", None)
+    if "api_base" in cleaned:
+        provided = str(cleaned.get("api_base") or "").strip()
+        current_masked = _mask_api_base((existing_config or {}).get("api_base"))
+        # 表单回填的是脱敏值 → 保留数据库中的原始 api_base（含 userinfo/query）
+        if provided and current_masked and provided == current_masked:
+            cleaned.pop("api_base", None)
+    return cleaned
+
+
+def _allow_insecure_bots() -> bool:
+    """本地调试逃生开关：``NPU_BOT_ALLOW_INSECURE=1`` 时允许 webhook 空 Token。"""
+    return os.environ.get(INSECURE_ENV_VAR, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _onebot_token_configured(config: dict) -> bool:
+    return bool(_get_credential(CHANNEL_ONEBOT, config))
+
+
+def _wechat_token_secure(config: dict) -> bool:
+    token = _get_credential(CHANNEL_WECHAT, config)
+    return bool(token) and token != WECHAT_INSECURE_DEFAULT_TOKEN
+
+
+def _has_usable_credential(channel_type: str, config: dict) -> bool:
+    """对外的 ``has_access_token``：表示该通道是否已配置**可用**凭据。
+
+    微信空 Token / 公开默认 Token 不算可用（webhook 会被拒绝）。
+    """
+    if channel_type == CHANNEL_ONEBOT:
+        return _onebot_token_configured(config)
+    if channel_type == CHANNEL_WECHAT:
+        return _wechat_token_secure(config)
+    return False
+
+
+def _wechat_webhook_security_message() -> str:
+    return (
+        "微信公众号通道未配置安全 Token（不能为空或使用公开默认值 npu-assistant），"
+        "请在通道配置中填写与公众号后台一致的 Token 后重试"
+    )
+
+
+def _require_onebot_webhook_token(config: dict) -> str | None:
+    """OneBot webhook Token 策略：空 Token 一律拒绝（除非显式开启本地调试）。
+
+    返回错误提示文本（None 表示通过）。
+    """
+    if _onebot_token_configured(config) or _allow_insecure_bots():
+        return None
+    return "请先在通道配置 access_token 后再启用 OneBot webhook"
+
+
+# 微信 nonce 防重放缓存：(channel_id, nonce) -> 过期时间戳；进程内、带 TTL 与容量上限
+_WECHAT_NONCE_CACHE: OrderedDict[tuple[str, str], float] = OrderedDict()
+_WECHAT_NONCE_LOCK = threading.Lock()
+
+
+def _register_wechat_nonce(channel_id: str, nonce: str) -> bool:
+    """登记微信回调 nonce；返回 False 表示重放（TTL 内已出现过）。
+
+    * 空 nonce 无法判定，直接放行（GET 接入校验可能不带 nonce）；
+    * 仅缓存有限时间（330s）与有限条数（1000），过期条目在写入时顺带清理。
+    """
+    nonce = str(nonce or "").strip()
+    if not nonce:
+        return True
+    key = (str(channel_id), nonce)
+    now = time.time()
+    with _WECHAT_NONCE_LOCK:
+        while _WECHAT_NONCE_CACHE:
+            _, expires_at = next(iter(_WECHAT_NONCE_CACHE.items()))
+            if expires_at <= now:
+                _WECHAT_NONCE_CACHE.popitem(last=False)
+            else:
+                break
+        if key in _WECHAT_NONCE_CACHE and _WECHAT_NONCE_CACHE[key] > now:
+            return False
+        _WECHAT_NONCE_CACHE[key] = now + WECHAT_NONCE_TTL_SECONDS
+        _WECHAT_NONCE_CACHE.move_to_end(key)
+        while len(_WECHAT_NONCE_CACHE) > WECHAT_NONCE_CACHE_MAX:
+            _WECHAT_NONCE_CACHE.popitem(last=False)
+    return True
+
+
+async def _read_webhook_body(request: Request) -> bytes:
+    """读取 webhook 请求体，并做 2MB 上限兜底（防止超大报文拖垮解析）。"""
+    content_length = request.headers.get("content-length")
+    if content_length:
+        try:
+            declared = int(content_length)
+        except (TypeError, ValueError):
+            declared = 0
+        if declared > MAX_WEBHOOK_BODY_BYTES:
+            raise HTTPException(status_code=413, detail="请求体过大（超过 2MB），已拒绝")
+    body = await request.body()
+    if len(body) > MAX_WEBHOOK_BODY_BYTES:
+        raise HTTPException(status_code=413, detail="请求体过大（超过 2MB），已拒绝")
+    return body
+
+
+def _validate_wechat_webhook(channel_id: str, config: dict, signature: str,
+                             timestamp: str, nonce: str) -> None:
+    """微信公众号 webhook 安全校验（Token 安全性 + 时间窗 + 签名 + nonce 防重放）。
+
+    失败抛 403。本地调试开关 ``NPU_BOT_ALLOW_INSECURE=1`` 下：允许空/默认 Token，
+    但仍校验时间窗与 nonce；若已配置安全 Token 则照常验签。
+    """
+    insecure_mode = _allow_insecure_bots()
+    secure_token = _wechat_token_secure(config)
+    if not insecure_mode and not secure_token:
+        logger.warning(
+            "微信公众号 webhook 拒绝：通道 token 为空或为公开默认值：channel=%s", channel_id
+        )
+        raise HTTPException(status_code=403, detail=_wechat_webhook_security_message())
+
+    try:
+        parsed_timestamp = int(str(timestamp or "").strip())
+    except (TypeError, ValueError):
+        parsed_timestamp = 0
+    if parsed_timestamp <= 0 or abs(time.time() - parsed_timestamp) > WECHAT_TIMESTAMP_TOLERANCE_SECONDS:
+        logger.warning("微信公众号 webhook 拒绝：时间戳无效或过期：channel=%s", channel_id)
+        raise HTTPException(
+            status_code=403,
+            detail="微信回调时间戳无效或已过期（允许偏差 ±300 秒），请检查服务器时间后重试",
+        )
+
+    if secure_token and not wechat_mp.check_signature(
+        _get_credential(CHANNEL_WECHAT, config), signature, timestamp, nonce
+    ):
+        logger.warning("微信公众号签名校验失败：channel=%s", channel_id)
+        raise HTTPException(status_code=403, detail="微信公众号签名校验失败")
+
+    if not _register_wechat_nonce(channel_id, nonce):
+        logger.warning("微信公众号 webhook 拒绝：nonce 重复（疑似重放）：channel=%s", channel_id)
+        raise HTTPException(
+            status_code=403,
+            detail="微信回调 nonce 重复（疑似重放攻击），已拒绝；请勿重复使用同一 nonce",
+        )
 
 
 def _webhook_urls(channel_id: str, channel_type: str) -> dict[str, str]:
@@ -90,11 +349,13 @@ def _webhook_urls(channel_id: str, channel_type: str) -> dict[str, str]:
 
 def _serialize_channel(row: dict) -> dict:
     channel_type = str(row.get("type") or "")
+    config = _channel_config(row)
     return {
         "id": row["id"],
         "type": channel_type,
         "name": row.get("name") or "",
-        "config": _channel_config(row),
+        "config": _masked_config(channel_type, config),
+        "has_access_token": _has_usable_credential(channel_type, config),
         "enabled": bool(row.get("enabled", 1)),
         "status": row.get("status") or "offline",
         "last_seen_at": row.get("last_seen_at"),
@@ -150,13 +411,14 @@ def _bearer_token(headers: Any) -> str:
 def _onebot_ws_auth_ok(config: dict, query_token: str, headers: Any) -> bool:
     """OneBot 反向 WS 鉴权：同时接受 ``Authorization: Bearer`` 与 ``?access_token=``。
 
-    * 通道未配置 access_token 时放行（本地调试）；
+    * 通道未配置 access_token 时：仅当显式开启 ``NPU_BOT_ALLOW_INSECURE=1`` 才放行，
+      否则路由层会直接返回 403；
     * 两种方式都带时值必须一致；
     * 任一方式与配置不一致 → 拒绝（路由返回 HTTP 401）。
     """
-    expected = str(config.get("access_token") or "")
+    expected = _get_credential(CHANNEL_ONEBOT, config)
     if not expected:
-        return True
+        return _allow_insecure_bots()
     query_token = str(query_token or "").strip()
     header_token = _bearer_token(headers).strip()
     if query_token and header_token and not hmac.compare_digest(query_token, header_token):
@@ -170,11 +432,11 @@ def _onebot_event_auth_ok(config: dict, query_token: str, signature_header: str,
     """OneBot 反向 HTTP 事件鉴权：query access_token 或 ``X-Signature`` HMAC-SHA1 二选一。
 
     NapCat「HTTP 客户端」的 Token 字段实际用于对请求正文做 HMAC-SHA1，
-    不是 Bearer Token；两种方式都兼容，通道未配置 token 时放行。
+    不是 Bearer Token；两种方式都兼容。空 Token 仅本地调试开关放行。
     """
-    expected = str(config.get("access_token") or "")
+    expected = _get_credential(CHANNEL_ONEBOT, config)
     if not expected:
-        return True
+        return _allow_insecure_bots()
     query_token = str(query_token or "").strip()
     if query_token and hmac.compare_digest(expected, query_token):
         return True
@@ -199,6 +461,13 @@ def create_channel(payload: dict) -> dict:
 
     name = str(payload.get("name") or "").strip() or DEFAULT_CHANNEL_NAMES[channel_type]
     config = normalize_channel_config(channel_type, payload.get("config"))
+    token_generated = False
+    if channel_type == CHANNEL_ONEBOT and not str(config.get("access_token") or "").strip():
+        # 安全默认：OneBot webhook 不允许空 Token；未提供时自动生成随机 Token。
+        # 响应只返回脱敏值；如需已知值，请通过 PUT 重新填写自定义 access_token。
+        config["access_token"] = secrets.token_hex(16)
+        token_generated = True
+        logger.info("OneBot 通道已自动生成随机 access_token（默认不展示明文）")
     enabled = 1 if payload.get("enabled", True) else 0
     status = "online" if channel_type == CHANNEL_CONSOLE else "offline"
 
@@ -209,7 +478,15 @@ def create_channel(payload: dict) -> dict:
         (channel_id, channel_type, name, db.to_json(config), enabled, status, db.now()),
     )
     logger.info("新增机器人通道：%s (%s)", name, channel_type)
-    return _serialize_channel(_require_channel(channel_id))
+    serialized = _serialize_channel(_require_channel(channel_id))
+    if token_generated:
+        # 提示前端/管理员：随机 Token 只保存脱敏值，需自行填写已知 Token 才能配置 NapCat
+        serialized["token_generated"] = True
+        serialized["token_hint"] = (
+            "已自动生成随机 access_token（出于安全仅展示脱敏值）；"
+            "如需在 NapCat 中使用，请在通道配置中重新填写自定义 access_token"
+        )
+    return serialized
 
 
 @router.put("/bots/channels/{channel_id}")
@@ -228,8 +505,13 @@ def update_channel(channel_id: str, payload: dict) -> dict:
         params.append(name)
 
     if "config" in payload:
-        # 与已有 config 合并，避免前端只提交部分字段时把 token/api_base 丢掉
-        merged = {**_channel_config(row), **(payload.get("config") or {})}
+        # 与已有 config 合并；敏感字段留空 / 回填脱敏占位表示「不修改」
+        raw_updates = payload.get("config")
+        raw_updates = raw_updates if isinstance(raw_updates, dict) else {}
+        merged = {
+            **_channel_config(row),
+            **_clean_config_update(channel_type, raw_updates, _channel_config(row)),
+        }
         config = normalize_channel_config(channel_type, merged)
         updates.append("config = ?")
         params.append(db.to_json(config))
@@ -282,9 +564,9 @@ def test_channel(channel_id: str, payload: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# 消息日志
+# 消息日志（含学生消息/用户标签/session_key，需管理员令牌；未配置令牌时放行本地演示）
 # ---------------------------------------------------------------------------
-@router.get("/bots/logs")
+@router.get("/bots/logs", dependencies=[Depends(require_admin_token)])
 def bot_logs(limit: int = Query(50, ge=1, le=200)) -> dict:
     conversations = db.query(
         "SELECT * FROM conversations WHERE channel != 'web' "
@@ -361,6 +643,16 @@ def _handle_onebot_event_sync(channel: dict, event: dict,
     try:
         if not isinstance(event, dict):
             return None
+        # 安全：通道配置了 self_id 时，事件 self_id 必须一致（防伪造/串号）
+        configured_self_id = str(config.get("self_id") or "").strip()
+        if configured_self_id:
+            event_self_id = str(event.get("self_id") or "").strip()
+            if event_self_id != configured_self_id:
+                logger.warning(
+                    "忽略 self_id 与通道配置不一致的 OneBot 事件：channel=%s event_self_id=%s",
+                    channel_id, event_self_id or "（空）",
+                )
+                return None
         post_type = str(event.get("post_type") or "")
         if post_type == "meta_event":
             # 心跳 / 生命周期事件：刷新在线时间即可
@@ -410,6 +702,13 @@ async def onebot_ws(websocket: WebSocket, channel_id: str,
         return
 
     config = _channel_config(row)
+    token_error = _require_onebot_webhook_token(config)
+    if token_error:
+        logger.warning("OneBot 反向 WS 拒绝：通道未配置 access_token：channel=%s", channel_id)
+        await websocket.send_denial_response(
+            JSONResponse({"detail": token_error}, status_code=403)
+        )
+        return
     if not _onebot_ws_auth_ok(config, access_token, websocket.headers):
         logger.warning("OneBot 反向 WS 鉴权失败（token 不匹配）：channel=%s", channel_id)
         await websocket.send_denial_response(
@@ -464,11 +763,16 @@ async def onebot_event(channel_id: str, request: Request,
     """OneBot 11 反向 HTTP 事件入口：快速返回，事件处理放到后台任务。
 
     鉴权：query ``access_token`` 或 NapCat 的 ``X-Signature: sha1=<HMAC-SHA1>``
-    （对原始请求正文计算）；通道未配置 token 时放行，便于本地调试。
+    （对原始请求正文计算）。空 Token 一律 403（本地调试需显式
+    ``NPU_BOT_ALLOW_INSECURE=1``）。
     """
     row = _require_channel(channel_id, CHANNEL_ONEBOT)
     config = _channel_config(row)
-    raw_body = await request.body()
+    token_error = _require_onebot_webhook_token(config)
+    if token_error:
+        logger.warning("OneBot 反向 HTTP 事件拒绝：通道未配置 access_token：channel=%s", channel_id)
+        raise HTTPException(status_code=403, detail=token_error)
+    raw_body = await _read_webhook_body(request)
     signature_header = request.headers.get("x-signature") or ""
     if not _onebot_event_auth_ok(config, access_token, signature_header, raw_body):
         raise HTTPException(
@@ -493,12 +797,10 @@ async def onebot_event(channel_id: str, request: Request,
 @router.get("/bots/wechat/{channel_id}")
 def wechat_verify(channel_id: str, signature: str = "", timestamp: str = "",
                   nonce: str = "", echostr: str = "") -> PlainTextResponse:
-    """公众号接入校验：签名匹配返回 echostr 明文，否则 403。"""
+    """公众号接入校验：Token 安全 + 时间窗 + 签名校验通过则返回 echostr 明文，否则 403。"""
     row = _require_channel(channel_id, CHANNEL_WECHAT)
     config = _channel_config(row)
-    if not wechat_mp.check_signature(config.get("token", ""), signature, timestamp, nonce):
-        logger.warning("微信公众号签名校验失败：channel=%s", channel_id)
-        raise HTTPException(status_code=403, detail="微信公众号签名校验失败")
+    _validate_wechat_webhook(channel_id, config, signature, timestamp, nonce)
     _mark_channel(channel_id, "online")
     return PlainTextResponse(echostr or "ok")
 
@@ -535,11 +837,9 @@ async def wechat_callback(channel_id: str, request: Request, signature: str = ""
     """
     row = _require_channel(channel_id, CHANNEL_WECHAT)
     config = _channel_config(row)
-    if not wechat_mp.check_signature(config.get("token", ""), signature, timestamp, nonce):
-        logger.warning("微信公众号消息签名校验失败：channel=%s", channel_id)
-        raise HTTPException(status_code=403, detail="微信公众号签名校验失败")
+    _validate_wechat_webhook(channel_id, config, signature, timestamp, nonce)
 
-    raw_body = await request.body()
+    raw_body = await _read_webhook_body(request)
     try:
         message = wechat_mp.parse_xml(raw_body)
     except ValueError as exc:

@@ -2,14 +2,19 @@
 
 接口契约见 ``docs/CONTRACT.md`` §5.2：
 
-* ``POST   /api/chat``
-* ``GET    /api/chat/conversations?channel=&limit=20``
-* ``GET    /api/chat/conversations/{id}/messages``
-* ``DELETE /api/chat/conversations/{id}``
+* ``POST   /api/chat``（学生提问，公开）
+* ``GET    /api/chat/conversations?channel=&limit=20``（管理端：含学生隐私，需管理员令牌）
+* ``GET    /api/chat/conversations/{id}/messages``（管理端：含学生隐私，需管理员令牌）
+* ``DELETE /api/chat/conversations/{id}``（管理端：需管理员令牌）
+
+访问控制：会话列表与历史消息可能包含学生心理、奖助等敏感信息，因此挂载
+``require_admin_token``；未配置 ``NPU_ADMIN_TOKEN`` 时完全放行（本地演示），
+配置后必须携带 ``X-Admin-Token``，否则返回 401（前端展示空态即可）。
 """
 from __future__ import annotations
 
 import logging
+import secrets
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -23,11 +28,17 @@ router = APIRouter(tags=["chat"])
 
 ALLOWED_CHANNELS = {"web", "onebot11", "wechat_mp", "console"}
 MAX_MESSAGE_CHARS = 2000
+ANONYMOUS_TOKEN_BYTES = 4
 
 
 def _parse_citations(raw) -> list:
     value = db.from_json(raw, [])
     return value if isinstance(value, list) else []
+
+
+def _new_session_key(channel: str) -> str:
+    """为未携带 session_key 的新会话生成随机标识，避免所有匿名用户共享同一会话。"""
+    return f"{channel}:anonymous-{secrets.token_hex(ANONYMOUS_TOKEN_BYTES)}"
 
 
 @router.post("/chat")
@@ -60,8 +71,12 @@ def chat(payload: dict) -> dict:
 
     session_key = payload.get("session_key")
     session_key = str(session_key).strip() if session_key is not None else ""
-    if not session_key:
-        session_key = f"{channel}:{conversation_id or 'anonymous'}"
+    if conversation_id:
+        # 续聊已有会话：会话由 conversation_id 定位，session_key 仅为记录用途
+        session_key = session_key or f"{channel}:{conversation_id}"
+    else:
+        # 新建会话：未传 session_key 时生成随机标识，避免匿名用户共用「anonymous」会话串号
+        session_key = session_key or _new_session_key(channel)
 
     try:
         return counselor.answer(
@@ -79,9 +94,9 @@ def chat(payload: dict) -> dict:
         raise HTTPException(status_code=500, detail="问答服务暂时不可用，请稍后重试")
 
 
-@router.get("/chat/conversations")
+@router.get("/chat/conversations", dependencies=[Depends(require_admin_token)])
 def list_conversations(channel: str | None = None, limit: int = 20) -> dict:
-    """会话列表（按最近更新时间倒序）。"""
+    """会话列表（按最近更新时间倒序）；含学生隐私，配置管理员令牌后需鉴权。"""
     try:
         limit_value = int(limit)
     except (TypeError, ValueError):
@@ -121,9 +136,12 @@ def list_conversations(channel: str | None = None, limit: int = 20) -> dict:
     return {"items": items}
 
 
-@router.get("/chat/conversations/{conversation_id}/messages")
+@router.get(
+    "/chat/conversations/{conversation_id}/messages",
+    dependencies=[Depends(require_admin_token)],
+)
 def conversation_messages(conversation_id: str) -> dict:
-    """某会话的完整消息列表。"""
+    """某会话的完整消息列表；含学生隐私，配置管理员令牌后需鉴权。"""
     conversation = db.get_conversation(conversation_id)
     if conversation is None:
         raise HTTPException(status_code=404, detail="会话不存在")

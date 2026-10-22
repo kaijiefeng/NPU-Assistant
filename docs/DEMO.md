@@ -140,10 +140,10 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 
 | 验证项 | 命令 | 实测结果 |
 |--------|------|----------|
-| pytest 全量 | `.\scripts\check.ps1` | **83 passed**，1 warning（`StarletteDeprecationWarning`，依赖提示，无影响），耗时约 27s |
-| 用例分布 | — | test_bots 25 / test_wiki 18 / test_chat 15 / test_import 12 / test_system 8 / test_models 5 |
+| pytest 全量 | `.\scripts\check.ps1` | **104 passed**，1 warning（`StarletteDeprecationWarning`，依赖提示，无影响），耗时约 41s |
+| 用例分布 | — | test_bots 38 / test_wiki 19 / test_chat 17 / test_import 16 / test_system 9 / test_models 5 |
 | 测试隔离 | `conftest.py` | 临时 `NPU_DATA_DIR`/`NPU_DB_PATH`/`NPU_WIKI_SEED_PATH`；每用例重置数据库与上传目录；不污染 `backend/data/app.db` |
-| fake LLM / fake importer | `conftest.py` | fake LLM 按提示词分流（编译 / 合并 / 导航 / 回答 / 寒暄，含失败模式）；本地 `http.server` 提供公众号样式 HTML 验证 URL 抓取；机器人入库用 fake importer（threading.Event 验证微信后台线程） |
+| fake LLM / fake importer | `conftest.py` | fake LLM 按提示词分流（编译 / 合并 / 导航 / 回答 / 寒暄，含失败模式）；本地 `http.server` 提供公众号样式 HTML、4MB / 9MB / gzip 页面验证 URL 抓取上限；机器人入库用 fake importer（threading.Event 验证微信后台线程） |
 
 ### 9.2 真实服务端到端（8000 + DeepSeek，30 项检查全部通过，总耗时约 16s）
 
@@ -175,13 +175,16 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 | URL 收录（真实抓取 + 编译） | 8000：`https://www.nwpu.edu.cn/` → 201、`title=西北工业大学`、`source_type=url`、`source_url` 正确、`page_count=1`，耗时约 **1.1–1.6s**；8011 带令牌同样 201 |
 | 重复 URL | 第二次返回 **200 + `duplicated=true`**，不重复建文档/词条 |
 | 批量收录 | `[同一 URL, ftp://…]` → 200，`items=[(ok=true,duplicated=true),(ok=false,error=…)]`，单条失败不影响其它 |
-| 鉴权（8011，`NPU_ADMIN_TOKEN=npu-mobile-demo-2026`） | 无令牌 POST `import/text` / `import/url` / 上传 / PUT settings → **401**；带 `X-Admin-Token` → 导入 201、settings 200；GET `/health` 与 POST `/chat` 不受影响（200） |
+| 鉴权（8011，`NPU_ADMIN_TOKEN`） | 无令牌 POST `import/text` / `import/url` / 上传 / PUT settings → **401**；带 `X-Admin-Token` → 导入 201、settings 200；GET `/health` 与 POST `/chat` 不受影响（200）；历史会话与机器人日志无令牌 401、带令牌 200 |
+| 安全修复（8011 令牌侧真实，2026-10-22） | **19/19 PASS**：历史会话/日志 401/200；无令牌写 401；文本/URL/重复/批量收录；通道 token=`****oken`、`api_base` 脱敏、`outbound.url` 脱敏；微信 nonce 首次 200→重放 403→换 nonce 200、过期 timestamp 403、>2MB body 413 |
 | 机器人管理员入库（8000） | onebot 通道 `admin_user_ids=10002`：管理员发链接 → `/test` 200 且回复「该链接已收录过」；`#状态` 返回运行状态；非管理员发链接不入库（200） |
 | 通道 `/test` 回归 | onebot11 / wechat_mp 通道 `/test` 均 200（修复 `CHAT_PRIVATE` 后），console 无回归 |
 | 390px UI（Chrome CDP，390×844） | 知识库页 `innerWidth=390` / `scrollWidth=390` **无横向滚动**；快速收录卡片首屏可见（链接/文本/文件）；设置页无横向滚动且含「管理令牌」入口 |
 | 390px 触控目标（修复后复测） | web-ui 已加移动端媒体查询（≤720px）统一放大控件：知识库页 64 个可见控件 **0 个 <44px**（tab/搜索/刷新/图标按钮/标签 chip 均 ≥44）；内联正文链接按 WCAG 2.5.8 例外不强制 |
 | 390px UI 交互 | 文本模式真实提交 → 生成 `ready` 文档（`page_count=1`，source_type=text）；8011 设置页保存令牌到 `localStorage`、测试连接「令牌有效」、带令牌导入快照写操作成功（UI 5/5 PASS） |
-| 端到端汇总 | 8000 API：18/18 PASS（约 3.4s）；8011 令牌 API：24/24 PASS（约 5.5s）；390px UI：5/5 PASS |
+| 安全修复真实验收（8000 重启后，2026-10-22 23:29） | **17/17 PASS**：`system/info` 返回 `url_import_max_mb=8.0`/`url_import_max_urls=5`/`cors_enabled=false`/`insecure_bind=false` 且**无绝对路径**；CSP/`X-Frame-Options: DENY`/`nosniff`/`Referrer-Policy` 均在、默认无 CORS 头；通道响应 token=`****oken`、`api_base` 去 userinfo/query、`outbound.url` 脱敏；微信 nonce 首次 200 → 重放 403 → 换 nonce 200、过期 timestamp 403、>2MB body 413；无令牌模式历史会话/日志 200 |
+| 390px 长文件名/长 URL（重启后复测） | **10/10 PASS**：源文件卡片容器 `scrollWidth=clientWidth=306`、长文件名 ellipsis 不超视口、快速收录长 URL 结果不溢出、五页无横向滚动、console 错误 0（截图 `%TEMP%\npu_mobile_overflow_shots\*.png`） |
+| 端到端汇总 | 8000 安全 E2E：17/17 PASS（约 4.1s）；8011 令牌 E2E：19/19 PASS（约 4.2s）；390px UI：10/10 PASS（长文件名/长 URL/五页无溢出） |
 
 ### 9.4 演示数据基线
 
@@ -202,8 +205,25 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 7. **公众号仅明文模式**：问答超过约 4.5s 先回兜底提示，需重发；加密模式为非目标。
 8. **单进程 SQLite**：部署保持单实例，不要多 worker。
 9. **问候 / 闲聊由 LLM 自然回应，不引用 Wiki**：寒暄、致谢、告别、自我介绍（`navigation.method=chitchat`）不检索词条、`citations=[]`；非校园话题仅做「服务范围」说明，不做开放域闲聊，也不编造政策。
-10. **URL 收录默认禁私网**：只接受 `http/https`、HTML/纯文本，超时 30s、响应 ≤3MB；内网资料需设 `NPU_URL_IMPORT_ALLOW_PRIVATE=1`，公众号文章抓取依赖外网可达。
+10. **URL 收录默认禁私网**：只接受 `http/https`、HTML/纯文本，超时 30s、响应 ≤8MB（`NPU_URL_IMPORT_MAX_BYTES` 可调）；内网资料需设 `NPU_URL_IMPORT_ALLOW_PRIVATE=1`，公众号文章抓取依赖外网可达；文章过大/反爬时改用「文本收录」粘贴正文。
 11. **机器人入库需管理员配置**：`admin_user_ids` 为空时不触发入库；微信先回 ack、后台线程完成入库，无异步结果推送；入库同样消耗 LLM 编译额度。
 12. **PWA 安装需 HTTPS**：局域网 HTTP 只能网页使用；Service Worker 只缓存静态壳，不缓存 API 响应。
 13. **移动端触控目标已验证达标**：≤720px 媒体查询统一 ≥44px（390px 实测知识库页 0/64 个控件 <44px）；设置页内联正文链接按 WCAG 2.5.8 inline exception 不强制 44px。
 14. 依赖库提示 `httpx` + `starlette.testclient` 的 `StarletteDeprecationWarning`，仅测试告警。
+
+### 9.6 已修复问题（回归验证记录，2026-10-22）
+
+| 问题 | 修复 | 回归验证 |
+|------|------|----------|
+| 移动端长文件名 / 长 URL 撑破卡片与结果区 | web-ui：grid `minmax(0,1fr)` + 容器 `min-width:0`，文件名/URL 文本 `overflow:hidden + text-overflow:ellipsis` | Chrome CDP 390×844 复测 **10/10 PASS**：源文件卡片容器 `scrollWidth=clientWidth=306`、长文件名 ellipsis 且不超出视口、快速收录长 URL 结果不溢出、五页无横向滚动、console 错误 0（截图 `%TEMP%\npu_mobile_overflow_shots\*.png`） |
+| 链接 >3MB 被误拒 | 默认上限 3MB → **8MB**（`NPU_URL_IMPORT_MAX_BYTES`，可配置）；gzip 压缩页面按解压后大小校验并放宽 Content-Length 预检；超限文案含「文本收录 / 调大 `NPU_URL_IMPORT_MAX_BYTES`」建议 | pytest 3 条回归：4MB 可提取页面 201 成功（旧上限会拒绝）、gzip 压缩 4MB 页面 201 成功（不因压缩后 Content-Length 误拒）、9MB 页面 400 且 detail 同时含「过大」+`NPU_URL_IMPORT_MAX_BYTES`+「文本收录」 |
+| 非 console 机器人通道 `/test` 500（`CHAT_PRIVATE` 未导入） | bot-gateway 补 import（并做静态检查） | test_bots 回归：onebot11 / wechat_mp 通道 `/test` 均 200，console 无回归 |
+| 移动端触控目标 <44px | web-ui：≤720px 媒体查询统一 ≥44px | 390px 实测知识库页 64 个控件 **0 个 <44px**（内联正文链接按 WCAG 2.5.8 例外） |
+| 机器人凭据回显 & webhook 裸奔风险（安全 P0） | bot-gateway：通道 config 凭据脱敏（`****`+后 4 位）、`has_access_token`、OneBot 创建自动生成随机 token（`token_generated`/`token_hint`）、PUT 空串/脱敏占位不覆盖、空 token webhook 403、微信拒绝公开默认 token `npu-assistant` 且时间戳 ±300s、self_id 不一致事件忽略、`NPU_BOT_ALLOW_INSECURE=1` 仅本地调试放行；发送不跟随重定向、`api_base` 仅 http(s) | test_bots 8 条安全用例通过（脱敏/回填不覆盖/自动随机 token/空 token 403/self_id 不一致忽略/微信默认 token 403/时间窗过期 403/insecure 开关），PUT 后原 token 仍可调用 webhook |
+| 历史会话泄露 & 匿名会话串号 | chat.py：`GET /chat/conversations` 与 `/messages` 在配置 `NPU_ADMIN_TOKEN` 后需 `X-Admin-Token`；匿名 `session_key` 改为随机 `web:anonymous-<随机>` | test_chat 新增 2 条：401/带令牌 200、`POST /chat` 始终公开、两次匿名提问会话不同且 `session_key` 不同 |
+| 词条正文存储型 XSS（`javascript:`/`data:` 链接） | wiki.py：`body_html` 渲染后 URL 协议白名单清洗，危险 `href/src` 移除，外链补 `target="_blank" rel="noopener noreferrer"` | test_wiki 新增 1 条：恶意协议全部移除、合法 https/mailto/站内链接保留且外链带 rel |
+| 默认 CORS `*`、公网无令牌裸奔、`system/info` 泄露绝对路径、缺少安全响应头 | main/config：CORS 默认关闭（`NPU_CORS_ORIGINS` 白名单）；非回环监听未设 `NPU_ADMIN_TOKEN` 拒绝启动（`NPU_ALLOW_INSECURE_LAN=1` 例外）；下发 CSP/`X-Frame-Options`/`X-Content-Type-Options`/`Referrer-Policy`；`system/info` 移除绝对路径并新增 `url_import_max_mb/url_import_max_urls/cors_enabled/insecure_bind` | test_system：`system/info` 无 `data_dir/db_path` 等字段与盘符路径、`url_import_max_mb=8.0`、默认无 CORS 头、四项安全响应头存在 |
+| URL 并发去重（多请求同时收录同一链接） | importer：同 URL 进程内串行锁 + `documents.source_url` 唯一部分索引 + `IntegrityError` 兜底返回既有文档 | test_import 新增 1 条：4 线程并发收录同一 URL → 仅一次 201、其余 200 duplicated，最终文档数 1 |
+| 安全复审 4 项：机器人日志未鉴权、`api_base` 泄露凭据、微信 nonce 可重放、webhook 超大 body | bots.py：`GET /bots/logs` 加 `require_admin_token`；`api_base`/outbound `url` 去 userinfo+query+fragment 回显且 PUT 回填脱敏值不覆盖；微信 nonce 进程内防重放（TTL 330s/上限 1000，签名失败不消费）；OneBot/微信 webhook body 上限 2MB → 413 | test_bots 新增 5 条：日志 401/带令牌 200 且 webhook 不受影响、`api_base` 脱敏+PUT 保留原值+outbound url 脱敏、微信 GET/POST nonce 重放 403/换 nonce 200/坏签名不消费、空 nonce 登记放行、2MB 超限 413 |
+
+> 安全修复后全量 **104 passed**（test_bots 38 / test_wiki 19 / test_chat 17 / test_import 16 / test_system 9 / test_models 5）。

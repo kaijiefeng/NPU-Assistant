@@ -29,6 +29,17 @@
 - 启动 `.\scripts\run.ps1`（默认 <http://127.0.0.1:8000>）；测试 `.\scripts\check.ps1`
 - **真实 LLM 是 Wiki 编译与高质量回答的前置条件**；当前开发实例已配置 DeepSeek（key 仅存于运行库，不入仓库）
 
+### 2.1 安全默认（v0.3，务必遵守）
+
+- **CORS 默认关闭**；跨站部署只能通过 `NPU_CORS_ORIGINS` 显式白名单（禁止 `*`）。
+- **对外监听必须设置 `NPU_ADMIN_TOKEN`**：绑定非回环地址且无令牌时服务拒绝启动（临时内网演示可显式 `NPU_ALLOW_INSECURE_LAN=1`，会有告警）；运行时对非回环 Host 且无令牌的请求 fail-closed（403）。
+- 写操作（上传/导入/编辑/重建/模型/机器人/设置）统一由中间件校验 `X-Admin-Token`；公开接口仅 `POST /api/chat`、只读 GET、机器人 webhook（各自 token/签名）。
+- 聊天历史 `GET /api/chat/conversations*` 在配置令牌后需要管理员令牌；匿名会话使用 `web:anonymous-<随机>`，不得共用。
+- 机器人：通道凭据在 API 响应中脱敏（`****后4位`），PUT 传空串/脱敏占位表示不修改；OneBot 空 token 拒绝 webhook；微信 Token 不得为空或 `npu-assistant`，回调校验 ±300s 时间窗与 nonce 防重放；OneBot 事件校验 `self_id`；`NPU_BOT_ALLOW_INSECURE=1` 仅限本地调试。
+- URL 抓取：SSRF 防护（逐跳 DNS + 连接 peer IP 校验）、默认拒绝私网/回环/组播/NAT64/6to4、`Accept-Encoding: identity`、总时限、8MB 上限、正文 60k 字配额；默认 `NPU_URL_IMPORT_ALLOW_PRIVATE=0`。
+- 内容安全：`body_html` 渲染后对 `<a>/<img>` 做协议白名单（http/https/mailto/#/站内相对），CSP `script-src 'self'`；上传/请求体有 Content-Length 上限。
+- 公网部署：HTTPS 反代/隧道 + 限流 + 定期备份；不要把 8000 裸端口映射公网。
+
 ---
 
 ## 3. 目录与写作用域

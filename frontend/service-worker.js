@@ -10,7 +10,7 @@
  *
  * 说明：本文件由 index.html 通过 app.js 在 https 或 localhost 下注册。
  */
-const CACHE_VERSION = 'npu-assistant-static-v1';
+const CACHE_VERSION = 'npu-assistant-static-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -70,10 +70,10 @@ self.addEventListener('fetch', (event) => {
   // 业务接口：network-only，绝不缓存
   if (url.pathname.startsWith('/api/')) return;
 
-  // 页面导航：network-first，断网回退 index.html
+  // 页面导航：network-first（no-cache 条件请求，部署后立即拿到新版本），断网回退 index.html
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      fetch(request, { cache: 'no-cache' })
         .then((response) => {
           const copy = response.clone();
           caches.open(CACHE_VERSION).then((cache) => cache.put('/index.html', copy)).catch(() => {});
@@ -96,9 +96,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 静态资源：network-first（在线时始终拿最新代码），断网回退缓存
+  // 静态资源：network-first（no-cache 条件请求，避免部署后仍加载旧 JS/CSS），断网回退缓存
   event.respondWith(
-    fetch(request)
+    fetch(request, { cache: 'no-cache' })
       .then((response) => {
         if (response && response.ok) {
           const copy = response.clone();

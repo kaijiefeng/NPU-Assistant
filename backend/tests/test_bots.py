@@ -1,17 +1,26 @@
-"""机器人网关测试（LLM Wiki）：通道 CRUD、Webhook、控制台双层引用、公众号签名/XML、OneBot 归一化与事件入口。"""
+"""机器人网关测试（LLM Wiki）：通道 CRUD、凭据脱敏、Webhook 安全、控制台双层引用、公众号签名/XML、OneBot 归一化与事件入口。"""
 from __future__ import annotations
 
 import hashlib
 import hmac
 import json
+import time
 import xml.etree.ElementTree as ET
 
 import pytest
 from fastapi import WebSocketDisconnect
 
-WECHAT_TOKEN = "npu-assistant"
-TIMESTAMP = "1700000000"
+# 安全默认：公众号不再接受公开默认 Token，测试使用自选强 token
+WECHAT_TOKEN = "wechat-test-token-2026"
 NONCE = "npu-nonce-001"
+
+
+def _now_ts() -> str:
+    """微信公众号回调时间窗 ±300s：测试内动态时间戳，避免过期 403。"""
+    return str(int(time.time()))
+
+
+TIMESTAMP = _now_ts()
 
 
 # ---------------------------------------------------------------------------
@@ -61,6 +70,16 @@ def _create_wechat(client, *, token: str = WECHAT_TOKEN,
     )
     assert response.status_code == 201, response.text
     return response.json()
+
+
+def _set_channel_config(channel_id: str, config: dict) -> None:
+    """测试安全边界：直接写库模拟历史/异常通道配置（绕过创建时的自动补 token）。"""
+    from app import db
+
+    db.execute(
+        "UPDATE bot_channels SET config = ? WHERE id = ?",
+        (json.dumps(config, ensure_ascii=False), channel_id),
+    )
 
 
 def _signature(token: str = WECHAT_TOKEN, timestamp: str = TIMESTAMP,
@@ -118,7 +137,9 @@ def test_channel_partial_update_keeps_config(client):
     data = updated.json()
     assert data["name"] == "改名后的 QQ 通道"
     assert data["config"]["api_base"] == "http://127.0.0.1:3000"
-    assert data["config"]["access_token"] == "evt-token"
+    # 安全：凭据不再回显明文，只保留脱敏值 + has_access_token
+    assert data["config"]["access_token"] == "****oken"
+    assert data["has_access_token"] is True
     assert data["config"]["self_id"] == "10001"
 
 
@@ -557,3 +578,362 @@ def test_channel_test_endpoint_for_onebot_and_wechat_channels(client):
     assert wechat_data["channel"] == "wechat_mp"
     assert wechat_data["reply"]
     assert str(wechat_data["outbound"]["xml"]).startswith("<xml>")
+
+
+# ---------------------------------------------------------------------------
+# 安全：凭据脱敏 / PUT 回填语义 / webhook Token 策略 / 微信时间窗 / self_id
+# ---------------------------------------------------------------------------
+def test_channel_config_credentials_are_masked(client):
+    onebot = _create_onebot(client, access_token="evt-token", admin_user_ids="10002")
+    assert onebot["config"]["access_token"] == "****oken"
+    assert onebot["has_access_token"] is True
+    assert onebot["config"]["admin_user_ids"] == "***（1 个管理员）"
+    assert "evt-token" not in json.dumps(onebot, ensure_ascii=False)
+    assert "10002" not in json.dumps(onebot["config"], ensure_ascii=False)
+
+    wechat = _create_wechat(client, admin_user_ids="openid-1,openid-2")
+    assert wechat["config"]["token"] == "****2026"
+    assert wechat["has_access_token"] is True
+    assert wechat["config"]["admin_user_ids"] == "***（2 个管理员）"
+    assert WECHAT_TOKEN not in json.dumps(wechat, ensure_ascii=False)
+
+    # 列表接口同样脱敏；console 无凭据
+    listing = _channels(client)
+    for item in listing:
+        if item["type"] == "onebot11":
+            assert item["config"]["access_token"] == "****oken"
+        if item["type"] == "wechat_mp":
+            assert item["config"]["token"] == "****2026"
+        if item["type"] == "console":
+            assert item["has_access_token"] is False
+
+
+def test_channel_put_empty_or_masked_credentials_keep_existing(client):
+    onebot = _create_onebot(client, access_token="evt-token", admin_user_ids="10002")
+
+    # 空串 / 脱敏占位 → 不修改（仍可继续用原 token 调用 webhook）
+    for placeholder in ("", "****oken"):
+        updated = client.put(
+            f"/api/bots/channels/{onebot['id']}",
+            json={"config": {"api_base": "http://127.0.0.1:9", "access_token": placeholder}},
+        )
+        assert updated.status_code == 200
+        assert updated.json()["has_access_token"] is True
+        event = client.post(
+            f"/api/bots/onebot/{onebot['id']}/event",
+            params={"access_token": "evt-token"},
+            json={**PRIVATE_EVENT, "message_id": 9001},
+        )
+        assert event.status_code == 200, "空串/脱敏占位不应覆盖已有 token"
+
+    # admin_user_ids：脱敏占位 → 不修改；空串 → 清空；新值 → 替换
+    kept = client.put(
+        f"/api/bots/channels/{onebot['id']}",
+        json={"config": {"admin_user_ids": "***（1 个管理员）"}},
+    ).json()
+    assert kept["config"]["admin_user_ids"] == "***（1 个管理员）"
+    cleared = client.put(
+        f"/api/bots/channels/{onebot['id']}", json={"config": {"admin_user_ids": ""}}
+    ).json()
+    assert cleared["config"]["admin_user_ids"] == ""
+    replaced = client.put(
+        f"/api/bots/channels/{onebot['id']}", json={"config": {"admin_user_ids": ["1", "2"]}}
+    ).json()
+    assert replaced["config"]["admin_user_ids"] == "***（2 个管理员）"
+
+
+def test_onebot_created_without_token_gets_random_secret(client):
+    onebot = _create_onebot(client, access_token="")
+    assert onebot["has_access_token"] is True
+    masked = onebot["config"]["access_token"]
+    assert masked.startswith("****") and len(masked) == 8  # **** + 4 位
+    assert "evt-token" not in masked
+    # 自动生成时给出一次性提示（明文不可回读）
+    assert onebot.get("token_generated") is True
+    assert onebot.get("token_hint")
+    assert "token" in str(onebot["token_hint"]).lower() or "access_token" in str(
+        onebot["token_hint"]
+    )
+    # 无法得知随机 token：缺失/错误 token 均拒绝
+    assert client.post(
+        f"/api/bots/onebot/{onebot['id']}/event", json=PRIVATE_EVENT
+    ).status_code == 403
+    assert client.post(
+        f"/api/bots/onebot/{onebot['id']}/event",
+        params={"access_token": "guess-token"},
+        json=PRIVATE_EVENT,
+    ).status_code == 403
+
+
+def test_onebot_webhook_rejects_empty_token(client):
+    onebot = _create_onebot(client)
+    _set_channel_config(
+        onebot["id"], {"api_base": "http://127.0.0.1:9", "self_id": "10001"}
+    )
+    response = client.post(f"/api/bots/onebot/{onebot['id']}/event", json=PRIVATE_EVENT)
+    assert response.status_code == 403
+    assert "access_token" in response.json()["detail"]
+    # 带任意 token 也拒绝（通道配置本身为空）
+    assert client.post(
+        f"/api/bots/onebot/{onebot['id']}/event",
+        params={"access_token": "whatever"},
+        json=PRIVATE_EVENT,
+    ).status_code == 403
+
+
+def test_onebot_event_self_id_mismatch_is_ignored(client):
+    onebot = _create_onebot(client, access_token="evt-token")  # self_id=10001
+    before = len(client.get("/api/bots/logs").json()["items"])
+    response = client.post(
+        f"/api/bots/onebot/{onebot['id']}/event",
+        params={"access_token": "evt-token"},
+        json={**PRIVATE_EVENT, "self_id": 99999, "message_id": 9101},
+    )
+    # HTTP 仍返回 ok，但不处理、不落日志
+    assert response.status_code == 200 and response.json() == {"status": "ok"}
+    after = len(client.get("/api/bots/logs").json()["items"])
+    assert after == before, "self_id 不一致的事件应被忽略"
+
+    matched = client.post(
+        f"/api/bots/onebot/{onebot['id']}/event",
+        params={"access_token": "evt-token"},
+        json={**PRIVATE_EVENT, "message_id": 9102},
+    )
+    assert matched.status_code == 200
+    assert len(client.get("/api/bots/logs").json()["items"]) == before + 1
+
+
+def test_wechat_rejects_public_default_token(client):
+    wechat = _create_wechat(client, token="npu-assistant")
+    timestamp = _now_ts()
+    params = {
+        "signature": _signature(token="npu-assistant", timestamp=timestamp),
+        "timestamp": timestamp,
+        "nonce": NONCE,
+        "echostr": "echo-12345",
+    }
+    response = client.get(f"/api/bots/wechat/{wechat['id']}", params=params)
+    assert response.status_code == 403
+    assert "安全" in response.json()["detail"] or "npu-assistant" in response.json()["detail"]
+
+
+def test_wechat_rejects_stale_timestamp(client):
+    wechat = _create_wechat(client)
+    stale = str(int(time.time()) - 3600)
+    params = {"signature": _signature(timestamp=stale), "timestamp": stale, "nonce": NONCE}
+    response = client.get(f"/api/bots/wechat/{wechat['id']}", params=params)
+    assert response.status_code == 403
+    assert "时间戳" in response.json()["detail"]
+    message = client.post(
+        f"/api/bots/wechat/{wechat['id']}",
+        params=params,
+        content=_wechat_xml("text", "请假流程是什么？"),
+        headers={"Content-Type": "application/xml"},
+    )
+    assert message.status_code == 403
+
+
+def test_insecure_env_allows_empty_token_only_when_enabled(client, monkeypatch):
+    # 默认拒绝
+    onebot = _create_onebot(client)
+    _set_channel_config(
+        onebot["id"], {"api_base": "http://127.0.0.1:9", "self_id": "10001"}
+    )
+    assert client.post(
+        f"/api/bots/onebot/{onebot['id']}/event", json=PRIVATE_EVENT
+    ).status_code == 403
+
+    # 显式开启本地调试开关后放行空 Token（仅限本机调试）
+    monkeypatch.setenv("NPU_BOT_ALLOW_INSECURE", "1")
+    relaxed = client.post(
+        f"/api/bots/onebot/{onebot['id']}/event",
+        json={**PRIVATE_EVENT, "message_id": 9201},
+    )
+    assert relaxed.status_code == 200 and relaxed.json() == {"status": "ok"}
+
+    wechat = _create_wechat(client, token="npu-assistant")
+    timestamp = _now_ts()
+    params = {
+        "signature": _signature(token="npu-assistant", timestamp=timestamp),
+        "timestamp": timestamp,
+        "nonce": NONCE,
+        "echostr": "echo-insecure",
+    }
+    verified = client.get(f"/api/bots/wechat/{wechat['id']}", params=params)
+    assert verified.status_code == 200 and verified.text == "echo-insecure"
+
+
+
+# ---------------------------------------------------------------------------
+# 安全复审补充：日志鉴权 / api_base 脱敏 / 微信 nonce 防重放 / webhook body 上限
+# ---------------------------------------------------------------------------
+def test_bots_logs_requires_admin_token_when_configured(client, monkeypatch):
+    from app import config
+
+    wechat = _create_wechat(client)  # 令牌开启前创建，避免主中间件拦截
+    assert client.get("/api/bots/logs").status_code == 200
+
+    monkeypatch.setattr(config, "ADMIN_TOKEN", "mobile-secret-token")
+    headers = {"X-Admin-Token": "mobile-secret-token"}
+    assert client.get("/api/bots/logs").status_code == 401
+    assert client.get("/api/bots/logs", headers={"X-Admin-Token": "wrong"}).status_code == 401
+    assert client.get("/api/bots/logs", headers=headers).status_code == 200
+
+    # 机器人 webhook 使用自身 token/签名，不受管理令牌中间件影响
+    ts = _now_ts()
+    params = {"signature": _signature(timestamp=ts, nonce="logs-nonce-1"), "timestamp": ts, "nonce": "logs-nonce-1"}
+    verified = client.get(
+        f"/api/bots/wechat/{wechat['id']}", params={**params, "echostr": "echo-1"}
+    )
+    assert verified.status_code == 200 and verified.text == "echo-1"
+
+
+def _create_onebot_with_api_base(client, api_base: str) -> dict:
+    response = client.post(
+        "/api/bots/channels",
+        json={
+            "type": "onebot11",
+            "name": "api_base 脱敏测试",
+            "config": {
+                "api_base": api_base,
+                "access_token": "evt-token",
+                "self_id": "10001",
+            },
+        },
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def test_channel_api_base_masked_and_put_keeps_original(client):
+    from app import db
+
+    original = "https://user:pass@example.com:8443/base?token=SECRET#frag"
+    channel = _create_onebot_with_api_base(client, original)
+    masked = "https://example.com:8443/base"
+    assert channel["config"]["api_base"] == masked
+    serialized = json.dumps(channel, ensure_ascii=False)
+    assert "pass@" not in serialized and "SECRET" not in serialized
+
+    # outbound（控制台展示）中的 url 同样脱敏
+    tested = client.post(
+        f"/api/bots/channels/{channel['id']}/test",
+        json={"message": "你好", "user_id": "10002"},
+    )
+    assert tested.status_code == 200
+    outbound_url = tested.json()["outbound"]["url"]
+    assert outbound_url == f"{masked}/send_private_msg"
+    assert "user:pass" not in outbound_url and "SECRET" not in outbound_url
+
+    # PUT 回填脱敏值 → 不修改数据库中的原始 api_base（保留 query/userinfo）
+    updated = client.put(
+        f"/api/bots/channels/{channel['id']}", json={"config": {"api_base": masked}}
+    )
+    assert updated.status_code == 200
+    assert updated.json()["config"]["api_base"] == masked
+    row = db.query_one("SELECT config FROM bot_channels WHERE id = ?", (channel["id"],))
+    stored = json.loads(row["config"])
+    assert stored["api_base"] == original, "回填脱敏值不应覆盖原始 api_base"
+
+
+def test_wechat_nonce_replay_rejected(client):
+    wechat = _create_wechat(client)
+    timestamp = _now_ts()
+
+    def params(nonce: str, token: str = WECHAT_TOKEN):
+        return {
+            "signature": _signature(token=token, timestamp=timestamp, nonce=nonce),
+            "timestamp": timestamp,
+            "nonce": nonce,
+            "echostr": "echo-nonce",
+        }
+
+    first = client.get(f"/api/bots/wechat/{wechat['id']}", params=params("nonce-replay-1"))
+    assert first.status_code == 200
+    replay = client.get(f"/api/bots/wechat/{wechat['id']}", params=params("nonce-replay-1"))
+    assert replay.status_code == 403
+    assert "nonce" in replay.json()["detail"]
+    fresh = client.get(f"/api/bots/wechat/{wechat['id']}", params=params("nonce-replay-2"))
+    assert fresh.status_code == 200
+
+    # POST 文本消息同样防重放
+    post_params = {
+        "signature": _signature(timestamp=timestamp, nonce="nonce-post-1"),
+        "timestamp": timestamp,
+        "nonce": "nonce-post-1",
+    }
+    payload = _wechat_xml("text", "请假流程是什么？")
+    assert (
+        client.post(
+            f"/api/bots/wechat/{wechat['id']}",
+            params=post_params,
+            content=payload,
+            headers={"Content-Type": "application/xml"},
+        ).status_code
+        == 200
+    )
+    replay_post = client.post(
+        f"/api/bots/wechat/{wechat['id']}",
+        params=post_params,
+        content=payload,
+        headers={"Content-Type": "application/xml"},
+    )
+    assert replay_post.status_code == 403
+    assert "nonce" in replay_post.json()["detail"]
+
+    # 空 nonce 不参与重放判定（签名函数本身要求 nonce 非空，这里直接单测登记函数）
+    from app.routers.bots import _register_wechat_nonce
+
+    assert _register_wechat_nonce(wechat["id"], "") is True
+    assert _register_wechat_nonce(wechat["id"], "") is True
+
+
+def test_wechat_nonce_failed_signature_does_not_consume(client):
+    wechat = _create_wechat(client)
+    timestamp = _now_ts()
+    nonce = "nonce-badsig-1"
+    bad = {
+        "signature": "0" * 40,
+        "timestamp": timestamp,
+        "nonce": nonce,
+        "echostr": "echo-bad",
+    }
+    assert client.get(f"/api/bots/wechat/{wechat['id']}", params=bad).status_code == 403
+    # 签名失败不消费 nonce：同一 nonce 的正确请求仍可成功
+    good = {
+        "signature": _signature(timestamp=timestamp, nonce=nonce),
+        "timestamp": timestamp,
+        "nonce": nonce,
+        "echostr": "echo-good",
+    }
+    assert client.get(f"/api/bots/wechat/{wechat['id']}", params=good).status_code == 200
+
+
+def test_webhook_body_size_limit(client):
+    onebot = _create_onebot(client, access_token="evt-token")
+    oversized = b'{"x":"' + b"a" * (2 * 1024 * 1024 + 10) + b'"}'
+    response = client.post(
+        f"/api/bots/onebot/{onebot['id']}/event",
+        params={"access_token": "evt-token"},
+        content=oversized,
+        headers={"Content-Type": "application/json"},
+    )
+    assert response.status_code == 413
+
+    wechat = _create_wechat(client)
+    timestamp = _now_ts()
+    nonce = "nonce-body-limit"
+    params = {
+        "signature": _signature(timestamp=timestamp, nonce=nonce),
+        "timestamp": timestamp,
+        "nonce": nonce,
+    }
+    huge_xml = b"<xml>" + b"a" * (2 * 1024 * 1024 + 10) + b"</xml>"
+    wechat_response = client.post(
+        f"/api/bots/wechat/{wechat['id']}",
+        params=params,
+        content=huge_xml,
+        headers={"Content-Type": "application/xml"},
+    )
+    assert wechat_response.status_code == 413
+    assert "过大" in wechat_response.json()["detail"]

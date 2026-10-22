@@ -16,6 +16,7 @@ import hmac
 import logging
 import re
 from typing import Any
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -231,9 +232,69 @@ def _api_base(config: dict | None) -> str:
     return str((config or {}).get("api_base") or "").strip().rstrip("/")
 
 
+def _is_http_url(url: str) -> bool:
+    """只允许 http/https 绝对地址（api_base 不允许 file:// 等协议）。"""
+    try:
+        parts = urlsplit(str(url or ""))
+    except ValueError:
+        return False
+    return parts.scheme.lower() in {"http", "https"} and bool(parts.netloc)
+
+
+def _safe_url(url: str) -> str:
+    """脱敏 URL：去掉 query/fragment/userinfo，仅保留 scheme://host[:port]/path。
+
+    用于日志与错误信息，避免把 NapCat 地址里的凭据或敏感查询参数写进日志。
+    """
+    try:
+        parts = urlsplit(str(url or ""))
+    except ValueError:
+        return "[无效地址]"
+    if not parts.scheme or not parts.netloc:
+        return "[无效地址]"
+    host = parts.hostname or ""
+    try:
+        if parts.port:
+            host = f"{host}:{parts.port}"
+    except ValueError:
+        pass
+    return f"{parts.scheme}://{host}{parts.path or ''}"
+
+
+_ERROR_URL_RE = re.compile(r"https?://[^\s'\"<>]+", re.IGNORECASE)
+
+
+def _safe_error_text(text: str) -> str:
+    """把错误文本中的 URL 替换为脱敏形式（httpx 异常常带完整 URL）。"""
+    def _replace(match: re.Match[str]) -> str:
+        return _safe_url(match.group(0))
+
+    return _ERROR_URL_RE.sub(_replace, str(text or ""))[:300]
+
+
+def _request_base(config: dict | None) -> str:
+    """实际请求用的 api_base：去掉多余的 query/fragment（规范化后拼接 API 路径）。
+
+    ``api_base`` 正常形如 ``http://127.0.0.1:3000``；若管理员误填了带 query/fragment
+    的值，只取 scheme/host/path 部分，避免拼出 ``...?x=1/send_private_msg`` 这种非法 URL。
+    """
+    base = _api_base(config)
+    if not base:
+        return ""
+    try:
+        parts = urlsplit(base)
+    except ValueError:
+        return base
+    if parts.query or parts.fragment:
+        if parts.scheme and parts.netloc:
+            return f"{parts.scheme}://{parts.netloc}{parts.path.rstrip('/')}"
+        return base.split("?", 1)[0].split("#", 1)[0].rstrip("/")
+    return base
+
+
 def _endpoint(config: dict | None, chat_type: str) -> tuple[str, str]:
     action = "send_group_msg" if chat_type == CHAT_GROUP else "send_private_msg"
-    base = _api_base(config)
+    base = _request_base(config)
     return action, f"{base}/{action}" if base else f"/{action}"
 
 
@@ -246,8 +307,14 @@ def build_payload(chat_type: str, *, user_id: str = "", group_id: str = "",
 
 def build_outbound(config: dict | None, *, chat_type: str, user_id: str = "",
                    group_id: str = "", text: str = "") -> dict:
-    """构造「将要通过 HTTP API 发送」的报文描述（用于控制台 / 前端展示）。"""
+    """构造「将要通过 HTTP API 发送」的报文描述（用于控制台 / 前端展示）。
+
+    ``api_base`` 可能包含 userinfo/query 等敏感信息，展示用的 ``url`` 一律脱敏，
+    不把管理员配置的凭据回显到接口响应里。
+    """
     action, url = _endpoint(config, chat_type)
+    if _api_base(config):
+        url = _safe_url(url)
     has_token = bool(str((config or {}).get("access_token") or ""))
     return {
         "type": CHANNEL_ONEBOT,
@@ -262,27 +329,39 @@ def build_outbound(config: dict | None, *, chat_type: str, user_id: str = "",
 def _client(timeout: float) -> httpx.Client:
     """OneBot HTTP API 客户端。
 
-    ``trust_env=False``：忽略系统 HTTP_PROXY/HTTPS_PROXY。NapCat 通常部署在本机
-    （127.0.0.1），若走系统代理会被接管甚至失败（观察到约 5s 后才返回 502），
-    导致机器人回复发不出去或明显延迟。
+    * ``trust_env=False``：忽略系统 HTTP_PROXY/HTTPS_PROXY。NapCat 通常部署在本机
+      （127.0.0.1），若走系统代理会被接管甚至失败（观察到约 5s 后才返回 502），
+      导致机器人回复发不出去或明显延迟。
+    * ``follow_redirects=False``：api_base 是管理员配置项，不跟随重定向，避免被
+      跳转到非预期地址（SSRF/凭据外泄）。
     """
-    return httpx.Client(timeout=timeout, follow_redirects=True, trust_env=False)
+    return httpx.Client(timeout=timeout, follow_redirects=False, trust_env=False)
 
 
 def send_message(config: dict | None, *, chat_type: str, user_id: str = "",
                  group_id: str = "", text: str = "", timeout: float = 15.0) -> dict:
     """调用 OneBot HTTP API 发送回复。
 
-    任何失败（未配置、网络异常、非 2xx、retcode != 0）都只写 warning 日志，
-    返回 ``{"ok": False, ...}``，绝不向调用方抛异常 —— 机器人回复失败不应影响
-    已经完成的问答流程。
+    任何失败（未配置、地址非法、网络异常、非 2xx、retcode != 0）都只写 warning
+    日志，返回 ``{"ok": False, ...}``，绝不向调用方抛异常 —— 机器人回复失败不应
+    影响已经完成的问答流程。日志中的 URL / 异常信息均做脱敏处理。
     """
-    action, url = _endpoint(config, chat_type)
+    action = "send_group_msg" if chat_type == CHAT_GROUP else "send_private_msg"
     api_base = _api_base(config)
     if not api_base:
         logger.warning("OneBot 通道未配置 api_base，跳过发送：action=%s text=%r", action, text[:50])
-        return {"ok": False, "action": action, "url": url, "error": "通道未配置 api_base"}
+        return {"ok": False, "action": action, "url": f"/{action}", "error": "通道未配置 api_base"}
+    if not _is_http_url(api_base):
+        logger.warning("OneBot 发送跳过：api_base 必须是 http/https 地址：action=%s", action)
+        return {
+            "ok": False,
+            "action": action,
+            "url": f"/{action}",
+            "error": "api_base 必须是 http 或 https 地址",
+        }
 
+    url = f"{_request_base(config)}/{action}"
+    safe_url = _safe_url(url)
     access_token = str((config or {}).get("access_token") or "").strip()
     headers = {"Authorization": f"Bearer {access_token}"} if access_token else {}
     payload = build_payload(chat_type, user_id=user_id, group_id=group_id, text=text)
@@ -291,8 +370,9 @@ def send_message(config: dict | None, *, chat_type: str, user_id: str = "",
         with _client(timeout) as client:
             response = client.post(url, json=payload, headers=headers)
     except Exception as exc:  # noqa: BLE001 - 网络异常只记日志
-        logger.warning("OneBot 发送消息失败（已忽略）：url=%s error=%s", url, exc)
-        return {"ok": False, "action": action, "url": url, "error": str(exc)}
+        error_text = _safe_error_text(str(exc) or exc.__class__.__name__)
+        logger.warning("OneBot 发送消息失败（已忽略）：url=%s error=%s", safe_url, error_text)
+        return {"ok": False, "action": action, "url": safe_url, "error": error_text}
 
     body: Any = None
     try:
@@ -307,12 +387,12 @@ def send_message(config: dict | None, *, chat_type: str, user_id: str = "",
     if not ok:
         logger.warning(
             "OneBot 发送消息失败（已忽略）：url=%s status=%s retcode=%s body=%r",
-            url, response.status_code, retcode, body,
+            safe_url, response.status_code, retcode, body,
         )
     return {
         "ok": ok,
         "action": action,
-        "url": url,
+        "url": safe_url,
         "status_code": response.status_code,
         "retcode": retcode,
         "response": body,

@@ -154,9 +154,9 @@ def test_import_url_rejects_non_html_large_and_missing(client, compile_ready, ar
     assert not_html.status_code == 400
     assert not_html.json()["detail"]
 
-    large = _import_url(client, url=f"{article_server.base_url}/large")
-    assert large.status_code == 400
-    assert "过大" in large.json()["detail"]
+    over_limit = _import_url(client, url=f"{article_server.base_url}/over-limit")
+    assert over_limit.status_code == 400
+    assert "过大" in over_limit.json()["detail"]
 
     missing = _import_url(client, url=f"{article_server.base_url}/missing")
     assert missing.status_code == 400
@@ -164,6 +164,56 @@ def test_import_url_rejects_non_html_large_and_missing(client, compile_ready, ar
 
     empty = _import_url(client, url="")
     assert empty.status_code == 400
+
+
+def test_import_url_accepts_4mb_page_under_new_default_limit(
+    client, compile_ready, article_server
+):
+    """v0.3 起 NPU_URL_IMPORT_MAX_BYTES 默认 8MB：约 4MB 可提取正文页面应成功（旧 3MB 上限会拒绝）。"""
+    from app import config
+
+    assert config.URL_IMPORT_MAX_BYTES >= 8 * 1024 * 1024, "默认上限应已提升到 8MB"
+
+    response = _import_url(client, url=f"{article_server.base_url}/article-4mb")
+    assert response.status_code == 201, response.text
+    data = response.json()
+    document = data["document"]
+    assert document["status"] == "ready", document
+    assert document["source_type"] == "url"
+    assert document["source_url"].endswith("/article-4mb")
+    assert document["title"] == "4MB 测试文章"
+    assert document["page_count"] > 0
+    assert data["pages"]
+    assert len(_documents(client)) == 1
+
+
+def test_import_url_over_limit_returns_actionable_message(
+    client, compile_ready, article_server
+):
+    """约 9MB 页面应拒绝，提示包含「过大」+ 环境变量名 + 改用文本收录的建议。"""
+    response = _import_url(client, url=f"{article_server.base_url}/over-limit")
+    assert response.status_code == 400
+    detail = response.json()["detail"]
+    assert "过大" in detail
+    assert "NPU_URL_IMPORT_MAX_BYTES" in detail
+    assert "文本收录" in detail
+    # 失败不产生文档
+    assert _documents(client) == []
+
+
+def test_import_url_accepts_gzip_compressed_4mb_page(
+    client, compile_ready, article_server
+):
+    """gzip 压缩的 4MB 页面：Content-Length 是压缩后大小，不应被预检误拒，解压后仍在上限内。"""
+    response = _import_url(client, url=f"{article_server.base_url}/article-gzip-4mb")
+    assert response.status_code == 201, response.text
+    data = response.json()
+    document = data["document"]
+    assert document["status"] == "ready", document
+    assert document["title"] == "gzip 4MB 测试文章"
+    assert document["source_type"] == "url"
+    assert document["page_count"] > 0
+    assert len(_documents(client)) == 1
 
 
 # ---------------------------------------------------------------------------
@@ -295,3 +345,27 @@ def test_documents_expose_source_fields(client, compile_ready, article_server):
     detail = client.get(f"/api/knowledge/documents/{by_type['url']['id']}").json()
     assert detail["source_type"] == "url"
     assert detail["source_url"] == url
+
+
+# ---------------------------------------------------------------------------
+# 6) 并发去重（进程内锁 + documents.source_url 唯一索引兜底）
+# ---------------------------------------------------------------------------
+def test_import_url_concurrent_requests_do_not_create_duplicates(
+    client, compile_ready, article_server
+):
+    from concurrent.futures import ThreadPoolExecutor
+
+    url = f"{article_server.base_url}/article"
+
+    def call(_index: int):
+        return client.post("/api/knowledge/import/url", json={"url": url})
+
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        responses = list(pool.map(call, range(4)))
+
+    statuses = [response.status_code for response in responses]
+    assert all(status in (200, 201) for status in statuses), statuses
+    assert statuses.count(201) == 1, f"并发收录只应有一次真正创建：{statuses}"
+
+    docs = [doc for doc in _documents(client) if doc["source_url"] == url]
+    assert len(docs) == 1, "并发重复 URL 不应产生重复文档"

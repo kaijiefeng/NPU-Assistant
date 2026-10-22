@@ -16,6 +16,7 @@
 """
 from __future__ import annotations
 
+import gzip
 import json
 import os
 import re
@@ -443,7 +444,13 @@ ARTICLE_HTML = f"""<!doctype html>
 
 
 class _ArticleHandler(BaseHTTPRequestHandler):
-    """极简 HTTP 服务：HTML / JSON / 超大响应 / 404，用于 URL 收录测试。"""
+    """极简 HTTP 服务：HTML / JSON / 超大响应 / gzip / 404，用于 URL 收录测试。
+
+    体积口径用于验证 ``NPU_URL_IMPORT_MAX_BYTES`` 默认上限（v0.3 起 8MB）：
+    * ``/article-4mb``：约 4MB 可提取正文 → 默认配置应成功（旧 3MB 上限会拒绝）；
+    * ``/over-limit``：约 9MB → 应 400 并给出可操作提示（含环境变量名/文本收录建议）；
+    * ``/article-gzip-4mb``：gzip 压缩的 4MB 页面 → 成功（Content-Length 为压缩后大小，不得误拒）。
+    """
 
     def log_message(self, *args) -> None:  # noqa: D401 - 静默日志
         return
@@ -451,24 +458,61 @@ class _ArticleHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802 - http.server 约定
         path = self.path.split("?", 1)[0]
         if path == "/article":
-            body = ARTICLE_HTML.encode("utf-8")
-            self._respond(200, "text/html; charset=utf-8", body)
+            self._respond(200, "text/html; charset=utf-8", ARTICLE_HTML.encode("utf-8"))
         elif path == "/json":
             self._respond(200, "application/json", b'{"hello": "world"}')
-        elif path == "/large":
-            body = ("<html><body><p>" + "超" * (4 * 1024 * 1024) + "</p></body></html>").encode(
-                "utf-8"
+        elif path == "/article-4mb":
+            body = _big_article(4 * 1024 * 1024, title="4MB 测试文章").encode("utf-8")
+            self._respond(200, "text/html; charset=utf-8", body)
+        elif path == "/article-gzip-4mb":
+            raw = _big_article(4 * 1024 * 1024, title="gzip 4MB 测试文章").encode("utf-8")
+            body = gzip.compress(raw, compresslevel=6)
+            self._respond(
+                200,
+                "text/html; charset=utf-8",
+                body,
+                extra_headers={"Content-Encoding": "gzip"},
             )
+        elif path == "/over-limit":
+            body = _big_article(9 * 1024 * 1024, title="9MB 超限测试文章").encode("utf-8")
             self._respond(200, "text/html; charset=utf-8", body)
         else:
             self._respond(404, "text/html; charset=utf-8", b"<html>not found</html>")
 
-    def _respond(self, status: int, content_type: str, body: bytes) -> None:
-        self.send_response(status)
-        self.send_header("Content-Type", content_type)
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+    def _respond(
+        self,
+        status: int,
+        content_type: str,
+        body: bytes,
+        extra_headers: dict[str, str] | None = None,
+    ) -> None:
+        try:
+            self.send_response(status)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(body)))
+            for key, value in (extra_headers or {}).items():
+                self.send_header(key, value)
+            self.end_headers()
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError):
+            # 客户端在超限预检/流式截断时可能提前断开，测试服务器静默忽略
+            pass
+
+
+def _big_article(target_bytes: int, *, title: str) -> str:
+    """构造约 ``target_bytes`` 字节、正文可提取的公众号样式 HTML。"""
+    page = (
+        "校园政策正文内容示例：国家奖学金申请条件、材料清单与时间安排说明。"
+        "本条为体积回归测试数据，用于验证 URL 抓取上限与正文提取。"
+    )
+    # 预留 HTML 包装开销后重复正文，保证总字节数接近目标值
+    repeat = max(1, (target_bytes - 600) // len(page.encode("utf-8")))
+    text = page * repeat
+    return (
+        "<!doctype html><html lang='zh-CN'><head><meta charset='utf-8'/>"
+        f"<meta property='og:title' content='{title}'/><title>{title}</title></head>"
+        f"<body><div id='js_content'><p>{text}</p></div></body></html>"
+    )
 
 
 @pytest.fixture()

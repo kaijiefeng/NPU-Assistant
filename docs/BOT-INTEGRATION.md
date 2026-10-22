@@ -51,7 +51,7 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 | 字段 | 说明 |
 |------|------|
 | `api_base` | NapCat 的 HTTP API 地址（NapCat 的「HTTP 服务器」端口，默认示例为 3000） |
-| `access_token` | 与 NapCat 网络配置中填写的 Token 保持一致；为空表示不鉴权 |
+| `access_token` | 与 NapCat 网络配置中填写的 Token 保持一致；**创建时留空会自动生成随机 Token**（响应只显示脱敏值，无法读回）；通道未配置 Token 时 webhook 一律 403（本地调试可设 `NPU_BOT_ALLOW_INSECURE=1`） |
 | `self_id` | 机器人 QQ 号；填空时由事件中的 `self_id` 自动识别（建议首次收到消息后按日志补全） |
 | `group_mention_only` | 群聊是否仅在被 @ 时回复，默认 `"true"`；设为 `"false"` / `"0"` 可回复所有群消息（建议保持默认，避免刷屏） |
 | `admin_user_ids` | 允许「转发链接即入库」的管理员 QQ 号，逗号分隔（也可传数组）；为空表示关闭该通道的入库权限 |
@@ -60,7 +60,7 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 保存后，通道卡片会显示形如下面的地址（`{id}` 为通道 ID）：
 
 - 反向 WebSocket：`ws://127.0.0.1:8000/api/bots/onebot/{id}/ws`（URL **不必**拼 `access_token`，NapCat 配置的 Token 字段会以 `Authorization: Bearer` 发送；若客户端只能拼 URL，也可用 `...?access_token=<token>`，后端两种都支持）
-- 反向 HTTP 事件：`http://127.0.0.1:8000/api/bots/onebot/{id}/event`（NapCat 的 Token 建议**留空**；如必须配置，则校验对请求正文的 HMAC-SHA1，见下文）
+- 反向 HTTP 事件：`http://127.0.0.1:8000/api/bots/onebot/{id}/event`（通道必须已配置 `access_token`；NapCat「HTTP 客户端」Token 可留空并改用 query `?access_token=<token>`，或填写后由后端校验请求正文的 HMAC-SHA1，见下文）
 
 ### 3.2 配置 NapCat
 
@@ -93,11 +93,13 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 |--------|--------|
 | 启用 | 可选 |
 | URL | `http://127.0.0.1:8000/api/bots/onebot/{id}/event` |
-| Token | **建议留空**；填写后 NapCat 会对请求正文计算 HMAC-SHA1 并发送 `X-Signature: sha1=<hex>`，后端同样支持 |
+| Token | **建议留空**；填写后 NapCat 会对请求正文计算 HMAC-SHA1 并发送 `X-Signature: sha1=<hex>`，后端同样支持；也可在 URL 拼 `?access_token=<通道 token>` |
 
 > 反向 WS 延迟更低、推荐优先使用。两种方式也可以同时开启：服务端按 `channel_id + message_id` 做进程内幂等去重（保留最近 512 条），同一条消息不会重复回答；少数实现上报的事件不带 `message_id`，此时仍可能重复，建议只保留一种上报方式。
 >
-> 反向 HTTP 事件鉴权：query 参数 `access_token` 与 `X-Signature` 二选一，通道未配置 token 时放行。
+> 反向 HTTP 事件鉴权：query 参数 `access_token` 与 `X-Signature` 二选一；**通道未配置 token 时一律 403**（本地调试可设 `NPU_BOT_ALLOW_INSECURE=1` 临时放行）。
+>
+> 通道配置了 `self_id` 时，事件中的 `self_id` 必须与之一致，否则事件被忽略（HTTP 仍返回 `{"status":"ok"}`，不产生日志/回复），用于防伪造/串号。
 
 配置保存并启用后，NPU-Assistant 日志应出现 OneBot 连接 / 事件记录，机器人页通道状态变为在线。
 
@@ -107,13 +109,15 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 2. 预期机器人在数秒内回复带 `[1][2]` 引用的回答（内容来自校园 Wiki 词条；机器人只发送文本，引用结构由 Web 端展示）；
 3. 在「机器人」页「消息日志」中可看到该条入站消息与回复；会话渠道为 `onebot11`；
 4. 群聊需将机器人拉入群并 @ 机器人提问（通道配置 `group_mention_only` 默认 `"true"`，即仅被 @ 时回复；设为 `"false"` 可回复所有群消息）。
+5. **日志接口鉴权**：设置 `NPU_ADMIN_TOKEN` 后，`GET /api/bots/logs`（含学生消息内容）需要 `X-Admin-Token`，未带/错误 → 401；未设置令牌时本地演示可直接访问。webhook 仍使用通道自身 token/签名，不受影响。
+6. **webhook 体积上限**：OneBot 事件与微信回调的请求体超过 **2MB** 一律返回 413（读取前校验 `Content-Length` + 实读长度兜底）。
 
 ### 3.4 客户端侧行为说明
 
 - 入站只处理 `post_type=message` 的文本消息段，图片 / 表情 / 语音等非文本内容会被忽略或走引导语；
 - 忽略 `user_id == self_id` 的自身消息（含 `post_type=message_sent` 回显），避免自问自答循环；
 - 群聊默认仅在被 @ 时回复（`group_mention_only="true"`），可在通道配置中关闭；`qq=all` 的 @全体成员也视为提到机器人；
-- 发送失败（NapCat 未启动、端口错误、Token 不匹配）**只记录日志**，不影响 webhook 的 HTTP 响应；通道状态可能显示为 `error`；HTTP 客户端已设置 `trust_env=False`，不会被系统代理接管；
+- 发送失败（NapCat 未启动、端口错误、Token 不匹配）**只记录日志**，不影响 webhook 的 HTTP 响应；通道状态可能显示为 `error`；HTTP 客户端已设置 `trust_env=False`、`follow_redirects=False`（`api_base` 为管理员配置，302 不跟随），且 `api_base` 仅允许 `http/https` 绝对地址；失败日志中的 URL 会去除 userinfo/query；
 - OneBot HTTP API 请求规则：私聊 `POST {api_base}/send_private_msg`，群聊 `POST {api_base}/send_group_msg`，Body `{user_id|group_id, message}`，有 Token 时带 `Authorization: Bearer <token>`。
 
 ### 3.5 管理员「转发即入库」
@@ -143,7 +147,7 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 
 ```json
 {
-  "token": "npu-assistant",
+  "token": "wechat-strong-random-token-2026",
   "app_id": "",
   "welcome": "",
   "admin_user_ids": "oXxxOpenId1",
@@ -153,13 +157,15 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 
 | 字段 | 说明 |
 |------|------|
-| `token` | 自定义字符串，必须与公众号后台「服务器配置 → Token」完全一致（区分大小写） |
+| `token` | 自定义强随机字符串，必须与公众号后台「服务器配置 → Token」完全一致（区分大小写）；**不能为空、也不能使用公开默认值 `npu-assistant`**（后端会 403） |
 | `app_id` | 公众号 AppID，可留空（仅记录用） |
 | `welcome` | 关注欢迎语，可留空使用默认欢迎语 |
 | `admin_user_ids` | 允许「转发链接即入库」的管理员 openid，逗号分隔；openid 可在后端日志的 `FromUserName` 中查看 |
 | `import_enabled` | 是否启用机器人入库，默认 `"true"` |
 
 > 微信管理员发链接时，受 5 秒被动回复限制：服务端会**立即 ack**「收到，已开始收录，请稍后到 Wiki 查看」，随后由后台线程完成抓取与编译；MVP 不做客服消息异步推送，稍后到知识库页刷新即可（重复发送会提示已收录）。
+>
+> 安全：公众号回调校验包含 **时间戳窗口 ±300 秒**（防重放），服务器时间需准确；本地调试可用 `NPU_BOT_ALLOW_INSECURE=1` 临时跳过 Token 安全检查（仍校验时间窗，勿用于公网）。
 
 保存后得到回调地址：`/api/bots/wechat/{id}`。
 
@@ -191,7 +197,7 @@ https://<公网域名>/api/bots/wechat/{通道ID}
 | 配置项 | 填写 |
 |--------|------|
 | URL | `https://<公网域名>/api/bots/wechat/{通道ID}` |
-| Token | 与通道 `token` 完全一致，例如 `npu-assistant` |
+| Token | 与通道 `token` 完全一致（自选强随机串，勿用 `npu-assistant`） |
 | EncodingAESKey | 明文模式可不填（或随机生成后不用） |
 | 消息加解密方式 | **明文模式** |
 | 数据格式 | XML |
@@ -203,6 +209,11 @@ GET /api/bots/wechat/{id}?signature=...&timestamp=...&nonce=...&echostr=...
 ```
 
 服务端用 `sha1(sort(token, timestamp, nonce))` 与 `signature` 比对，一致则原样返回 `echostr`，校验通过后「启用」。若提示「token验证失败」，按第 6 节排查。
+
+> 微信回调安全校验（GET 接入校验与 POST 消息一致）：
+> 1. **时间窗 ±300 秒**：`timestamp` 与服务器时间偏差过大直接 403，请保持服务器 NTP 同步；
+> 2. **nonce 防重放**：同一通道的同一 `nonce` 首次请求成功后会登记，TTL 内重复使用 → 403（detail 含 nonce）；签名失败不会消费 nonce；`nonce` 为空不参与重放判定但签名函数要求非空，正常微信请求都会带 nonce；
+> 3. nonce 缓存为**进程内**（TTL 330s、上限 1000 条）；多 worker/多实例部署时各进程独立，跨进程重放需改用共享存储（Redis 等）。
 
 ### 4.4 测试
 
@@ -243,8 +254,15 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/api/bots/channels/<�
 | 群聊不回复 | 未 @ 机器人（默认仅 @ 回复）；NapCat 未上报群消息 | 在群里 @ 机器人；如需回复所有群消息，把通道配置 `group_mention_only` 设为 `"false"`；检查 NapCat 上报设置与群权限 |
 | 机器人自己回复自己 | 未忽略自身消息 / `self_id` 识别错误 | 确认通道 `self_id` 正确；确认 NapCat「上报自身消息」为否 |
 | 同一消息被回复两次 | 反向 WS 与反向 HTTP 同时开启且事件缺少 `message_id` | 正常事件按 `channel_id + message_id` 去重；缺少 `message_id` 时只保留一种上报方式 |
-| 反向 HTTP 事件 403 | NapCat「HTTP 客户端」Token 与通道 `access_token` 不匹配 | 两者规则不同：HTTP 客户端是对正文 HMAC-SHA1（`X-Signature: sha1=...`），也可把 HTTP 客户端 Token 留空，或改用反向 WS |
+| 反向 HTTP 事件 403 | NapCat「HTTP 客户端」Token 与通道 `access_token` 不匹配 / 通道未配置 token | 两者规则不同：HTTP 客户端是对正文 HMAC-SHA1（`X-Signature: sha1=...`），也可把 HTTP 客户端 Token 留空并改用 URL `?access_token=<token>`；通道空 token 默认 403（本地调试可设 `NPU_BOT_ALLOW_INSECURE=1`） |
 | 公众号 token 验证失败 | 回调 URL 不可达 / Token 不一致 / 服务未启动 | 浏览器直接访问回调 URL 应返回 403 或 400（而非超时）；校准 Token、协议（https）、端口 80/443 |
+| 公众号 403「未配置安全 Token」 | 通道 `token` 为空或仍为公开默认值 `npu-assistant` | 在通道配置改填自选强随机串，并同步修改公众号后台「服务器配置 → Token」 |
+| 公众号 403「时间戳无效或已过期」 | 服务器与本机时间偏差 >300 秒，或请求被重放 | 校准服务器时间（NTP）；确认回调请求实时发出 |
+| 公众号 403「nonce 重复（疑似重放）」 | 同一通道同一 nonce 被重复使用（或客户端重试未换 nonce） | 正常微信回调每次 nonce 不同；压测/转发时需更换 nonce；进程内缓存 330s，多 worker 不共享 |
+| webhook 返回 413 | 请求体超过 2MB | 缩小报文；OneBot/微信正常消息远小于 2MB，检查是否被注入大 payload |
+| 开启了管理令牌后机器人日志 401 | `GET /api/bots/logs` 属于管理员接口 | 请求头带 `X-Admin-Token`；学生问答与 webhook 不受影响 |
+| 通道响应里看不到 token 明文 | 安全设计：config 只返回 `****`+后 4 位，另给 `has_access_token` | 无法读回原 token；如需更换请 PUT 新值（PUT 空串/脱敏占位不会覆盖旧值） |
+| 通道响应里 `api_base` 与填写值不同 | 安全设计：`api_base` 去掉 userinfo/query/fragment 后回显（如 `https://h:8443/x`） | 编辑时回填该脱敏值=不修改，数据库仍保留原始地址；需更换请填新值 |
 | 公众号收不到回复 | 超过 5 秒超时 / 返回格式错误 | 换低延迟模型；确认返回的是 `Content-Type: text/xml; charset=utf-8` 的明文 XML；查看后端日志 |
 | 回复内容与词条不符 | Wiki 未导入 / 导航未选中正确词条 | 先 `POST /api/knowledge/seed` 导入预编译快照；用 `POST /api/wiki/search` 查看 `method` 与候选词条；必要时在知识库页编辑词条的别名/标签后重试 |
 | 上传源文件后机器人仍答不上 | 源文件编译失败（无真实 LLM）或尚未重新编译 | 检查默认模型是否为真实 Provider，看 `documents.error`；在「源文件」页点「重新编译」，确认生成词条后再提问 |
@@ -254,7 +272,11 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/api/bots/channels/<�
 
 ## 7. 安全建议
 
-- **强随机 Token**：`access_token` / 公众号 Token 使用足够长的随机字符串，定期轮换；不要提交到 Git。
+- **强随机 Token**：`access_token` / 公众号 Token 使用足够长的随机字符串，定期轮换；不要提交到 Git。OneBot 通道创建时留空会自动生成随机 Token；公众号不允许空 Token 或公开默认值 `npu-assistant`。
+- **凭据不回显**：`GET/POST/PUT /api/bots/channels` 的 `config` 中 token 一律脱敏为 `****`+后 4 位，`admin_user_ids` 只显示数量；用 `has_access_token` 判断是否已配置。PUT 空串/脱敏占位表示「不修改」。
+- **webhook 防护**：OneBot 空 Token 默认 403；公众号校验签名 + ±300 秒时间窗 + nonce 防重放；`self_id` 与事件不一致的事件直接忽略；webhook 请求体上限 2MB（超限 413）。仅本机调试可设 `NPU_BOT_ALLOW_INSECURE=1` 临时放行（勿用于公网）。
+- **日志与展示**：配置 `NPU_ADMIN_TOKEN` 后 `GET /api/bots/logs` 需管理员令牌；通道 `config.api_base` 与 outbound `url` 均去掉 userinfo/query/fragment 后展示，避免泄露配置凭据；OneBot 发送不跟随重定向、`api_base` 仅允许 http(s)。
+- **nonce 缓存边界**：微信 nonce 防重放缓存为进程内（TTL 330s、上限 1000），多 worker/多实例部署需改用 Redis 等共享存储才能跨进程防重放。
 - **HTTPS + 反向代理**：公网只暴露 443，NPU-Assistant 保持监听 `127.0.0.1`；公众号必须 HTTPS。
 - **来源限制**：在反向代理 / 防火墙层限制 NapCat 与微信服务器出口 IP；管理接口（模型、Wiki 词条 / 源文件写操作）建议仅内网访问，或设置 `NPU_ADMIN_TOKEN`。
 - **隐私与合规**：QQ / 微信消息会落库到 `conversations` / `messages`，请告知使用者并遵守《个人信息保护法》；日志中避免打印完整 API Key 与学生敏感信息；接入第三方 LLM 前评估数据出境风险。
