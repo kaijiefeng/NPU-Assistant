@@ -82,7 +82,10 @@
           </div>
         </div>
         <div class="sidebar-meta">
-          <span>v0.1.0 · LLM Wiki</span>
+          <span>v0.1.1 · LLM Wiki</span>
+          <button class="sidebar-meta-link" id="sidebarMobileAccess" type="button">
+            <svg class="i i-xs" aria-hidden="true"><use href="#i-qr"></use></svg>手机访问
+          </button>
           <a href="/manual/index.html" target="_blank" rel="noopener">使用手册
             <svg class="i i-xs" aria-hidden="true"><use href="#i-external"></use></svg>
           </a>
@@ -108,7 +111,12 @@
           <h1 id="pageTitle">对话</h1>
           <p id="pageSubtitle">与辅导员数字分身「小南」对话，回答基于知识库并标注引用。</p>
         </div>
-        <div class="topbar-actions" id="topbarActions"></div>
+        <div class="topbar-actions" id="topbarActions">
+          <button class="btn btn-ghost btn-sm mobile-access-btn" id="mobileAccessBtn" type="button" title="手机扫码访问">
+            <svg class="i" aria-hidden="true"><use href="#i-qr"></use></svg>
+            <span class="mobile-access-label">手机扫码</span>
+          </button>
+        </div>
       </header>
       <main class="view" id="view" tabindex="-1">
         <div class="boot-screen">
@@ -167,6 +175,9 @@
     <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2.2 2.2H19a2 2 0 0 1 2 2v8.8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></symbol>
     <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
     <symbol id="i-graduation" viewBox="0 0 24 24"><path d="m22 8.8-10-5-10 5 10 5 10-5Z"/><path d="M6 11.2V17c0 1.6 2.7 3 6 3s6-1.4 6-3v-5.8"/><path d="M22 8.8v5.4"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><path d="M6.5 6.5h.01M17.5 6.5h.01M6.5 17.5h.01"/><path d="M14 14h3v3h-3zM20 14h1M14 20h3M20 20h1"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.5 4 5.7 4 9s-1.4 6.5-4 9c-2.6-2.5-4-5.7-4-9s1.4-6.5 4-9Z"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="8" r="4.5"/><path d="m11.2 11.2 8.3 8.3M15 15l2.2-2.2M17.5 17.5 20 15"/></symbol>
     <symbol id="i-offline" viewBox="0 0 24 24"><path d="M2.5 8.5a15 15 0 0 1 5-2.9M21.5 8.5a15 15 0 0 0-9.7-3.2M5.5 12.5a10 10 0 0 1 3-1.6M18.5 12.5a10 10 0 0 0-3.9-1.8"/><path d="M8.7 16.4a5.5 5.5 0 0 1 6.6 0"/><path d="M12 20h.01"/><path d="m2 2 20 20"/></symbol>
   </svg>
 

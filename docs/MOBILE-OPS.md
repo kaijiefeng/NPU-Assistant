@@ -1,8 +1,8 @@
-# NPU-Assistant 移动端运维与快速收录（v0.1.0 设计/操作手册）
+# NPU-Assistant 移动端运维与快速收录（v0.1.1 设计/操作手册）
 
 > 面向学生/辅导员的**图文使用手册（含短动图）**：[frontend/manual/index.html](../frontend/manual/index.html)（运行服务后访问 `/manual/index.html`）。本文档偏部署/实现说明。
 >
-> v0.1.0 目标：**手机就能运维**——查看状态、上传文件、把网页/公众号文章链接、微信/QQ 里转发的文字，一键收录进 LLM Wiki；QQ/微信机器人管理员转发链接即可自动入库。
+> v0.1.1 目标：**手机就能运维**——查看状态、上传文件、把网页/公众号文章链接、微信/QQ 里转发的文字，一键收录进 LLM Wiki；QQ/微信机器人管理员转发链接即可自动入库。
 > 本文档同时是**实现契约**：API 字段、机器人命令、PWA、安全边界。接口实现后以本文档为准。
 
 ---
@@ -23,9 +23,30 @@
 
 | 方式 | 适用 | HTTPS | 成本 | 说明 |
 |---|---|---|---|---|
+| **扫码（v0.1.1 默认）** | 电脑启动服务后，手机扫码打开 | 看地址 | 0 | `.\scripts\run.ps1 -Lan` → 电脑点右上角「手机扫码」→ 手机扫码；可一键开公网 HTTPS（临时隧道） |
 | 局域网 | 手机与电脑同一 Wi-Fi，先跑通 | 否 | 0 | `.\scripts\run.ps1 -Lan`，手机访问 `http://<电脑IP>:8000`；PWA 不能安装（非 HTTPS），但网页可用 |
-| 公网隧道（推荐试用） | 手机 4G/5G、公众号回调、PWA 安装 | 是 | 0 | Cloudflare Tunnel / ngrok / frp，一条命令得到 `https://xxx` 地址 |
+| 公网隧道（推荐试用） | 手机 4G/5G、公众号回调、PWA 安装 | 是 | 0 | 扫码弹窗内「一键开启公网访问」（Cloudflare 临时隧道），或 Cloudflare Tunnel / ngrok / frp |
 | 云服务器/VPS | 7×24 生产 | 是 | 低 | systemd + Caddy/Nginx 反代 + 备份；手机随时访问 |
+
+### 1.1 扫码联网（默认方式，v0.1.1）
+
+电脑浏览器点右上角 **「手机扫码」** 打开弹窗：
+
+- 二维码默认编码「公网 HTTPS > 局域网」中优先级最高的地址；可在弹窗里切换不同网卡地址，二维码同步刷新。
+- 手机扫码 → 浏览器打开 → 需要管理操作时到「设置 → 移动端与管理令牌」填入令牌；HTTPS 地址可安装 PWA。
+- **一键公网访问**：弹窗内点「一键开启公网访问」，后端启动 `cloudflared` 临时隧道并自动把二维码切换为 `https://*.trycloudflare.com`；弹窗显示公网地址、可直接关闭。
+- 未安装 `cloudflared` 时弹窗给出安装命令（Windows：`winget install Cloudflare.cloudflared`）；也可设置固定公网地址 `NPU_PUBLIC_URL`（命名隧道/反代）。
+
+相关 API：
+
+| 接口 | 说明 |
+|---|---|
+| `GET /api/mobile/access` | 返回 `preferred_url`、`urls[]`（public/tunnel/lan/current）、二维码 data URL、`token_required`、隧道状态 |
+| `GET /api/mobile/qr.png?url=…` | 生成指定地址的二维码 PNG（仅 http/https） |
+| `POST /api/mobile/tunnel/start` / `stop` | 一键开启/关闭 Cloudflare 临时隧道；有令牌时需管理员令牌，本机无令牌可直接操作 |
+
+**安全提示**：临时隧道地址是公网可访问的；开启前请确认已设置 `NPU_ADMIN_TOKEN`，使用完及时关闭。生产请使用命名隧道/反向代理 + HTTPS。
+
 
 **鉴权**：设置 `NPU_ADMIN_TOKEN` 后，除「学生问答 `POST /api/chat`、只读 GET、机器人 webhook」外的所有写操作都要求请求头 `X-Admin-Token`。移动端在「设置 → 管理令牌」登录一次，令牌存 localStorage，所有 API 自动带上。未设置令牌时完全放行（仅限本机演示）。
 
@@ -113,10 +134,11 @@
 ```powershell
 .\scripts\run.ps1 -Lan             # 绑定 0.0.0.0，自动生成并打印管理令牌 + 手机访问地址
 # 兼容旧命令：.\scripts\serve-lan.ps1  （等价于 run.ps1 -Lan）
+# 启动后电脑打开 http://127.0.0.1:8000，点右上角「手机扫码」让手机扫码（推荐）
 # 首次需放行防火墙（管理员 PowerShell）：
 New-NetFirewallRule -DisplayName "NPU-Assistant 8000" -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow
 ```
-手机浏览器打开脚本打印的 `http://<电脑局域网IP>:8000`（同 Wi-Fi）。移动端与 Web/API 是**同一个进程**，无需也不会额外启动端口；`-Lan` 只是改变监听地址。注意：HTTP 下 PWA 不能安装；不要在不可信 Wi-Fi 下开 `0.0.0.0` 且不设令牌（`-Lan` 会自动生成一个，手机在设置页填入）。
+手机浏览器打开脚本打印的 `http://<电脑局域网IP>:8000`，或直接扫电脑端「手机扫码」弹窗中的二维码。移动端与 Web/API 是**同一个进程**，无需也不会额外启动端口；`-Lan` 只是改变监听地址。注意：HTTP 下 PWA 不能安装；不要在不可信 Wi-Fi 下开 `0.0.0.0` 且不设令牌（`-Lan` 会自动生成一个，手机在设置页填入）。
 
 ### 4.2 公网 HTTPS（推荐：Cloudflare Tunnel）
 ```powershell
@@ -155,7 +177,7 @@ cloudflared tunnel --url http://127.0.0.1:8000
 
 ---
 
-## 5. 验收标准（v0.1.0）
+## 5. 验收标准（v0.1.1）
 
 - [ ] `POST /api/knowledge/import/text` 收录文字 → `documents.source_type=text`、`page_count>0`、词条可在 `/api/wiki/tree` 看到
 - [ ] `POST /api/knowledge/import/url` 抓取本地测试网页/公众号样式 HTML → 正确提取正文与标题、生成词条；重复 URL 返回 `duplicated=true` 且不重复建词条
@@ -168,7 +190,7 @@ cloudflared tunnel --url http://127.0.0.1:8000
 - [ ] PWA：manifest、service worker、192/512 图标可访问；Chrome 可安装；离线打开显示静态壳与错误提示
 - [ ] `pytest` 新增导入/鉴权/机器人入库用例全绿；smoke/真实 E2E 通过；文档更新
 
-> **验收记录（2026-10-22，QA 实测）**：pytest **104 passed**；真实服务 E2E：8000 安全/移动端 17/17、8011（`NPU_ADMIN_TOKEN`）令牌侧 19/19、390px UI/长文件名 10/10 全部通过；触控目标经 web-ui 修复后复测 **0/64 个控件 <44px**，无遗留阻塞项。
+> **验收记录（2026-10-22，QA 实测）**：pytest **104 passed**（v0.1.0）；v0.1.1 新增扫码/隧道用例后 **108 passed**；真实服务 E2E：8000 安全/移动端 17/17、8011（`NPU_ADMIN_TOKEN`）令牌侧 19/19、390px UI/长文件名 10/10 全部通过；触控目标经 web-ui 修复后复测 **0/64 个控件 <44px**，无遗留阻塞项。
 
 ---
 

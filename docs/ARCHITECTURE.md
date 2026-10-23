@@ -1,4 +1,4 @@
-# NPU-Assistant 架构设计（LLM Wiki · v0.1.0）
+# NPU-Assistant 架构设计（LLM Wiki · v0.1.1）
 
 本文说明 NPU-Assistant 在 **LLM Wiki 架构**下的整体结构、两条核心链路（编译 / 问答）、模块职责、数据模型与部署建议。设计与接口字段以 [WIKI-DESIGN.md](WIKI-DESIGN.md) 与 [CONTRACT.md](CONTRACT.md) 为准，本文侧重「系统如何组织起来」。
 

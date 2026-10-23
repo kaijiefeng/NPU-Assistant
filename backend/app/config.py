@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 
 APP_NAME = "NPU-Assistant"
-APP_VERSION = "0.1.0"
+APP_VERSION = "0.1.1"
 APP_DESCRIPTION = "校园助手 NPU-Assistant：辅导员数字分身 · LLM Wiki 知识库 · 模型管理 · 微信/QQ 机器人"
 
 # backend/app/config.py -> backend/
@@ -39,6 +39,14 @@ CORS_ORIGINS = [item.strip() for item in os.environ.get("NPU_CORS_ORIGINS", "").
 # Escape hatch for trusted intranet demos: allow binding to 0.0.0.0 without a
 # token. Never enable on a public network.
 ALLOW_INSECURE_LAN = os.environ.get("NPU_ALLOW_INSECURE_LAN", "0").strip().lower() in {"1", "true", "yes", "on"}
+
+# Mobile access / QR (v0.1.1)
+# Optional fixed public URL (e.g. a named Cloudflare Tunnel or reverse proxy).
+PUBLIC_URL = os.environ.get("NPU_PUBLIC_URL", "").strip().rstrip("/")
+# cloudflared executable (absolute path or name on PATH) for the one-click
+# quick tunnel. Set NPU_CLOUDFLARED when it is not on PATH.
+CLOUDFLARED_PATH = os.environ.get("NPU_CLOUDFLARED", "cloudflared").strip()
+TUNNEL_TIMEOUT_SECONDS = int(os.environ.get("NPU_TUNNEL_TIMEOUT", "30"))
 
 # First boot convenience: import the bundled wiki snapshot automatically.
 AUTO_SEED = os.environ.get("NPU_AUTO_SEED", "1").strip().lower() not in {"0", "false", "no", "off"}

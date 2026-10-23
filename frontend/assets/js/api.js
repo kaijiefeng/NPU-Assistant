@@ -164,6 +164,15 @@ export const getSettings = () => get('/settings');
 export const saveSettings = (patch) => put('/settings', patch);
 
 /* ------------------------------------------------------------------ */
+/* 移动端访问（扫码 / 公网隧道）                                        */
+/* ------------------------------------------------------------------ */
+export const getMobileAccess = () => get('/mobile/access');
+export const startMobileTunnel = () => post('/mobile/tunnel/start');
+export const stopMobileTunnel = () => post('/mobile/tunnel/stop');
+export const mobileQrUrl = (url) =>
+  `${API_BASE}/mobile/qr.png?url=${encodeURIComponent(String(url || ''))}`;
+
+/* ------------------------------------------------------------------ */
 /* 对话                                                                */
 /* ------------------------------------------------------------------ */
 export const sendChat = (payload) => post('/chat', payload);

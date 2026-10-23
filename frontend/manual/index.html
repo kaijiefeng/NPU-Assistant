@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="description" content="NPU-Assistant 校园助手使用手册：学生如何提问与查看引用，辅导员如何用手机快速收录资料、维护知识库和接入微信/QQ 机器人。" />
+<meta name="description" content="NPU-Assistant 校园助手使用手册（v0.1.1）：学生如何提问与查看引用，辅导员如何用手机扫码联网、快速收录资料、维护知识库和接入微信/QQ 机器人。" />
 <title>NPU-Assistant 校园助手 · 使用手册</title>
 <style>
   :root {
@@ -348,7 +348,7 @@
       <li class="sub"><a href="#counselor-bot">9. 微信 / QQ 机器人</a></li>
       <li class="sub"><a href="#counselor-model">10. 模型与设置</a></li>
       <li class="sub"><a href="#counselor-backup">11. 备份与恢复</a></li>
-      <li class="sub"><a href="#counselor-deploy">12. 手机 / 公网访问</a></li>
+      <li class="sub"><a href="#counselor-deploy">12. 扫码联网与公网访问</a></li>
       <li class="group">附录</li>
       <li><a href="#faq">常见问题</a></li>
       <li><a href="#glossary">术语表</a></li>
@@ -401,7 +401,8 @@
       <div class="card" id="student-open">
         <h3>1. 打开助手</h3>
         <ol class="steps">
-          <li><b>用手机或电脑浏览器打开老师给的地址</b><p>例如 <code>https://xxx.edu.cn</code> 或机房内网地址；第一次打开可能需要几秒加载。</p></li>
+          <li><b>用手机或电脑浏览器打开老师给的地址</b><p>例如 <code>https://xxx.edu.cn</code> 或机房内网地址；如果老师发了二维码，也可以直接扫码打开（推荐）。</p></li>
+          <li><b>老师/电脑端也可以直接展示二维码</b><p>电脑端右上角「手机扫码」会让手机扫码打开；扫码是默认方式。</p></li>
           <li><b>看到“你好，我是小南”就说明已连上</b><p>下方会列出常见问题快捷入口，点一下就能直接提问。</p></li>
           <li><b>想放到桌面？</b><p>iPhone 用 Safari 打开 → 分享 → “添加到主屏幕”；Android 用 Chrome 菜单 → “安装应用 / 添加到主屏幕”。<span class="hint">需要 HTTPS 地址才支持安装；普通 HTTP 只能当网页用。</span></p></li>
         </ol>
@@ -556,8 +557,12 @@
         <h3>9. 微信 / QQ 机器人：转发链接就能收录</h3>
         <p>辅导员在 QQ 或微信里把文章链接转发给机器人，机器人自动收录并回复结果；学生也可以直接在 QQ/微信里提问。</p>
         <figure>
+          <img src="../assets/manual/bots-quick-add.png" alt="机器人页顶部的快速添加：QQ 机器人、微信公众号、控制台调试" loading="lazy" />
+          <figcaption><b>图 7</b> v0.1.1 新增「快速添加」：选一种，填最少参数即可创建；创建后按提示复制 Webhook 到 NapCat / 公众号后台。</figcaption>
+        </figure>
+        <figure>
           <img src="../assets/manual/bots-page.png" alt="机器人管理页：QQ、微信公众号和控制台调试通道" loading="lazy" />
-          <figcaption><b>图 7</b> 机器人页：添加 QQ（OneBot 11）/ 微信公众号通道；没有外部账号时可用“控制台调试通道”先体验。</figcaption>
+          <figcaption><b>图 8</b> 机器人页：添加 QQ（OneBot 11）/ 微信公众号通道；没有外部账号时可用“控制台调试通道”先体验。</figcaption>
         </figure>
         <ol class="steps">
           <li><b>添加通道</b><p>QQ：NapCat / go-cqhttp 等 OneBot 11 实现；微信：公众号后台。填写 token、管理员工号/openid。</p></li>
@@ -584,7 +589,7 @@
         <p>“模型”页用来选择回答和编译使用的 AI 模型。通常部署时已经配好，日常不需要改。</p>
         <figure>
           <img src="../assets/manual/models-page.png" alt="模型管理页：Provider、模型和默认模型" loading="lazy" />
-          <figcaption><b>图 8</b> 模型页：配置 Provider（如 DeepSeek）、选择默认模型、测试连接。API Key 只保存在服务器，不要在群里传播。</figcaption>
+          <figcaption><b>图 9</b> 模型页：配置 Provider（如 DeepSeek）、选择默认模型、测试连接。API Key 只保存在服务器，不要在群里传播。</figcaption>
         </figure>
         <ul>
           <li><b>换模型：</b>选一个已启用的模型，点“设为默认”；下次对话生效。</li>
@@ -610,19 +615,28 @@
       </div>
 
       <div class="card" id="counselor-deploy">
-        <h3>12. 手机 / 公网访问</h3>
-        <p>手机和电脑用的是同一个服务，不需要单独安装“移动端”。部署老师启动时加 <code>-Lan</code> 就会同时开放手机访问并打印地址和令牌。</p>
-        <pre><code># 电脑和手机在同一 Wi-Fi：一条命令启动
-.\scripts\run.ps1 -Lan
+        <h3>12. 扫码联网与公网访问</h3>
+        <p><b>v0.1.1 默认方式：扫码。</b>手机和电脑用的是同一个服务，不需要单独安装“移动端”。部署老师启动时加 <code>-Lan</code>，电脑打开页面后点右上角「手机扫码」，手机扫码即可。</p>
+        <figure>
+          <img src="../assets/manual/mobile-access.png" alt="手机扫码访问弹窗：二维码、访问地址和公网访问" loading="lazy" />
+          <figcaption><b>图 10</b> 电脑端右上角「手机扫码」：二维码 + 访问地址 + 公网访问；手机扫码后在设置页填令牌（如需）。</figcaption>
+        </figure>
+        <ol class="steps">
+          <li><b>电脑启动服务（同一 Wi-Fi）</b><p><code>.\scripts\run.ps1 -Lan</code>；脚本会生成管理令牌并打印手机地址。</p></li>
+          <li><b>电脑打开页面，点右上角「手机扫码」</b><p>弹窗里默认选第一个地址；如果不是电脑 Wi-Fi 的网段，点其他「局域网」地址切换二维码。</p></li>
+          <li><b>手机扫码 → 浏览器打开</b><p>需要管理操作时，到手机「设置 → 移动端与管理令牌」填电脑上打印的令牌；HTTPS 地址可「添加到主屏幕」。</p></li>
+          <li><b>需要外网/公网时，点「一键开启公网访问」</b><p>需电脑已安装 <code>cloudflared</code> 且服务已设置 <code>NPU_ADMIN_TOKEN</code>（用 <code>-Lan</code> 启动会自动生成）。成功后二维码自动切换为 <code>https://xxx.trycloudflare.com</code>，用完可点「关闭公网访问」。</p></li>
+        </ol>
+        <pre><code># 安装 cloudflared（Windows）
+winget install Cloudflare.cloudflared
 
-# 输出会包含：
-#   本机访问: http://127.0.0.1:8000
-#   手机访问: Wi-Fi: http://192.168.x.x:8000
-#   管理令牌: 一长串随机字符（手机设置页填入）</code></pre>
+# 可选：固定公网地址（命名隧道 / 反向代理）
+$env:NPU_PUBLIC_URL = "https://npu.example.edu.cn"
+.\scripts\run.ps1 -Lan</code></pre>
         <ul>
-          <li><b>手机打不开：</b>确认同一 Wi-Fi；用打印出的 Wi-Fi 地址；首次需放行防火墙；服务是否在运行。</li>
-          <li><b>PWA 安装：</b>需要 HTTPS。局域网 HTTP 只能当网页用；公网建议 Cloudflare Tunnel / Nginx 反代。</li>
-          <li><b>公网：</b>必须设置强随机 <code>NPU_ADMIN_TOKEN</code>，并加 HTTPS；不要把 8000 裸端口直接映射到公网。</li>
+          <li><b>手机打不开：</b>确认同一 Wi-Fi；用扫码弹窗里的局域网地址；首次需放行防火墙；服务是否在运行。</li>
+          <li><b>PWA 安装：</b>需要 HTTPS。局域网 HTTP 只能当网页用；公网隧道/HTTPS 地址可安装。</li>
+          <li><b>公网安全：</b>临时隧道地址公网可访问，开启前必须设置强随机 <code>NPU_ADMIN_TOKEN</code>；不要把 8000 裸端口直接映射公网。</li>
         </ul>
       </div>
     </section>

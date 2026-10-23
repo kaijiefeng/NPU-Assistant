@@ -1,4 +1,4 @@
-# NPU-Assistant 开发契约（v0.1.0 · LLM Wiki）
+# NPU-Assistant 开发契约（v0.1.1 · LLM Wiki）
 
 > **v0.1.0（2026-10-23）首个发布版本**：知识层从「切片 + BM25 的经典 RAG」**彻底迁移为 LLM Wiki**。
 > 详细设计、提示词、数据流、导航算法、编译规则与验收标准见 **`docs/WIKI-DESIGN.md`（必须完整阅读）**。
@@ -29,7 +29,7 @@
 - 启动 `.\scripts\run.ps1`（默认 <http://127.0.0.1:8000>）；测试 `.\scripts\check.ps1`
 - **真实 LLM 是 Wiki 编译与高质量回答的前置条件**；当前开发实例已配置 DeepSeek（key 仅存于运行库，不入仓库）
 
-### 2.1 安全默认（v0.1.0，务必遵守）
+### 2.1 安全默认（v0.1.1，务必遵守）
 
 - **CORS 默认关闭**；跨站部署只能通过 `NPU_CORS_ORIGINS` 显式白名单（禁止 `*`）。
 - **对外监听必须设置 `NPU_ADMIN_TOKEN`**：绑定非回环地址且无令牌时服务拒绝启动（临时内网演示可显式 `NPU_ALLOW_INSECURE_LAN=1`，会有告警）；运行时对非回环 Host 且无令牌的请求 fail-closed（403）。

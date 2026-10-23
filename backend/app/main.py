@@ -25,7 +25,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from starlette.requests import Request
 
 from . import config, db
-from .routers import bots, chat, knowledge, models, system, wiki
+from .routers import bots, chat, knowledge, mobile, models, system, wiki
 from .security import verify_admin_token
 
 logger = logging.getLogger("npu-assistant")
@@ -211,6 +211,7 @@ def create_app() -> FastAPI:
     app.include_router(wiki.router, prefix=API_PREFIX)
     app.include_router(models.router, prefix=API_PREFIX)
     app.include_router(bots.router, prefix=API_PREFIX)
+    app.include_router(mobile.router, prefix=API_PREFIX)
 
     @app.exception_handler(ValueError)
     async def handle_value_error(_: Request, exc: ValueError):

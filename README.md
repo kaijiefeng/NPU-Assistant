@@ -11,6 +11,7 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 > 📘 **普通用户（学生 / 辅导员）请直接看 [图文使用手册](frontend/manual/index.html)**：包含手机截图、短动图和常见问题；运行服务后也可访问 <http://127.0.0.1:8000/manual/index.html>。
 >
 > 🚀 **当前发布版本：v0.1.0**（2026-10-23）· 对应分支 `release`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
+> 🛠️ **v0.1.1 开发中**（分支 `develop`）：手机扫码联网、一键 Cloudflare 临时隧道、机器人快速添加。以下文档默认描述 develop 工作树；v0.1.0 稳定版请切到 `release` 分支。
 
 ---
 
@@ -106,6 +107,34 @@ python -m venv .venv
 
 > 端口被占用时：`.\scripts\run.ps1 -Port 8010`，然后打开 <http://127.0.0.1:8010>。
 
+### 4.3 手机扫码访问（v0.1.1 默认方式）
+
+不需要记 IP，也不用单独启动“移动端服务”：启动时加 `-Lan`，然后在电脑浏览器点右上角 **「手机扫码」**，用手机相机/微信扫码即可打开。
+
+```powershell
+# 电脑和手机在同一 Wi-Fi
+.\scripts\run.ps1 -Lan
+
+# 启动后：
+# 1) 电脑打开 http://127.0.0.1:8000
+# 2) 点右上角「手机扫码」→ 手机扫码访问
+# 3) 如果没安装 cloudflared，弹窗会显示安装命令；安装后可一键开启公网 HTTPS
+```
+
+扫码弹窗会显示二维码、访问地址和管理令牌提示；需要在外网（4G/5G、公众号回调、安装 PWA）时，点 **「一键开启公网访问」**（Cloudflare 临时隧道，需电脑已安装 `cloudflared`），二维码会自动切换为 `https://xxx.trycloudflare.com`。没有 `cloudflared` 时按弹窗提示安装：
+
+```powershell
+winget install Cloudflare.cloudflared
+```
+
+也可以使用固定公网地址：
+
+```powershell
+$env:NPU_PUBLIC_URL = "https://npu.example.edu.cn"
+.\scripts\run.ps1 -Lan
+```
+
+
 ## 五、5 分钟演示脚本
 
 完整分步脚本与预期结果见 **[docs/DEMO.md](docs/DEMO.md)**，速览：
@@ -165,8 +194,8 @@ NPU-Assistant/
 │  └─ ui_check.py           # Chrome CDP 交互冒烟 + 五页截图（推荐）
 ├─ docs/
 │  ├─ CONTRACT.md           # 开发契约（接口事实源）
-│  ├─ WIKI-DESIGN.md        # LLM Wiki 设计与契约（v0.1.0）
-│  ├─ MOBILE-OPS.md         # 移动端运维与快速收录（v0.1.0）
+│  ├─ WIKI-DESIGN.md        # LLM Wiki 设计与契约（v0.1.1）
+│  ├─ MOBILE-OPS.md         # 移动端运维与快速收录（v0.1.1）
 │  ├─ API.md                # 接口速览与调用示例
 │  ├─ ARCHITECTURE.md       # 架构、请求链路、表结构、部署建议
 │  ├─ BOT-INTEGRATION.md    # NapCat / OneBot 11、公众号、控制台接入与排障
@@ -247,24 +276,27 @@ $env:NPU_SEED_MODEL="deepseek-chat"                    # 可选
 
 完整步骤、配置示例与故障排查见 **[docs/BOT-INTEGRATION.md](docs/BOT-INTEGRATION.md)**。
 
-## 十、移动端运维（v0.1.0）
+## 十、移动端运维（v0.1.1）
 
-> 完整设计、部署与安全清单见 **[docs/MOBILE-OPS.md](docs/MOBILE-OPS.md)**。目标是「手机就能运维」：手机上查看状态、上传文件、把网页/公众号文章链接或转发文字一键收录进 Wiki；QQ/微信机器人管理员转发链接即可自动入库。
+> 完整设计、部署与安全清单见 **[docs/MOBILE-OPS.md](docs/MOBILE-OPS.md)**。目标是「手机就能运维」：手机扫码打开，查看状态、上传文件、把网页/公众号文章链接或转发文字一键收录进 Wiki；QQ/微信机器人管理员转发链接即可自动入库。
 
-### 10.1 手机访问方式
+### 10.1 手机访问方式（v0.1.1 默认扫码）
 
-> **移动端不是单独的服务**：网页、手机端、PWA、API、机器人回调都由同一个 FastAPI 进程提供，没有额外端口。默认 `.\scripts\run.ps1` 只监听 `127.0.0.1`（本机）；要让手机访问，启动时加 `-Lan`（等价旧脚本 `serve-lan.ps1`）：
+> **移动端不是单独的服务**：网页、手机端、PWA、API、机器人回调都由同一个 FastAPI 进程提供，没有额外端口。默认 `.\scripts\run.ps1` 只监听 `127.0.0.1`（本机）；要让手机访问，启动时加 `-Lan`：
 >
 > ```powershell
-> .\scripts\run.ps1 -Lan          # 绑定 0.0.0.0 + 自动生成并打印管理令牌 + 打印手机地址
+> .\scripts\run.ps1 -Lan
+> # 电脑打开 http://127.0.0.1:8000，点右上角「手机扫码」，手机扫码即可
+> # 需要 4G/5G 或 PWA 安装：扫码弹窗里点「一键开启公网访问」
 > ```
 >
-> 同一条命令即同时启动「总服务 + 移动端」，无需再开第二个服务；公网部署时把 `-BindHost 0.0.0.0` 交给 systemd/反代即可。
+> 扫码弹窗自带二维码、地址切换、管理令牌提示与 Cloudflare 临时隧道开关；同一条命令即同时启动「总服务 + 移动端」，无需再开第二个服务。
 
 | 方式 | 适用 | HTTPS | 说明 |
 |------|------|-------|------|
-| 局域网 | 手机与电脑同一 Wi-Fi，先跑通 | 否 | `.\scripts\run.ps1 -Lan` 后手机访问打印出的 `http://<电脑IP>:8000`；HTTP 下 PWA 不能安装，网页可用 |
-| 公网隧道（推荐试用） | 手机 4G/5G、公众号回调、PWA 安装 | 是 | Cloudflare Tunnel / ngrok / frp，一条命令得到 `https://xxx` 地址 |
+| **扫码（默认）** | 电脑启动后，手机扫码打开 | 看地址 | `run.ps1 -Lan` → 电脑右上角「手机扫码」；可在弹窗内一键开公网 HTTPS |
+| 局域网 | 手机与电脑同一 Wi-Fi，先跑通 | 否 | `run.ps1 -Lan` 后手机访问打印出的 `http://<电脑IP>:8000`；HTTP 下 PWA 不能安装，网页可用 |
+| 公网隧道（推荐试用） | 手机 4G/5G、公众号回调、PWA 安装 | 是 | 扫码弹窗内「一键开启公网访问」（Cloudflare 临时隧道），或 Cloudflare Tunnel / ngrok / frp |
 | 云服务器 | 7×24 生产 | 是 | systemd + Caddy/Nginx 反代 + 定期备份 |
 
 **管理令牌**：设置环境变量 `NPU_ADMIN_TOKEN`（建议 ≥24 位随机串）后，除学生问答 `POST /api/chat`、只读 GET 与机器人 webhook 外的写操作都要求请求头 `X-Admin-Token`。手机在「设置 → 移动端与管理令牌」登录一次，令牌保存在 `localStorage`，所有 API 自动携带；收到 401 时会引导回设置页。未设置令牌时完全放行（仅限本机演示）；`-Lan` 启动会在未设置时自动生成并打印一个令牌。
@@ -309,7 +341,7 @@ cd backend
 ..\.venv\Scripts\python.exe -m pytest tests -q
 ```
 
-当前 **104 个用例全部通过**（约 41s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本 / 寒暄回复，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、body_html XSS 链接清洗、对话双层引用与降级、寒暄与闲聊意图（chitchat / 服务范围说明）、历史会话鉴权、移动端 URL/文本/批量收录与 SSRF/8MB/gzip/并发去重、管理员令牌、机器人安全（凭据脱敏、api_base 脱敏、webhook token、微信时间窗 + nonce 防重放、self_id、2MB body 上限、日志鉴权）、模型管理与系统设置。
+当前 **108 个用例全部通过**（约 45s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本 / 寒暄回复，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、body_html XSS 链接清洗、对话双层引用与降级、寒暄与闲聊意图（chitchat / 服务范围说明）、历史会话鉴权、移动端 URL/文本/批量收录与 SSRF/8MB/gzip/并发去重、手机扫码/二维码/一键公网隧道、管理员令牌、机器人安全（凭据脱敏、api_base 脱敏、webhook token、微信时间窗 + nonce 防重放、self_id、2MB body 上限、日志鉴权）、模型管理与系统设置。
 
 服务启动后还可运行真实 HTTP 冒烟与前端交互检查：
 

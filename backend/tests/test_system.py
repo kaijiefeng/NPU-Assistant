@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 
+from app import config
+
 
 def test_health_returns_ok_wiki_mode_and_default_model(client):
     response = client.get("/api/health")
@@ -11,7 +13,7 @@ def test_health_returns_ok_wiki_mode_and_default_model(client):
 
     assert data["status"] == "ok"
     assert data["app"] == "NPU-Assistant"
-    assert data["version"] == "0.2.0"
+    assert data["version"] == config.APP_VERSION
     assert data["knowledge_mode"] == "llm-wiki"
     assert data["wiki_pages"] == 0
     assert data["time"]

@@ -5,6 +5,7 @@
  * 每个视图模块导出 `mount(container)`，可返回清理函数。
  */
 import { getHealth, setUnauthorizedHandler } from './api.js';
+import { openMobileAccessModal } from './mobile-access.js';
 import { esc, icon, toast } from './ui.js';
 
 const ROUTES = {
@@ -166,6 +167,15 @@ function bindShell() {
   });
   window.addEventListener('hashchange', () => {
     renderRoute();
+  });
+  // 手机扫码：顶栏全局入口 + 侧栏入口共用同一弹窗
+  document.getElementById('mobileAccessBtn')?.addEventListener('click', () => {
+    closeSidebar();
+    openMobileAccessModal();
+  });
+  document.getElementById('sidebarMobileAccess')?.addEventListener('click', () => {
+    closeSidebar();
+    openMobileAccessModal();
   });
   // skip-link 不能使用默认 hash 跳转（会被 SPA 路由当成页面），改为聚焦主内容区
   document.querySelector('.skip-link')?.addEventListener('click', (event) => {

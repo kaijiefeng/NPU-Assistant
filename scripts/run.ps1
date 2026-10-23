@@ -1,11 +1,13 @@
 ﻿# 启动 NPU-Assistant 服务（Web + 手机端 + API 同一进程）
-# 用法:  .\scripts\run.ps1 [-Port 8000] [-BindHost 127.0.0.1] [-Reload] [-Lan]
-#   -Lan  绑定 0.0.0.0，让同一 Wi-Fi 的手机直接访问；会自动生成并打印管理令牌
+# 用法:  .\scripts\run.ps1 [-Port 8000] [-BindHost 127.0.0.1] [-Reload] [-Lan] [-PublicUrl https://...]
+#   -Lan        绑定 0.0.0.0，让同一 Wi-Fi 的手机扫码/访问；自动生成并打印管理令牌
+#   -PublicUrl  固定公网地址（命名隧道/反向代理），手机扫码优先使用
 param(
     [int]$Port = 8000,
     [string]$BindHost = "127.0.0.1",
     [switch]$Reload,
-    [switch]$Lan
+    [switch]$Lan,
+    [string]$PublicUrl = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -18,6 +20,7 @@ if (-not (Test-Path $python)) {
 
 if ($Lan) { $BindHost = "0.0.0.0" }
 $isLoopback = $BindHost -in @("127.0.0.1", "localhost", "::1")
+if ($PublicUrl) { $env:NPU_PUBLIC_URL = $PublicUrl.TrimEnd("/") }
 
 # 服务端根据 NPU_HOST 做安全校验：对外监听必须有管理令牌，否则拒绝启动。
 $env:NPU_HOST = $BindHost
@@ -58,6 +61,8 @@ if (-not $isLoopback) {
     Write-Host ""
     Write-Host "首次手机打不开时，请用管理员 PowerShell 放行防火墙：" -ForegroundColor Yellow
     Write-Host "    New-NetFirewallRule -DisplayName `"NPU-Assistant $Port`" -Direction Inbound -Protocol TCP -LocalPort $Port -Action Allow" -ForegroundColor DarkYellow
+    Write-Host "启动后电脑打开 http://127.0.0.1:$Port，点右上角「手机扫码」让手机扫码（v0.1.1 默认方式）。" -ForegroundColor Green
+    Write-Host "需要 4G/5G 或 PWA 安装时，在扫码弹窗里点「一键开启公网访问」。" -ForegroundColor DarkGray
     Write-Host "PWA 安装/离线能力需要 HTTPS：局域网 HTTP 只能网页访问；公网建议 Cloudflare Tunnel/Nginx 反代。" -ForegroundColor DarkGray
 }
 Write-Host ""

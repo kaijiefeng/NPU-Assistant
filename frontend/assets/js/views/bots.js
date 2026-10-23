@@ -651,12 +651,59 @@ async function removeChannel(id) {
   }
 }
 
+function createWebhookList(created, type) {
+  const raw = created?.webhook_urls || created?.channel?.webhook_urls || {};
+  const labels = {
+    ws: 'OneBot 反向 WebSocket',
+    ws_url: 'OneBot 反向 WebSocket',
+    websocket: 'OneBot 反向 WebSocket',
+    event: 'OneBot 反向 HTTP 事件',
+    http: 'OneBot 反向 HTTP 事件',
+    http_event: 'OneBot 反向 HTTP 事件',
+    callback: '微信回调地址',
+    wechat: '微信回调地址',
+    wechat_url: '微信回调地址',
+  };
+  let entries = Object.entries(raw)
+    .filter(([, value]) => typeof value === 'string' && value)
+    .map(([key, value]) => [labels[String(key).toLowerCase()] || key, value]);
+  if (!entries.length) {
+    const id = created?.id || created?.channel?.id || '';
+    if (type === 'onebot11' && id) {
+      entries = [
+        ['OneBot 反向 WebSocket', `/api/bots/onebot/${id}/ws`],
+        ['OneBot 反向 HTTP 事件', `/api/bots/onebot/${id}/event`],
+      ];
+    } else if (type === 'wechat_mp' && id) {
+      entries = [['微信回调地址', `/api/bots/wechat/${id}`]];
+    }
+  }
+  if (!entries.length) {
+    return `<p class="field-help">该通道无需 Webhook 地址，可直接在页面下方「控制台模拟对话」中调试。</p>`;
+  }
+  return `<div class="webhook-list">${entries
+    .map(([label, url]) => {
+      const absolute = absoluteUrl(url);
+      return `<div class="webhook-row">
+        <span class="webhook-label">${esc(label)}</span>
+        <code class="webhook-url" title="${esc(absolute)}">${esc(absolute)}</code>
+        <button class="icon-btn" type="button" data-copy="${esc(absolute)}" title="复制地址" aria-label="复制地址">${icon('copy')}</button>
+      </div>`;
+    })
+    .join('')}</div>`;
+}
+
 function openAddChannelModal(preferredType = 'onebot11') {
   const modal = openModal({
     title: '添加机器人通道',
     subtitle: '同一个类型可添加多个通道（例如多个 QQ 机器人）',
     size: 'md',
     body: `<form class="form" id="channelForm" novalidate>
+      <ol class="bot-steps">
+        <li><strong>选择类型</strong>，填写必要参数（可留空的项已标注）</li>
+        <li>创建后<strong>复制 Webhook</strong>，填到 NapCat / 公众号后台</li>
+        <li>管理员在 QQ / 微信里<strong>转发链接给机器人</strong>即可收录</li>
+      </ol>
       <label class="field">
         <span class="field-label">通道类型 <em>*</em></span>
         <select class="input select" name="type">
@@ -672,7 +719,14 @@ function openAddChannelModal(preferredType = 'onebot11') {
         <span class="field-label">通道名称 <em>*</em></span>
         <input class="input" name="name" maxlength="80" value="${esc(channelTypeMeta(preferredType).label)}" />
       </label>
-      <label class="field" data-create-field="onebot_token" hidden>
+      <label class="field" data-create-field="onebot_api">
+        <span class="field-label">HTTP API 地址</span>
+        <input class="input mono" name="onebot_api_base" value="${esc(
+          channelTypeMeta('onebot11').defaults.api_base || 'http://127.0.0.1:3000',
+        )}" placeholder="http://127.0.0.1:3000" />
+        <span class="field-help">NapCat / go-cqhttp 的 HTTP API 地址，用于发送回复。</span>
+      </label>
+      <label class="field" data-create-field="onebot_token">
         <span class="field-label">Access Token <span class="field-tip">（可选）</span></span>
         <input class="input mono" name="onebot_token" type="password" autocomplete="new-password"
           placeholder="留空则由后端自动生成随机密钥（明文不可回读）" />
@@ -681,22 +735,30 @@ function openAddChannelModal(preferredType = 'onebot11') {
         <span class="field-label">公众号 Token <em>*</em></span>
         <input class="input mono" name="wechat_token" type="password" autocomplete="new-password"
           placeholder="≥16 位随机字符串，与公众号后台「服务器配置」一致" />
-        <span class="field-help">不能为空，也不能使用公开默认值 npu-assistant，否则微信回调会返回 403。</span>
+        <span class="field-help">必须与公众号后台一致且不能为空，也不能使用公开默认值 npu-assistant，否则微信回调会返回 403。</span>
       </label>
-      <div class="form-hint">${icon('info')}<span>创建后可在通道卡片中继续填写连接参数并保存；敏感凭据不会回显明文。</span></div>
+      <label class="field" data-create-field="wechat_appid" hidden>
+        <span class="field-label">AppID <span class="field-tip">（可选）</span></span>
+        <input class="input mono" name="wechat_app_id" placeholder="公众号 AppID，可稍后填写" />
+      </label>
+      <div class="form-hint">${icon('info')}<span>OneBot 通道留空 Token 会自动生成随机密钥；敏感凭据创建后不会回显明文。</span></div>
     </form>`,
     footer: `<button class="btn btn-ghost" type="button" data-modal-cancel>取消</button>
-      <button class="btn btn-primary" type="button" data-modal-submit>添加通道</button>`,
+      <button class="btn btn-primary" type="button" data-modal-submit>${icon('plus')}<span>创建通道</span></button>`,
   });
   const form = modal.body.querySelector('#channelForm');
   const typeSelect = form.querySelector('[name="type"]');
   const nameInput = form.querySelector('[name="name"]');
+  const onebotApiField = form.querySelector('[data-create-field="onebot_api"]');
   const onebotTokenField = form.querySelector('[data-create-field="onebot_token"]');
   const wechatTokenField = form.querySelector('[data-create-field="wechat_token"]');
+  const wechatAppIdField = form.querySelector('[data-create-field="wechat_appid"]');
   const syncCreateFields = () => {
     const type = typeSelect.value;
+    onebotApiField.hidden = type !== 'onebot11';
     onebotTokenField.hidden = type !== 'onebot11';
     wechatTokenField.hidden = type !== 'wechat_mp';
+    wechatAppIdField.hidden = type !== 'wechat_mp';
   };
   typeSelect.addEventListener('change', () => {
     nameInput.value = channelTypeMeta(typeSelect.value).label;
@@ -729,26 +791,48 @@ function openAddChannelModal(preferredType = 'onebot11') {
         return;
       }
       config.token = token;
+      const appId = form.querySelector('[name="wechat_app_id"]').value.trim();
+      if (appId) config.app_id = appId;
     } else if (type === 'onebot11') {
+      const apiBase = form.querySelector('[name="onebot_api_base"]').value.trim();
+      config.api_base = apiBase || 'http://127.0.0.1:3000';
       const token = form.querySelector('[name="onebot_token"]').value.trim();
       if (token) config.access_token = token;
       else delete config.access_token; // 留空：由后端自动生成
     }
-    setButtonBusy(button, true, '添加中…');
+    setButtonBusy(button, true, '创建中…');
     try {
       const created = await createBotChannel({ type, name, config });
       const tokenGenerated = Boolean(created?.token_generated || created?.channel?.token_generated);
-      if (tokenGenerated) {
-        toast(
-          '已自动生成通道密钥，请到通道详情重新设置自定义 token（如 NapCat 使用）；明文不可再次查看。',
-          'warning',
-          { title: '已生成通道密钥', duration: 9000 },
-        );
-      } else {
-        toast('机器人通道已添加', 'success');
-      }
-      modal.close();
+      const createdName = created?.name || created?.channel?.name || name;
+      toast('机器人通道已创建', 'success', { title: '创建成功' });
       await loadChannels({ silent: true });
+      // 展示「下一步」接入指引，而不是直接关闭弹窗
+      modal.setTitle('通道已创建');
+      modal.body.innerHTML = `<div class="bot-created">
+        <div class="bot-created-head">
+          <span class="bot-created-icon">${icon('check')}</span>
+          <div><strong>${esc(createdName)}</strong><span>${esc(channelTypeMeta(type).label)}</span></div>
+        </div>
+        ${
+          tokenGenerated
+            ? `<div class="inline-error is-warn">${icon('shield')}<span>已自动生成通道密钥（明文不可再次查看）。如需自定义 token（如 NapCat 使用），请到通道详情重新设置。</span></div>`
+            : ''
+        }
+        <ol class="bot-steps">
+          <li>复制下方 Webhook 地址</li>
+          <li>填到 NapCat / go-cqhttp 或公众号后台「服务器配置」</li>
+          <li>管理员在 QQ / 微信里转发链接给机器人，即可自动收录</li>
+        </ol>
+        ${createWebhookList(created, type)}
+        <div class="bot-created-actions">
+          <a class="btn btn-ghost btn-sm" href="/manual/index.html" target="_blank" rel="noopener">${icon('external')}<span>查看接入文档</span></a>
+          <button class="btn btn-primary btn-sm" type="button" data-modal-done>${icon('check')}<span>完成</span></button>
+        </div>
+      </div>`;
+      modal.footer.innerHTML = '';
+      modal.footer.hidden = true;
+      modal.body.querySelector('[data-modal-done]')?.addEventListener('click', () => modal.close());
     } catch (err) {
       toast(err?.message || '添加通道失败', 'error');
       setButtonBusy(button, false);
@@ -770,6 +854,32 @@ export function mount(root) {
         <p>在下方卡片填写连接参数并保存，把生成的 Webhook 地址填到 OneBot 实现或公众号后台即可。没有外部账号时，可用「控制台调试」通道体验完整链路。</p>
       </div>
       <button class="btn btn-primary btn-sm" type="button" data-action="add-channel">${icon('plus')}<span>添加通道</span></button>
+    </section>
+
+    <section class="card bot-quick-add">
+      <header class="card-head">
+        <div>
+          <h2>${icon('plus')}快速添加</h2>
+          <p>选一种通道，填写最少参数即可创建；创建后会给出 Webhook 与接入步骤。</p>
+        </div>
+      </header>
+      <div class="quick-add-grid">
+        <button class="quick-add-card" type="button" data-action="add-channel" data-type="onebot11">
+          <span class="quick-add-icon tone-blue">${icon('qq')}</span>
+          <span class="quick-add-text"><strong>QQ 机器人</strong><span>OneBot 11 · NapCat / go-cqhttp</span></span>
+          <span class="quick-add-go">${icon('chevron-right')}</span>
+        </button>
+        <button class="quick-add-card" type="button" data-action="add-channel" data-type="wechat_mp">
+          <span class="quick-add-icon tone-teal">${icon('wechat')}</span>
+          <span class="quick-add-text"><strong>微信公众号</strong><span>明文回调 · 需与后台 Token 一致</span></span>
+          <span class="quick-add-go">${icon('chevron-right')}</span>
+        </button>
+        <button class="quick-add-card" type="button" data-action="add-channel" data-type="console">
+          <span class="quick-add-icon tone-violet">${icon('terminal')}</span>
+          <span class="quick-add-text"><strong>控制台调试</strong><span>无需外部账号，直接体验完整链路</span></span>
+          <span class="quick-add-go">${icon('chevron-right')}</span>
+        </button>
+      </div>
     </section>
 
     <section class="card">

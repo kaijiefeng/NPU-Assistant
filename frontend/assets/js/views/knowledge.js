@@ -1625,7 +1625,7 @@ export function mount(root, context = {}) {
               'link',
             )}<span>收录链接</span></button>
           </div>
-          <p class="capture-hint">${icon('info')}<span>微信 / QQ 可直接把链接转发给机器人（需管理员）；手机上复制链接粘贴到这里也可以。</span></p>
+          <p class="capture-hint">${icon('info')}<span>微信 / QQ 可直接把链接转发给机器人（需管理员）；手机访问点右上角「手机扫码」，扫码后在手机上粘贴链接即可。</span></p>
           <div class="capture-results" id="captureLinkResults"></div>
         </div>
 

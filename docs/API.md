@@ -1,4 +1,4 @@
-# API 速览（LLM Wiki · v0.1.0）
+# API 速览（LLM Wiki · v0.1.1）
 
 > 本文件是接口的快速上手版本；**字段与行为的唯一事实源是 [WIKI-DESIGN.md](WIKI-DESIGN.md) §4 与 [CONTRACT.md](CONTRACT.md) §5**。启动服务后可访问交互式文档：
 >
@@ -44,7 +44,7 @@ Invoke-RestMethod http://127.0.0.1:8000/api/health
 ```jsonc
 // GET /api/health
 {
-  "status": "ok", "app": "NPU-Assistant", "version": "0.1.0",
+  "status": "ok", "app": "NPU-Assistant", "version": "0.1.1",
   "time": "2026-10-22T17:30:00",
   "knowledge_mode": "llm-wiki",
   "wiki_pages": 20,
@@ -373,3 +373,31 @@ Invoke-RestMethod -Method Post ("http://127.0.0.1:8000/api/bots/channels/" + $co
 公众号 / OneBot 的回调地址、签名与鉴权规则见 [BOT-INTEGRATION.md](BOT-INTEGRATION.md)。
 
 > **通道安全**：`/bots/channels` 返回的 `config` 中凭据（onebot `access_token` / 微信 `token`）脱敏为 `****`+后 4 位，`admin_user_ids` 只显示 `***（N 个管理员）`，`api_base` 去掉 userinfo/query/fragment 后回显（编辑回填脱敏值=不修改），并以布尔 `has_access_token` 表示是否已配置；PUT 传空串或脱敏占位表示「不修改」。OneBot 创建时未给 token 会自动生成随机值（响应带 `token_generated: true` 与 `token_hint`，明文不可回读）。webhook 空 token 默认 403（本地调试 `NPU_BOT_ALLOW_INSECURE=1`），微信 token 不得为空或 `npu-assistant`，回调校验 ±300 秒时间窗 + nonce 防重放（重复 403，进程内缓存），webhook 请求体上限 2MB（413）。配置 `NPU_ADMIN_TOKEN` 后 `GET /bots/logs` 需 `X-Admin-Token`。
+
+## 9. 手机扫码访问与一键公网（v0.1.1 新增）
+
+| 接口 | 鉴权 | 说明 |
+|---|---|---|
+| `GET /api/mobile/access` | 公开 | 返回 `preferred_url`、`urls[]`（`kind=public/tunnel/lan/current`）、`qr`（PNG data URL）、`token_required`、`tunnel` 状态与 `hint` |
+| `GET /api/mobile/qr.png?url=<http(s)>` | 公开 | 生成指定地址的二维码 PNG；非 http/https 返回 400 |
+| `POST /api/mobile/tunnel/start` | 管理令牌；未配置令牌时仅允许本机 | 启动 `cloudflared` 临时隧道，返回最新 access 信息；未安装时 400 + 安装提示 |
+| `POST /api/mobile/tunnel/stop` | 同上 | 关闭隧道 |
+
+```jsonc
+// GET /api/mobile/access（节选）
+{
+  "app_version": "0.1.1",
+  "token_required": true,
+  "preferred_url": "https://xxx.trycloudflare.com",
+  "urls": [
+    {"url": "https://xxx.trycloudflare.com", "kind": "tunnel", "label": "公网 HTTPS（临时隧道）", "secure": true, "pwa": true},
+    {"url": "http://192.168.1.8:8000", "kind": "lan", "label": "局域网", "secure": false, "pwa": false}
+  ],
+  "qr": "data:image/png;base64,...",
+  "tunnel": {"available": true, "running": true, "public_url": "https://xxx.trycloudflare.com", "started_at": 1760000000, "error": ""}
+}
+```
+
+- 二维码只编码 URL，不含管理令牌；手机扫码后仍需在「设置 → 移动端与管理令牌」登录（若服务端启用了令牌）。
+- 临时隧道地址每次启动都会变化，仅用于演示/临时访问；生产请使用命名 Cloudflare Tunnel / Nginx 反代，并设置 `NPU_PUBLIC_URL` 固定地址。
+- 可用环境变量：`NPU_PUBLIC_URL`、`NPU_CLOUDFLARED`、`NPU_TUNNEL_TIMEOUT`（默认 30s）。
