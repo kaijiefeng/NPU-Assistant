@@ -1,4 +1,4 @@
-# NPU-Assistant 架构设计（LLM Wiki · v0.2）
+# NPU-Assistant 架构设计（LLM Wiki · v0.1.0）
 
 本文说明 NPU-Assistant 在 **LLM Wiki 架构**下的整体结构、两条核心链路（编译 / 问答）、模块职责、数据模型与部署建议。设计与接口字段以 [WIKI-DESIGN.md](WIKI-DESIGN.md) 与 [CONTRACT.md](CONTRACT.md) 为准，本文侧重「系统如何组织起来」。
 
@@ -372,7 +372,7 @@ erDiagram
 
 ## 6. 为什么移除经典 RAG
 
-v0.1 采用「切片 + jieba + BM25」检索。v0.2 改为 LLM Wiki，原因与取舍：
+早期原型采用「切片 + jieba + BM25」检索；v0.1.0 起改为 LLM Wiki，原因与取舍：
 
 | 维度 | 经典 RAG（已移除） | LLM Wiki（当前） |
 |------|---------------------|------------------|

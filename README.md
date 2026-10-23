@@ -4,11 +4,13 @@
 
 NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园问答系统。它把「辅导员数字分身问答、LLM Wiki 知识库、LLM 接入与模型管理、微信 / QQ 机器人」四件事做成一个单体应用：后端 FastAPI + SQLite，前端纯静态 HTML/CSS/ES Module，无 Node 构建、无 CDN 依赖。
 
-> **v0.2 重大变更**：知识层改为 **LLM Wiki**——「源文件 → LLM 编译词条 → 导航选页 → 词条阅读回答 → 双层引用」，不再使用切片检索、embedding、向量库或 rerank。设计细节见 **[docs/WIKI-DESIGN.md](docs/WIKI-DESIGN.md)**。
+> **v0.1.0 首个发布版本**：知识层改为 **LLM Wiki**——「源文件 → LLM 编译词条 → 导航选页 → 词条阅读回答 → 双层引用」，不再使用切片检索、embedding、向量库或 rerank。设计细节见 **[docs/WIKI-DESIGN.md](docs/WIKI-DESIGN.md)**。
 >
 > ⚠️ 本项目为教学演示 / MVP 原型。示例 Wiki 中的时间、金额、电话、地点均为**示例数据**，实际政策以学校官方发布为准。
 >
 > 📘 **普通用户（学生 / 辅导员）请直接看 [图文使用手册](frontend/manual/index.html)**：包含手机截图、短动图和常见问题；运行服务后也可访问 <http://127.0.0.1:8000/manual/index.html>。
+>
+> 🚀 **当前发布版本：v0.1.0**（2026-10-23）· 对应分支 `release`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
 
 ---
 
@@ -163,8 +165,8 @@ NPU-Assistant/
 │  └─ ui_check.py           # Chrome CDP 交互冒烟 + 五页截图（推荐）
 ├─ docs/
 │  ├─ CONTRACT.md           # 开发契约（接口事实源）
-│  ├─ WIKI-DESIGN.md        # LLM Wiki 设计与契约（v0.2）
-│  ├─ MOBILE-OPS.md         # 移动端运维与快速收录（v0.3）
+│  ├─ WIKI-DESIGN.md        # LLM Wiki 设计与契约（v0.1.0）
+│  ├─ MOBILE-OPS.md         # 移动端运维与快速收录（v0.1.0）
 │  ├─ API.md                # 接口速览与调用示例
 │  ├─ ARCHITECTURE.md       # 架构、请求链路、表结构、部署建议
 │  ├─ BOT-INTEGRATION.md    # NapCat / OneBot 11、公众号、控制台接入与排障
@@ -245,7 +247,7 @@ $env:NPU_SEED_MODEL="deepseek-chat"                    # 可选
 
 完整步骤、配置示例与故障排查见 **[docs/BOT-INTEGRATION.md](docs/BOT-INTEGRATION.md)**。
 
-## 十、移动端运维（v0.3）
+## 十、移动端运维（v0.1.0）
 
 > 完整设计、部署与安全清单见 **[docs/MOBILE-OPS.md](docs/MOBILE-OPS.md)**。目标是「手机就能运维」：手机上查看状态、上传文件、把网页/公众号文章链接或转发文字一键收录进 Wiki；QQ/微信机器人管理员转发链接即可自动入库。
 

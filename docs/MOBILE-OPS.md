@@ -1,8 +1,8 @@
-# NPU-Assistant 移动端运维与快速收录（v0.3 设计/操作手册）
+# NPU-Assistant 移动端运维与快速收录（v0.1.0 设计/操作手册）
 
 > 面向学生/辅导员的**图文使用手册（含短动图）**：[frontend/manual/index.html](../frontend/manual/index.html)（运行服务后访问 `/manual/index.html`）。本文档偏部署/实现说明。
 >
-> v0.3 目标：**手机就能运维**——查看状态、上传文件、把网页/公众号文章链接、微信/QQ 里转发的文字，一键收录进 LLM Wiki；QQ/微信机器人管理员转发链接即可自动入库。
+> v0.1.0 目标：**手机就能运维**——查看状态、上传文件、把网页/公众号文章链接、微信/QQ 里转发的文字，一键收录进 LLM Wiki；QQ/微信机器人管理员转发链接即可自动入库。
 > 本文档同时是**实现契约**：API 字段、机器人命令、PWA、安全边界。接口实现后以本文档为准。
 
 ---
@@ -155,7 +155,7 @@ cloudflared tunnel --url http://127.0.0.1:8000
 
 ---
 
-## 5. 验收标准（v0.3）
+## 5. 验收标准（v0.1.0）
 
 - [ ] `POST /api/knowledge/import/text` 收录文字 → `documents.source_type=text`、`page_count>0`、词条可在 `/api/wiki/tree` 看到
 - [ ] `POST /api/knowledge/import/url` 抓取本地测试网页/公众号样式 HTML → 正确提取正文与标题、生成词条；重复 URL 返回 `duplicated=true` 且不重复建词条
