@@ -32,7 +32,16 @@ WIKI_SEED_PATH = Path(os.environ.get("NPU_WIKI_SEED_PATH", BASE_DIR / "data" / "
 # Server
 HOST = os.environ.get("NPU_HOST", "127.0.0.1")
 PORT = int(os.environ.get("NPU_PORT", "8000"))
-ADMIN_TOKEN = os.environ.get("NPU_ADMIN_TOKEN", "").strip()
+# Prefer the env var; fall back to a locally persisted token created from the
+# settings page on first run (only writable from loopback, see system router).
+_ENV_ADMIN_TOKEN = os.environ.get("NPU_ADMIN_TOKEN", "").strip()
+if _ENV_ADMIN_TOKEN:
+    ADMIN_TOKEN = _ENV_ADMIN_TOKEN
+else:
+    try:
+        ADMIN_TOKEN = (DATA_DIR / "admin_token.txt").read_text(encoding="utf-8").strip()
+    except OSError:
+        ADMIN_TOKEN = ""
 # Comma-separated browser origins allowed to call the API from another site.
 # Empty (default) means: no CORS headers at all — the bundled SPA is same-origin.
 CORS_ORIGINS = [item.strip() for item in os.environ.get("NPU_CORS_ORIGINS", "").split(",") if item.strip()]

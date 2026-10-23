@@ -36,11 +36,12 @@
 - **二维码 API**：`GET /api/mobile/access`、`GET /api/mobile/qr.png`、`POST /api/mobile/tunnel/start|stop`；局域网地址自动探测并按常见网段排序。
 - **机器人快速添加**：机器人页顶部 QQ / 微信公众号 / 控制台三张快捷卡；自动预填 OneBot `api_base`、Token 留空自动生成；创建后直接展示 Webhook 复制与接入三步指引。
 - **启动脚本**：`run.ps1 -PublicUrl`、扫码提示；新增 `NPU_CLOUDFLARED`、`NPU_TUNNEL_TIMEOUT` 环境变量；新增 `qrcode[pil]` 依赖。
+- **首次启用服务端令牌**：设置页在服务端未启用令牌时可输入 ≥16 位随机令牌直接启用（`POST /api/system/admin-token/init`，仅本机、持久化到 `backend/data/admin_token.txt`），无需重启即可解锁公网访问，解决“只在浏览器填令牌、服务端仍未启用”的困惑。
 - **文档/手册**：使用手册新增「扫码联网与公网访问」章节和截图；README/MOBILE-OPS/API/BOT-INTEGRATION 同步更新。
 
 ### 测试
 
-- 后端 pytest 108 项（新增手机访问/二维码/隧道 API 4 项）。
+- 后端 pytest 110 项（新增手机访问/二维码/隧道 API 4 项、首次启用服务端令牌 2 项）。
 - 前端扫码弹窗 23 项、机器人快速添加 12 项、390/1440 回归 19 项断言通过。
 - **真实 Cloudflare Quick Tunnel E2E 通过**（2026-10-23，cloudflared 2026.8.2）：启动耗时约 4.7s；公网 HTTPS 访问 `/api/health`、首页、`/manual/index.html` 均 200；无令牌写操作 401、带 `X-Admin-Token` 文本收录 201；停止后公网地址返回 502。自动检测 `%LOCALAPPDATA%\cloudflared\cloudflared.exe`，也支持 `NPU_CLOUDFLARED` 指定路径。
 

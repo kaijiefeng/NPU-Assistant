@@ -140,8 +140,8 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 
 | 验证项 | 命令 | 实测结果 |
 |--------|------|----------|
-| pytest 全量 | `.\scripts\check.ps1` | **108 passed**，1 warning（`StarletteDeprecationWarning`，依赖提示，无影响），耗时约 45s |
-| 用例分布 | — | test_bots 38 / test_wiki 19 / test_chat 17 / test_import 16 / test_system 9 / test_models 5 / test_mobile 4 |
+| pytest 全量 | `.\scripts\check.ps1` | **110 passed**，1 warning（`StarletteDeprecationWarning`，依赖提示，无影响），耗时约 39s |
+| 用例分布 | — | test_bots 38 / test_wiki 19 / test_chat 17 / test_import 16 / test_system 11 / test_models 5 / test_mobile 4 |
 | 测试隔离 | `conftest.py` | 临时 `NPU_DATA_DIR`/`NPU_DB_PATH`/`NPU_WIKI_SEED_PATH`；每用例重置数据库与上传目录；不污染 `backend/data/app.db` |
 | fake LLM / fake importer | `conftest.py` | fake LLM 按提示词分流（编译 / 合并 / 导航 / 回答 / 寒暄，含失败模式）；本地 `http.server` 提供公众号样式 HTML、4MB / 9MB / gzip 页面验证 URL 抓取上限；机器人入库用 fake importer（threading.Event 验证微信后台线程） |
 
@@ -226,7 +226,7 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 | URL 并发去重（多请求同时收录同一链接） | importer：同 URL 进程内串行锁 + `documents.source_url` 唯一部分索引 + `IntegrityError` 兜底返回既有文档 | test_import 新增 1 条：4 线程并发收录同一 URL → 仅一次 201、其余 200 duplicated，最终文档数 1 |
 | 安全复审 4 项：机器人日志未鉴权、`api_base` 泄露凭据、微信 nonce 可重放、webhook 超大 body | bots.py：`GET /bots/logs` 加 `require_admin_token`；`api_base`/outbound `url` 去 userinfo+query+fragment 回显且 PUT 回填脱敏值不覆盖；微信 nonce 进程内防重放（TTL 330s/上限 1000，签名失败不消费）；OneBot/微信 webhook body 上限 2MB → 413 | test_bots 新增 5 条：日志 401/带令牌 200 且 webhook 不受影响、`api_base` 脱敏+PUT 保留原值+outbound url 脱敏、微信 GET/POST nonce 重放 403/换 nonce 200/坏签名不消费、空 nonce 登记放行、2MB 超限 413 |
 
-> 安全修复后全量 **104 passed**（v0.1.0）；v0.1.1 新增手机扫码/隧道测试后 **108 passed**（test_mobile 4）。
+> 安全修复后全量 **104 passed**（v0.1.0）；v0.1.1 新增手机扫码/隧道/首次启用令牌测试后 **110 passed**（test_mobile 4、test_system 11）。
 
 ### 9.7 v0.1.1 扫码联网 / 一键公网（2026-10-23 实测）
 

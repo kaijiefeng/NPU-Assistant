@@ -1,14 +1,29 @@
 """System routes: health, statistics and agent settings (Lead-owned)."""
 from __future__ import annotations
 
+import ipaddress
 import json
+import os
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel
 
 from .. import config, db
 
 router = APIRouter(tags=["system"])
+
+
+class AdminTokenInit(BaseModel):
+    token: str
+
+
+def _is_loopback_client(request: Request) -> bool:
+    host = (request.client.host if request.client else "") or ""
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return host in {"localhost", "testclient", "testserver"}
 
 EDITABLE_SETTINGS = {
     "counselor_name",
@@ -60,6 +75,35 @@ def health() -> dict:
             else None
         ),
     }
+
+
+@router.post("/system/admin-token/init")
+def init_admin_token(payload: AdminTokenInit, request: Request) -> dict:
+    """First-run setup: enable the server-side admin token from the local UI.
+
+    Only allowed when no token is configured yet, and only from loopback. The
+    token is persisted to ``backend/data/admin_token.txt`` (gitignored) so it
+    survives restarts; an explicit ``NPU_ADMIN_TOKEN`` env var always wins.
+    """
+    if config.ADMIN_TOKEN:
+        raise HTTPException(status_code=409, detail="服务端已启用管理令牌，不能重复初始化")
+    if not _is_loopback_client(request):
+        raise HTTPException(status_code=403, detail="只能在本机初始化管理令牌")
+    token = (payload.token or "").strip()
+    if len(token) < 16:
+        raise HTTPException(status_code=400, detail="管理令牌至少 16 位，建议 24 位以上随机串")
+    config.ADMIN_TOKEN = token
+    path = config.DATA_DIR / "admin_token.txt"
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(token + "\n", encoding="utf-8")
+        try:
+            os.chmod(path, 0o600)
+        except OSError:
+            pass
+    except OSError as exc:
+        raise HTTPException(status_code=500, detail=f"令牌已生效，但写入本地文件失败：{exc}") from exc
+    return {"ok": True, "admin_token_required": True, "persisted": str(path.name)}
 
 
 @router.get("/system/info")

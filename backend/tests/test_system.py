@@ -156,3 +156,32 @@ def test_system_info_reflects_admin_token_requirement(client, monkeypatch):
     assert client.get("/api/system/info").json()["admin_token_required"] is True
     # 只读接口与设置读取不受影响（写操作鉴权由 middleware 负责）
     assert client.get("/api/settings").status_code == 200
+
+
+def test_admin_token_can_be_initialized_from_loopback(client, monkeypatch, tmp_path):
+    token = "local-init-token-1234567890"
+    monkeypatch.setattr(config, "ADMIN_TOKEN", "")
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+
+    response = client.post("/api/system/admin-token/init", json={"token": token})
+    assert response.status_code == 200
+    assert response.json()["admin_token_required"] is True
+    assert config.ADMIN_TOKEN == token
+    assert (tmp_path / "admin_token.txt").read_text(encoding="utf-8").strip() == token
+
+    # The token takes effect immediately for protected writes.
+    assert client.post("/api/knowledge/import/text", json={"title": "x", "text": "y" * 60}).status_code == 401
+    allowed = client.post(
+        "/api/knowledge/import/text",
+        json={"title": "x", "text": "y" * 60},
+        headers={"X-Admin-Token": token},
+    )
+    assert allowed.status_code in {200, 201}
+
+
+def test_admin_token_init_rejects_short_token(client, monkeypatch, tmp_path):
+    monkeypatch.setattr(config, "ADMIN_TOKEN", "")
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+    response = client.post("/api/system/admin-token/init", json={"token": "short"})
+    assert response.status_code == 400
+    assert "16" in response.json()["detail"]

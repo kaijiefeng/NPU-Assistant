@@ -26,3 +26,4 @@ backups/
 Thumbs.db
 node_modules/
 dist/
+backend/data/admin_token.txt

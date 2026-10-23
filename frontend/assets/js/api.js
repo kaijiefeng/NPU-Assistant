@@ -159,6 +159,7 @@ const del = (path, opts = {}) => request('DELETE', path, opts);
 /* ------------------------------------------------------------------ */
 export const getHealth = () => get('/health');
 export const getSystemInfo = () => get('/system/info');
+export const initAdminToken = (token) => post('/system/admin-token/init', { token });
 export const getSystemStats = () => get('/system/stats');
 export const getSettings = () => get('/settings');
 export const saveSettings = (patch) => put('/settings', patch);

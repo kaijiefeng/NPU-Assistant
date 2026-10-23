@@ -75,10 +75,10 @@ function tunnelHtml() {
   if (tunnel.available) {
     // 后端要求服务端已设置 NPU_ADMIN_TOKEN 才允许开启隧道：未启用令牌时置灰并引导去设置
     if (!state.access?.token_required) {
-      return `<h3>${icon('globe')}公网访问（需先设置管理员令牌）</h3>
-        <p class="field-help">服务端未设置 NPU_ADMIN_TOKEN，暂时无法开启公网访问。请先到「设置 → 移动端与管理令牌」填写管理员令牌，再回来开启。</p>
+      return `<h3>${icon('globe')}公网访问（需先启用服务端令牌）</h3>
+        <p class="field-help">服务端未启用管理令牌，暂时无法开启公网访问。请先到「设置 → 移动端与管理令牌」输入 ≥16 位随机令牌并点「保存令牌」（或「启用服务端令牌」），启用后再回来开启。仅在手机设置页填令牌不会改变服务端配置。</p>
         <div class="mobile-tunnel-actions">
-          <button class="btn btn-primary btn-sm" type="button" data-action="go-settings">${icon('key')}<span>去设置填写令牌</span></button>
+          <button class="btn btn-primary btn-sm" type="button" data-action="go-settings">${icon('key')}<span>去设置启用令牌</span></button>
           <button class="btn btn-ghost btn-sm" type="button" data-action="start-tunnel" disabled>${icon('globe')}<span>一键开启公网访问</span></button>
         </div>`;
     }

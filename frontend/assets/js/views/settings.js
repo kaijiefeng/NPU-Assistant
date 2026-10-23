@@ -10,6 +10,7 @@ import {
   getAdminToken,
   getSettings,
   getSystemInfo,
+  initAdminToken,
   saveSettings,
   setAdminToken,
 } from '../api.js';
@@ -203,10 +204,11 @@ function renderShell() {
             <div class="token-status" id="adminTokenStatus">${icon('info')}<span>读取中…</span></div>
             <div class="token-actions">
               <button class="btn btn-primary btn-sm" type="button" data-action="save-token">${icon('check')}<span>保存令牌</span></button>
+              <button class="btn btn-ghost btn-sm" type="button" data-action="enable-server-token" id="enableServerTokenBtn" hidden>${icon('shield')}<span>启用服务端令牌</span></button>
               <button class="btn btn-ghost btn-sm" type="button" data-action="test-token">${icon('link')}<span>测试连接</span></button>
               <button class="btn btn-ghost btn-sm is-danger" type="button" data-action="clear-token">${icon('trash')}<span>清除令牌</span></button>
             </div>
-            <div class="form-hint">${icon('info')}<span>保存后所有 API 请求自动携带 <code>X-Admin-Token</code> 请求头；令牌缺失或不正确时，写操作会返回 401 并提示。手机上可先在此登录一次，之后直接使用快速收录与编辑功能。</span></div>
+            <div class="form-hint" id="tokenServerHint">${icon('info')}<span>保存后所有 API 请求自动携带 <code>X-Admin-Token</code> 请求头；令牌缺失或不正确时，写操作会返回 401 并提示。手机上可先在此登录一次，之后直接使用快速收录与编辑功能。</span></div>
           </div>
         </section>
 
@@ -331,6 +333,19 @@ function renderTokenStatus(message = '') {
   const ok = Boolean(token) || state.serverTokenRequired === false;
   holder.className = `token-status ${ok ? 'is-ok' : 'is-empty'}`;
   holder.innerHTML = `${icon(ok ? 'shield' : 'info')}<span>${esc(parts.join(' · '))}</span>`;
+  updateTokenServerUi();
+}
+
+function updateTokenServerUi() {
+  const enableBtn = document.getElementById('enableServerTokenBtn');
+  const hint = document.getElementById('tokenServerHint');
+  const serverOff = state.serverTokenRequired === false;
+  if (enableBtn) enableBtn.hidden = !serverOff;
+  if (hint) {
+    hint.innerHTML = serverOff
+      ? `${icon('info')}<span>服务端当前未启用管理令牌。若要开启<b>公网访问</b>或防止他人修改知识库，请在上方输入 ≥16 位随机令牌并点击「启用服务端令牌」；启用后所有管理操作都需要此令牌（会保存到本机，重启后仍有效）。</span>`
+      : `${icon('info')}<span>保存后所有 API 请求自动携带 <code>X-Admin-Token</code> 请求头；令牌缺失或不正确时，写操作会返回 401 并提示。手机上可先在此登录一次，之后直接使用快速收录与编辑功能。</span>`;
+  }
 }
 
 async function refreshTokenServerState() {
@@ -340,6 +355,7 @@ async function refreshTokenServerState() {
   } catch {
     state.serverTokenRequired = null;
   }
+  updateTokenInputState();
   renderTokenStatus();
 }
 
@@ -350,9 +366,12 @@ function updateTokenInputState() {
   if (input) {
     input.value = '';
     input.type = 'password';
-    input.placeholder = token
-      ? `当前已保存 ${token.length} 字符，输入新令牌可替换`
-      : '未启用令牌时可留空';
+    input.placeholder =
+      state.serverTokenRequired === false
+        ? '输入 ≥16 位随机令牌，保存后同时启用服务端校验'
+        : token
+          ? `当前已保存 ${token.length} 字符，输入新令牌可替换`
+          : '未启用令牌时可留空';
   }
   if (saveBtn) {
     saveBtn.innerHTML = token
@@ -374,7 +393,7 @@ async function testAdminToken(button) {
     state.serverTokenRequired = Boolean(info?.admin_token_required);
     if (!state.serverTokenRequired) {
       renderTokenStatus('服务端未启用管理令牌，当前无需令牌即可操作');
-      toast('连接正常：服务端未启用管理令牌，无需填写', 'success', { title: '测试连接' });
+      toast('连接正常：服务端未启用管理令牌；如需公网访问，请在上方输入令牌并保存启用', 'success', { title: '测试连接' });
       return;
     }
     if (!getAdminToken()) {
@@ -488,12 +507,36 @@ function bindActions() {
   });
 
   /* 管理令牌：保存 / 清除 / 测试 / 显示隐藏 */
-  document.querySelector('[data-action="save-token"]')?.addEventListener('click', () => {
+  document.querySelector('[data-action="save-token"]')?.addEventListener('click', async (event) => {
     const input = document.getElementById('adminTokenInput');
     const value = String(input?.value || '').trim();
     if (!value) {
-      toast('请填写管理令牌；若服务端未启用令牌，可直接点击「清除令牌」', 'warning');
+      toast('请填写管理令牌；若服务端未启用令牌，可输入新令牌并保存来启用', 'warning');
       input?.focus();
+      return;
+    }
+    if (state.serverTokenRequired === false) {
+      if (value.length < 16) {
+        toast('启用服务端令牌需要至少 16 位字符，建议 24 位以上随机串', 'warning');
+        input?.focus();
+        return;
+      }
+      const button = event.currentTarget;
+      setButtonBusy(button, true, '启用中…');
+      try {
+        await initAdminToken(value);
+        setAdminToken(value);
+        await refreshTokenServerState();
+        updateTokenInputState();
+        renderTokenStatus('服务端令牌已启用，公网访问现在可用');
+        toast('服务端令牌已启用并保存；手机端请在设置页填入同一令牌', 'success', {
+          title: '公网访问已解锁',
+        });
+      } catch (err) {
+        toast(err?.message || '启用服务端令牌失败', 'error');
+      } finally {
+        setButtonBusy(button, false);
+      }
       return;
     }
     if (value.length < 8) {
@@ -503,6 +546,30 @@ function bindActions() {
     updateTokenInputState();
     renderTokenStatus();
     toast('管理令牌已保存，后续请求将自动携带 X-Admin-Token', 'success', { title: '已保存' });
+  });
+
+  document.querySelector('[data-action="enable-server-token"]')?.addEventListener('click', async (event) => {
+    const input = document.getElementById('adminTokenInput');
+    const value = String(input?.value || '').trim();
+    if (value.length < 16) {
+      toast('请先输入 ≥16 位随机令牌', 'warning');
+      input?.focus();
+      return;
+    }
+    const button = event.currentTarget;
+    setButtonBusy(button, true, '启用中…');
+    try {
+      await initAdminToken(value);
+      setAdminToken(value);
+      await refreshTokenServerState();
+      updateTokenInputState();
+      renderTokenStatus('服务端令牌已启用，公网访问现在可用');
+      toast('服务端令牌已启用并保存', 'success', { title: '已启用' });
+    } catch (err) {
+      toast(err?.message || '启用失败', 'error');
+    } finally {
+      setButtonBusy(button, false);
+    }
   });
 
   document.querySelector('[data-action="clear-token"]')?.addEventListener('click', () => {

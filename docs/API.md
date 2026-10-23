@@ -383,6 +383,17 @@ Invoke-RestMethod -Method Post ("http://127.0.0.1:8000/api/bots/channels/" + $co
 | `POST /api/mobile/tunnel/start` | 管理令牌；未配置令牌时仅允许本机 | 启动 `cloudflared` 临时隧道，返回最新 access 信息；未安装时 400 + 安装提示 |
 | `POST /api/mobile/tunnel/stop` | 同上 | 关闭隧道 |
 
+**首次启用服务端令牌（本机）** `POST /system/admin-token/init`
+
+```jsonc
+// 仅当服务端尚未启用 NPU_ADMIN_TOKEN，且请求来自本机时可用
+{"token": "至少16位随机字符串"}
+// 200
+{"ok": true, "admin_token_required": true, "persisted": "admin_token.txt"}
+```
+
+启用后立即对所有写接口生效，并持久化到 `backend/data/admin_token.txt`（已 gitignore；显式环境变量 `NPU_ADMIN_TOKEN` 优先）。重复初始化返回 409，令牌过短返回 400；设置页在服务端未启用令牌时自动显示「启用服务端令牌」按钮。
+
 ```jsonc
 // GET /api/mobile/access（节选）
 {

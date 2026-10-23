@@ -299,7 +299,7 @@ $env:NPU_SEED_MODEL="deepseek-chat"                    # 可选
 | 公网隧道（推荐试用） | 手机 4G/5G、公众号回调、PWA 安装 | 是 | 扫码弹窗内「一键开启公网访问」（Cloudflare 临时隧道），或 Cloudflare Tunnel / ngrok / frp |
 | 云服务器 | 7×24 生产 | 是 | systemd + Caddy/Nginx 反代 + 定期备份 |
 
-**管理令牌**：设置环境变量 `NPU_ADMIN_TOKEN`（建议 ≥24 位随机串）后，除学生问答 `POST /api/chat`、只读 GET 与机器人 webhook 外的写操作都要求请求头 `X-Admin-Token`。手机在「设置 → 移动端与管理令牌」登录一次，令牌保存在 `localStorage`，所有 API 自动携带；收到 401 时会引导回设置页。未设置令牌时完全放行（仅限本机演示）；`-Lan` 启动会在未设置时自动生成并打印一个令牌。
+**管理令牌**：设置环境变量 `NPU_ADMIN_TOKEN`（建议 ≥24 位随机串）后，除学生问答 `POST /api/chat`、只读 GET 与机器人 webhook 外的写操作都要求请求头 `X-Admin-Token`。手机在「设置 → 移动端与管理令牌」登录一次，令牌保存在 `localStorage`，所有 API 自动携带；收到 401 时会引导回设置页。未设置令牌时完全放行（仅限本机演示）；`-Lan` 启动会在未设置时自动生成并打印一个令牌。**服务端未启用令牌时，也可以直接在设置页输入 ≥16 位随机令牌并保存，本机一键启用（持久化，无需重启），公网扫码按钮随后即可用。**
 
 ### 10.2 快速收录（手机 / 桌面通用）
 
@@ -341,7 +341,7 @@ cd backend
 ..\.venv\Scripts\python.exe -m pytest tests -q
 ```
 
-当前 **108 个用例全部通过**（约 45s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本 / 寒暄回复，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、body_html XSS 链接清洗、对话双层引用与降级、寒暄与闲聊意图（chitchat / 服务范围说明）、历史会话鉴权、移动端 URL/文本/批量收录与 SSRF/8MB/gzip/并发去重、手机扫码/二维码/一键公网隧道、管理员令牌、机器人安全（凭据脱敏、api_base 脱敏、webhook token、微信时间窗 + nonce 防重放、self_id、2MB body 上限、日志鉴权）、模型管理与系统设置。
+当前 **110 个用例全部通过**（约 39s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本 / 寒暄回复，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、body_html XSS 链接清洗、对话双层引用与降级、寒暄与闲聊意图（chitchat / 服务范围说明）、历史会话鉴权、移动端 URL/文本/批量收录与 SSRF/8MB/gzip/并发去重、手机扫码/二维码/一键公网隧道/首次启用服务端令牌、管理员令牌、机器人安全（凭据脱敏、api_base 脱敏、webhook token、微信时间窗 + nonce 防重放、self_id、2MB body 上限、日志鉴权）、模型管理与系统设置。
 
 服务启动后还可运行真实 HTTP 冒烟与前端交互检查：
 
