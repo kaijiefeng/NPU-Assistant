@@ -621,6 +621,10 @@
           <img src="../assets/manual/mobile-access.png" alt="手机扫码访问弹窗：二维码、访问地址和公网访问" loading="lazy" />
           <figcaption><b>图 10</b> 电脑端右上角「手机扫码」：二维码 + 访问地址 + 公网访问；手机扫码后在设置页填令牌（如需）。</figcaption>
         </figure>
+        <figure>
+          <img src="../assets/manual/mobile-access-tunnel.png" alt="一键开启公网访问后，二维码自动切换为 Cloudflare 临时隧道地址" loading="lazy" />
+          <figcaption><b>图 11</b> 点「一键开启公网访问」后：二维码自动切到 <code>https://*.trycloudflare.com</code>，并显示 HTTPS / PWA 标签。</figcaption>
+        </figure>
         <ol class="steps">
           <li><b>电脑启动服务（同一 Wi-Fi）</b><p><code>.\scripts\run.ps1 -Lan</code>；脚本会生成管理令牌并打印手机地址。</p></li>
           <li><b>电脑打开页面，点右上角「手机扫码」</b><p>弹窗里默认选第一个地址；如果不是电脑 Wi-Fi 的网段，点其他「局域网」地址切换二维码。</p></li>

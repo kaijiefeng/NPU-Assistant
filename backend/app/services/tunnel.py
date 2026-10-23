@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import atexit
 import logging
+import os
 import re
 import shutil
 import subprocess
@@ -20,6 +21,31 @@ from .. import config
 logger = logging.getLogger("npu-assistant")
 
 _TUNNEL_URL_RE = re.compile(r"https://[a-z0-9-]+\.trycloudflare\.com")
+
+
+def _resolve_binary() -> str | None:
+    """Find cloudflared via config, PATH, or common per-user install dirs."""
+    configured = (config.CLOUDFLARED_PATH or "cloudflared").strip()
+    if configured:
+        if Path(configured).is_file():
+            return str(Path(configured))
+        found = shutil.which(configured)
+        if found:
+            return found
+    candidates: list[Path] = []
+    local = os.environ.get("LOCALAPPDATA")
+    if local:
+        candidates.append(Path(local) / "cloudflared" / "cloudflared.exe")
+    candidates.extend(
+        [
+            Path(r"C:\Program Files\cloudflared\cloudflared.exe"),
+            Path(r"C:\Program Files (x86)\cloudflared\cloudflared.exe"),
+        ]
+    )
+    for path in candidates:
+        if path.is_file():
+            return str(path)
+    return None
 
 
 class TunnelError(RuntimeError):
@@ -36,13 +62,7 @@ class TunnelManager:
         self._reader: threading.Thread | None = None
 
     def available(self) -> bool:
-        path = (config.CLOUDFLARED_PATH or "cloudflared").strip()
-        if not path:
-            return False
-        resolved = shutil.which(path)
-        if resolved:
-            return True
-        return Path(path).is_file()
+        return _resolve_binary() is not None
 
     def status(self) -> dict:
         with self._lock:
@@ -68,7 +88,9 @@ class TunnelManager:
                 raise TunnelError(
                     "未安装 cloudflared，无法一键开启公网访问。可先安装：winget install Cloudflare.cloudflared"
                 )
-            path = (config.CLOUDFLARED_PATH or "cloudflared").strip()
+            path = _resolve_binary()
+            if not path:
+                raise TunnelError("未找到 cloudflared 可执行文件")
             command = [
                 path,
                 "tunnel",

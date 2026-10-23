@@ -42,6 +42,7 @@
 
 - 后端 pytest 108 项（新增手机访问/二维码/隧道 API 4 项）。
 - 前端扫码弹窗 23 项、机器人快速添加 12 项、390/1440 回归 19 项断言通过。
+- **真实 Cloudflare Quick Tunnel E2E 通过**（2026-10-23，cloudflared 2026.8.2）：启动耗时约 4.7s；公网 HTTPS 访问 `/api/health`、首页、`/manual/index.html` 均 200；无令牌写操作 401、带 `X-Admin-Token` 文本收录 201；停止后公网地址返回 502。自动检测 `%LOCALAPPDATA%\cloudflared\cloudflared.exe`，也支持 `NPU_CLOUDFLARED` 指定路径。
 
 ### 已知限制
 

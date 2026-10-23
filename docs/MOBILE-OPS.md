@@ -43,9 +43,11 @@
 |---|---|
 | `GET /api/mobile/access` | 返回 `preferred_url`、`urls[]`（public/tunnel/lan/current）、二维码 data URL、`token_required`、隧道状态 |
 | `GET /api/mobile/qr.png?url=…` | 生成指定地址的二维码 PNG（仅 http/https） |
-| `POST /api/mobile/tunnel/start` / `stop` | 一键开启/关闭 Cloudflare 临时隧道；有令牌时需管理员令牌，本机无令牌可直接操作 |
+| `POST /api/mobile/tunnel/start` / `stop` | 一键开启/关闭 Cloudflare 临时隧道；开启前需设置 `NPU_ADMIN_TOKEN`（`-Lan` 会自动生成），关闭可由本机操作 |
 
 **安全提示**：临时隧道地址是公网可访问的；开启前请确认已设置 `NPU_ADMIN_TOKEN`，使用完及时关闭。生产请使用命名隧道/反向代理 + HTTPS。
+
+> **真实隧道验收（2026-10-23）**：cloudflared 2026.8.2（自动检测 `%LOCALAPPDATA%\cloudflared\cloudflared.exe`）一键启动约 4.7s；公网 HTTPS 下 health/首页/使用手册 200，无令牌写操作 401、带令牌收录 201；停止后公网 502。未安装时弹窗会给出 `winget install Cloudflare.cloudflared` 安装提示。
 
 
 **鉴权**：设置 `NPU_ADMIN_TOKEN` 后，除「学生问答 `POST /api/chat`、只读 GET、机器人 webhook」外的所有写操作都要求请求头 `X-Admin-Token`。移动端在「设置 → 管理令牌」登录一次，令牌存 localStorage，所有 API 自动带上。未设置令牌时完全放行（仅限本机演示）。

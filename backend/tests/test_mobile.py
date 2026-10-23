@@ -40,7 +40,7 @@ def test_mobile_qr_png_and_validation(client):
 
 def test_tunnel_unavailable_reports_install_hint(client, monkeypatch):
     monkeypatch.setattr(config, "ADMIN_TOKEN", "mobile-test-token")
-    monkeypatch.setattr(config, "CLOUDFLARED_PATH", "definitely-not-installed-cloudflared")
+    monkeypatch.setattr(tunnel_module, "_resolve_binary", lambda: None)
     response = client.post(
         "/api/mobile/tunnel/start", headers={"X-Admin-Token": "mobile-test-token"}
     )
@@ -76,8 +76,8 @@ class _FakeProcess:
 
 
 def test_tunnel_start_and_stop_with_fake_cloudflared(client, monkeypatch):
-    monkeypatch.setattr(config, "CLOUDFLARED_PATH", "cloudflared")
     monkeypatch.setattr(config, "ADMIN_TOKEN", "mobile-test-token")
+    monkeypatch.setattr(tunnel_module, "_resolve_binary", lambda: r"C:\fake\cloudflared.exe")
     monkeypatch.setattr(tunnel_manager, "available", lambda: True)
     monkeypatch.setattr(tunnel_module.subprocess, "Popen", _FakeProcess)
     headers = {"X-Admin-Token": "mobile-test-token"}

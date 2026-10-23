@@ -227,3 +227,9 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 | 安全复审 4 项：机器人日志未鉴权、`api_base` 泄露凭据、微信 nonce 可重放、webhook 超大 body | bots.py：`GET /bots/logs` 加 `require_admin_token`；`api_base`/outbound `url` 去 userinfo+query+fragment 回显且 PUT 回填脱敏值不覆盖；微信 nonce 进程内防重放（TTL 330s/上限 1000，签名失败不消费）；OneBot/微信 webhook body 上限 2MB → 413 | test_bots 新增 5 条：日志 401/带令牌 200 且 webhook 不受影响、`api_base` 脱敏+PUT 保留原值+outbound url 脱敏、微信 GET/POST nonce 重放 403/换 nonce 200/坏签名不消费、空 nonce 登记放行、2MB 超限 413 |
 
 > 安全修复后全量 **104 passed**（v0.1.0）；v0.1.1 新增手机扫码/隧道测试后 **108 passed**（test_mobile 4）。
+
+### 9.7 v0.1.1 扫码联网 / 一键公网（2026-10-23 实测）
+
+- `GET /api/mobile/access` 返回局域网/公网地址与二维码 data URL；`GET /api/mobile/qr.png?url=…` 200。
+- 使用真实 cloudflared 2026.8.2：`POST /api/mobile/tunnel/start` 约 4.7s 返回 `https://*.trycloudflare.com`；公网 HTTPS 访问 health、首页、手册均 200；无令牌写操作 401，带 `X-Admin-Token` 文本收录 201；`POST /tunnel/stop` 后公网返回 502。
+- 前端 CDP：顶栏「手机扫码」弹窗打开、二维码加载、地址切换、一键开启后自动切换公网二维码并提示；机器人页 3 张快速添加卡、创建后 Webhook 指引正常；390/1440 无横向滚动、console 0 错误。
