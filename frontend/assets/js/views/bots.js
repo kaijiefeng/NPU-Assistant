@@ -49,7 +49,7 @@ const CHANNEL_TYPES = {
         key: 'admin_user_ids',
         label: '管理员账号',
         type: 'admin',
-        hint: '允许通过机器人收录资料的管理员 QQ 号，逗号分隔',
+        hint: '允许通过机器人收录资料的管理员 QQ 号，逗号分隔；发送 #帮助 可查看自己的用户 ID',
       },
       {
         key: 'group_mention_only',
@@ -80,7 +80,7 @@ const CHANNEL_TYPES = {
         key: 'admin_user_ids',
         label: '管理员账号',
         type: 'admin',
-        hint: '允许通过机器人收录资料的管理员 openid，逗号分隔',
+        hint: '允许通过机器人收录资料的管理员 openid，逗号分隔；发送 #帮助 可查看自己的用户 ID',
       },
     ],
     defaults: { token: '', app_id: '', welcome: '' },

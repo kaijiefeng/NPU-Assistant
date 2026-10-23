@@ -582,7 +582,26 @@
             </tbody>
           </table>
         </div>
-        <p class="callout warn"><b>安全：</b>只有加入 <code>admin_user_ids</code> 的账号才能触发收录。不要把机器人 token、管理员 ID 发到公开群；公众号 Token 必须与后台一致且不能使用公开默认值。</p>
+        <h3 style="margin-top:24px">谁算管理员？怎么区分？</h3>
+        <p>机器人不按昵称、群名片或“看起来像老师”来判断，而是按平台提供的<b>用户 ID</b> 精确匹配通道配置里的 <code>admin_user_ids</code>：</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>渠道</th><th>管理员 ID 是什么</th><th>怎么获取</th></tr></thead>
+            <tbody>
+              <tr><td>QQ（OneBot 11）</td><td>发送者的 QQ 号</td><td>用该 QQ 私聊机器人发送 <code>#帮助</code>，回复里会显示“你的用户 ID”</td></tr>
+              <tr><td>微信公众号</td><td>发送者的 openid（FromUserName）</td><td>给公众号发送 <code>#帮助</code>；或看后端日志 / 机器人消息日志</td></tr>
+              <tr><td>控制台调试</td><td>模拟时填写的用户 ID</td><td>仅本地调试使用，不是真实安全边界</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul>
+          <li><b>管理员：</b>ID 在 <code>admin_user_ids</code> 中 → 可直接转发链接、发 <code>#入库</code>/<code>#收录</code>/<code>#状态</code>；这些消息不会进入学生问答历史。</li>
+          <li><b>普通用户：</b>只能正常提问；发链接会被当作普通问题回答，不会入库；发 <code>#入库</code>/<code>#状态</code> 会收到“仅限管理员使用”。</li>
+          <li><b>管理员问普通问题</b>仍然走问答；只有“链接/收录命令”才触发入库。</li>
+          <li>每个通道单独配置：QQ 号和微信 openid 不是一回事；可以填多个，英文逗号分隔。</li>
+          <li>群聊默认必须 @ 机器人（<code>group_mention_only</code>）；配置管理员后在群里 @ 机器人转发链接同样有效。</li>
+        </ul>
+        <p class="callout warn"><b>安全：</b>管理员身份依赖平台回调的 <b>token/签名</b> 校验，不是靠昵称；未通过校验的伪造 webhook 会直接拒绝（OneBot 空 token 403、微信签名/时间窗/nonce 校验）。不要把机器人 token、管理员 ID 发到公开群；公众号 Token 必须与后台一致且不能使用公开默认值。</p>
       </div>
 
       <div class="card" id="counselor-model">

@@ -397,12 +397,17 @@ def _help_text(user_id: str = "", admin_configured: bool = False) -> str:
         "• #帮助：显示本说明",
         "说明：非管理员发送链接将按普通问题回答；公众号会先回复“已开始收录”，稍后到 Wiki 查看结果。",
     ]
-    if user_id and not admin_configured:
-        # 方便首次部署时把发送者 ID 填进通道配置 admin_user_ids
-        lines.append(
-            f"提示：当前通道尚未配置管理员。你的用户 ID 为 {user_id}，"
-            "填入通道配置 admin_user_ids 后即可启用收录。"
-        )
+    if user_id:
+        if admin_configured:
+            lines.append(
+                f"你的用户 ID：{user_id}（如需新增/更换管理员，请填入通道配置 admin_user_ids）"
+            )
+        else:
+            # 方便首次部署时把发送者 ID 填进通道配置 admin_user_ids
+            lines.append(
+                f"提示：当前通道尚未配置管理员。你的用户 ID 为 {user_id}，"
+                "填入通道配置 admin_user_ids 后即可启用收录。"
+            )
     return "\n".join(lines)
 
 
