@@ -10,7 +10,7 @@
  *
  * 说明：本文件由 index.html 通过 app.js 在 https 或 localhost 下注册。
  */
-const CACHE_VERSION = 'npu-assistant-static-v3';
+const CACHE_VERSION = 'npu-assistant-static-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
