@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="description" content="NPU-Assistant 校园助手使用手册：学生如何提问与查看引用，辅导员如何用手机快速收录资料、维护知识库和接入微信/QQ 机器人。" />
+<title>NPU-Assistant 校园助手 · 使用手册</title>
+<style>
+  :root {
+    --blue-900: #082b66;
+    --blue-800: #0b3d91;
+    --blue-600: #1f5cc4;
+    --blue-100: #e8f0ff;
+    --blue-50: #f3f7ff;
+    --ink: #1f2a44;
+    --ink-2: #3c4a63;
+    --muted: #64748b;
+    --line: #dfe7f2;
+    --bg: #f4f7fc;
+    --card: #ffffff;
+    --amber: #b45309;
+    --amber-bg: #fff8e6;
+    --green: #067647;
+    --green-bg: #ecfdf3;
+    --red: #b42318;
+    --red-bg: #fff1f0;
+    --radius: 18px;
+    --shadow: 0 10px 30px rgba(15, 35, 70, .07);
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.8;
+  }
+  a { color: var(--blue-600); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  img { max-width: 100%; height: auto; display: block; }
+  code {
+    background: #eef3fb;
+    color: #264a86;
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-family: "Cascadia Code", Consolas, monospace;
+    font-size: .88em;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 22px; }
+
+  /* ---------- 封面 ---------- */
+  .hero {
+    background:
+      radial-gradient(900px 420px at 88% -10%, rgba(122, 190, 255, .45), transparent 62%),
+      radial-gradient(620px 320px at 8% 110%, rgba(66, 133, 244, .28), transparent 60%),
+      linear-gradient(135deg, var(--blue-900), var(--blue-800) 55%, #1e59bd);
+    color: #fff;
+    padding: 54px 0 58px;
+    overflow: hidden;
+  }
+  .hero .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    align-items: center;
+    gap: 46px;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .14);
+    border: 1px solid rgba(255, 255, 255, .24);
+    font-size: 13px;
+    letter-spacing: .06em;
+  }
+  .hero h1 {
+    margin: 16px 0 12px;
+    font-size: clamp(34px, 5.2vw, 54px);
+    line-height: 1.16;
+    letter-spacing: -.01em;
+  }
+  .hero h1 small { display: block; font-size: .38em; font-weight: 500; opacity: .82; letter-spacing: .02em; margin-top: 10px; }
+  .hero p.lead { margin: 0 0 24px; max-width: 620px; font-size: 18px; color: rgba(255, 255, 255, .92); }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+  .hero-actions a {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px; border-radius: 12px; font-weight: 700; font-size: 15px;
+    background: #fff; color: var(--blue-800); text-decoration: none;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .18);
+  }
+  .hero-actions a.ghost {
+    background: rgba(255, 255, 255, .12); color: #fff;
+    border: 1px solid rgba(255, 255, 255, .38); box-shadow: none;
+  }
+  .hero-meta { margin: 0; font-size: 13px; color: rgba(255, 255, 255, .7); }
+  .hero-phone {
+    justify-self: end; width: 280px; border-radius: 30px; overflow: hidden;
+    border: 8px solid rgba(255, 255, 255, .22);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .35);
+    background: #fff;
+  }
+  .hero-phone img { width: 100%; }
+
+  /* ---------- 布局 ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 38px;
+    align-items: start;
+    padding: 44px 0 70px;
+  }
+  .toc {
+    position: sticky; top: 20px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px 18px 12px;
+    box-shadow: var(--shadow);
+    max-height: calc(100vh - 40px);
+    overflow: auto;
+    font-size: 14px;
+  }
+  .toc h2 { margin: 0 0 10px; font-size: 13px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+  .toc ol { margin: 0; padding: 0; list-style: none; }
+  .toc li { margin: 2px 0; }
+  .toc a { display: block; padding: 6px 8px; border-radius: 8px; color: var(--ink-2); }
+  .toc a:hover { background: var(--blue-50); color: var(--blue-800); text-decoration: none; }
+  .toc .group { margin-top: 12px; padding: 6px 8px; font-size: 12px; font-weight: 800; color: var(--blue-800); letter-spacing: .06em; }
+  .toc .sub a { padding-left: 18px; font-size: 13px; }
+
+  article { min-width: 0; }
+  section { scroll-margin-top: 22px; margin-bottom: 46px; }
+  section > h2 {
+    display: flex; align-items: center; gap: 12px;
+    margin: 0 0 6px; font-size: 25px; line-height: 1.3; letter-spacing: -.01em;
+  }
+  section > h2 .num {
+    flex: none; width: 38px; height: 38px; border-radius: 12px;
+    display: inline-grid; place-items: center;
+    background: var(--blue-800); color: #fff; font-size: 16px; font-weight: 800;
+    box-shadow: 0 6px 16px rgba(11, 61, 145, .25);
+  }
+  section > p.section-lead { margin: 0 0 20px 50px; color: var(--muted); font-size: 15px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 24px 26px; box-shadow: var(--shadow);
+  }
+  .card + .card { margin-top: 16px; }
+  .card h3 { margin: 0 0 10px; font-size: 18px; }
+  .card p:last-child { margin-bottom: 0; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .mini {
+    background: var(--blue-50); border: 1px solid #dce8fb; border-radius: 14px;
+    padding: 16px 18px;
+  }
+  .mini .ico { font-size: 24px; line-height: 1; }
+  .mini h4 { margin: 8px 0 4px; font-size: 16px; }
+  .mini p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  .flow {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;
+    margin-top: 16px; counter-reset: step;
+  }
+  .flow div {
+    position: relative; background: #fff; border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px 16px 14px 46px; font-size: 14px; color: var(--ink-2);
+  }
+  .flow div::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; left: 14px; top: 15px; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--blue-100); color: var(--blue-800); font-weight: 800; font-size: 12px;
+    display: grid; place-items: center;
+  }
+  .flow b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 2px; }
+
+  /* 步骤 */
+  .steps { counter-reset: s; margin: 6px 0 0; padding: 0; list-style: none; }
+  .steps li { position: relative; padding: 0 0 18px 42px; border-left: 2px solid #e3ebf8; margin-left: 12px; }
+  .steps li:last-child { border-left-color: transparent; padding-bottom: 0; }
+  .steps li::before {
+    counter-increment: s; content: counter(s);
+    position: absolute; left: -15px; top: -2px; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--blue-800); color: #fff; font-weight: 800; font-size: 14px;
+    display: grid; place-items: center; box-shadow: 0 4px 10px rgba(11, 61, 145, .28);
+  }
+  .steps li b { display: block; margin-bottom: 2px; }
+  .steps li p { margin: 0; color: var(--ink-2); font-size: 15px; }
+  .steps li .hint { color: var(--muted); font-size: 13.5px; }
+
+  /* 提示块 */
+  .callout { border-radius: 14px; padding: 14px 18px; margin: 16px 0; font-size: 14.5px; border: 1px solid; }
+  .tip { background: var(--blue-50); border-color: #d5e4fb; color: #24457d; }
+  .warn { background: var(--amber-bg); border-color: #f3dfb0; color: #7a4b06; }
+  .danger { background: var(--red-bg); border-color: #ffd4cf; color: #8a2017; }
+  .ok { background: var(--green-bg); border-color: #c6efd8; color: #08633d; }
+  .callout b { font-weight: 800; }
+
+  /* 图片 */
+  figure { margin: 22px 0; }
+  figure img { border-radius: 14px; border: 1px solid var(--line); box-shadow: var(--shadow); }
+  figure.small { max-width: 760px; }
+  figure.phone { max-width: 320px; margin-left: auto; margin-right: auto; }
+  figure.phone img { border-radius: 22px; border: 7px solid #e7edf7; }
+  figcaption { margin-top: 10px; font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+  figcaption b { color: var(--ink-2); }
+  .gif { border-radius: 16px; border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .gif-frame { display: inline-block; padding: 8px; background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+  .gif-frame img { border-radius: 12px; }
+  .gif-caption { margin: 10px 0 0; font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+  .shot-wide { width: 100%; }
+
+  /* 表格 */
+  .table-wrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--line); border-radius: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; background: #fff; }
+  th, td { padding: 11px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { background: #f7faff; color: var(--ink-2); font-size: 13px; letter-spacing: .01em; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.good { color: var(--green); }
+  td.bad { color: var(--red); }
+
+  /* 键盘/命令 */
+  kbd {
+    display: inline-block; padding: 1px 7px; border-radius: 6px;
+    border: 1px solid #c9d5e8; border-bottom-width: 2px; background: #fff;
+    font-family: inherit; font-size: 12.5px; color: var(--ink-2);
+  }
+  pre {
+    margin: 12px 0; padding: 14px 16px; border-radius: 12px; background: #0d2144; color: #dce8ff;
+    overflow-x: auto; font-size: 13.5px; line-height: 1.65;
+  }
+  pre code { background: transparent; color: inherit; padding: 0; }
+
+  /* FAQ */
+  details.faq {
+    background: #fff; border: 1px solid var(--line); border-radius: 12px;
+    padding: 0 18px; margin: 10px 0; box-shadow: 0 3px 10px rgba(15, 35, 70, .04);
+  }
+  details.faq summary {
+    cursor: pointer; padding: 14px 0; font-weight: 700; color: var(--ink-2);
+    list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  }
+  details.faq summary::-webkit-details-marker { display: none; }
+  details.faq summary::after { content: "+"; font-size: 22px; color: var(--blue-600); font-weight: 400; }
+  details.faq[open] summary::after { content: "−"; }
+  details.faq .answer { padding: 0 0 16px; color: var(--ink-2); font-size: 15px; }
+  details.faq .answer p:first-child { margin-top: 0; }
+  details.faq .answer p:last-child { margin-bottom: 0; }
+
+  /* 标签/徽章 */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: 999px; background: var(--blue-50);
+    color: var(--blue-800); font-size: 13px; border: 1px solid #dbe8fb;
+  }
+  .checklist { list-style: none; margin: 12px 0 0; padding: 0; }
+  .checklist li { position: relative; padding-left: 30px; margin: 9px 0; color: var(--ink-2); }
+  .checklist li::before {
+    content: "✓"; position: absolute; left: 0; top: 1px; width: 20px; height: 20px;
+    border-radius: 50%; background: var(--green-bg); color: var(--green);
+    display: grid; place-items: center; font-size: 12px; font-weight: 800;
+  }
+
+  .divider { height: 1px; background: var(--line); margin: 34px 0; }
+  .back { font-size: 13px; color: var(--muted); }
+  footer {
+    background: #0b1c3a; color: rgba(255,255,255,.72); font-size: 13.5px;
+    padding: 26px 0; text-align: center;
+  }
+  footer a { color: #cfe0ff; }
+
+  @media (max-width: 980px) {
+    .hero .wrap { grid-template-columns: 1fr; gap: 28px; }
+    .hero-phone { justify-self: start; width: 220px; }
+    .layout { grid-template-columns: 1fr; gap: 22px; }
+    .toc { position: static; max-height: none; }
+    .toc ol { display: flex; flex-wrap: wrap; gap: 4px; }
+    .toc li { margin: 0; }
+    .toc .sub { display: none; }
+  }
+  @media (max-width: 680px) {
+    body { font-size: 15px; }
+    .wrap { padding: 0 16px; }
+    .hero { padding: 36px 0 42px; }
+    .hero-phone { width: 180px; }
+    .grid-3, .grid-2, .flow { grid-template-columns: 1fr; }
+    .card { padding: 18px; }
+    section > h2 { font-size: 21px; }
+    section > p.section-lead { margin-left: 0; }
+    .toc { display: none; }
+    figure.phone { max-width: 260px; }
+  }
+  @media print {
+    body { background: #fff; font-size: 12pt; }
+    .hero { background: #0b3d91 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .toc, .hero-actions, footer { display: none; }
+    .layout { display: block; padding: 0; }
+    section { page-break-inside: avoid; }
+    figure, .card, details.faq { page-break-inside: avoid; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">NPU-Assistant · 校园助手</span>
+      <h1>使用手册<small>提问 · 查引用 · 收资料 · 管知识库</small></h1>
+      <p class="lead">
+        给同学：像问辅导员一样提问，回答标注真实出处。<br />
+        给辅导员：在手机上把网页、公众号、微信/QQ 里的资料一键收进知识库。
+      </p>
+      <div class="hero-actions">
+        <a href="#student">我是学生 →</a>
+        <a class="ghost" href="#counselor">我是辅导员 →</a>
+      </div>
+      <p class="hero-meta">手机 / 电脑都能用 · 2026 年 10 月版 · 阅读约 15 分钟</p>
+    </div>
+    <div class="hero-phone">
+      <img src="../assets/manual/student-mobile-chat.png" alt="手机打开校园助手后的欢迎页" />
+    </div>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <aside class="toc" aria-label="目录">
+    <h2>目录</h2>
+    <ol>
+      <li><a href="#intro">〇、先认识它</a></li>
+      <li class="group">学生篇</li>
+      <li class="sub"><a href="#student-open">1. 打开助手</a></li>
+      <li class="sub"><a href="#student-ask">2. 提一个好问题</a></li>
+      <li class="sub"><a href="#student-cite">3. 看懂回答和引用</a></li>
+      <li class="sub"><a href="#student-fallback">4. 没有答案怎么办</a></li>
+      <li class="sub"><a href="#student-privacy">5. 隐私与注意</a></li>
+      <li class="group">辅导员篇</li>
+      <li class="sub"><a href="#counselor-token">6. 登录管理令牌</a></li>
+      <li class="sub"><a href="#counselor-capture">7. 手机快速收录</a></li>
+      <li class="sub"><a href="#counselor-check">8. 检查收录结果</a></li>
+      <li class="sub"><a href="#counselor-bot">9. 微信 / QQ 机器人</a></li>
+      <li class="sub"><a href="#counselor-model">10. 模型与设置</a></li>
+      <li class="sub"><a href="#counselor-backup">11. 备份与恢复</a></li>
+      <li class="sub"><a href="#counselor-deploy">12. 手机 / 公网访问</a></li>
+      <li class="group">附录</li>
+      <li><a href="#faq">常见问题</a></li>
+      <li><a href="#glossary">术语表</a></li>
+      <li><a href="#security">安全清单</a></li>
+    </ol>
+  </aside>
+
+  <article>
+    <!-- ============ 0 ============ -->
+    <section id="intro">
+      <h2><span class="num">0</span>先认识它：这不是普通聊天机器人</h2>
+      <p class="section-lead">它把学校文件“编译”成结构化的 Wiki 词条，回答时再回到原始文件核对。所以它能告诉你“依据是哪份文件的哪一段”。</p>
+
+      <div class="grid-3">
+        <div class="mini">
+          <div class="ico">💬</div>
+          <h4>像问辅导员一样提问</h4>
+          <p>奖助学金、请假考勤、宿舍、心理、就业、档案……用日常话说就行。</p>
+        </div>
+        <div class="mini">
+          <div class="ico">🔎</div>
+          <h4>每个回答都带出处</h4>
+          <p>回答里的 <b>[1]</b> 可以展开为“词条 + 原始文件 + 章节 + 原文摘录”。</p>
+        </div>
+        <div class="mini">
+          <div class="ico">📥</div>
+          <h4>资料随时能补</h4>
+          <p>辅导员在手机上贴链接、粘文字或上传文件，几分钟后就能被问到。</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h3>它是怎么工作的？</h3>
+        <div class="flow">
+          <div><b>源文件</b>学校通知、制度文件、FAQ、公众号文章</div>
+          <div><b>编译成词条</b>LLM 按章节整理，并保留原文锚点</div>
+          <div><b>带引用回答</b>先找词条，再核对原文，最后回答你</div>
+        </div>
+        <p class="callout tip" style="margin-bottom:0">
+          <b>重要：</b>词条只是索引，最终以原始文件为准。回答末尾也会提醒“以学校官方通知为准”。
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 学生篇 ============ -->
+    <section id="student">
+      <h2><span class="num">学</span>学生篇：问问题、看引用</h2>
+      <p class="section-lead">不需要安装 App，用手机浏览器或电脑浏览器打开同一个地址即可。</p>
+
+      <div class="card" id="student-open">
+        <h3>1. 打开助手</h3>
+        <ol class="steps">
+          <li><b>用手机或电脑浏览器打开老师给的地址</b><p>例如 <code>https://xxx.edu.cn</code> 或机房内网地址；第一次打开可能需要几秒加载。</p></li>
+          <li><b>看到“你好，我是小南”就说明已连上</b><p>下方会列出常见问题快捷入口，点一下就能直接提问。</p></li>
+          <li><b>想放到桌面？</b><p>iPhone 用 Safari 打开 → 分享 → “添加到主屏幕”；Android 用 Chrome 菜单 → “安装应用 / 添加到主屏幕”。<span class="hint">需要 HTTPS 地址才支持安装；普通 HTTP 只能当网页用。</span></p></li>
+        </ol>
+        <figure class="phone">
+          <img src="../assets/manual/student-mobile-chat.png" alt="手机端欢迎页，显示快捷问题和输入框" loading="lazy" />
+          <figcaption><b>图 1</b> 手机打开后的欢迎页：中间是快捷问题，底部是输入框。</figcaption>
+        </figure>
+      </div>
+
+      <div class="card" id="student-ask">
+        <h3>2. 提一个好问题</h3>
+        <p>在底部输入框输入问题，点“发送”或按 <kbd>Enter</kbd>。回答通常需要 2–10 秒。</p>
+        <div class="gif-frame">
+          <img class="gif" src="../assets/manual/student-ask.gif" alt="动图：输入问题、发送并看到回答和引用" loading="lazy" />
+        </div>
+        <p class="gif-caption">动图：输入“国家奖学金怎么申请？需要哪些材料？”→ 发送 → 看到回答和引用。实际回答速度取决于网络和模型。</p>
+
+        <h3 style="margin-top:24px">这样问，更容易得到准确回答</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>推荐问法</th><th>不太推荐</th></tr></thead>
+            <tbody>
+              <tr><td class="good">国家奖学金申请需要哪些材料？</td><td class="bad">怎么办</td></tr>
+              <tr><td class="good">病假需要什么证明？请假流程是什么？</td><td class="bad">这个怎么弄</td></tr>
+              <tr><td class="good">心理中心怎么预约？在哪个楼？</td><td class="bad">我很难受（紧急情况请直接联系辅导员/心理热线）</td></tr>
+              <tr><td class="good">毕业生档案和报到证怎么办？</td><td class="bad">帮我写一篇论文</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="callout tip"><b>小技巧：</b>一次只问一件事；如果回答不够具体，可以继续追问“那需要去哪个办公室？”“截止时间是什么时候？”。</p>
+        <p class="callout warn"><b>不要发送：</b>身份证号、银行卡号、密码、验证码、未公开的个人隐私。助手不是人工客服，紧急事项请直接找辅导员。</p>
+      </div>
+
+      <div class="card" id="student-cite">
+        <h3>3. 看懂回答和引用</h3>
+        <p>回答里的蓝色编号 <b>[1]</b> 和底部的“引用词条”卡片就是出处。点开卡片，可以一层层看到原始文件。</p>
+        <figure class="small">
+          <img src="../assets/manual/student-chat-annotated.png" alt="电脑端对话界面：输入框、回答、引用卡片和历史会话" loading="lazy" />
+          <figcaption><b>图 2</b> 电脑端：① 输入框　② 引用词条卡片　③ 历史会话。手机上布局会自动变成单列。</figcaption>
+        </figure>
+        <figure class="small">
+          <img src="../assets/manual/citation-card.png" alt="引用卡片放大：显示词条名称和来源数量" loading="lazy" />
+          <figcaption><b>图 3</b> 引用卡片放大：点击“国家奖学金”可查看词条正文、来源文件和原文摘录。</figcaption>
+        </figure>
+        <ol class="steps">
+          <li><b>先看回答</b><p>把回答当作“快速导航”，不要当作最终法律/政策文本。</p></li>
+          <li><b>点开引用</b><p>展开后能看到：来自哪个词条、哪份文件、哪个章节、原文摘录。</p></li>
+          <li><b>核对原文</b><p>如果回答和原文有冲突，以原始文件/学校最新通知为准，并可反馈给辅导员。</p></li>
+        </ol>
+      </div>
+
+      <div class="card" id="student-fallback">
+        <h3>4. 没有答案、回答不准怎么办</h3>
+        <ul>
+          <li><b>看到“暂未收录”：</b>说明知识库暂时没有这份资料。换一个关键词再试，或把问题告诉辅导员，请他把文件收进知识库。</li>
+          <li><b>回答和你知道的不一样：</b>点开引用核对原文；如果原文也过时了，请辅导员更新源文件后“重新编译”。</li>
+          <li><b>问到个人办理进度、成绩、处分等：</b>助手查不到个人系统，请直接联系辅导员或对应部门。</li>
+          <li><b>心理危机/人身安全：</b>不要等助手回答，立即联系辅导员、心理中心或拨打急救/心理热线。</li>
+        </ul>
+        <p class="callout ok"><b>一句话原则：</b>助手负责“帮你快速找到文件里怎么说”，最终解释权在学校。</p>
+      </div>
+
+      <div class="card" id="student-privacy">
+        <h3>5. 隐私与注意</h3>
+        <ul class="checklist">
+          <li>不要输入身份证号、银行卡、密码、验证码等敏感信息。</li>
+          <li>聊天记录会保存在学校部署的服务器上，管理员为运维需要可以查看；请只问与校园事务相关的问题。</li>
+          <li>回答由 AI 生成，可能有误；涉及钱、处分、毕业、档案等，务必以官方通知为准。</li>
+          <li>如果不想保留记录，可以点“新建会话”开始新对话（历史记录是否可删由管理员配置）。</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ 辅导员篇 ============ -->
+    <section id="counselor">
+      <h2><span class="num">辅</span>辅导员篇：把资料收进知识库</h2>
+      <p class="section-lead">第一次使用只需登录一次令牌；之后在手机上就能完成 90% 的日常维护。</p>
+
+      <div class="card" id="counselor-token">
+        <h3>6. 第一次使用：登录管理令牌</h3>
+        <p>管理令牌相当于“管理员密码”，由部署老师设置（环境变量 <code>NPU_ADMIN_TOKEN</code>）。手机只需填一次，之后自动记住。</p>
+        <figure class="small">
+          <img src="../assets/manual/token-card.png" alt="设置页的移动端与管理令牌卡片" loading="lazy" />
+          <figcaption><b>图 4</b> 设置页 →「移动端与管理令牌」：粘贴令牌 → 保存令牌。</figcaption>
+        </figure>
+        <ol class="steps">
+          <li><b>打开「设置」页</b><p>手机底部菜单或左侧栏找到“设置”。</p></li>
+          <li><b>找到「移动端与管理令牌」卡片</b><p>输入管理员给的令牌（一长串字母数字），点“保存令牌”。</p></li>
+          <li><b>看到“已保存令牌（N 字符）· 服务端已启用令牌校验”</b><p>说明登录成功；可以点“测试连接”再确认一次。</p></li>
+          <li><b>如果提示 401 / 需要管理员令牌</b><p>回到这里重新填写；注意不要多复制空格，也不要把它发到群里。</p></li>
+        </ol>
+        <p class="callout warn"><b>安全：</b>令牌只保存在当前浏览器；换手机/换浏览器需要重新填。不要把令牌截图发群或写进公开文档。</p>
+      </div>
+
+      <div class="card" id="counselor-capture">
+        <h3>7. 手机快速收录：链接、文本、文件</h3>
+        <p>打开「知识库」页，最上方就是“快速收录”卡片。它是手机端最常用的功能。</p>
+        <figure class="phone" style="max-width:300px">
+          <img src="../assets/manual/quick-import.png" alt="手机知识库页的快速收录卡片：链接、文本、文件三个标签" loading="lazy" />
+          <figcaption><b>图 5</b> 快速收录：① 选“链接/文本/文件”　② 粘贴链接或正文　③ 点“收录链接”　④ 查看逐条结果。</figcaption>
+        </figure>
+        <div class="gif-frame" style="display:block;width:fit-content;margin:18px auto 0">
+          <img class="gif" src="../assets/manual/quick-import.gif" alt="动图：手机粘贴链接并看到收录成功结果" loading="lazy" style="max-width:330px" />
+        </div>
+        <p class="gif-caption">动图：粘贴学校官网链接 → 点“收录链接” → 几秒后显示“已收录《西北工业大学》· 生成 1 个词条”。</p>
+
+        <h3 style="margin-top:24px">三种收录方式怎么选</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>方式</th><th>适合</th><th>操作要点</th></tr></thead>
+            <tbody>
+              <tr><td><b>链接</b></td><td>学校官网/部门网页/公众号文章</td><td>一行一个，最多 5 条；可加标签；逐条显示成功/重复/失败原因。</td></tr>
+              <tr><td><b>文本</b></td><td>微信里复制的通知、公众号正文、没有网页的资料</td><td>填标题（可留空取首行）+ 正文（至少 30 字），点“收录文本”。</td></tr>
+              <tr><td><b>文件</b></td><td>Word / PDF / Excel / Markdown / TXT / HTML</td><td>点“文件”标签选择文件，≤20MB；上传后自动编译。</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="callout tip"><b>微信里的文章：</b>可以直接复制链接粘贴；如果提示“微信验证/反爬页面”或“内容过大”，在微信中打开文章 → 复制全文 → 用“文本”方式粘贴正文，最稳。</p>
+
+        <h3 style="margin-top:22px">常见失败原因</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>提示</th><th>原因</th><th>怎么办</th></tr></thead>
+            <tbody>
+              <tr><td>网页内容过大（上限 8MB）</td><td>文章内嵌图片/脚本太多</td><td>改用“文本”粘贴正文；或请部署老师调大 <code>NPU_URL_IMPORT_MAX_BYTES</code>。</td></tr>
+              <tr><td>微信验证/反爬页面</td><td>公众号限制服务器抓取</td><td>复制正文用“文本”收录。</td></tr>
+              <tr><td>重复</td><td>这个链接已经收过</td><td>不会重复编译；直接打开已有词条即可。</td></tr>
+              <tr><td>需要管理员令牌 / 401</td><td>令牌没填或失效</td><td>到“设置 → 移动端与管理令牌”重新填写。</td></tr>
+              <tr><td>无法解析域名 / 超时</td><td>链接写错、网络不稳、网站限制</td><td>检查链接能否在浏览器公开打开；稍后重试。</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" id="counselor-check">
+        <h3>8. 检查收录结果：源文件列表</h3>
+        <p>收录成功后，知识库的“源文件”标签会多出一条记录；状态为“已就绪”就表示已经编译完成，可以被学生问到。</p>
+        <figure class="phone">
+          <img src="../assets/manual/source-list.png" alt="手机端源文件列表：状态、词条数、操作按钮" loading="lazy" />
+          <figcaption><b>图 6</b> 源文件列表：状态“已就绪/失败”、词条数、大小、更新时间，以及查看词条 / 重新编译 / 删除。</figcaption>
+        </figure>
+        <ul>
+          <li><b>已就绪：</b>可以直接用；点“眼睛”查看由它生成的词条。</li>
+          <li><b>失败：</b>点“刷新”图标重新编译；失败原因会显示在卡片上（如模型未配置、文件格式不支持）。</li>
+          <li><b>删除：</b>会删除源文件和由它生成的词条；删除前会二次确认，种子资料请谨慎操作。</li>
+          <li><b>全部重建：</b>模型更换或大量文件更新后使用；需要等待轮询完成，不要重复点击。</li>
+        </ul>
+        <p class="callout tip"><b>建议：</b>每次收录后顺手点开生成的词条，检查标题、正文和来源是否对得上；有问题就“重新编译”或换文本方式。</p>
+      </div>
+
+      <div class="card" id="counselor-bot">
+        <h3>9. 微信 / QQ 机器人：转发链接就能收录</h3>
+        <p>辅导员在 QQ 或微信里把文章链接转发给机器人，机器人自动收录并回复结果；学生也可以直接在 QQ/微信里提问。</p>
+        <figure>
+          <img src="../assets/manual/bots-page.png" alt="机器人管理页：QQ、微信公众号和控制台调试通道" loading="lazy" />
+          <figcaption><b>图 7</b> 机器人页：添加 QQ（OneBot 11）/ 微信公众号通道；没有外部账号时可用“控制台调试通道”先体验。</figcaption>
+        </figure>
+        <ol class="steps">
+          <li><b>添加通道</b><p>QQ：NapCat / go-cqhttp 等 OneBot 11 实现；微信：公众号后台。填写 token、管理员工号/openid。</p></li>
+          <li><b>把 Webhook 填到平台</b><p>通道卡片会生成 Webhook 地址；复制到 NapCat 或公众号后台。</p></li>
+          <li><b>管理员转发链接</b><p>在 QQ/微信私聊机器人发送文章链接，或发送 <code>#入库 链接</code>。</p></li>
+          <li><b>查看结果</b><p>QQ 会直接回复“已收录”；微信 5 秒内先回“已开始收录”，结果到知识库页查看。</p></li>
+        </ol>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>发送内容</th><th>效果</th></tr></thead>
+            <tbody>
+              <tr><td><code>https://…</code></td><td>自动识别并收录该链接</td></tr>
+              <tr><td><code>#入库 https://…</code></td><td>显式收录（链接不在开头时使用）</td></tr>
+              <tr><td><code>#状态</code></td><td>查看词条数、源文件数、默认模型</td></tr>
+              <tr><td><code>#帮助</code></td><td>查看可用命令和你的用户 ID</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="callout warn"><b>安全：</b>只有加入 <code>admin_user_ids</code> 的账号才能触发收录。不要把机器人 token、管理员 ID 发到公开群；公众号 Token 必须与后台一致且不能使用公开默认值。</p>
+      </div>
+
+      <div class="card" id="counselor-model">
+        <h3>10. 模型与设置</h3>
+        <p>“模型”页用来选择回答和编译使用的 AI 模型。通常部署时已经配好，日常不需要改。</p>
+        <figure>
+          <img src="../assets/manual/models-page.png" alt="模型管理页：Provider、模型和默认模型" loading="lazy" />
+          <figcaption><b>图 8</b> 模型页：配置 Provider（如 DeepSeek）、选择默认模型、测试连接。API Key 只保存在服务器，不要在群里传播。</figcaption>
+        </figure>
+        <ul>
+          <li><b>换模型：</b>选一个已启用的模型，点“设为默认”；下次对话生效。</li>
+          <li><b>测试连接：</b>失败先检查 Key、余额、网络；不会把 Key 显示在页面。</li>
+          <li><b>设置页：</b>可以改辅导员名字、快捷问题、引用开关、回复尾注，改完记得保存。</li>
+        </ul>
+      </div>
+
+      <div class="card" id="counselor-backup">
+        <h3>11. 备份与恢复</h3>
+        <p>知识库和聊天记录都在 <code>backend/data</code> 下。建议每周备份一次，重要更新前也备份。</p>
+        <pre><code># 在项目根目录运行（Windows PowerShell）
+.\scripts\backup.ps1
+
+# 备份文件会生成在 backups\ 下，包含：
+#   app.db（数据库）、uploads\（源文件副本）、wiki_seed.json（预编译快照）</code></pre>
+        <ul>
+          <li>把备份压缩包复制到网盘/移动硬盘，不要只留在本机。</li>
+          <li>恢复：先停止服务 → 用备份替换 <code>backend/data/app.db</code> 和 <code>uploads</code> → 再启动。</li>
+          <li>更换电脑/重装系统前，务必先备份。</li>
+        </ul>
+        <p class="callout warn"><b>不要</b>在服务运行时直接复制数据库文件；请用 <code>backup.ps1</code>（它会做一致性快照）。</p>
+      </div>
+
+      <div class="card" id="counselor-deploy">
+        <h3>12. 手机 / 公网访问</h3>
+        <p>手机和电脑用的是同一个服务，不需要单独安装“移动端”。部署老师启动时加 <code>-Lan</code> 就会同时开放手机访问并打印地址和令牌。</p>
+        <pre><code># 电脑和手机在同一 Wi-Fi：一条命令启动
+.\scripts\run.ps1 -Lan
+
+# 输出会包含：
+#   本机访问: http://127.0.0.1:8000
+#   手机访问: Wi-Fi: http://192.168.x.x:8000
+#   管理令牌: 一长串随机字符（手机设置页填入）</code></pre>
+        <ul>
+          <li><b>手机打不开：</b>确认同一 Wi-Fi；用打印出的 Wi-Fi 地址；首次需放行防火墙；服务是否在运行。</li>
+          <li><b>PWA 安装：</b>需要 HTTPS。局域网 HTTP 只能当网页用；公网建议 Cloudflare Tunnel / Nginx 反代。</li>
+          <li><b>公网：</b>必须设置强随机 <code>NPU_ADMIN_TOKEN</code>，并加 HTTPS；不要把 8000 裸端口直接映射到公网。</li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ============ FAQ ============ -->
+    <section id="faq">
+      <h2><span class="num">?</span>常见问题</h2>
+      <p class="section-lead">先在这里找答案；解决不了再联系部署老师。</p>
+
+      <details class="faq"><summary>手机打不开页面 / 一直转圈</summary><div class="answer">
+        <p>① 确认手机和电脑在同一个 Wi-Fi；② 用启动脚本打印的 <b>Wi-Fi</b> 地址，不要用 127.0.0.1；③ 首次使用需在电脑上放行防火墙 8000 端口；④ 确认服务仍在运行（电脑上不要关窗口）。</p>
+      </div></details>
+
+      <details class="faq"><summary>提示“该操作需要管理员令牌” / 401</summary><div class="answer">
+        <p>到「设置 → 移动端与管理令牌」粘贴令牌并保存，然后重试。令牌由部署老师提供；如果服务重启后令牌变了（例如用 <code>-Lan</code> 每次自动生成），需要重新填一次。令牌输入时注意不要带空格。</p>
+      </div></details>
+
+      <details class="faq"><summary>链接收录失败 / 提示超过 8MB</summary><div class="answer">
+        <p>公众号文章、带大量图片的页面可能超过抓取上限。最稳的办法：在微信中打开文章 → 复制全文 → 回到知识库用“文本”方式粘贴正文。确实需要抓大页面时，请部署老师调大 <code>NPU_URL_IMPORT_MAX_BYTES</code>。</p>
+      </div></details>
+
+      <details class="faq"><summary>公众号文章提示“微信验证/反爬页面”</summary><div class="answer">
+        <p>微信会限制服务器抓取。复制文章正文，用“文本”收录即可；不要反复重试同一链接。</p>
+      </div></details>
+
+      <details class="faq"><summary>为什么回答里没有引用？</summary><div class="answer">
+        <p>闲聊/问候类问题会直接回答，不引用资料；如果问题涉及校园政策但知识库确实没有，会提示“暂未收录”。另外，管理员可以在设置中关闭“引用展示”，此时引用区不显示但回答仍来自知识库。</p>
+      </div></details>
+
+      <details class="faq"><summary>手机上找不到“安装到桌面”</summary><div class="answer">
+        <p>PWA 安装需要 HTTPS（或 localhost）。局域网 HTTP 地址只能当网页使用；iPhone 需用 Safari：分享 → 添加到主屏幕。Android Chrome：右上角菜单 → 安装应用/添加到主屏幕。</p>
+      </div></details>
+
+      <details class="faq"><summary>聊天记录谁能看到？</summary><div class="answer">
+        <p>记录保存在学校部署的服务器；配置了管理令牌时，历史会话只有管理员能查看。请不要发送身份证号、密码、银行卡等敏感信息；紧急事项直接联系辅导员。</p>
+      </div></details>
+
+      <details class="faq"><summary>收录后多久能被学生问到？</summary><div class="answer">
+        <p>文本/文件通常几秒到十几秒；网页需要先抓取再编译。看到源文件状态“已就绪”即可。失败可点“重新编译”，或改用文本方式。</p>
+      </div></details>
+
+      <details class="faq"><summary>删除源文件会怎样？</summary><div class="answer">
+        <p>会同时删除由它生成的词条，并可能影响引用这些词条的回答。删除前会二次确认；种子资料（示例文件）受保护，不能直接删除。建议先备份。</p>
+      </div></details>
+    </section>
+
+    <!-- ============ 术语 ============ -->
+    <section id="glossary">
+      <h2><span class="num">A</span>术语表</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>词</th><th>在这里是什么意思</th></tr></thead>
+          <tbody>
+            <tr><td><b>LLM Wiki</b></td><td>把原始文件用大模型整理成结构化“词条”的知识库方式；回答时先找词条，再回原文核对。</td></tr>
+            <tr><td><b>词条</b></td><td>一份文件编译出的结构化页面，例如“国家奖学金”“请假办理流程”。一个文件可生成多个词条。</td></tr>
+            <tr><td><b>来源锚点</b></td><td>词条对应的“文件 + 章节 + 原文摘录”，用来核对回答依据。</td></tr>
+            <tr><td><b>引用 [1]</b></td><td>回答中的编号，对应下方引用卡片；点开可看词条和原始文件。</td></tr>
+            <tr><td><b>管理令牌</b></td><td>管理员写操作的口令（<code>NPU_ADMIN_TOKEN</code>）；手机登录一次后自动携带。</td></tr>
+            <tr><td><b>源文件</b></td><td>上传/收录进来的原始资料；是知识库唯一事实来源。</td></tr>
+            <tr><td><b>重新编译</b></td><td>源文件更新后，让 AI 重新生成词条；不会丢失原文件。</td></tr>
+            <tr><td><b>PWA</b></td><td>可“安装到桌面”的网页应用；需要 HTTPS。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 安全 ============ -->
+    <section id="security">
+      <h2><span class="num">B</span>安全清单（辅导员/部署老师）</h2>
+      <div class="card">
+        <ul class="checklist">
+          <li>公网/局域网多人使用：必须设置强随机 <code>NPU_ADMIN_TOKEN</code>（≥24 位），不要把令牌发群。</li>
+          <li>不要用 <code>NPU_BOT_ALLOW_INSECURE=1</code> 或空 Token 上线；OneBot/微信通道 token 必须是自定义强随机值。</li>
+          <li>公众号后台 Token 与通道配置保持一致；服务器时间要准（NTP），否则回调会失败。</li>
+          <li>只把真正需要收录权限的老师加入 <code>admin_user_ids</code>；群聊里任何人都不能触发入库。</li>
+          <li>公网必须 HTTPS（Cloudflare Tunnel / Nginx）；不要把 8000 裸端口直接映射公网。</li>
+          <li>定期运行 <code>.\scripts\backup.ps1</code>，并把备份复制到另一台设备/网盘。</li>
+          <li>模型 API Key 只保存在服务器；不要截图、不要写进文档或聊天。</li>
+          <li>离职/换人时：更换管理令牌、机器人 token、公众号 Token。</li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+    <p class="back"><a href="#intro">↑ 回到顶部</a> · 本手册随功能更新，界面细节可能略有差异。</p>
+  </article>
+</div>
+
+<footer>
+  NPU-Assistant · 校园助手使用手册 · 学生问答与辅导员移动运维
+</footer>
+
+</body>
+</html>
