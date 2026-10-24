@@ -10,8 +10,7 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 >
 > 📘 **普通用户（学生 / 辅导员）请直接看 [图文使用手册](frontend/manual/index.html)**：包含手机截图、短动图和常见问题；运行服务后也可访问 <http://127.0.0.1:8000/manual/index.html>。
 >
-> 🚀 **当前发布版本：v0.1.0**（2026-10-23）· 对应分支 `release`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
-> 🛠️ **v0.1.1 开发中**（分支 `develop`）：手机扫码联网、一键 Cloudflare 临时隧道、机器人快速添加。以下文档默认描述 develop 工作树；v0.1.0 稳定版请切到 `release` 分支。
+> 🚀 **当前发布版本：v0.1.1**（2026-10-24）· 对应分支 `release`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
 
 ---
 
