@@ -409,6 +409,6 @@ Invoke-RestMethod -Method Post ("http://127.0.0.1:8000/api/bots/channels/" + $co
 }
 ```
 
-- 二维码只编码 URL，不含管理令牌；手机扫码后仍需在「设置 → 移动端与管理令牌」登录（若服务端启用了令牌）。
+- 二维码只编码 URL，不含管理令牌；手机扫码后仍需在「设置 → 移动访问与安全」登录（若服务端启用了令牌）。
 - 临时隧道地址每次启动都会变化，仅用于演示/临时访问；生产请使用命名 Cloudflare Tunnel / Nginx 反代，并设置 `NPU_PUBLIC_URL` 固定地址。
 - 可用环境变量：`NPU_PUBLIC_URL`、`NPU_CLOUDFLARED`、`NPU_TUNNEL_TIMEOUT`（默认 30s）。

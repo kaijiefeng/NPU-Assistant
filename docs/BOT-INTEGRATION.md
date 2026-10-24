@@ -182,7 +182,7 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 | `admin_user_ids` | 允许「转发链接即入库」的管理员 openid，逗号分隔；openid 可在后端日志的 `FromUserName` 中查看 |
 | `import_enabled` | 是否启用机器人入库，默认 `"true"` |
 
-> 微信管理员发链接时，受 5 秒被动回复限制：服务端会**立即 ack**「收到，已开始收录，请稍后到 Wiki 查看」，随后由后台线程完成抓取与编译；MVP 不做客服消息异步推送，稍后到知识库页刷新即可（重复发送会提示已收录）。
+> 微信管理员发链接时，受 5 秒被动回复限制：服务端会**立即 ack**「收到，已开始收录，请稍后到 Wiki 查看」，随后由后台线程完成抓取与编译；MVP 不做客服消息异步推送，稍后到「内容管理 → 词条维护」刷新即可（重复发送会提示已收录）。
 >
 > 安全：公众号回调校验包含 **时间戳窗口 ±300 秒**（防重放），服务器时间需准确；本地调试可用 `NPU_BOT_ALLOW_INSECURE=1` 临时跳过 Token 安全检查（仍校验时间窗，勿用于公网）。
 
@@ -283,7 +283,7 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/api/bots/channels/<�
 | 通道响应里看不到 token 明文 | 安全设计：config 只返回 `****`+后 4 位，另给 `has_access_token` | 无法读回原 token；如需更换请 PUT 新值（PUT 空串/脱敏占位不会覆盖旧值） |
 | 通道响应里 `api_base` 与填写值不同 | 安全设计：`api_base` 去掉 userinfo/query/fragment 后回显（如 `https://h:8443/x`） | 编辑时回填该脱敏值=不修改，数据库仍保留原始地址；需更换请填新值 |
 | 公众号收不到回复 | 超过 5 秒超时 / 返回格式错误 | 换低延迟模型；确认返回的是 `Content-Type: text/xml; charset=utf-8` 的明文 XML；查看后端日志 |
-| 回复内容与词条不符 | Wiki 未导入 / 导航未选中正确词条 | 先 `POST /api/knowledge/seed` 导入预编译快照；用 `POST /api/wiki/search` 查看 `method` 与候选词条；必要时在知识库页编辑词条的别名/标签后重试 |
+| 回复内容与词条不符 | Wiki 未导入 / 导航未选中正确词条 | 先 `POST /api/knowledge/seed` 导入预编译快照；用 `POST /api/wiki/search` 查看 `method` 与候选词条；必要时在「内容管理 → 词条维护」编辑词条的别名/标签后重试 |
 | 上传源文件后机器人仍答不上 | 源文件编译失败（无真实 LLM）或尚未重新编译 | 检查默认模型是否为真实 Provider，看 `documents.error`；在「源文件」页点「重新编译」，确认生成词条后再提问 |
 | 中文乱码 | 终端编码非 UTF-8 | 执行 `chcp 65001`；脚本已设置 `PYTHONUTF8=1` |
 

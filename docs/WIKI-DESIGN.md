@@ -210,7 +210,7 @@ def answer(question, *, channel="web", session_key="web:default",
 
 ## 6. 前端要求（web-ui）
 
-1. **知识库页**：顶部统计（Wiki 词条/来源/源文件/最近构建）；两个 Tab：
+1. **内容管理页**：顶部统计（Wiki 词条/来源/源文件/最近构建）；「收录资料 / 源文件 / 词条维护」三个 Tab：
    - **词条**（默认）：搜索框（调 `/wiki/search`，展示 method 与候选分数）、标签筛选、词条卡片列表；点击打开详情抽屉：`body_html` 渲染、别名/标签、来源锚点（文件+章节+原文摘录）、相关词条、编辑/删除；
    - **源文件**：拖拽上传（显示「编译中」）、文档表格（状态/页数/大小/时间）、单篇重建、删除、导入预编译快照、全部重建（轮询 build 状态）。
 2. **对话页**：引用卡片改为「词条标题 + 来源文件·章节 + 原文摘录」，点击可跳转 `#/knowledge?page=<id>` 打开词条详情；保留原有引用展开交互。
@@ -226,7 +226,7 @@ def answer(question, *, channel="web", session_key="web:default",
 - [ ] `POST /api/wiki/search` 对「国家奖学金怎么申请」返回 `method=keyword|exact|llm` 且命中正确词条；无命中返回 `method=none`
 - [ ] `/api/chat` 配置真实模型时 `fallback=false`、`citations[].page_id` 与 `sources[].section` 可追溯；mock/断网时 `fallback=true` 且仍返回词条摘录
 - [ ] 删除源文件后其独占词条消失，共享词条保留；`reindex` 不产生重复词条
-- [ ] 前端知识库页可浏览/搜索/查看来源/编辑词条；对话引用可跳转词条
+- [ ] 前端知识库可只读浏览/搜索/查看来源；内容管理可编辑词条；对话引用可跳转词条
 - [ ] `pytest` 全绿（wiki/search/chat/models/bots/system，无 retrieval 测试）；`smoke.ps1`、`ui_check.py` 通过
 - [ ] 旧 RAG 代码与接口删除：`services/{retrieval,retrieval_core,rag}.py`、`/knowledge/search`、chunks 表/接口、`test_retrieval_core.py`
 

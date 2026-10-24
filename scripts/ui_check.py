@@ -2,13 +2,14 @@ r"""用 Chrome DevTools Protocol 做前端交互冒烟 + 页面截图。
 
 前置：NPU-Assistant 已在 http://127.0.0.1:8000 启动，本机安装 Chrome。
 用法：.\.venv\Scripts\python.exe scripts\ui_check.py
-产物：docs/screenshots/{chat,knowledge,models,bots,settings}.png
+产物：docs/screenshots/{chat,knowledge,manage,models,bots,settings}.png
 """
 from __future__ import annotations
 
 import asyncio
 import base64
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -109,25 +110,34 @@ async def main() -> None:
             )
             OUT_DIR.mkdir(parents=True, exist_ok=True)
             errors: list[str] = []
+            token = os.environ.get("NPU_ADMIN_TOKEN", "").strip()
+            if not token:
+                token_file = ROOT / "backend" / "data" / "admin_token.txt"
+                if token_file.is_file():
+                    token = token_file.read_text(encoding="utf-8").strip()
+            if token:
+                await cdp.call(
+                    "Page.addScriptToEvaluateOnNewDocument",
+                    {"source": f"localStorage.setItem('npu_admin_token', {json.dumps(token)})"},
+                )
 
             async def goto(path: str) -> None:
                 await cdp.call("Page.navigate", {"url": f"{BASE}/{path}"})
                 deadline = time.time() + 20
                 while time.time() < deadline:
                     try:
-                        state = await cdp.evaluate("document.readyState")
-                        if state == "complete":
+                        if await cdp.evaluate("document.readyState") == "complete":
                             break
                     except Exception:
                         pass
                     await asyncio.sleep(0.2)
-                await asyncio.sleep(1.6)
+                await asyncio.sleep(1.8)
 
             async def shot(name: str) -> None:
                 data = await cdp.call("Page.captureScreenshot", {"format": "png", "captureBeyondViewport": False})
                 (OUT_DIR / f"{name}.png").write_bytes(base64.b64decode(data["data"]))
 
-            # 对话页：真实发送一条问题，等到引用卡片出现
+            # 对话页：真实发送一条问题，等引用行出现
             await goto("#/chat")
             await cdp.evaluate(
                 """(() => {
@@ -143,7 +153,7 @@ async def main() -> None:
             deadline = time.time() + 45
             while time.time() < deadline:
                 await asyncio.sleep(0.5)
-                citations = await cdp.evaluate("document.querySelectorAll('.citation-card').length") or 0
+                citations = await cdp.evaluate("document.querySelectorAll('.citation-row').length") or 0
                 reply_ok = bool(
                     await cdp.evaluate(
                         "Array.from(document.querySelectorAll('.msg-assistant')).some(n => n.innerText.includes('奖学金'))"
@@ -153,15 +163,14 @@ async def main() -> None:
                     break
             if not (citations > 0 and reply_ok):
                 raise SystemExit(f"对话页校验失败：reply_ok={reply_ok}, citations={citations}")
-            await cdp.evaluate(
-                "document.querySelector('.citation-summary')?.click(); true"
-            )
+            await cdp.evaluate("document.querySelector('.citation-row summary')?.click(); true")
             await asyncio.sleep(0.5)
             await shot("chat")
-            print(f"[PASS] 对话页：发送问题并收到回答 + {citations} 张引用卡片（已截图）")
+            print(f"[PASS] 对话页：发送问题并收到回答 + {citations} 个来源折叠行（已截图）")
 
             for name, path, needle in [
-                ("knowledge", "#/knowledge", "词条"),
+                ("knowledge", "#/knowledge", "知识库"),
+                ("manage", "#/manage", "内容管理"),
                 ("models", "#/models", "模型"),
                 ("bots", "#/bots", "机器人"),
                 ("settings", "#/settings", "设置"),
@@ -173,11 +182,12 @@ async def main() -> None:
                 await shot(name)
                 print(f"[PASS] {name} 页面渲染正常（已截图）")
 
-            # 收集页面 console / 运行时错误
             for event in cdp.events:
                 method = event.get("method")
                 if method == "Runtime.exceptionThrown":
-                    errors.append(str(event.get("params", {}).get("exceptionDetails", {}))[:300])
+                    details = event.get("params", {}).get("exceptionDetails", {})
+                    desc = details.get("exception", {}).get("description") or details.get("text")
+                    errors.append(str(desc)[:1200])
                 elif method == "Log.entryAdded":
                     entry = event.get("params", {}).get("entry", {})
                     if entry.get("level") == "error":
@@ -186,7 +196,7 @@ async def main() -> None:
                     errors.append(str(event.get("params", {}).get("args"))[:300])
             if errors:
                 raise SystemExit(f"前端存在控制台错误：{errors[:5]}")
-            print("[PASS] 五个页面无控制台错误")
+            print("[PASS] 六个页面无控制台错误")
     finally:
         try:
             process.terminate()

@@ -76,7 +76,7 @@ function tunnelHtml() {
     // 后端要求服务端已设置 NPU_ADMIN_TOKEN 才允许开启隧道：未启用令牌时置灰并引导去设置
     if (!state.access?.token_required) {
       return `<h3>${icon('globe')}公网访问（需先启用服务端令牌）</h3>
-        <p class="field-help">服务端未启用管理令牌，暂时无法开启公网访问。请先到「设置 → 移动端与管理令牌」输入 ≥16 位随机令牌并点「保存令牌」（或「启用服务端令牌」），启用后再回来开启。仅在手机设置页填令牌不会改变服务端配置。</p>
+        <p class="field-help">服务端未启用管理令牌，暂时无法开启公网访问。请先到「设置 → 移动访问与安全 → 管理令牌」输入 ≥16 位随机令牌并点「保存令牌」（或「启用服务端令牌」），启用后再回来开启。仅在手机设置页填令牌不会改变服务端配置。</p>
         <div class="mobile-tunnel-actions">
           <button class="btn btn-primary btn-sm" type="button" data-action="go-settings">${icon('key')}<span>去设置启用令牌</span></button>
           <button class="btn btn-ghost btn-sm" type="button" data-action="start-tunnel" disabled>${icon('globe')}<span>一键开启公网访问</span></button>
@@ -141,7 +141,7 @@ function bodyHtml() {
     <div class="mobile-access-info">
       <ol class="mobile-steps">
         <li>手机扫码，用浏览器打开链接</li>
-        <li>需要管理操作时，到「设置 → 移动端与管理令牌」填写令牌</li>
+        <li>需要管理操作时，到「设置 → 移动访问与安全 → 管理令牌」填写令牌</li>
         <li>HTTPS 地址可「添加到主屏幕」，像 App 一样使用</li>
       </ol>
       <div class="mobile-section">
@@ -223,7 +223,7 @@ function selectUrl(url) {
 async function toggleTunnel(action) {
   if (state.busy) return;
   if (action === 'start' && !state.access?.token_required) {
-    toast('开启公网访问前，请先在「设置 → 移动端与管理令牌」填写管理员令牌（服务端需配置 NPU_ADMIN_TOKEN）', 'warning', {
+    toast('开启公网访问前，请先在「设置 → 移动访问与安全 → 管理令牌」填写管理员令牌（服务端需配置 NPU_ADMIN_TOKEN）', 'warning', {
       title: '需要管理员令牌',
     });
     return;

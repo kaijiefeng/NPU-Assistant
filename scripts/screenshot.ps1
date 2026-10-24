@@ -1,4 +1,4 @@
-﻿# 用 Edge 无头模式给前端各页面截图（需服务已启动）
+# 用 Edge 无头模式给前端各页面截图（需服务已启动）
 # 用法: .\scripts\screenshot.ps1 [-BaseUrl http://127.0.0.1:8000] [-OutDir docs\screenshots]
 param(
     [string]$BaseUrl = "http://127.0.0.1:8000",
@@ -19,6 +19,7 @@ New-Item -ItemType Directory -Force -Path $outPath | Out-Null
 $pages = [ordered]@{
     "chat"      = "#/chat"
     "knowledge" = "#/knowledge"
+    "manage"    = "#/manage"
     "models"    = "#/models"
     "bots"      = "#/bots"
     "settings"  = "#/settings"

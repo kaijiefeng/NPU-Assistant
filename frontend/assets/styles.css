@@ -6040,4 +6040,583 @@ textarea.input {
   }
 }
 
+/* ==========================================================================
+   v0.1.2 信息架构重构：学生视图 / 运维视图 / 统一视觉
+   ========================================================================== */
+
+:root {
+  --bg: #f6f8fc;
+  --line: #e7ecf4;
+  --line-strong: #d8e1ee;
+  --radius: 14px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 10px 28px -22px rgba(16, 24, 40, 0.35);
+}
+
+body {
+  background: var(--bg);
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.topbar {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-title h1 {
+  font-size: 20px;
+  font-weight: 650;
+}
+.topbar-title p {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.topbar-actions:empty {
+  display: none;
+}
+
+/* 侧栏：分组导航 + 精简底部 */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-top: 6px;
+}
+.nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-group-label {
+  padding: 0 14px 6px;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+.nav-desc {
+  display: none;
+}
+.nav-item {
+  min-height: 44px;
+  border-radius: 11px;
+}
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.health-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+}
+.health-line #healthTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-manual {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  min-height: 44px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11.5px;
+  text-decoration: none;
+}
+.sidebar-manual:hover {
+  color: #fff;
+}
+.health-card,
+.sidebar-meta,
+.install-btn {
+  display: none !important;
+}
+
+/* 分区 tabs（运维页） */
+.seg-tabs,
+.manage-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.seg-tabs::-webkit-scrollbar,
+.manage-tabs::-webkit-scrollbar {
+  display: none;
+}
+.seg-tab {
+  flex: none;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+.seg-tab:hover {
+  color: var(--ink-2);
+  background: #f4f7fc;
+}
+.seg-tab.is-active {
+  background: var(--npu-blue-50);
+  color: var(--npu-blue-700);
+}
+.manage-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.manage-toolbar-card {
+  padding: 12px 14px;
+}
+.manage-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.manage-toolbar .wiki-search {
+  flex: 1 1 240px;
+  max-width: none;
+}
+.manage-stats {
+  gap: 10px;
+}
+.manage-stats .stat-card {
+  padding: 12px 14px;
+  border-radius: 12px;
+  box-shadow: none;
+}
+.manage-stats .stat-value {
+  font-size: 20px;
+}
+.manage-stats .stat-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+.page-lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+/* 知识库（浏览） */
+.browse-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.browse-search-card {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.browse-search {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 680px;
+}
+.browse-search .input {
+  flex: 1;
+  min-width: 0;
+}
+.browse-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.browse-page .wiki-grid {
+  gap: 14px;
+}
+.browse-page .wiki-card {
+  padding: 16px;
+}
+.browse-page .wiki-summary {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 对话：历史改为抽屉 */
+.chat-page {
+  display: block;
+  position: relative;
+  height: 100%;
+  min-height: 0;
+}
+.chat-panel {
+  height: 100%;
+  min-height: 520px;
+}
+.chat-history {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 70;
+  width: min(340px, 88vw);
+  border-radius: 0 16px 16px 0;
+  transform: translateX(-102%);
+  transition: transform 0.22s var(--ease);
+  box-shadow: 0 24px 60px -24px rgba(7, 31, 74, 0.4);
+}
+.chat-page.is-history-open .chat-history {
+  transform: none;
+}
+.chat-history-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 69;
+  background: rgba(7, 31, 74, 0.32);
+}
+.chat-page.is-history-open .chat-history-backdrop {
+  display: block;
+}
+.chat-head {
+  padding: 10px 16px;
+  background: #fff;
+}
+.chat-head-info h2 {
+  font-size: 15px;
+}
+.chat-head-info p {
+  display: none;
+}
+.chat-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.live-dot {
+  display: none;
+}
+.chat-head-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+.chat-scroll {
+  padding: 18px 16px 8px;
+}
+.chat-messages {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.chat-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 46vh;
+  padding: 20px 12px;
+  text-align: center;
+}
+.chat-welcome .welcome-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  font-size: 20px;
+}
+.chat-welcome h2 {
+  font-size: 20px;
+}
+.chat-welcome .welcome-text {
+  max-width: 520px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.chat-welcome .quick-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 520px;
+  margin-top: 6px;
+}
+.chat-welcome .quick-question {
+  min-height: 44px;
+  justify-content: flex-start;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink-2);
+  font-size: 13px;
+  text-align: left;
+}
+.chat-welcome .quick-question:hover {
+  border-color: var(--npu-blue-200);
+  background: #f8fbff;
+}
+.welcome-tips {
+  display: none;
+}
+.composer {
+  margin: 8px 16px 14px;
+  padding: 8px 10px 8px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.composer-input {
+  min-height: 44px;
+  font-size: 13.5px;
+}
+.composer-actions {
+  display: none;
+}
+.composer-counter,
+.composer-hint {
+  display: none;
+}
+.composer-send {
+  margin-left: 8px;
+}
+.msg-foot {
+  display: none;
+}
+.citations {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.citation-row {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fbfcff;
+  overflow: hidden;
+}
+.citation-row-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 12.5px;
+}
+.citation-row-summary::-webkit-details-marker {
+  display: none;
+}
+.citation-row-label {
+  flex: none;
+  color: var(--npu-blue-600);
+  font-weight: 600;
+}
+.citation-row-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.citation-row-chevron .i {
+  width: 14px;
+  height: 14px;
+  color: var(--muted-2);
+  transition: transform 0.15s var(--ease);
+}
+.citation-row[open] .citation-row-chevron .i {
+  transform: rotate(180deg);
+}
+.citation-row-body {
+  padding: 0 12px 12px;
+}
+.citation-row-body .citation-sources {
+  margin-top: 8px;
+}
+.msg-bubble p {
+  margin: 0 0 6px;
+}
+.msg-bubble p:last-child {
+  margin-bottom: 0;
+}
+.msg-bubble ul,
+.msg-bubble ol {
+  margin: 4px 0 8px;
+  padding-left: 20px;
+}
+.msg-bubble li {
+  margin: 2px 0;
+}
+.msg-bubble .msg-h {
+  margin: 10px 0 6px;
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--ink);
+}
+.msg-bubble code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: #f1f5fb;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* 模型 / 机器人 / 设置面板 */
+.models-page,
+.bots-page,
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.settings-layout {
+  display: block;
+}
+.settings-savebar {
+  position: sticky;
+  bottom: 12px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 30px -20px rgba(7, 31, 74, 0.45);
+}
+.settings-savebar .save-state {
+  font-size: 12px;
+}
+.settings-savebar .savebar-actions {
+  display: flex;
+  gap: 8px;
+}
+.settings-side {
+  display: none;
+}
+.tips-card,
+.preview-card {
+  display: none;
+}
+
+.topbar .menu-btn {
+  display: none;
+}
+
+/* 移动端 */
+@media (max-width: 860px) {
+  .browse-search {
+    max-width: none;
+  }
+  .chat-messages {
+    max-width: none;
+  }
+  .chat-welcome {
+    min-height: 38vh;
+  }
+  .settings-savebar {
+    bottom: 8px;
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 720px) {
+  .seg-tabs,
+  .manage-tabs {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+  .seg-tab {
+    flex: 1 0 auto;
+    min-height: 44px;
+  }
+  .chat-history {
+    width: 100vw;
+    border-radius: 0;
+  }
+  .chat-panel {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    min-height: 0;
+  }
+  .chat-scroll {
+    padding: 14px 12px 6px;
+  }
+  .composer {
+    margin: 6px 10px 10px;
+  }
+  .citation-row-summary {
+    min-height: 44px;
+  }
+  .settings-savebar {
+    position: sticky;
+    bottom: 6px;
+  }
+  .manage-toolbar .btn {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .topbar .menu-btn {
+    display: inline-flex;
+    flex: none;
+  }
+  .sidebar {
+    box-shadow: none;
+  }
+  .sidebar.is-open {
+    box-shadow: 0 24px 60px -24px rgba(7, 31, 74, 0.35);
+  }
+}
+
+
+
+@media (min-width: 1024px) { .sidebar-close { display: none; } }
+
+
+@media (max-width: 720px) {
+  .stats-grid.manage-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .manage-stats .stat-card { padding: 10px 11px; gap: 8px; }
+  .manage-stats .stat-hint { display: none; }
+  .manage-stats .stat-value { font-size: 18px; }
+  .manage-stats .stat-icon { width: 28px; height: 28px; }
+}
 

@@ -82,12 +82,65 @@ function timeText(iso) {
 /* ------------------------------------------------------------------ */
 /* 消息内容渲染                                                        */
 /* ------------------------------------------------------------------ */
+function renderInline(escaped) {
+  return escaped
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\[(\d{1,2})\]/g, (match, num) => {
+      return `<button class="cite-ref" type="button" data-action="scroll-cite" data-cite="${num}" title="查看引用 [${num}]">[${num}]</button>`;
+    });
+}
+
 function renderContent(content, withCites = true) {
   const escaped = esc(content || '');
-  if (!withCites) return escaped;
-  return escaped.replace(/\[(\d{1,2})\]/g, (match, num) => {
-    return `<button class="cite-ref" type="button" data-action="scroll-cite" data-cite="${num}" title="查看引用 [${num}]">[${num}]</button>`;
+  if (!withCites) return escaped.replace(/\n/g, '<br>');
+  // 轻量 Markdown：标题 / 无序列表 / 有序列表 / 粗体 / 行内代码，其余按纯文本处理
+  const lines = escaped.split('\n');
+  const out = [];
+  let list = '';
+  const flush = () => {
+    if (list) {
+      out.push(`</${list}>`);
+      list = '';
+    }
+  };
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flush();
+      return;
+    }
+    const heading = trimmed.match(/^#{1,4}\s+(.*)$/);
+    if (heading) {
+      flush();
+      out.push(`<h4 class="msg-h">${renderInline(heading[1])}</h4>`);
+      return;
+    }
+    const unordered = trimmed.match(/^[-*]\s+(.*)$/);
+    if (unordered) {
+      if (list !== 'ul') {
+        flush();
+        out.push('<ul>');
+        list = 'ul';
+      }
+      out.push(`<li>${renderInline(unordered[1])}</li>`);
+      return;
+    }
+    const ordered = trimmed.match(/^\d+[.、]\s+(.*)$/);
+    if (ordered) {
+      if (list !== 'ol') {
+        flush();
+        out.push('<ol>');
+        list = 'ol';
+      }
+      out.push(`<li>${renderInline(ordered[1])}</li>`);
+      return;
+    }
+    flush();
+    out.push(`<p>${renderInline(trimmed)}</p>`);
   });
+  flush();
+  return out.join('');
 }
 
 function citationSourcesHtml(sources) {
@@ -107,19 +160,18 @@ function citationSourcesHtml(sources) {
 
 function citationsHtml(citations, messageIndex) {
   if (!Array.isArray(citations) || !citations.length) return '';
-  const cards = citations
+  const rows = citations
     .map((cite, i) => {
       const index = cite?.index ?? i + 1;
       const title = cite?.page_title || cite?.document_title || '未命名词条';
       const sources = Array.isArray(cite?.sources) ? cite.sources : [];
-      return `<div class="citation-card" data-citation="${messageIndex}-${index}">
-        <button class="citation-summary" type="button" data-action="toggle-citation" data-target="${messageIndex}-${index}" aria-expanded="false">
-          <span class="citation-index">${esc(index)}</span>
-          <span class="citation-title">${esc(title)}</span>
-          ${sources.length ? `<span class="citation-score">${sources.length} 来源</span>` : ''}
-          <span class="citation-chevron">${icon('chevron-down')}</span>
-        </button>
-        <div class="citation-body">
+      return `<details class="citation-row">
+        <summary class="citation-row-summary">
+          <span class="citation-row-label">来源 ${esc(index)}</span>
+          <span class="citation-row-title">${esc(title)}</span>
+          <span class="citation-row-chevron">${icon('chevron-down')}</span>
+        </summary>
+        <div class="citation-row-body">
           ${cite?.summary ? `<p class="citation-summary-text">${esc(cite.summary)}</p>` : ''}
           ${cite?.snippet ? `<p class="citation-snippet">${esc(cite.snippet)}</p>` : ''}
           ${citationSourcesHtml(sources)}
@@ -131,16 +183,12 @@ function citationsHtml(citations, messageIndex) {
                   )}">${icon('book')}<span>查看词条详情</span></button>`
                 : ''
             }
-            ${sources.length ? `<span>${sources.length} 条来源锚点</span>` : ''}
           </div>
         </div>
-      </div>`;
+      </details>`;
     })
     .join('');
-  return `<div class="citations">
-    <div class="citations-head">${icon('book')}<span>引用词条</span><span class="citations-count">${citations.length}</span></div>
-    ${cards}
-  </div>`;
+  return `<div class="citations">${rows}</div>`;
 }
 
 function messageHtml(message, index) {
@@ -152,21 +200,11 @@ function messageHtml(message, index) {
       <div class="msg-avatar msg-avatar-user">${esc(who)}</div>
     </div>`;
   }
-  const footParts = [];
-  if (message.model) footParts.push(esc(message.model));
-  if (message.provider_type === 'mock' || message.fallback) footParts.push('演示降级');
-  if (Number.isFinite(Number(message.latency_ms))) footParts.push(`${Math.round(Number(message.latency_ms))} ms`);
-  if (Number.isFinite(Number(message.sources_used))) footParts.push(`命中 ${Number(message.sources_used)} 条`);
   return `<div class="msg msg-assistant" data-msg-index="${index}">
     <div class="msg-avatar msg-avatar-bot">${esc(who)}</div>
     <div class="msg-main">
-      <div class="msg-meta">
-        <strong>${esc(state.settings.counselor_name || '小南')}</strong>
-        <span>${esc(timeText(message.created_at))}</span>
-      </div>
       <div class="msg-bubble">${renderContent(message.content)}</div>
       ${citationsHtml(message.citations, index)}
-      ${footParts.length ? `<div class="msg-foot">${footParts.map((t) => `<span>${t}</span>`).join('')}</div>` : ''}
     </div>
   </div>`;
 }
@@ -185,14 +223,14 @@ export function mount(root) {
 
   root.innerHTML = `
   <div class="chat-page" id="chatPage">
-    <aside class="chat-history" id="chatHistory" aria-label="历史会话">
+    <aside class="chat-history" id="chatHistory" aria-label="历史会话" aria-hidden="true">
       <div class="chat-history-head">
         <div>
           <h2>${icon('history')}<span>历史会话</span></h2>
           <p id="historyCount">加载中…</p>
         </div>
-        <button class="icon-btn" type="button" data-action="refresh-history" aria-label="刷新历史会话" title="刷新">
-          ${icon('refresh')}
+        <button class="icon-btn" type="button" data-action="close-history" aria-label="关闭历史会话" title="关闭">
+          ${icon('x')}
         </button>
       </div>
       <div class="chat-history-list" id="historyList">${loadingHtml('加载历史会话…', 'state-compact')}</div>
@@ -206,17 +244,18 @@ export function mount(root) {
 
     <section class="chat-panel">
       <header class="chat-head">
-        <button class="icon-btn chat-history-toggle" type="button" data-action="toggle-history" aria-label="历史会话">
-          ${icon('history')}
-        </button>
         <div class="chat-head-avatar">${esc(initial(counselor))}</div>
         <div class="chat-head-info">
-          <h2><span id="chatCounselorName">${esc(counselor)}</span><span class="live-dot" title="在线"></span></h2>
-          <p id="chatMeta">辅导员数字分身${state.healthModel ? ` · ${esc(state.healthModel)}` : ''}</p>
+          <h2><span id="chatCounselorName">${esc(counselor)}</span></h2>
         </div>
-        <button class="btn btn-ghost btn-sm" type="button" data-action="new-chat">
-          ${icon('plus')}<span>新建会话</span>
-        </button>
+        <div class="chat-head-actions">
+          <button class="icon-btn" type="button" data-action="new-chat" aria-label="新建会话" title="新建会话">
+            ${icon('plus')}
+          </button>
+          <button class="icon-btn" type="button" data-action="toggle-history" aria-label="历史会话" title="历史会话">
+            ${icon('history')}
+          </button>
+        </div>
       </header>
 
       <div class="chat-scroll" id="chatScroll">
@@ -227,15 +266,11 @@ export function mount(root) {
 
       <form class="composer" id="chatForm" autocomplete="off">
         <textarea id="chatInput" class="composer-input" rows="1" maxlength="2000"
-          placeholder="请输入你的问题，Enter 发送，Shift + Enter 换行" aria-label="输入问题"></textarea>
-        <div class="composer-actions">
-          <span class="composer-counter" id="composerCounter">0/2000</span>
-          <button class="btn btn-primary composer-send" type="submit" id="sendBtn" disabled>
-            ${icon('send')}<span>发送</span>
-          </button>
-        </div>
+          placeholder="输入问题…" aria-label="输入问题"></textarea>
+        <button class="btn btn-primary composer-send" type="submit" id="sendBtn" disabled aria-label="发送">
+          ${icon('send')}<span>发送</span>
+        </button>
       </form>
-      <p class="composer-hint">${icon('shield')} 回答由 AI 结合知识库生成，仅供参考；重要事项请以学校官方通知为准。</p>
     </section>
   </div>`;
 
@@ -247,10 +282,8 @@ export function mount(root) {
   const chatForm = root.querySelector('#chatForm');
   const input = root.querySelector('#chatInput');
   const sendBtn = root.querySelector('#sendBtn');
-  const counter = root.querySelector('#composerCounter');
   const chatError = root.querySelector('#chatError');
   const backdrop = root.querySelector('.chat-history-backdrop');
-  const meta = root.querySelector('#chatMeta');
   const counselorNameEl = root.querySelector('#chatCounselorName');
 
   /* ----------------------- 历史会话渲染 ----------------------- */
@@ -325,7 +358,7 @@ export function mount(root) {
   function renderWelcome() {
     const settings = state.settings;
     const questions = Array.isArray(settings.quick_questions)
-      ? settings.quick_questions.filter((item) => typeof item === 'string' && item.trim())
+      ? settings.quick_questions.filter((item) => typeof item === 'string' && item.trim()).slice(0, 3)
       : [];
     return `<div class="chat-welcome">
       <div class="welcome-avatar">${esc(initial(settings.counselor_name))}</div>
@@ -338,16 +371,11 @@ export function mount(root) {
                 (question) =>
                   `<button class="quick-question" type="button" data-action="quick-question" data-question="${esc(
                     question,
-                  )}">${icon('sparkles')}<span>${esc(question)}</span></button>`,
+                  )}">${esc(question)}</button>`,
               )
               .join('')}</div>`
           : ''
       }
-      <div class="welcome-tips">
-        <span>${icon('book')} 回答会标注 Wiki 词条引用</span>
-        <span>${icon('message')} 支持多轮追问</span>
-        <span>${icon('shield')} 重要事项以官方通知为准</span>
-      </div>
     </div>`;
   }
 
@@ -416,7 +444,6 @@ export function mount(root) {
   }
 
   function updateComposer() {
-    counter.textContent = `${input.value.length}/2000`;
     input.disabled = state.sending;
     sendBtn.disabled = state.sending || !input.value.trim();
     sendBtn.classList.toggle('is-busy', state.sending);
@@ -466,7 +493,6 @@ export function mount(root) {
       if (response?.conversation_id) state.conversationId = response.conversation_id;
       if (response?.model) {
         state.healthModel = response.model;
-        if (alive && meta) meta.textContent = `辅导员数字分身 · ${response.model}`;
       }
       state.messages.push({
         role: 'assistant',
@@ -620,10 +646,12 @@ export function mount(root) {
   /* ----------------------- 移动端抽屉 ----------------------- */
   function openHistoryDrawer() {
     page.classList.add('is-history-open');
+    root.querySelector('#chatHistory')?.setAttribute('aria-hidden', 'false');
     if (backdrop) backdrop.hidden = false;
   }
   function closeHistoryDrawer() {
     page.classList.remove('is-history-open');
+    root.querySelector('#chatHistory')?.setAttribute('aria-hidden', 'true');
     if (backdrop) backdrop.hidden = true;
   }
 
@@ -656,30 +684,23 @@ export function mount(root) {
         sendMessage(question);
         break;
       }
-      case 'toggle-citation': {
-        const card = root.querySelector(`[data-citation="${trigger.dataset.target}"]`);
-        if (card) {
-          const open = card.classList.toggle('is-open');
-          trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
-        }
-        break;
-      }
       case 'scroll-cite': {
         const messageNode = trigger.closest('[data-msg-index]');
-        const card = messageNode?.querySelector(
-          `[data-citation="${messageNode.dataset.msgIndex}-${trigger.dataset.cite}"]`,
-        );
-        if (card) {
-          card.classList.add('is-open');
-          card.querySelector('[data-action="toggle-citation"]')?.setAttribute('aria-expanded', 'true');
-          card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const num = trigger.dataset.cite;
+        const rows = Array.from(messageNode?.querySelectorAll('.citation-row') || []);
+        const row =
+          rows.find((item) => item.querySelector('.citation-row-label')?.innerText.includes(`来源 ${num}`)) ||
+          rows[Number(num) - 1] ||
+          rows[0];
+        if (row) {
+          row.open = true;
+          row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } else {
           toast('该引用未包含在当前回答中', 'info');
         }
         break;
       }
-      case 'open-wiki-page': {
-        const pageId = trigger.dataset.pageId;
+      case 'open-wiki-page': {        const pageId = trigger.dataset.pageId;
         if (pageId) location.hash = `#/knowledge?page=${encodeURIComponent(pageId)}`;
         break;
       }
@@ -702,7 +723,6 @@ export function mount(root) {
   });
 
   input.addEventListener('input', () => {
-    counter.textContent = `${input.value.length}/2000`;
     sendBtn.disabled = state.sending || !input.value.trim();
     autoGrow();
   });
@@ -763,7 +783,6 @@ export function mount(root) {
         if (my !== generation) return;
         const model = health?.default_model;
         state.healthModel = model ? model.display_name || model.model_name : '';
-        if (meta) meta.textContent = `辅导员数字分身${state.healthModel ? ` · ${state.healthModel}` : ''}`;
       } catch {
         /* 健康接口失败不打扰用户，侧边栏已展示状态 */
       }

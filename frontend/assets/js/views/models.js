@@ -650,43 +650,68 @@ export function mount(root) {
   let alive = true;
 
   root.innerHTML = `<div class="page models-page">
-    <section class="card summary-card" id="modelsSummary">${loadingHtml('正在加载模型配置…', 'state-compact')}</section>
+    <div class="seg-tabs" role="tablist" aria-label="模型配置">
+      <button class="seg-tab is-active" type="button" role="tab" aria-selected="true" data-action="models-tab" data-tab="models">模型</button>
+      <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="models-tab" data-tab="providers">Provider</button>
+    </div>
 
-    <section class="card">
-      <header class="card-head">
-        <div>
-          <h2>${icon('cpu')}Provider 列表</h2>
-          <p>OpenAI 兼容 / Ollama / 内置演示模型，API Key 仅保存在服务端并脱敏展示</p>
-        </div>
-        <div class="card-actions">
-          <button class="btn btn-ghost btn-sm" type="button" data-action="refresh">${icon('refresh')}<span>刷新</span></button>
-          <button class="btn btn-primary btn-sm" type="button" data-action="add-provider">${icon('plus')}<span>添加 Provider</span></button>
-        </div>
-      </header>
-      <div id="providerGrid">${loadingHtml('正在加载 Provider…')}</div>
+    <section class="manage-panel" id="modelsPanel">
+      <section class="card summary-card" id="modelsSummary">${loadingHtml('正在加载模型配置…', 'state-compact')}</section>
+
+      <section class="card">
+        <header class="card-head">
+          <div>
+            <h2>${icon('sparkles')}模型列表 <span class="count" id="modelCount"></span></h2>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-ghost btn-sm" type="button" data-action="refresh">${icon('refresh')}<span>刷新</span></button>
+            <button class="btn btn-primary btn-sm" type="button" data-action="add-model">${icon('plus')}<span>添加模型</span></button>
+          </div>
+        </header>
+        <div id="modelsBody">${loadingHtml('正在加载模型列表…')}</div>
+      </section>
     </section>
 
-    <section class="card">
-      <header class="card-head">
-        <div>
-          <h2>${icon('sparkles')}模型列表 <span class="count" id="modelCount"></span></h2>
-          <p>可设置默认模型、启用 / 停用、测试连通性；停用后不参与默认模型选择</p>
-        </div>
-        <div class="card-actions">
-          <button class="btn btn-primary btn-sm" type="button" data-action="add-model">${icon('plus')}<span>添加模型</span></button>
-        </div>
-      </header>
-      <div id="modelsBody">${loadingHtml('正在加载模型列表…')}</div>
+    <section class="manage-panel" id="providersPanel" hidden>
+      <section class="card">
+        <header class="card-head">
+          <div>
+            <h2>${icon('cpu')}Provider 列表</h2>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-primary btn-sm" type="button" data-action="add-provider">${icon('plus')}<span>添加 Provider</span></button>
+          </div>
+        </header>
+        <div id="providerGrid">${loadingHtml('正在加载 Provider…')}</div>
+      </section>
     </section>
   </div>`;
 
   const page = root.querySelector('.models-page');
+  const panels = {
+    models: root.querySelector('#modelsPanel'),
+    providers: root.querySelector('#providersPanel'),
+  };
+  const switchModelsTab = (tab) => {
+    const next = tab === 'providers' ? 'providers' : 'models';
+    Object.entries(panels).forEach(([key, panel]) => {
+      if (panel) panel.hidden = key !== next;
+    });
+    page.querySelectorAll('.seg-tab').forEach((btn) => {
+      const active = btn.dataset.tab === next;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+  };
 
   page.addEventListener('click', (event) => {
     const trigger = event.target.closest('[data-action]');
     if (!trigger || !page.contains(trigger)) return;
     const action = trigger.dataset.action;
     switch (action) {
+      case 'models-tab':
+        switchModelsTab(trigger.dataset.tab);
+        break;
       case 'refresh':
         loadAll();
         toast('正在刷新模型配置…', 'info', { duration: 1600 });

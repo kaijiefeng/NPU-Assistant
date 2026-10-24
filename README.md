@@ -11,6 +11,7 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 > 📘 **普通用户（学生 / 辅导员）请直接看 [图文使用手册](frontend/manual/index.html)**：包含手机截图、短动图和常见问题；运行服务后也可访问 <http://127.0.0.1:8000/manual/index.html>。
 >
 > 🚀 **当前发布版本：v0.1.1**（2026-10-24）· 对应分支 `release`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
+> 🎨 **v0.1.2 开发中**（分支 `develop`）：UI/信息架构重构——学生界面更简洁现代，运维功能分区更清晰。以下文档默认描述 develop 工作树。
 
 ---
 
@@ -46,23 +47,27 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 
 > 以下截图由 `.\scripts\ui_check.py`（Chrome DevTools Protocol，需要本机安装 Chrome/Edge 且服务已启动）自动生成，保存在 `docs/screenshots/`。
 
-**辅导员对话**：Wiki 词条回答 + 句末 `[n]` + 展开的「词条 + 来源文件·章节 + 原文摘录」双层引用卡片。
+**辅导员对话**：Wiki 词条回答 + 句末 `[n]` + 可展开的「来源 N」行（词条 + 来源文件·章节 + 原文摘录）。
 
 ![辅导员对话](docs/screenshots/chat.png)
 
-**知识库（词条 / 源文件双 Tab）**：Wiki 目录与搜索、来源锚点、上传源文件与编译状态、单篇重建 / 全部重建。
+**知识库（只读浏览）**：搜索、分类筛选、词条卡片；点开即可看正文与来源锚点，不混入运维操作。
 
 ![知识库](docs/screenshots/knowledge.png)
 
-**模型管理**：Provider 卡片（Key 脱敏）、模型列表与默认模型高亮。
+**内容管理（运维）**：收录资料 / 源文件 / 词条维护三个独立 Tab；快速收录、上传、编译状态、重建与删除都在这里。
+
+![内容管理](docs/screenshots/manage.png)
+
+**模型管理**：模型 / Provider 双 Tab；默认模型、Provider 卡片（Key 脱敏）、模型列表。
 
 ![模型管理](docs/screenshots/models.png)
 
-**机器人**：QQ / 微信 / 控制台三通道配置、Webhook 地址、控制台模拟对话与消息日志。
+**机器人**：通道 / 调试 / 日志三个 Tab；QQ / 微信 / 控制台三通道配置、Webhook 地址、控制台模拟对话与消息日志。
 
 ![机器人](docs/screenshots/bots.png)
 
-**设置**：分身人设、系统提示词、欢迎语、Wiki 导航页数 / 回答上下文字数等参数。
+**设置**：基础 / 移动访问与安全 / 回复与引用三个 Tab；人设、系统提示词、管理令牌与扫码入口、Wiki 参数。
 
 ![设置](docs/screenshots/settings.png)
 
@@ -177,7 +182,7 @@ NPU-Assistant/
 │  ├─ tests/                # pytest（conftest 临时数据目录 + fake LLM）
 │  └─ requirements.txt
 ├─ frontend/
-│  ├─ index.html            # 单页应用（hash 路由 5 个视图）
+│  ├─ index.html            # 单页应用（hash 路由 6 个视图）
 │  ├─ manifest.webmanifest  # PWA 清单（standalone / #0b3d91 / 192/512 图标）
 │  ├─ service-worker.js     # 静态壳缓存（API 一律 network-only）
 │  └─ assets/               # styles.css + 原生 ES Module（api.js / app.js / ui.js / views/）+ icons/
@@ -189,17 +194,17 @@ NPU-Assistant/
 │  ├─ smoke.ps1             # 启动后 Wiki API 冒烟检查
 │  ├─ build_wiki_seed.py    # 用真实 LLM 重新生成 wiki_seed.json
 │  ├─ backup.ps1            # 备份 DB 快照 + uploads + wiki_seed
-│  ├─ screenshot.ps1        # Edge 无头模式五页截图（备用）
-│  └─ ui_check.py           # Chrome CDP 交互冒烟 + 五页截图（推荐）
+│  ├─ screenshot.ps1        # Edge 无头模式六页截图（备用）
+│  └─ ui_check.py           # Chrome CDP 交互冒烟 + 六页截图（推荐）
 ├─ docs/
 │  ├─ CONTRACT.md           # 开发契约（接口事实源）
 │  ├─ WIKI-DESIGN.md        # LLM Wiki 设计与契约（v0.1.1）
-│  ├─ MOBILE-OPS.md         # 移动端运维与快速收录（v0.1.1）
+│  ├─ MOBILE-OPS.md         # 移动端运维与快速收录（v0.1.2）
 │  ├─ API.md                # 接口速览与调用示例
 │  ├─ ARCHITECTURE.md       # 架构、请求链路、表结构、部署建议
 │  ├─ BOT-INTEGRATION.md    # NapCat / OneBot 11、公众号、控制台接入与排障
 │  ├─ DEMO.md               # 5 分钟演示脚本与已验证结果
-│  └─ screenshots/          # 五页界面截图（ui_check.py 自动生成）
+│  └─ screenshots/          # 六页界面截图（ui_check.py 自动生成）
 └─ README.md
 ```
 
@@ -298,11 +303,11 @@ $env:NPU_SEED_MODEL="deepseek-chat"                    # 可选
 | 公网隧道（推荐试用） | 手机 4G/5G、公众号回调、PWA 安装 | 是 | 扫码弹窗内「一键开启公网访问」（Cloudflare 临时隧道），或 Cloudflare Tunnel / ngrok / frp |
 | 云服务器 | 7×24 生产 | 是 | systemd + Caddy/Nginx 反代 + 定期备份 |
 
-**管理令牌**：设置环境变量 `NPU_ADMIN_TOKEN`（建议 ≥24 位随机串）后，除学生问答 `POST /api/chat`、只读 GET 与机器人 webhook 外的写操作都要求请求头 `X-Admin-Token`。手机在「设置 → 移动端与管理令牌」登录一次，令牌保存在 `localStorage`，所有 API 自动携带；收到 401 时会引导回设置页。未设置令牌时完全放行（仅限本机演示）；`-Lan` 启动会在未设置时自动生成并打印一个令牌。**服务端未启用令牌时，也可以直接在设置页输入 ≥16 位随机令牌并保存，本机一键启用（持久化，无需重启），公网扫码按钮随后即可用。**
+**管理令牌**：设置环境变量 `NPU_ADMIN_TOKEN`（建议 ≥24 位随机串）后，除学生问答 `POST /api/chat`、只读 GET 与机器人 webhook 外的写操作都要求请求头 `X-Admin-Token`。手机在「设置 → 移动访问与安全」登录一次，令牌保存在 `localStorage`，所有 API 自动携带；收到 401 时会引导回设置页。未设置令牌时完全放行（仅限本机演示）；`-Lan` 启动会在未设置时自动生成并打印一个令牌。**服务端未启用令牌时，也可以直接在设置页输入 ≥16 位随机令牌并保存，本机一键启用（持久化，无需重启），公网扫码按钮随后即可用。**
 
 ### 10.2 快速收录（手机 / 桌面通用）
 
-「知识库」页顶部「快速收录」卡片提供三种模式：
+「内容管理」→「收录资料」的「快速收录」卡片提供三种模式：
 
 - **链接**：一行一个、最多 5 个，调用 `POST /api/knowledge/import/url`（单条）或 `/import/batch`（批量）→ 抓取正文 → 生成源文件 → LLM 编译词条；重复 URL 返回 `duplicated=true` 不重复编译；
 - **文本**：粘贴微信/QQ 转发的文字 + 可选标题，调用 `POST /api/knowledge/import/text`（30–200000 字）；
@@ -346,7 +351,7 @@ cd backend
 
 ```powershell
 .\scripts\smoke.ps1                                          # Wiki API 冒烟（需服务已启动）
-.\.venv\Scripts\python.exe scripts\ui_check.py               # Chrome CDP 交互冒烟 + 五页截图
+.\.venv\Scripts\python.exe scripts\ui_check.py               # Chrome CDP 交互冒烟 + 六页截图
 ```
 
 接口调试：启动后访问 Swagger UI <http://127.0.0.1:8000/api/docs>，或 `GET /api/health`（含 `knowledge_mode`、`wiki_pages`）；常用示例见 [docs/API.md](docs/API.md)。

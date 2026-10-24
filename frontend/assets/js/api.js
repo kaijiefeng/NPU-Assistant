@@ -72,7 +72,7 @@ function needsAdminToken(method, path) {
   if (!hasAdminToken()) return false;
   const verb = String(method || 'GET').toUpperCase();
   if (verb !== 'GET' && verb !== 'HEAD') return true;
-  return path.startsWith('/chat/conversations');
+  return path.startsWith('/chat/conversations') || path.startsWith('/bots/logs');
 }
 
 function notifyUnauthorized(detail) {

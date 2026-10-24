@@ -847,101 +847,100 @@ export function mount(root) {
   let alive = true;
 
   root.innerHTML = `<div class="page bots-page">
-    <section class="card bot-intro">
-      <div class="bot-intro-icon">${icon('robot')}</div>
-      <div>
-        <h2>接入 QQ / 微信，让分身走出网页</h2>
-        <p>在下方卡片填写连接参数并保存，把生成的 Webhook 地址填到 OneBot 实现或公众号后台即可。没有外部账号时，可用「控制台调试」通道体验完整链路。</p>
-      </div>
-      <button class="btn btn-primary btn-sm" type="button" data-action="add-channel">${icon('plus')}<span>添加通道</span></button>
-    </section>
+    <div class="seg-tabs" role="tablist" aria-label="机器人">
+      <button class="seg-tab is-active" type="button" role="tab" aria-selected="true" data-action="bots-tab" data-tab="channels">通道</button>
+      <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="bots-tab" data-tab="console">调试</button>
+      <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="bots-tab" data-tab="logs">日志</button>
+    </div>
 
-    <section class="card bot-quick-add">
-      <header class="card-head">
-        <div>
-          <h2>${icon('plus')}快速添加</h2>
-          <p>选一种通道，填写最少参数即可创建；创建后会给出 Webhook 与接入步骤。</p>
-        </div>
-      </header>
-      <div class="quick-add-grid">
-        <button class="quick-add-card" type="button" data-action="add-channel" data-type="onebot11">
-          <span class="quick-add-icon tone-blue">${icon('qq')}</span>
-          <span class="quick-add-text"><strong>QQ 机器人</strong><span>OneBot 11 · NapCat / go-cqhttp</span></span>
-          <span class="quick-add-go">${icon('chevron-right')}</span>
-        </button>
-        <button class="quick-add-card" type="button" data-action="add-channel" data-type="wechat_mp">
-          <span class="quick-add-icon tone-teal">${icon('wechat')}</span>
-          <span class="quick-add-text"><strong>微信公众号</strong><span>明文回调 · 需与后台 Token 一致</span></span>
-          <span class="quick-add-go">${icon('chevron-right')}</span>
-        </button>
-        <button class="quick-add-card" type="button" data-action="add-channel" data-type="console">
-          <span class="quick-add-icon tone-violet">${icon('terminal')}</span>
-          <span class="quick-add-text"><strong>控制台调试</strong><span>无需外部账号，直接体验完整链路</span></span>
-          <span class="quick-add-go">${icon('chevron-right')}</span>
-        </button>
-      </div>
-    </section>
-
-    <section class="card">
-      <header class="card-head">
-        <div>
-          <h2>${icon('robot')}机器人通道</h2>
-          <p>每个通道独立配置；停用后不再接收 / 回复消息（控制台通道始终可删改配置）</p>
-        </div>
-        <div class="card-actions">
-          <button class="btn btn-ghost btn-sm" type="button" data-action="refresh-channels">${icon('refresh')}<span>刷新</span></button>
-        </div>
-      </header>
-      <div id="botGrid">${loadingHtml('正在加载机器人通道…')}</div>
-    </section>
-
-    <section class="card console-card" id="consolePanel">
-      <header class="card-head">
-        <div>
-          <h2>${icon('terminal')}控制台模拟对话</h2>
-          <p>直接调用 <code>/api/bots/channels/{id}/test</code>，验证机器人问答、引用与报文格式</p>
-        </div>
-      </header>
-      <div class="console-layout">
-        <div class="console-form">
-          <label class="field">
-            <span class="field-label">模拟通道</span>
-            <select class="input select" id="testChannel"></select>
-          </label>
-          <div class="form-row">
-            <label class="field">
-              <span class="field-label">用户昵称</span>
-              <input class="input" id="testUserName" placeholder="测试同学" value="测试同学" />
-            </label>
-            <label class="field">
-              <span class="field-label">用户 ID</span>
-              <input class="input" id="testUserId" placeholder="可选，如 10001" />
-            </label>
+    <section class="manage-panel" id="botsChannelsPanel">
+      <section class="card bot-quick-add">
+        <header class="card-head">
+          <div>
+            <h2>${icon('plus')}快速添加</h2>
           </div>
-          <label class="field">
-            <span class="field-label">消息内容</span>
-            <textarea class="input" id="testMessage" rows="3" placeholder="例如：国家奖学金怎么申请？"></textarea>
-          </label>
-          <div class="console-actions">
-            <button class="btn btn-primary" type="button" data-action="run-console">${icon('send')}<span>发送模拟消息</span></button>
-            <button class="btn btn-ghost" type="button" data-action="clear-console">${icon('trash')}<span>清空</span></button>
+          <div class="card-actions">
+            <button class="btn btn-ghost btn-sm" type="button" data-action="refresh-channels">${icon('refresh')}<span>刷新</span></button>
           </div>
+        </header>
+        <div class="quick-add-grid">
+          <button class="quick-add-card" type="button" data-action="add-channel" data-type="onebot11">
+            <span class="quick-add-icon tone-blue">${icon('qq')}</span>
+            <span class="quick-add-text"><strong>QQ 机器人</strong><span>OneBot 11 · NapCat / go-cqhttp</span></span>
+            <span class="quick-add-go">${icon('chevron-right')}</span>
+          </button>
+          <button class="quick-add-card" type="button" data-action="add-channel" data-type="wechat_mp">
+            <span class="quick-add-icon tone-teal">${icon('wechat')}</span>
+            <span class="quick-add-text"><strong>微信公众号</strong><span>明文回调 · 需与后台 Token 一致</span></span>
+            <span class="quick-add-go">${icon('chevron-right')}</span>
+          </button>
+          <button class="quick-add-card" type="button" data-action="add-channel" data-type="console">
+            <span class="quick-add-icon tone-violet">${icon('terminal')}</span>
+            <span class="quick-add-text"><strong>控制台调试</strong><span>无需外部账号</span></span>
+            <span class="quick-add-go">${icon('chevron-right')}</span>
+          </button>
         </div>
-        <div class="console-output" id="consoleOutput"></div>
-      </div>
+      </section>
+
+      <section class="card">
+        <header class="card-head">
+          <div>
+            <h2>${icon('robot')}机器人通道</h2>
+          </div>
+        </header>
+        <div id="botGrid">${loadingHtml('正在加载机器人通道…')}</div>
+      </section>
     </section>
 
-    <section class="card logs-card">
-      <header class="card-head">
-        <div>
-          <h2>${icon('history')}消息日志</h2>
-          <p>来自 QQ / 微信 / 控制台通道的最近消息记录</p>
+    <section class="manage-panel" id="botsConsolePanel" hidden>
+      <section class="card console-card" id="consolePanel">
+        <header class="card-head">
+          <div>
+            <h2>${icon('terminal')}控制台模拟对话</h2>
+          </div>
+        </header>
+        <div class="console-layout">
+          <div class="console-form">
+            <label class="field">
+              <span class="field-label">模拟通道</span>
+              <select class="input select" id="testChannel"></select>
+            </label>
+            <div class="form-row">
+              <label class="field">
+                <span class="field-label">用户昵称</span>
+                <input class="input" id="testUserName" placeholder="测试同学" value="测试同学" />
+              </label>
+              <label class="field">
+                <span class="field-label">用户 ID</span>
+                <input class="input" id="testUserId" placeholder="可选，如 10001" />
+              </label>
+            </div>
+            <label class="field">
+              <span class="field-label">消息内容</span>
+              <textarea class="input" id="testMessage" rows="3" placeholder="例如：国家奖学金怎么申请？"></textarea>
+            </label>
+            <div class="console-actions">
+              <button class="btn btn-primary" type="button" data-action="run-console">${icon('send')}<span>发送模拟消息</span></button>
+              <button class="btn btn-ghost" type="button" data-action="clear-console">${icon('trash')}<span>清空</span></button>
+            </div>
+          </div>
+          <div class="console-output" id="consoleOutput"></div>
         </div>
-        <div class="card-actions">
-          <button class="btn btn-ghost btn-sm" type="button" data-action="refresh-logs">${icon('refresh')}<span>刷新</span></button>
-        </div>
-      </header>
-      <div id="botLogs">${loadingHtml('正在加载消息日志…')}</div>
+      </section>
+    </section>
+
+    <section class="manage-panel" id="botsLogsPanel" hidden>
+      <section class="card logs-card">
+        <header class="card-head">
+          <div>
+            <h2>${icon('history')}消息日志</h2>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-ghost btn-sm" type="button" data-action="refresh-logs">${icon('refresh')}<span>刷新</span></button>
+          </div>
+        </header>
+        <div id="botLogs">${loadingHtml('正在加载消息日志…')}</div>
+      </section>
     </section>
   </div>`;
 
@@ -950,6 +949,22 @@ export function mount(root) {
   // 事件委托绑定在视图页面元素上：路由切换后元素被移除，监听器随节点一起回收，
   // 避免挂在 #view 上导致重复绑定（重复发送 / 重复弹窗）。
   const page = root.querySelector('.bots-page');
+  const panels = {
+    channels: root.querySelector('#botsChannelsPanel'),
+    console: root.querySelector('#botsConsolePanel'),
+    logs: root.querySelector('#botsLogsPanel'),
+  };
+  const switchBotsTab = (tab) => {
+    const next = ['channels', 'console', 'logs'].includes(tab) ? tab : 'channels';
+    Object.entries(panels).forEach(([key, panel]) => {
+      if (panel) panel.hidden = key !== next;
+    });
+    page.querySelectorAll('.seg-tab').forEach((btn) => {
+      const active = btn.dataset.tab === next;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+  };
 
   page.addEventListener('click', async (event) => {
     const copyTrigger = event.target.closest('[data-copy]');
@@ -972,6 +987,9 @@ export function mount(root) {
     if (!trigger || !page.contains(trigger)) return;
     const action = trigger.dataset.action;
     switch (action) {
+      case 'bots-tab':
+        switchBotsTab(trigger.dataset.tab);
+        break;
       case 'refresh-channels':
         await loadChannels();
         break;
@@ -1000,12 +1018,12 @@ export function mount(root) {
         removeChannel(trigger.dataset.id);
         break;
       case 'open-console': {
+        switchBotsTab('console');
         const select = document.getElementById('testChannel');
         if (select) {
           select.value = trigger.dataset.id;
           state.testChannelId = trigger.dataset.id;
         }
-        document.getElementById('consolePanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         document.getElementById('testMessage')?.focus({ preventScroll: true });
         break;
       }

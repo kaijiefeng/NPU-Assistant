@@ -5,33 +5,38 @@
  * 每个视图模块导出 `mount(container)`，可返回清理函数。
  */
 import { getHealth, setUnauthorizedHandler } from './api.js';
-import { openMobileAccessModal } from './mobile-access.js';
 import { esc, icon, toast } from './ui.js';
 
 const ROUTES = {
   chat: {
     title: '对话',
-    subtitle: '与辅导员数字分身「小南」对话，回答基于知识库并标注引用。',
+    subtitle: '向辅导员数字分身提问',
     load: () => import('./views/chat.js'),
   },
   knowledge: {
     title: '知识库',
-    subtitle: '上传源文件，由 LLM 编译为结构化 Wiki 词条；浏览、搜索、编辑并追溯来源。',
+    subtitle: '浏览校园知识词条',
     load: () => import('./views/knowledge.js'),
+  },
+  manage: {
+    title: '内容管理',
+    subtitle: '收录、整理与维护知识库内容',
+    load: () => import('./views/knowledge.js'),
+    mountName: 'mountManage',
   },
   models: {
     title: '模型',
-    subtitle: '管理 OpenAI 兼容 / Ollama / 内置演示模型，设置默认问答模型。',
+    subtitle: '配置问答模型与 Provider',
     load: () => import('./views/models.js'),
   },
   bots: {
     title: '机器人',
-    subtitle: '接入 QQ（OneBot 11）与微信公众号，或使用控制台通道联调。',
+    subtitle: '接入 QQ / 微信机器人',
     load: () => import('./views/bots.js'),
   },
   settings: {
     title: '设置',
-    subtitle: '调整分身人设、欢迎语、快捷问题、Wiki 阅读参数与回复样式。',
+    subtitle: '人设、移动访问与引用设置',
     load: () => import('./views/settings.js'),
   },
 };
@@ -122,7 +127,8 @@ async function renderRoute() {
   try {
     const module = await route.load();
     if (token !== renderToken) return;
-    const cleanup = module.mount ? module.mount(dom.view, { query }) : undefined;
+    const mountFn = typeof module[route.mountName || 'mount'] === 'function' ? module[route.mountName || 'mount'] : module.mount;
+    const cleanup = mountFn ? mountFn(dom.view, { query }) : undefined;
     if (token !== renderToken) {
       if (typeof cleanup === 'function') cleanup();
       return;
@@ -168,15 +174,6 @@ function bindShell() {
   window.addEventListener('hashchange', () => {
     renderRoute();
   });
-  // 手机扫码：顶栏全局入口 + 侧栏入口共用同一弹窗
-  document.getElementById('mobileAccessBtn')?.addEventListener('click', () => {
-    closeSidebar();
-    openMobileAccessModal();
-  });
-  document.getElementById('sidebarMobileAccess')?.addEventListener('click', () => {
-    closeSidebar();
-    openMobileAccessModal();
-  });
   // skip-link 不能使用默认 hash 跳转（会被 SPA 路由当成页面），改为聚焦主内容区
   document.querySelector('.skip-link')?.addEventListener('click', (event) => {
     event.preventDefault();
@@ -196,14 +193,9 @@ function paintHealth(ok, detail = {}) {
   dom.healthDot?.classList.toggle('is-pending', false);
   if (ok) {
     dom.healthTitle.textContent = '服务运行正常';
-    const model = detail?.default_model;
-    dom.healthModel.textContent = model
-      ? `默认模型：${model.display_name || model.model_name}`
-      : '未配置默认模型（演示降级）';
     dom.healthCard.title = `NPU-Assistant ${detail?.version || ''} · ${detail?.time || ''}`;
   } else {
-    dom.healthTitle.textContent = '后端服务未连接';
-    dom.healthModel.textContent = '请用 scripts/run.ps1 启动服务';
+    dom.healthTitle.textContent = '服务未连接';
     dom.healthCard.title = detail?.message || '无法连接 /api/health';
   }
 }
@@ -284,8 +276,6 @@ function bindUnauthorizedGuide() {
 /* ------------------------------------------------------------------ */
 /* PWA：Service Worker 注册 + 安装提示                                 */
 /* ------------------------------------------------------------------ */
-let deferredInstallPrompt = null;
-
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   const isSecure =
@@ -299,35 +289,6 @@ function registerServiceWorker() {
   });
 }
 
-function bindInstallPrompt() {
-  const button = document.getElementById('installAppBtn');
-  if (!button) return;
-  window.addEventListener('beforeinstallprompt', (event) => {
-    event.preventDefault();
-    deferredInstallPrompt = event;
-    button.hidden = false;
-  });
-  button.addEventListener('click', async () => {
-    if (!deferredInstallPrompt) {
-      button.hidden = true;
-      return;
-    }
-    deferredInstallPrompt.prompt();
-    try {
-      await deferredInstallPrompt.userChoice;
-    } catch {
-      /* ignore */
-    }
-    deferredInstallPrompt = null;
-    button.hidden = true;
-  });
-  window.addEventListener('appinstalled', () => {
-    deferredInstallPrompt = null;
-    button.hidden = true;
-    toast('已安装到桌面，可从桌面图标直达快速收录', 'success', { title: '安装成功' });
-  });
-}
-
 /* ------------------------------------------------------------------ */
 /* 启动                                                                */
 /* ------------------------------------------------------------------ */
@@ -335,7 +296,6 @@ function boot() {
   bindShell();
   bindGlobalErrorHandlers();
   bindUnauthorizedGuide();
-  bindInstallPrompt();
   registerServiceWorker();
   // 无论是否有 hash 都要启动健康轮询（首访无 hash 会重定向到对话页）
   startHealthPolling();

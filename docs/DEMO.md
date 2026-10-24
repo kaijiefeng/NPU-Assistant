@@ -3,7 +3,7 @@
 > 目标：在 5 分钟内完整展示「LLM Wiki 编译 → 词条导航 → 双层引用回答 → 多渠道机器人」四类核心能力。
 > 演示环境：Windows + 已安装依赖的 `.venv`，默认地址 <http://127.0.0.1:8000>；配置真实 DeepSeek 时问答质量最佳。
 > 本文所有示例词条内容来自 `backend/data/seed_docs/` 与预编译快照 `backend/data/wiki_seed.json`，其中的时间、金额、电话均为示例。
-> 五个页面的实际界面截图见 `docs/screenshots/`（由 `scripts/ui_check.py` 自动生成），可先整体浏览再按下述脚本演示。
+> 六个页面的实际界面截图见 `docs/screenshots/`（由 `scripts/ui_check.py` 自动生成），可先整体浏览再按下述脚本演示。
 
 ## 0. 演示前检查（30 秒）
 
@@ -116,7 +116,7 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 | 上传编译 | 知识库 → 源文件上传 | `status=ready`、`page_count>0`，生成新词条与来源锚点 |
 | 编辑与重建 | 词条编辑 / 重新编译 | `version+1`，无重复词条，build 记录可查 |
 | 机器人复用 | 机器人页控制台通道 | 返回一致回复与 `outbound`，日志可见 |
-| 页面可用 | 5 个视图 | 无 console 报错，移动端窄屏布局正常 |
+| 页面可用 | 6 个视图 | 无 console 报错，移动端窄屏布局正常 |
 
 ## 8. 演示应急方案
 
@@ -233,3 +233,11 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 - `GET /api/mobile/access` 返回局域网/公网地址与二维码 data URL；`GET /api/mobile/qr.png?url=…` 200。
 - 使用真实 cloudflared 2026.8.2：`POST /api/mobile/tunnel/start` 约 4.7s 返回 `https://*.trycloudflare.com`；公网 HTTPS 访问 health、首页、手册均 200；无令牌写操作 401，带 `X-Admin-Token` 文本收录 201；`POST /tunnel/stop` 后公网返回 502。
 - 前端 CDP：顶栏「手机扫码」弹窗打开、二维码加载、地址切换、一键开启后自动切换公网二维码并提示；机器人页 3 张快速添加卡、创建后 Webhook 指引正常；390/1440 无横向滚动、console 0 错误。
+
+### 9.8 v0.1.2 UI / 信息架构重构（2026-10-24 实测）
+
+- 六个页面：`#/chat`、`#/knowledge`、`#/manage`、`#/models`、`#/bots`、`#/settings`；侧栏分「使用 / 运维」两组。
+- 知识库只读浏览；内容管理拆「收录资料 / 源文件 / 词条维护」三 Tab；模型「模型 / Provider」、机器人「通道 / 调试 / 日志」、设置「基础 / 移动访问与安全 / 回复与引用」。
+- 移除全局顶栏扫码、版本号/API 文档/安装按钮、知识库统计卡与快速收录、设置实时预览/配置建议；扫码入口迁入设置。
+- 验收：`scripts/ui_check.py` 六页渲染 + 真实问答/来源折叠行通过，console **0 错误**；1440×960 与 390×844 均无横向滚动；内容管理移动端统计 2×2、源文件列表首屏可见；pytest **110 passed**。
+- 截图：`docs/screenshots/{chat,knowledge,manage,models,bots,settings}.png`；手册静态图与 2 个 GIF 已同步新界面。

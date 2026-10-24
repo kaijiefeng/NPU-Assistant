@@ -77,6 +77,8 @@ const BUILD_STATUS = {
 
 const state = {
   tab: 'pages',
+  readOnly: true,
+  manageTab: 'capture',
   wikiStats: null,
   kStats: null,
   info: null,
@@ -479,15 +481,24 @@ function renderPages() {
     return;
   }
   if (!state.pages.length) {
-    body.innerHTML = emptyHtml({
-      icon: 'book',
-      title: state.activeTag ? `标签「${state.activeTag}」下暂无词条` : '校园 Wiki 还没有词条',
-      desc: '上传源文件后由 LLM 编译为结构化词条，或导入预编译快照立即体验浏览与问答。',
-      action: `<button class="btn btn-primary" type="button" data-action="switch-tab" data-tab="sources">${icon(
-        'upload',
-      )}<span>去上传源文件</span></button>
+    body.innerHTML = state.readOnly
+      ? emptyHtml({
+          icon: 'book',
+          title: state.activeTag ? `标签「${state.activeTag}」下暂无词条` : '校园 Wiki 还没有词条',
+          desc: '词条由管理员在「内容管理」中收录并编译，稍后再来看看。',
+          action: `<button class="btn btn-primary" type="button" data-action="go-manage">${icon(
+            'database',
+          )}<span>去内容管理</span></button>`,
+        })
+      : emptyHtml({
+          icon: 'book',
+          title: state.activeTag ? `标签「${state.activeTag}」下暂无词条` : '校园 Wiki 还没有词条',
+          desc: '上传源文件后由 LLM 编译为结构化词条，或导入预编译快照立即体验浏览与问答。',
+          action: `<button class="btn btn-primary" type="button" data-action="manage-tab" data-tab="sources">${icon(
+            'upload',
+          )}<span>去上传源文件</span></button>
         <button class="btn btn-ghost" type="button" data-action="seed">${icon('download')}<span>导入预编译快照</span></button>`,
-    });
+        });
     return;
   }
   body.innerHTML = `<div class="wiki-grid">${state.pages.map(pageCardHtml).join('')}</div>
@@ -538,12 +549,16 @@ function wikiDetailHtml(data) {
         ${page.summary ? `<p class="wiki-detail-sub">${esc(page.summary)}</p>` : ''}
       </div>
       <div class="wiki-detail-actions">
-        <button class="btn btn-sm btn-ghost" type="button" data-action="edit-page" data-id="${esc(page.id)}">${icon(
-          'edit',
-        )}<span>编辑</span></button>
+        ${
+          state.readOnly
+            ? ''
+            : `<button class="btn btn-sm btn-ghost" type="button" data-action="edit-page" data-id="${esc(
+                page.id,
+              )}">${icon('edit')}<span>编辑</span></button>
         <button class="btn btn-sm btn-ghost is-danger" type="button" data-action="delete-page" data-id="${esc(
           page.id,
-        )}">${icon('trash')}<span>删除</span></button>
+        )}">${icon('trash')}<span>删除</span></button>`
+        }
       </div>
     </header>
     <div class="wiki-detail-meta">
@@ -575,7 +590,9 @@ function wikiDetailHtml(data) {
     <section class="wiki-content">
       <h3 class="wiki-section-title">${icon('book')}词条正文</h3>
       <div class="wiki-body">${
-        data?.body_html || page.body_html || '<p class="muted">（正文为空，可点击「编辑」补充）</p>'
+        data?.body_html ||
+        page.body_html ||
+        `<p class="muted">（正文为空${state.readOnly ? '' : '，可点击「编辑」补充'}）</p>`
       }</div>
     </section>
     <section class="wiki-sources">
@@ -1582,21 +1599,30 @@ function setCaptureCollapsed(collapsed) {
 /* ------------------------------------------------------------------ */
 /* 视图入口                                                            */
 /* ------------------------------------------------------------------ */
-export function mount(root, context = {}) {
+export function mountManage(root, context = {}) {
   let alive = true;
   const initialPageId = context?.query?.get('page') || '';
+  state.readOnly = false;
+  state.manageTab = 'capture';
   state.tab = 'pages';
   state.search = { query: '', running: false, result: null, error: '' };
   state.build = null;
   stopBuildPolling();
 
-  root.innerHTML = `<div class="page knowledge-page">
+  root.innerHTML = `<div class="page manage-page">
+    <div class="manage-tabs" role="tablist" aria-label="内容管理">
+      <button class="seg-tab is-active" type="button" role="tab" aria-selected="true" data-action="manage-tab" data-tab="capture">收录资料</button>
+      <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="manage-tab" data-tab="sources">源文件</button>
+      <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="manage-tab" data-tab="pages">词条维护</button>
+    </div>
+
+    <section class="manage-panel" id="manageCapturePanel">
     <section class="card quick-capture" id="quickCapture">
       <header class="quick-capture-head">
         <div class="quick-capture-title">
           <span class="quick-capture-icon">${icon('plus')}</span>
           <div>
-            <h2>快速收录 <span class="badge badge-teal">移动端</span></h2>
+            <h2>快速收录</h2>
             <p>粘贴链接或文字，或上传文件；LLM 自动编译为 Wiki 词条</p>
           </div>
         </div>
@@ -1625,7 +1651,7 @@ export function mount(root, context = {}) {
               'link',
             )}<span>收录链接</span></button>
           </div>
-          <p class="capture-hint">${icon('info')}<span>微信 / QQ 可直接把链接转发给机器人（需管理员）；手机访问点右上角「手机扫码」，扫码后在手机上粘贴链接即可。</span></p>
+          <p class="capture-hint">${icon('info')}<span>微信 / QQ 可直接把链接转发给机器人（需管理员）；手机访问请到「设置 → 移动访问与安全」扫码，再在手机上粘贴链接即可。</span></p>
           <div class="capture-results" id="captureLinkResults"></div>
         </div>
 
@@ -1654,81 +1680,52 @@ export function mount(root, context = {}) {
         </div>
       </div>
     </section>
+    </section>
 
-    <section class="stats-grid" id="wikiStats" aria-label="Wiki 统计"></section>
-
-    <section class="card wiki-toolbar-card">
-      <div class="wiki-toolbar">
-        <div class="tabs" role="tablist" aria-label="知识库视图">
-          <button class="tab is-active" type="button" role="tab" aria-selected="true" data-action="switch-tab" data-tab="pages">${icon(
-            'book',
-          )}<span>词条</span><b id="tabPageCount"></b></button>
-          <button class="tab" type="button" role="tab" aria-selected="false" data-action="switch-tab" data-tab="sources">${icon(
-            'file',
-          )}<span>源文件</span><b id="tabDocCount"></b></button>
+    <section class="manage-panel" id="manageSourcesPanel" hidden>
+      <section class="stats-grid manage-stats" id="wikiStats" aria-label="Wiki 统计"></section>
+      <section class="card manage-toolbar-card">
+        <div class="manage-toolbar">
+          <button class="btn btn-primary btn-sm" type="button" data-action="pick-file">${icon('upload')}<span>上传源文件</span></button>
+          <button class="btn btn-ghost btn-sm" type="button" data-action="seed">${icon('download')}<span>导入快照</span></button>
+          <button class="btn btn-ghost btn-sm" type="button" data-action="rebuild-all">${icon('refresh')}<span>全部重建</span></button>
+          <button class="btn btn-ghost btn-sm" type="button" data-action="refresh-docs">${icon('refresh')}<span>刷新</span></button>
         </div>
+      </section>
+      <div class="build-banner" id="buildBanner" hidden></div>
+      <section class="card docs-card">
+        <header class="card-head">
+          <div>
+            <h2>${icon('folder')}源文件 <span class="count" id="docCount"></span></h2>
+            <p>失败时展示错误原因并可重新编译</p>
+          </div>
+        </header>
+        <div id="docsBody">${loadingHtml('正在加载源文件…')}</div>
+      </section>
+    </section>
 
-        <div class="toolbar-actions" id="pagesActions">
+    <section class="manage-panel" id="managePagesPanel" hidden>
+      <section class="card manage-toolbar-card">
+        <div class="manage-toolbar">
           <form class="wiki-search" id="wikiSearchForm">
             <input class="input" id="wikiSearchInput" type="search" placeholder="搜索词条，如：国家奖学金怎么申请" aria-label="搜索词条" />
             <button class="btn btn-primary" type="submit" id="wikiSearchBtn">${icon('search')}<span>搜索</span></button>
           </form>
           <button class="btn btn-ghost btn-sm" type="button" data-action="refresh-pages">${icon('refresh')}<span>刷新</span></button>
         </div>
-
-        <div class="toolbar-actions" id="sourcesActions" hidden>
-          <button class="btn btn-primary btn-sm" type="button" data-action="pick-file">${icon('upload')}<span>上传源文件</span></button>
-          <button class="btn btn-ghost btn-sm" type="button" data-action="seed">${icon('download')}<span>导入快照</span></button>
-          <button class="btn btn-ghost btn-sm" type="button" data-action="rebuild-all">${icon('refresh')}<span>全部重建</span></button>
-        </div>
-      </div>
-      <div class="tag-filter" id="tagFilter" hidden></div>
-    </section>
-
-    <div class="build-banner" id="buildBanner" hidden></div>
-
-    <section id="pagesPanel">
+        <div class="tag-filter" id="tagFilter" hidden></div>
+      </section>
       <div id="wikiSearchResult" hidden></div>
       <div id="wikiPagesBody">${loadingHtml('正在加载 Wiki 词条…')}</div>
     </section>
-
-    <section id="sourcesPanel" class="sources-panel" hidden>
-      <section class="card wiki-guide-card">
-        <header class="card-head">
-          <div>
-            <h2>${icon('sparkles')}Wiki 编译说明</h2>
-            <p>源文件是唯一事实来源，词条是从源文件编译出的结构化页面。</p>
-          </div>
-        </header>
-        <ul class="wiki-guide-list">
-          <li>${icon('file')}<span>上传后调用 LLM 按章节编译 1–3 个词条，并校验「原文摘录」可逐字回溯。</span></li>
-          <li>${icon('link')}<span>每个词条附带来源锚点（文件 · 章节 · 原文摘录），对话引用可双层核对。</span></li>
-          <li>${icon('refresh')}<span>源文件更新后「重新编译」；批量更新可「全部重建」并轮询构建结果。</span></li>
-          <li>${icon('download')}<span>没有可用模型时，可先在「设置 → 模型」配置，或导入预编译快照浏览。</span></li>
-        </ul>
-      </section>
-
-      <section class="card docs-card">
-        <header class="card-head">
-          <div>
-            <h2>${icon('folder')}源文件 <span class="count" id="docCount"></span></h2>
-            <p>状态显示编译结果；失败时展示错误原因并可重新编译</p>
-          </div>
-          <div class="card-actions">
-            <button class="btn btn-ghost btn-sm" type="button" data-action="refresh-docs">${icon('refresh')}<span>刷新</span></button>
-            <button class="btn btn-ghost btn-sm" type="button" data-action="seed">${icon('download')}<span>导入快照</span></button>
-          </div>
-        </header>
-        <div id="docsBody">${loadingHtml('正在加载源文件…')}</div>
-      </section>
-    </section>
   </div>`;
 
-  const page = root.querySelector('.knowledge-page');
-  const pagesPanel = root.querySelector('#pagesPanel');
-  const sourcesPanel = root.querySelector('#sourcesPanel');
-  const pagesActions = root.querySelector('#pagesActions');
-  const sourcesActions = root.querySelector('#sourcesActions');
+  const page = root.querySelector('.manage-page');
+  const managePanels = {
+    capture: root.querySelector('#manageCapturePanel'),
+    sources: root.querySelector('#manageSourcesPanel'),
+    pages: root.querySelector('#managePagesPanel'),
+  };
   const searchForm = root.querySelector('#wikiSearchForm');
   const searchInput = root.querySelector('#wikiSearchInput');
   const dropzone = root.querySelector('#dropzone');
@@ -1744,20 +1741,20 @@ export function mount(root, context = {}) {
   setCaptureMode('links');
   renderCaptureResults();
 
-  const switchTab = (tab) => {
-    state.tab = tab === 'sources' ? 'sources' : 'pages';
-    pagesPanel.hidden = state.tab !== 'pages';
-    sourcesPanel.hidden = state.tab !== 'sources';
-    pagesActions.hidden = state.tab !== 'pages';
-    sourcesActions.hidden = state.tab !== 'sources';
-    page.querySelectorAll('.tab').forEach((btn) => {
-      const active = btn.dataset.tab === state.tab;
+  const switchManageTab = (tab) => {
+    state.manageTab = ['capture', 'sources', 'pages'].includes(tab) ? tab : 'capture';
+    Object.entries(managePanels).forEach(([key, panel]) => {
+      if (panel) panel.hidden = key !== state.manageTab;
+    });
+    page.querySelectorAll('.seg-tab').forEach((btn) => {
+      const active = btn.dataset.tab === state.manageTab;
       btn.classList.toggle('is-active', active);
       btn.setAttribute('aria-selected', active ? 'true' : 'false');
     });
-    if (state.tab === 'sources' && !state.docsLoaded && !state.docsError) loadDocs();
+    if (state.manageTab === 'sources' && !state.docsLoaded && !state.docsError) loadDocs();
+    if (state.manageTab === 'pages' && !state.pagesLoaded) loadPages();
   };
-  switchTab('pages');
+  switchManageTab('capture');
 
   /* 上传交互 */
   const pickFile = () => fileInput?.click();
@@ -1810,8 +1807,8 @@ export function mount(root, context = {}) {
     if (!trigger || !page.contains(trigger)) return;
     const action = trigger.dataset.action;
     switch (action) {
-      case 'switch-tab':
-        switchTab(trigger.dataset.tab);
+      case 'manage-tab':
+        switchManageTab(trigger.dataset.tab);
         break;
       case 'refresh-pages':
         loadPages();
@@ -1923,5 +1920,93 @@ export function mount(root, context = {}) {
       window.clearInterval(state.uploadTimer);
       state.uploadTimer = 0;
     }
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* 知识库（学生浏览页，只读）                                          */
+/* ------------------------------------------------------------------ */
+export function mount(root, context = {}) {
+  let alive = true;
+  const initialPageId = context?.query?.get('page') || '';
+  state.readOnly = true;
+  state.tab = 'pages';
+  state.search = { query: '', running: false, result: null, error: '' };
+  state.build = null;
+  stopBuildPolling();
+
+  root.innerHTML = `<div class="page knowledge-page browse-page">
+    <section class="browse-search-card">
+      <form class="wiki-search browse-search" id="wikiSearchForm" role="search">
+        <input class="input" id="wikiSearchInput" type="search" placeholder="搜索校园知识，如：国家奖学金、请假流程" aria-label="搜索词条" />
+        <button class="btn btn-primary" type="submit" id="wikiSearchBtn">${icon('search')}<span>搜索</span></button>
+      </form>
+    </section>
+    <div class="tag-filter browse-tags" id="tagFilter" hidden></div>
+    <div id="wikiSearchResult" hidden></div>
+    <div id="wikiPagesBody">${loadingHtml('正在加载知识词条…')}</div>
+  </div>`;
+
+  const page = root.querySelector('.browse-page');
+  const searchForm = root.querySelector('#wikiSearchForm');
+  const searchInput = root.querySelector('#wikiSearchInput');
+
+  searchForm?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const query = searchInput.value.trim();
+    if (!query) {
+      toast('请输入搜索关键词', 'warning');
+      searchInput.focus();
+      return;
+    }
+    runWikiSearch(query);
+  });
+
+  page.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-action]');
+    if (!trigger || !page.contains(trigger)) return;
+    const action = trigger.dataset.action;
+    switch (action) {
+      case 'filter-tag':
+        state.activeTag = trigger.dataset.tag || '';
+        renderTagFilter();
+        loadPages();
+        break;
+      case 'open-page':
+        openWikiPage(trigger.dataset.id);
+        break;
+      case 'clear-search':
+        state.search = { query: '', running: false, result: null, error: '' };
+        if (searchInput) searchInput.value = '';
+        renderPages();
+        break;
+      case 'go-manage':
+        location.hash = '#/manage';
+        break;
+      case 'retry':
+        loadPages();
+        loadTree();
+        break;
+      default:
+        break;
+    }
+  });
+
+  page.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    const trigger = event.target.closest('[data-action="open-page"]');
+    if (!trigger) return;
+    event.preventDefault();
+    openWikiPage(trigger.dataset.id);
+  });
+
+  renderTagFilter();
+  loadTree();
+  loadPages();
+  if (initialPageId) openWikiPage(initialPageId, { fromHash: true });
+
+  return () => {
+    alive = false;
+    stopBuildPolling();
   };
 }

@@ -22,6 +22,7 @@ import {
   setButtonBusy,
   toast,
 } from '../ui.js';
+import { openMobileAccessModal } from '../mobile-access.js';
 
 const state = {
   loaded: false,
@@ -74,41 +75,6 @@ function updateDirty() {
   return dirty;
 }
 
-function renderPreview() {
-  const holder = document.getElementById('settingsPreview');
-  if (!holder || !state.loaded) return;
-  const values = collect();
-  const questions = values.quick_questions.filter(Boolean);
-  holder.innerHTML = `<div class="preview-chat">
-    <div class="preview-head">
-      <div class="preview-avatar">${esc((values.counselor_name || '小南').slice(0, 1))}</div>
-      <div>
-        <strong>${esc(values.counselor_name || '小南')}</strong>
-        <span>辅导员数字分身 · 预览</span>
-      </div>
-    </div>
-    <div class="preview-bubble">${esc(values.welcome_message || '（欢迎语为空）')}</div>
-    ${
-      questions.length
-        ? `<div class="preview-quick">${questions
-            .slice(0, 4)
-            .map((question) => `<span class="preview-chip">${esc(question)}</span>`)
-            .join('')}</div>`
-        : '<p class="muted preview-muted">未配置快捷问题</p>'
-    }
-    <div class="preview-divider"></div>
-    <div class="preview-foot-label">机器人回复尾注示例</div>
-    <div class="preview-bubble preview-reply">根据《国家奖学金评审办法》，申请需提交申请表、成绩单等材料 [1]。${
-      values.bot_reply_footer ? esc(values.bot_reply_footer) : ''
-    }</div>
-    <div class="preview-tags">
-      <span class="chip-mono">词条 ${esc(values.wiki_max_pages)} 个</span>
-      <span class="chip-mono">上下文 ${esc(values.wiki_answer_max_chars)} 字</span>
-      <span class="chip-mono">引用${values.citations_enabled ? '开启' : '关闭'}</span>
-    </div>
-  </div>`;
-}
-
 function bindForm() {
   const form = document.getElementById('settingsForm');
   if (!form) return;
@@ -118,11 +84,9 @@ function bindForm() {
   });
   form.addEventListener('input', () => {
     updateDirty();
-    renderPreview();
   });
   form.addEventListener('change', () => {
     updateDirty();
-    renderPreview();
   });
 }
 
@@ -152,20 +116,24 @@ function fillForm(settings) {
   state.loaded = true;
   state.snapshot = JSON.stringify(collect());
   updateDirty();
-  renderPreview();
 }
 
 function renderShell() {
   return `<div class="page settings-page">
+    <div class="seg-tabs" role="tablist" aria-label="设置">
+      <button class="seg-tab is-active" type="button" role="tab" aria-selected="true" data-action="settings-tab" data-tab="basic">基础</button>
+      <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="settings-tab" data-tab="security">移动访问与安全</button>
+      <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="settings-tab" data-tab="reply">回复与引用</button>
+    </div>
+
     <form class="settings-layout" id="settingsForm" novalidate>
-      <div class="settings-main">
+      <section class="manage-panel" id="settingsBasicPanel">
         <section class="card">
           <header class="card-head">
             <div>
               <h2>${icon('user')}分身人设</h2>
               <p>名称与提示词会注入到每次对话和机器人回复中</p>
             </div>
-            <span class="card-tag">身份</span>
           </header>
           <div class="form">
             <label class="field">
@@ -174,22 +142,47 @@ function renderShell() {
             </label>
             <label class="field">
               <span class="field-label">欢迎语</span>
-              <textarea class="input" id="settingWelcome" rows="3" placeholder="对话页欢迎语，会显示在首次进入时"></textarea>
+              <textarea class="input" id="settingWelcome" rows="3" placeholder="对话页欢迎语"></textarea>
             </label>
             <label class="field">
-              <span class="field-label">系统提示词 <em>*</em><span class="field-tip">（建议保留「只依据知识库回答」与「标注引用编号」约束）</span></span>
+              <span class="field-label">系统提示词 <em>*</em></span>
               <textarea class="input textarea-code" id="settingPrompt" rows="12" spellcheck="false"></textarea>
             </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <header class="card-head">
+            <div>
+              <h2>${icon('sparkles')}快捷问题</h2>
+              <p>显示在对话页欢迎区，最多展示 3 条</p>
+            </div>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="add-quick">${icon('plus')}<span>添加</span></button>
+          </header>
+          <div class="quick-list" id="quickList"></div>
+        </section>
+      </section>
+
+      <section class="manage-panel" id="settingsSecurityPanel" hidden>
+        <section class="card">
+          <header class="card-head">
+            <div>
+              <h2>${icon('qr')}手机扫码访问</h2>
+              <p>手机与电脑同一 Wi-Fi 时扫码即用；外网访问可开启 Cloudflare 临时隧道</p>
+            </div>
+            <button class="btn btn-primary btn-sm" type="button" data-action="open-mobile-access">${icon('qr')}<span>扫码 / 公网访问</span></button>
+          </header>
+          <div class="form">
+            <div class="form-hint">${icon('info')}<span>扫码后在手机浏览器打开；需要管理操作时，在手机设置页填入下方同一管理令牌即可。</span></div>
           </div>
         </section>
 
         <section class="card admin-token-card" id="adminTokenCard">
           <header class="card-head">
             <div>
-              <h2>${icon('shield')}移动端与管理令牌</h2>
+              <h2>${icon('shield')}管理令牌</h2>
               <p>公网 / 局域网多人使用时，写操作需要 NPU_ADMIN_TOKEN；令牌仅保存在本机浏览器</p>
             </div>
-            <span class="card-tag">安全</span>
           </header>
           <div class="form">
             <label class="field">
@@ -208,77 +201,54 @@ function renderShell() {
               <button class="btn btn-ghost btn-sm" type="button" data-action="test-token">${icon('link')}<span>测试连接</span></button>
               <button class="btn btn-ghost btn-sm is-danger" type="button" data-action="clear-token">${icon('trash')}<span>清除令牌</span></button>
             </div>
-            <div class="form-hint" id="tokenServerHint">${icon('info')}<span>保存后所有 API 请求自动携带 <code>X-Admin-Token</code> 请求头；令牌缺失或不正确时，写操作会返回 401 并提示。手机上可先在此登录一次，之后直接使用快速收录与编辑功能。</span></div>
+            <div class="form-hint" id="tokenServerHint">${icon('info')}<span>保存后所有 API 请求自动携带 <code>X-Admin-Token</code> 请求头；令牌缺失或不正确时，写操作会返回 401 并提示。</span></div>
           </div>
         </section>
+      </section>
 
-        <section class="card">
-          <header class="card-head">
-            <div>
-              <h2>${icon('sparkles')}快捷问题</h2>
-              <p>显示在对话页欢迎区，最多建议 6 条；点击即可直接发送</p>
-            </div>
-            <button class="btn btn-ghost btn-sm" type="button" data-action="add-quick">${icon('plus')}<span>添加</span></button>
-          </header>
-          <div class="quick-list" id="quickList"></div>
-        </section>
-
+      <section class="manage-panel" id="settingsReplyPanel" hidden>
         <section class="card">
           <header class="card-head">
             <div>
               <h2>${icon('book')}Wiki 阅读与引用</h2>
               <p>控制对话时送入模型的词条数量、读取上限与引用展示</p>
             </div>
-            <span class="card-tag">Wiki</span>
           </header>
           <div class="form">
             <div class="form-row">
               <label class="field">
                 <span class="field-label">单次读取词条数上限</span>
                 <input class="input" id="settingWikiMaxPages" type="number" min="1" max="5" step="1" />
-                <span class="field-help">导航命中的词条最多读取几个，范围 1 ~ 5，建议 3</span>
+                <span class="field-help">范围 1 ~ 5，建议 3</span>
               </label>
               <label class="field">
                 <span class="field-label">回答上下文字符上限</span>
                 <input class="input" id="settingWikiChars" type="number" min="2000" max="20000" step="500" />
-                <span class="field-help">词条正文送入模型的字符总量，范围 2000 ~ 20000</span>
+                <span class="field-help">范围 2000 ~ 20000</span>
               </label>
             </div>
             <label class="field field-inline">
               <input type="checkbox" id="settingCitations" />
               <span>在回答中展示引用词条与来源锚点</span>
             </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <header class="card-head">
+            <div>
+              <h2>${icon('message')}回复尾注</h2>
+              <p>附加在 QQ / 微信机器人回复末尾</p>
+            </div>
+          </header>
+          <div class="form">
             <label class="field">
-              <span class="field-label">机器人回复尾注</span>
-              <textarea class="input" id="settingFooter" rows="3" placeholder="附加在 QQ / 微信回复末尾的提示语"></textarea>
+              <span class="field-label">回复尾注</span>
+              <textarea class="input" id="settingFooter" rows="3" placeholder="例如：以上信息仅供参考，请以学校官方通知为准。"></textarea>
             </label>
           </div>
         </section>
-      </div>
-
-      <aside class="settings-side">
-        <section class="card preview-card">
-          <header class="card-head">
-            <div>
-              <h2>${icon('chat')}实时预览</h2>
-              <p>修改后即时反映，保存后对对话页生效</p>
-            </div>
-          </header>
-          <div id="settingsPreview">${loadingHtml('加载设置中…', 'state-compact')}</div>
-        </section>
-        <section class="card tips-card">
-          <header class="card-head">
-            <div><h2>${icon('info')}配置建议</h2></div>
-          </header>
-          <ul class="tips-list">
-            <li>提示词中明确「词条没有覆盖时说明 Wiki 未收录，并给出咨询渠道」，可减少编造。</li>
-            <li>引用编号由后端自动标注，回答中的 [1][2] 与词条引用卡片一一对应。</li>
-            <li>提高「单次读取词条数」会带来更完整的上下文，但也会增加模型调用成本与延迟。</li>
-            <li>修改后如对话页仍显示旧欢迎语，重新进入对话页即可刷新。</li>
-            <li>Wiki 词条来自源文件编译，建议先在<a href="#/knowledge">知识库</a>上传或导入学生手册相关资料。</li>
-          </ul>
-        </section>
-      </aside>
+      </section>
     </form>
 
     <div class="settings-savebar" id="settingsSavebar">
@@ -494,7 +464,6 @@ function bindActions() {
       );
     }
     updateDirty();
-    renderPreview();
   });
 
   document.querySelector('[data-action="add-quick"]')?.addEventListener('click', () => {
@@ -503,7 +472,30 @@ function bindActions() {
     const rows = document.querySelectorAll('[data-quick-row]');
     rows[rows.length - 1]?.querySelector('[data-quick]')?.focus();
     updateDirty();
-    renderPreview();
+  });
+
+  // 设置分区 tabs + 手机扫码入口
+  const settingsPanels = {
+    basic: document.getElementById('settingsBasicPanel'),
+    security: document.getElementById('settingsSecurityPanel'),
+    reply: document.getElementById('settingsReplyPanel'),
+  };
+  const switchSettingsTab = (tab) => {
+    const next = ['basic', 'security', 'reply'].includes(tab) ? tab : 'basic';
+    Object.entries(settingsPanels).forEach(([key, panel]) => {
+      if (panel) panel.hidden = key !== next;
+    });
+    document.querySelectorAll('.settings-page .seg-tab').forEach((btn) => {
+      const active = btn.dataset.tab === next;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+  };
+  document.querySelectorAll('.settings-page .seg-tab').forEach((btn) => {
+    btn.addEventListener('click', () => switchSettingsTab(btn.dataset.tab));
+  });
+  document.querySelector('[data-action="open-mobile-access"]')?.addEventListener('click', () => {
+    openMobileAccessModal();
   });
 
   /* 管理令牌：保存 / 清除 / 测试 / 显示隐藏 */

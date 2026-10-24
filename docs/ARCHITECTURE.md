@@ -97,7 +97,7 @@ graph TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant U as 管理员（知识库页）
+    participant U as 管理员（内容管理）
     participant K as routers/knowledge.py
     participant I as services/ingest.py
     participant P as services/parsing.py
@@ -233,7 +233,7 @@ sequenceDiagram
 | 服务 | `services/llm.py` | 三类 Provider 适配与超时、默认模型、Provider/模型测试 |
 | 服务 | `services/bot_pipeline.py` | 机器人统一入站：会话键规则、调用 `counselor.answer()`、outbound 报文 |
 | 适配 | `adapters/onebot.py` / `wechat_mp.py` / `base.py` | OneBot 事件归一化与 HTTP API 发送、公众号签名/XML、会话键构造 |
-| 前端 | `frontend/index.html` + `assets/` | 单页应用、hash 路由、5 个视图；知识库页「词条 / 源文件」双 Tab |
+| 前端 | `frontend/index.html` + `assets/` | 单页应用、hash 路由、6 个视图；知识库只读浏览，内容管理分「收录资料 / 源文件 / 词条维护」三个 Tab |
 
 ## 5. 数据模型
 

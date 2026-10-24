@@ -115,7 +115,7 @@
 OneBot 11 反向 WS/HTTP、群 @ 门控、HMAC、微信公众号明文 XML、console 通道；问答统一走 `counselor.answer()`。citation 结构变化对机器人透明（bot 只取 reply）。
 
 ### 5.7 前端（web-ui）
-知识库页改为「词条 / 源文件」双 Tab（浏览、搜索、来源锚点、编辑、重建、导入快照）；对话引用卡片展示词条+来源文件·章节并可跳转词条详情；设置页用 `wiki_max_pages`/`wiki_answer_max_chars` 替换旧检索参数。详见 WIKI-DESIGN §6。
+知识库只读浏览（搜索、来源锚点）；内容管理分「收录资料 / 源文件 / 词条维护」三个 Tab（收录、重建、导入快照、编辑删除）；对话引用卡片展示词条+来源文件·章节并可跳转词条详情；设置页用 `wiki_max_pages`/`wiki_answer_max_chars` 替换旧检索参数。详见 WIKI-DESIGN §6。
 
 ---
 
