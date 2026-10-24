@@ -23,7 +23,7 @@
 
 ## 2. 技术栈与运行
 
-- 后端 Python 3.11 + FastAPI + SQLite（标准库 sqlite3）+ httpx + jieba（仅用于 Wiki 导航分词）+ pypdf/python-docx/openpyxl/bs4 + markdown（`body_html` 渲染）
+- 后端 Python 3.11 + FastAPI + SQLite（标准库 sqlite3）+ httpx + jieba（仅用于 Wiki 导航分词）+ pypdf/python-docx/legacy-doc/openpyxl/bs4 + markdown（`body_html` 渲染）
 - 前端纯静态 HTML/CSS/原生 ES Module，无构建、无 CDN
 - 虚拟环境 `.venv`（已就绪）。统一用 `.\.venv\Scripts\python.exe`
 - 启动 `.\scripts\run.ps1`（默认 <http://127.0.0.1:8000>）；测试 `.\scripts\check.ps1`
@@ -145,7 +145,7 @@ attach_citations(reply, pages, enabled=True) -> tuple[str, list[dict]]
 ## 7. 验收标准
 
 - [ ] 冷启动无 Key 自动导入预编译 Wiki（≥10 源文件 / ≥15 词条），`/api/wiki/tree` 可浏览
-- [ ] 配 DeepSeek 后上传 md/docx/pdf → 编译出词条 + 来源锚点，`status=ready`、`page_count>0`
+- [ ] 配 DeepSeek 后上传 md/docx/doc/pdf → 编译出词条 + 来源锚点，`status=ready`、`page_count>0`
 - [ ] `/api/wiki/search` 命中正确词条（method=exact/keyword/llm），无命中 `method=none`
 - [ ] `/api/chat` 真实模型 `fallback=false`，citations 同时含 `page_id` 与 `sources[].section`；断网/mock 时 `fallback=true` 有词条摘录
 - [ ] 删除/重建文档不产生重复词条，独占词条被清理

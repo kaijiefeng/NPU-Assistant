@@ -13,7 +13,7 @@
 | 错误格式 | `HTTPException(status_code, detail="中文可读信息")`，前端按 `detail` 展示 |
 | 鉴权 | 默认无鉴权（本地演示）；设置环境变量 `NPU_ADMIN_TOKEN` 后，除 `POST /api/chat`、`GET/HEAD/OPTIONS` 与机器人 webhook（自带通道 token/签名）外的**写操作**以及**历史会话接口**需请求头 `X-Admin-Token: <token>`；缺失/错误 → 401 |
 | 时间格式 | ISO 字符串（本地时间），ID 为 32 位 hex |
-| 上传限制 | 单文件 ≤ 20MB（`NPU_MAX_UPLOAD_MB`），支持 `.md/.markdown/.txt/.pdf/.docx/.xlsx/.csv/.json/.html/.htm` |
+| 上传限制 | 单文件 ≤ 20MB（`NPU_MAX_UPLOAD_MB`），支持 `.md/.markdown/.txt/.pdf/.docx/.doc/.xlsx/.csv/.json/.html/.htm` |
 | 知识模型 | `knowledge_mode: "llm-wiki"`；无 embedding / 向量库 / rerank / chunk 检索 |
 | LLM 依赖 | 上传编译、高质量回答需要真实 LLM；mock 模型下编译会被拒绝、问答降级（`fallback=true`） |
 | 安全响应头 | 所有响应默认带 `Content-Security-Policy`、`X-Frame-Options: DENY`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: same-origin`；CORS 默认关闭（仅 `NPU_CORS_ORIGINS` 白名单） |

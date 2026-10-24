@@ -11,7 +11,7 @@
 
 | 项目 | 约定 |
 |------|------|
-| 源文件（documents） | 上传的 md/txt/pdf/docx/xlsx/csv/json/html，是唯一事实来源 |
+| 源文件（documents） | 上传的 md/txt/pdf/docx/doc/xlsx/csv/json/html，是唯一事实来源 |
 | Wiki 词条（wiki_pages） | 由 LLM 从源文件编译出的结构化 Markdown 页面，包含概述/流程/材料/时间/注意事项等 |
 | 来源锚点（wiki_sources） | 词条 ← 源文件 + 章节标题 + 原文摘录（逐字），用于双层引用与人工核对 |
 | 导航（wiki_nav） | 定位词条，**不检索切片**：标题/别名精确匹配 → 元数据关键词打分 → LLM 读目录选页 |

@@ -1,0 +1,125 @@
+{
+  "version": "2026-10-24",
+  "note": "真实公开数据测试集/初始知识库；文件本体保存在本地 backend/data/campus_seed/files（gitignored），仓库只保留清单。",
+  "files": [
+    {
+      "title": "西北工业大学知识产权声明页（材料学院资料下载）",
+      "format": "docx",
+      "page": "https://cailiao.nwpu.edu.cn/info/2643/31676.htm",
+      "url": "https://cailiao.nwpu.edu.cn/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1874428052&wbfileid=7F043FD3E4AC98758398967DBEE3E003",
+      "filename": "西工大-知识产权声明页.docx",
+      "bytes": 12939,
+      "sha256": "cbe66fd5f130de81f4c387324105203c0debc9019e5a3ff119a5ac7b3e565ab8",
+      "fetched_at": "2026-10-24T20:50:14+0800",
+      "importable": true,
+      "note": ""
+    },
+    {
+      "title": "西北工业大学在校学习基本情况表（材料学院资料下载）",
+      "format": "doc",
+      "page": "https://cailiao.nwpu.edu.cn/info/2643/31676.htm",
+      "url": "https://cailiao.nwpu.edu.cn/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1874428052&wbfileid=279337B53EEA8AB234E0257222FD316D",
+      "filename": "西工大-在校学习基本情况表.doc",
+      "bytes": 58880,
+      "sha256": "8e5f4163109763515aeb76aa9602b858a74790a221d6beb927d23592b4b7621c",
+      "fetched_at": "2026-10-24T20:50:18+0800",
+      "importable": true,
+      "note": ""
+    },
+    {
+      "title": "西北工业大学学位四会关于学位论文评阅意见的处理办法（修订版）",
+      "format": "pdf",
+      "page": "https://cailiao.nwpu.edu.cn/info/2643/31676.htm",
+      "url": "https://cailiao.nwpu.edu.cn/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1874428052&wbfileid=AEE6861E25D769987E61218F104C6592",
+      "filename": "西工大-学位论文评阅意见处理办法.pdf",
+      "bytes": 94723,
+      "sha256": "921b7f1a26912e65f1c25d7c163b285ddc57cf6da19cb1a4126dde6535718ae0",
+      "fetched_at": "2026-10-24T20:50:21+0800",
+      "importable": true,
+      "note": ""
+    },
+    {
+      "title": "西北工业大学博士后进站审核表（非定向）",
+      "format": "docx",
+      "page": "https://liuyuan.nwpu.edu.cn/info/1057/15064.htm",
+      "url": "https://liuyuan.nwpu.edu.cn/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1767810016&wbfileid=35B34F6A307803492903F494FF6C0DED",
+      "filename": "西工大-博士后进站审核表（非定向）.docx",
+      "bytes": 22361,
+      "sha256": "c54e55b54a0efaa0bde6bf5cfdeac088549c51b4059cf0f93ed0a833e0494db9",
+      "fetched_at": "2026-10-24T20:50:24+0800",
+      "importable": true,
+      "note": ""
+    },
+    {
+      "title": "关于进一步加强学生日常管理的通知",
+      "format": "pdf",
+      "page": "https://minhang.nwpu.edu.cn/info/1042/1531.htm",
+      "url": "https://minhang.nwpu.edu.cn/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1711241470&wbfileid=A2A4B6B7E211B548FCB3529C58ABD4BE",
+      "filename": "西工大-关于进一步加强学生日常管理的通知.pdf",
+      "bytes": 873466,
+      "sha256": "ed76efa8821e33e56821e3f5bc6e96fd03fa071504d6b7029e4c1c2a22a7b4b1",
+      "fetched_at": "2026-10-24T20:51:59+0800",
+      "importable": false,
+      "note": "扫描版 PDF，无可提取文本；保留为负样本，不导入知识库"
+    },
+    {
+      "title": "西北工业大学材料学院关于研究生培养和招生增加国际化要求的规定",
+      "format": "pdf",
+      "page": "https://cailiao.nwpu.edu.cn/info/2643/31676.htm",
+      "url": "https://cailiao.nwpu.edu.cn/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1874428052&wbfileid=99EE977E67C0128945F67FF07616B253",
+      "filename": "西工大-研究生培养国际化规定.pdf",
+      "bytes": 169987,
+      "sha256": "2108b6acbd22a6a3331ee588feff8ace7fb46d78847dffa6d8956718579fffc8",
+      "fetched_at": "2026-10-24T20:58:03+0800",
+      "importable": true,
+      "note": ""
+    },
+    {
+      "title": "西北工业大学研究生课程教学管理规定",
+      "format": "pdf",
+      "page": "https://cailiao.nwpu.edu.cn/info/2643/31676.htm",
+      "url": "https://cailiao.nwpu.edu.cn/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1874428052&wbfileid=1C178D8D6B6DD2B07F4F2C2CA6DD0A6A",
+      "filename": "西工大-研究生课程教学管理规定.pdf",
+      "bytes": 328211,
+      "sha256": "87e4d6c361b86a4d5d1f24359f7e46ae4892752fbccdc5f8e119ec1f2eb7d2dc",
+      "fetched_at": "2026-10-24T20:58:03+0800",
+      "importable": true,
+      "note": ""
+    },
+    {
+      "title": "材料学院教授、副教授为本科生授课管理办法",
+      "format": "pdf",
+      "page": "https://cailiao.nwpu.edu.cn/info/2643/31676.htm",
+      "url": "https://cailiao.nwpu.edu.cn/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1874428052&wbfileid=68D05584F4A3BF68F8AA38B79CADBE46",
+      "filename": "西工大-教授副教授为本科生授课管理办法.pdf",
+      "bytes": 164515,
+      "sha256": "d76d8402503a3d2b22712dd137c7037cec050e814ddd98edf1aafd82041723fd",
+      "fetched_at": "2026-10-24T20:58:03+0800",
+      "importable": true,
+      "note": ""
+    }
+  ],
+  "html": [
+    {
+      "title": "教务部-课程思政精品课程推荐通知",
+      "url": "https://jiaowu.nwpu.edu.cn/info/1164/30528.htm",
+      "format": "html",
+      "imported": true,
+      "document_title": "教务部-课程思政精品课程推荐通知"
+    },
+    {
+      "title": "民航学院-进一步加强学生日常管理的通知",
+      "url": "https://minhang.nwpu.edu.cn/info/1042/1531.htm",
+      "format": "html",
+      "imported": true,
+      "document_title": "民航学院-进一步加强学生日常管理的通知"
+    },
+    {
+      "title": "研究生院-研究生教育综合管理系统维护公示",
+      "url": "https://gs.nwpu.edu.cn/info/2141/32257.htm",
+      "format": "html",
+      "imported": true,
+      "document_title": "研究生院-研究生教育综合管理系统维护公示"
+    }
+  ]
+}

@@ -52,6 +52,7 @@ def test_system_info_exposes_safe_configuration(client):
     assert data["knowledge_mode"] == "llm-wiki"
     assert ".md" in data["supported_exts"]
     assert ".pdf" in data["supported_exts"]
+    assert ".doc" in data["supported_exts"]
     assert data["max_upload_mb"] == 20
     assert data["url_import_max_mb"] == 8.0
     assert data["url_import_max_urls"] == 5

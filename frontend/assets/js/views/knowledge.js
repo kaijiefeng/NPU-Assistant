@@ -50,7 +50,7 @@ import {
   toast,
 } from '../ui.js';
 
-const FALLBACK_EXTS = ['.md', '.markdown', '.txt', '.pdf', '.docx', '.xlsx', '.csv', '.json', '.html', '.htm'];
+const FALLBACK_EXTS = ['.md', '.markdown', '.txt', '.pdf', '.docx', '.doc', '.xlsx', '.csv', '.json', '.html', '.htm'];
 const DOC_STATUS = {
   pending: { label: '等待编译', tone: 'slate' },
   processing: { label: '编译中', tone: 'amber' },
@@ -325,7 +325,7 @@ async function loadSystemInfo() {
     state.info = await getSystemInfo();
     const hint = document.getElementById('uploadHint');
     if (hint) {
-      const preferred = ['.md', '.txt', '.pdf', '.docx', '.xlsx', '.csv', '.json', '.html'];
+      const preferred = ['.md', '.txt', '.pdf', '.docx', '.doc', '.xlsx', '.csv', '.json', '.html'];
       const available = new Set(
         (state.info?.supported_exts || FALLBACK_EXTS).map((ext) => String(ext).toLowerCase()),
       );

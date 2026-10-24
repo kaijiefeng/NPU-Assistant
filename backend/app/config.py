@@ -62,7 +62,7 @@ AUTO_SEED = os.environ.get("NPU_AUTO_SEED", "1").strip().lower() not in {"0", "f
 
 # Uploads
 MAX_UPLOAD_BYTES = int(os.environ.get("NPU_MAX_UPLOAD_MB", "20")) * 1024 * 1024
-SUPPORTED_EXTS = {".md", ".markdown", ".txt", ".pdf", ".docx", ".xlsx", ".csv", ".json", ".html", ".htm"}
+SUPPORTED_EXTS = {".md", ".markdown", ".txt", ".pdf", ".docx", ".doc", ".xlsx", ".csv", ".json", ".html", ".htm"}
 
 # ---------------------------------------------------------------------------
 # URL / text import (mobile quick-ingest)

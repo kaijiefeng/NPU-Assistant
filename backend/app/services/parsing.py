@@ -15,7 +15,7 @@
     parse_document(filename, data=None, *, path=None) -> ParsedDocument
     parse_bytes(filename, data) -> ParsedDocument
     parse_path(path) -> ParsedDocument
-    parse_markdown / parse_txt / parse_pdf / parse_docx / parse_xlsx /
+    parse_markdown / parse_txt / parse_pdf / parse_docx / parse_doc / parse_xlsx /
     parse_csv / parse_json / parse_html
 """
 from __future__ import annotations
@@ -391,6 +391,36 @@ def parse_docx(data: bytes, filename: str = "") -> ParsedDocument:
 
 
 # ---------------------------------------------------------------------------
+# Word 97-2003 (.doc)
+# ---------------------------------------------------------------------------
+def parse_doc(data: bytes, filename: str = "") -> ParsedDocument:
+    """使用纯 Python 的 legacy-doc 提取旧版 Word 文本（不执行宏/嵌入对象）。"""
+    try:
+        from legacy_doc import extract_text
+    except ImportError as exc:  # pragma: no cover - 依赖缺失
+        raise ParseError("缺少 legacy-doc 依赖，无法解析 .doc 文件；可另存为 .docx 后上传") from exc
+
+    try:
+        result = extract_text(data)
+    except Exception as exc:
+        raise ParseError(f"Word 97-2003 文件无法读取（可能已损坏、加密或不是 .doc）：{exc}") from exc
+
+    text = (result.text or "").strip()
+    if not text:
+        raise ParseError("未能从 .doc 文件中解析出文本内容（可能是扫描件或空文档）")
+
+    builder = _Builder()
+    for paragraph in re.split(r"\n{2,}", text):
+        paragraph = paragraph.strip()
+        if paragraph:
+            builder.body(paragraph)
+
+    metadata = dict(getattr(result, "metadata", {}) or {})
+    title = str(metadata.get("title") or "").strip() or Path(filename).stem or None
+    return builder.build(title=title, file_ext=".doc", metadata=metadata)
+
+
+# ---------------------------------------------------------------------------
 # Excel (.xlsx)
 # ---------------------------------------------------------------------------
 def parse_xlsx(data: bytes, filename: str = "") -> ParsedDocument:
@@ -558,6 +588,7 @@ _TEXT_PARSERS = {
 _BINARY_PARSERS = {
     ".pdf": parse_pdf,
     ".docx": parse_docx,
+    ".doc": parse_doc,
     ".xlsx": parse_xlsx,
     ".csv": parse_csv,
     ".json": parse_json,

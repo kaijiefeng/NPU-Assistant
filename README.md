@@ -20,7 +20,7 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 | # | 能力 | 说明 |
 |---|------|------|
 | 1 | **辅导员数字分身问答** | Web 对话页，基于「Wiki 词条导航」的回答，句末 `[n]` 对应引用卡片；每张引用卡片同时给出**词条**与**来源文件 · 章节 · 原文摘录**双层信息；支持多轮会话与历史会话 |
-| 2 | **LLM Wiki 知识库** | 上传 `md / txt / pdf / docx / xlsx / csv / json / html` → 解析 → LLM 编译为结构化词条（概述 / 流程 / 材料 / 时间 / 注意事项，带来源锚点）→ 浏览目录、标签筛选、关键词导航搜索、手工编辑、重建；支持导入**预编译快照**离线使用 |
+| 2 | **LLM Wiki 知识库** | 上传 `md / txt / pdf / docx / doc / xlsx / csv / json / html` → 解析 → LLM 编译为结构化词条（概述 / 流程 / 材料 / 时间 / 注意事项，带来源锚点）→ 浏览目录、标签筛选、关键词导航搜索、手工编辑、重建；支持导入**预编译快照**离线使用 |
 | 3 | **LLM 接入与模型管理** | OpenAI 兼容（当前实测 **DeepSeek**）、Ollama 本地模型、内置 mock 模型；Provider / 模型 CRUD、设默认、启停、连通性测试；API Key 服务端脱敏。**编译与高质量回答需要真实 LLM** |
 | 4 | **微信 / QQ 机器人** | QQ 走 NapCat / OneBot 11（反向 WS + 反向 HTTP + HTTP API 回复）；微信公众号明文模式 XML 回调；控制台调试通道。四个入口复用同一套 `counselor.answer()` Wiki 问答链路 |
 
@@ -30,7 +30,7 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 
 ```text
 上传源文件
-  └─ 解析（pdf/docx/xlsx/html…）→ 按标题聚合「编译单元」（≤3500 字）
+  └─ 解析（pdf/docx/doc/xlsx/html…）→ 按标题聚合「编译单元」（≤3500 字）
        └─ 每个单元 1 次 LLM 调用 → 1~3 个结构化词条（JSON）
             └─ 校验来源摘录 → 按标题归一化去重 → 新词条 INSERT / 已有词条 LLM 合并
                  └─ 写入 wiki_pages + wiki_sources（逐字来源锚点）+ wiki_links
@@ -172,7 +172,7 @@ NPU-Assistant/
 │  │  │  ├─ llm.py          # OpenAI 兼容 / Ollama / mock Provider 适配
 │  │  │  ├─ ingest.py       # 上传落盘、解析入口、reindex、删除级联
 │  │  │  ├─ importer.py     # URL / 文本快速收录（抓取 + 正文提取 + 复用编译）
-│  │  │  ├─ parsing.py      # 多格式解析（pdf/docx/xlsx/csv/json/html/md/txt）
+│  │  │  ├─ parsing.py      # 多格式解析（pdf/docx/doc/xlsx/csv/json/html/md/txt）
 │  │  │  └─ bot_pipeline.py # 机器人统一入站处理（复用 counselor；管理员入库命令）
 │  │  └─ adapters/          # onebot（QQ）、wechat_mp（公众号）、base
 │  ├─ data/
@@ -203,6 +203,7 @@ NPU-Assistant/
 │  ├─ API.md                # 接口速览与调用示例
 │  ├─ ARCHITECTURE.md       # 架构、请求链路、表结构、部署建议
 │  ├─ BOT-INTEGRATION.md    # NapCat / OneBot 11、公众号、控制台接入与排障
+│  ├─ CAMPUS-SEED.md        # 真实校园数据测试集 / 初始知识库（网页/PDF/DOCX/DOC）
 │  ├─ DEMO.md               # 5 分钟演示脚本与已验证结果
 │  └─ screenshots/          # 六页界面截图（ui_check.py 自动生成）
 └─ README.md
@@ -345,7 +346,7 @@ cd backend
 ..\.venv\Scripts\python.exe -m pytest tests -q
 ```
 
-当前 **110 个用例全部通过**（约 39s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本 / 寒暄回复，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、body_html XSS 链接清洗、对话双层引用与降级、寒暄与闲聊意图（chitchat / 服务范围说明）、历史会话鉴权、移动端 URL/文本/批量收录与 SSRF/8MB/gzip/并发去重、手机扫码/二维码/一键公网隧道/首次启用服务端令牌、管理员令牌、机器人安全（凭据脱敏、api_base 脱敏、webhook token、微信时间窗 + nonce 防重放、self_id、2MB body 上限、日志鉴权）、模型管理与系统设置。
+当前 **115 个用例全部通过**（约 42s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本 / 寒暄回复，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、body_html XSS 链接清洗、对话双层引用与降级、寒暄与闲聊意图（chitchat / 服务范围说明）、历史会话鉴权、移动端 URL/文本/批量收录与 SSRF/8MB/gzip/并发去重、手机扫码/二维码/一键公网隧道/首次启用服务端令牌/真实校园文件解析、管理员令牌、机器人安全（凭据脱敏、api_base 脱敏、webhook token、微信时间窗 + nonce 防重放、self_id、2MB body 上限、日志鉴权）、模型管理与系统设置。
 
 服务启动后还可运行真实 HTTP 冒烟与前端交互检查：
 
