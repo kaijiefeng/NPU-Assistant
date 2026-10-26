@@ -196,6 +196,8 @@ NPU-Assistant/
 │  ├─ backup.ps1            # 备份 DB 快照 + uploads + wiki_seed
 │  ├─ screenshot.ps1        # Edge 无头模式六页截图（备用）
 │  ├─ campus_sync.ps1       # 受控同步公开校园栏目（建议任务计划每 6 小时）
+│  ├─ manual_queue_fetch.py # 人工队列分流：抓取→下载→人工接管
+│  ├─ ocr_manual_pdfs.py    # 扫描 PDF 本地 OCR（PyMuPDF + RapidOCR）
 │  └─ ui_check.py           # Chrome CDP 交互冒烟 + 六页截图（推荐）
 ├─ docs/
 │  ├─ CONTRACT.md           # 开发契约（接口事实源）

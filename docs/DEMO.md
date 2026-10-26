@@ -244,10 +244,10 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 
 ### 9.9 真实校园数据 / 初始知识库（2026-10-24 实测）
 
-- 通过公开页面导入 **26 篇真实数据**：HTML 18（教务部、民航学院、研究生院、学工部、心理中心、校历/学籍）、PDF 5（材料学院制度、信息公开年报）、DOCX 2（知识产权声明、博士后审核表）、DOC 1（在校学习基本情况表）。
-- 数据库达到 **36 篇源文件 / 92 个词条 / 95 个来源锚点**，全部 `ready`；`.doc` 使用纯 Python `legacy-doc` 解析，无需 Word/LibreOffice。
+- 通过公开页面导入 **40 篇真实数据**：HTML 23、PDF 8、DOCX/XLSX 3、DOC 1，另有 5 份扫描 PDF 经本地 OCR 导入。
+- 数据库达到 **50 篇源文件 / 156 个词条 / 170 个来源锚点**，全部 `ready`；`.doc` 使用纯 Python `legacy-doc` 解析，无需 Word/LibreOffice。
 - 自动更新 MVP：`scripts/campus_sync.ps1` 可从研究生院公开通知列表增量导入（robots/限速/限条数/去重）；WAF 拦截的源默认关闭，转人工/官方接口。
 - 抽查真实问答：研究生课程调课、博士后进站材料、知识产权声明，均返回真实 PDF/DOCX 来源与原文摘录。
-- 负样本：扫描版 PDF 无文本，系统明确提示“扫描件/无文本”，不做 OCR；PPT/PPTX 按约定暂不实现。
+- 负样本：扫描版 PDF 无文本时系统明确提示；需要时走本地 OCR 流程。PPT/PPTX 按约定暂不实现。
 - 测试：`backend/tests/test_parsing.py` 使用真实 `.doc/.docx/.pdf` 样本回归；全量 pytest **120 passed**。
 - 清单与来源：[CAMPUS-SEED.md](CAMPUS-SEED.md)、[campus-seed/manifest.json](campus-seed/manifest.json)；文件本体在 `backend/data/campus_seed/files/`（gitignored）。

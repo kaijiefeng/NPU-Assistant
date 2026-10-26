@@ -270,16 +270,18 @@ def main() -> int:
     parser.add_argument("--apply", action="store_true", help="真正导入/下载并更新队列状态")
     parser.add_argument("--item", action="append", default=[], help="只处理指定 id")
     parser.add_argument("--limit", type=int, default=0, help="最多处理几条")
+    parser.add_argument("--retry-browser", action="store_true", help="重试 needs_browser 条目")
     parser.add_argument("--delay", type=float, default=2.0, help="请求间隔秒数")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
     queue = load_queue()
     selected = set(args.item)
+    allowed_status = {"pending", "needs_browser"} if args.retry_browser else {"pending"}
     pending = [
         item
         for item in queue["items"]
-        if item.get("status") == "pending" and (not selected or item["id"] in selected)
+        if item.get("status") in allowed_status and (not selected or item["id"] in selected)
     ]
     if args.limit > 0:
         pending = pending[: args.limit]

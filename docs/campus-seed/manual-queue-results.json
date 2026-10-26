@@ -2,231 +2,185 @@
   {
     "id": "xgb-zdgk-13408",
     "title": "西北工业大学国家奖助学金评审办法",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/13408.htm",
-    "status": "downloaded_needs_ocr",
-    "detail": "PDF 8 页，无可提取文本，需人工 OCR",
-    "document_id": null,
-    "local_file": "backend\\data\\campus_manual\\files\\xgb-zdgk-13408.pdf",
-    "pdf_pages": 8
+    "status": "imported_ocr",
+    "detail": "本地 OCR 8 页，3406 字；低置信度 0 行",
+    "document_id": "533f16faff554f6790b5900999073018",
+    "local_file": "backend\\data\\campus_manual\\files\\xgb-zdgk-13408.pdf"
   },
   {
     "id": "xgb-zdgk-13418",
     "title": "西北工业大学家庭经济困难学生认定办法",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/13418.htm",
-    "status": "downloaded_needs_ocr",
-    "detail": "PDF 8 页，无可提取文本，需人工 OCR",
-    "document_id": null,
-    "local_file": "backend\\data\\campus_manual\\files\\xgb-zdgk-13418.pdf",
-    "pdf_pages": 8
+    "status": "imported_ocr",
+    "detail": "本地 OCR 8 页，3718 字；低置信度 0 行",
+    "document_id": "90e18e378faf4687a034bbae33b4daa6",
+    "local_file": "backend\\data\\campus_manual\\files\\xgb-zdgk-13418.pdf"
   },
   {
     "id": "xgb-zdgk-13448",
     "title": "西北工业大学本科生助学金实施细则",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/13448.htm",
-    "status": "downloaded_needs_ocr",
-    "detail": "PDF 4 页，无可提取文本，需人工 OCR",
-    "document_id": null,
-    "local_file": "backend\\data\\campus_manual\\files\\xgb-zdgk-13448.pdf",
-    "pdf_pages": 4
+    "status": "imported_ocr",
+    "detail": "本地 OCR 4 页，1320 字；低置信度 0 行",
+    "document_id": "3826112838b74cb3a6f38bf486e6a0e9",
+    "local_file": "backend\\data\\campus_manual\\files\\xgb-zdgk-13448.pdf"
   },
   {
     "id": "xgb-zdgk-13438",
     "title": "西北工业大学学生临时困难补助发放管理办法",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/13438.htm",
-    "status": "downloaded_needs_ocr",
-    "detail": "PDF 4 页，无可提取文本，需人工 OCR",
-    "document_id": null,
-    "local_file": "backend\\data\\campus_manual\\files\\xgb-zdgk-13438.pdf",
-    "pdf_pages": 4
+    "status": "imported_ocr",
+    "detail": "本地 OCR 4 页，1948 字；低置信度 0 行",
+    "document_id": "e5863edd4e7341dfae71f654a3ae7857",
+    "local_file": "backend\\data\\campus_manual\\files\\xgb-zdgk-13438.pdf"
   },
   {
     "id": "xgb-zdgk-13428",
     "title": "西北工业大学新生入学“绿色通道”管理办法",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/13428.htm",
-    "status": "downloaded_needs_ocr",
-    "detail": "CUA 浏览器 Ctrl+S 下载成功；PDF 4 页，无可提取文本，需人工 OCR",
-    "document_id": null,
-    "local_file": "backend/data/campus_manual/files/xgb-zdgk-13428.pdf",
-    "pdf_pages": 4
+    "status": "imported_ocr",
+    "detail": "本地 OCR 4 页，1050 字；低置信度 0 行",
+    "document_id": "c0b191a9a0f549769179c6e6f4afc6fb",
+    "local_file": "backend/data/campus_manual/files/xgb-zdgk-13428.pdf"
   },
   {
     "id": "xgb-zdgk-11300",
     "title": "西北工业大学本科生综合测评办法",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/11300.htm",
-    "status": "needs_browser",
-    "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
-    "document_id": null,
-    "local_file": null,
-    "pdf_pages": 0
+    "status": "imported",
+    "detail": "使用 PDF 文本导入",
+    "document_id": "5b753c5d3da24da4b59068ac2eab5a79",
+    "local_file": null
   },
   {
     "id": "xgb-zdgk-11299",
     "title": "西北工业大学本科生奖励办法",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/11299.htm",
-    "status": "needs_browser",
-    "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
-    "document_id": null,
-    "local_file": null,
-    "pdf_pages": 0
+    "status": "imported",
+    "detail": "使用 PDF 文本导入",
+    "document_id": "70fd1474bd6740ea95a6064048a439e1",
+    "local_file": null
   },
   {
     "id": "xgb-zdgk-11087",
     "title": "西北工业大学研究生奖助体系实施办法",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/11087.htm",
-    "status": "needs_browser",
-    "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
-    "document_id": null,
-    "local_file": null,
-    "pdf_pages": 0
+    "status": "imported",
+    "detail": "使用 PDF 文本导入",
+    "document_id": "398193787a644c7e865e22415d220c7e",
+    "local_file": null
   },
   {
     "id": "xgb-zdgk-10612",
     "title": "西北工业大学学生违纪处分管理办法",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/10612.htm",
     "status": "already_present",
     "detail": "知识库已有相同 source_url，跳过",
     "document_id": "3c5ce6e3bcc048e5b6408fe5a7e940f4",
-    "local_file": null,
-    "pdf_pages": 0
+    "local_file": null
   },
   {
     "id": "xgb-zdgk-10600",
     "title": "西北工业大学学生公寓管理办法（试行）",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/10600.htm",
     "status": "already_present",
     "detail": "知识库已有相同 source_url，跳过",
     "document_id": "d45631d951334583970c7d8875119cc5",
-    "local_file": null,
-    "pdf_pages": 0
+    "local_file": null
   },
   {
     "id": "xgb-zdgk-10611",
     "title": "西北工业大学学生安全管理办法",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/10611.htm",
-    "status": "needs_browser",
-    "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
-    "document_id": null,
-    "local_file": null,
-    "pdf_pages": 0
+    "status": "imported",
+    "detail": "CUA 浏览器复制正文导入",
+    "document_id": "b9784c63d2fa454a90495b9e2aa617d9",
+    "local_file": null
   },
   {
     "id": "xgb-zdgk-10610",
     "title": "西北工业大学学生管理规定",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/10610.htm",
-    "status": "needs_browser",
-    "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
-    "document_id": null,
-    "local_file": null,
-    "pdf_pages": 0
+    "status": "imported",
+    "detail": "CUA 浏览器复制正文导入",
+    "document_id": "5493397d7e524b708c3ccf9ecf7b64f3",
+    "local_file": null
   },
   {
     "id": "xgb-zdgk-10609",
     "title": "西北工业大学学生心理委员管理规定",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/10609.htm",
-    "status": "needs_browser",
-    "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
-    "document_id": null,
-    "local_file": null,
-    "pdf_pages": 0
+    "status": "imported",
+    "detail": "CUA 浏览器复制正文导入",
+    "document_id": "9cb816bf8cdd4f72bff91ea53b69d58d",
+    "local_file": null
   },
   {
     "id": "xgb-zdgk-10608",
     "title": "西北工业大学心理咨询师管理办法",
-    "url": "https://xgb.nwpu.edu.cn/info/1227/10608.htm",
-    "status": "needs_browser",
-    "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
-    "document_id": null,
-    "local_file": null,
-    "pdf_pages": 0
+    "status": "imported",
+    "detail": "CUA 浏览器复制正文导入",
+    "document_id": "06e820e085464877a36217da1bd90142",
+    "local_file": null
   },
   {
     "id": "xgb-fwzx-11046",
     "title": "西北工业大学学生工作平台帮助手册",
-    "url": "https://xgb.nwpu.edu.cn/info/1261/11046.htm",
-    "status": "needs_browser",
-    "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
-    "document_id": null,
-    "local_file": null,
-    "pdf_pages": 0
+    "status": "imported",
+    "detail": "CUA 浏览器复制正文导入",
+    "document_id": "83b905d8832343d792c9994a7935da6e",
+    "local_file": null
   },
   {
     "id": "xgb-fwzx-11047",
     "title": "研究生新生提前入住学生公寓业务办理流程图",
-    "url": "https://xgb.nwpu.edu.cn/info/1261/11047.htm",
-    "status": "needs_browser",
-    "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
-    "document_id": null,
-    "local_file": null,
-    "pdf_pages": 0
+    "status": "imported",
+    "detail": "自动下载 xlsx 流程图并导入",
+    "document_id": "1a444bf1f93e4ff2bde4b5c2383bb9b0",
+    "local_file": "backend/data/campus_manual/files/xgb-fwzx-11047.xlsx"
   },
   {
     "id": "xl-rcgz-4102",
     "title": "2026级新生校园生活适应访谈工作全面启动",
-    "url": "https://xl.nwpu.edu.cn/info/1009/4102.htm",
     "status": "imported",
     "detail": "",
     "document_id": "4a91d758d7d0477db717b9e05d512d07",
-    "local_file": null,
-    "pdf_pages": 0
+    "local_file": null
   },
   {
     "id": "xl-rcgz-4072",
     "title": "我校2026级新生心理适应讲座圆满结束",
-    "url": "https://xl.nwpu.edu.cn/info/1009/4072.htm",
     "status": "imported",
     "detail": "",
     "document_id": "8948525a001c4dafa7020a6ff0d073b6",
-    "local_file": null,
-    "pdf_pages": 0
+    "local_file": null
   },
   {
     "id": "xygg-22073",
     "title": "西北工业大学校历、校车时刻表",
-    "url": "https://xygg.nwpu.edu.cn/info/1003/22073.htm",
     "status": "imported",
     "detail": "",
     "document_id": "2342ec6c97fe4374bd5c7fabc1e20975",
-    "local_file": null,
-    "pdf_pages": 0
+    "local_file": null
   },
   {
     "id": "xxgk-5921",
     "title": "西北工业大学本科生学籍管理办法",
-    "url": "https://xxgk.nwpu.edu.cn/info/1541/5921.htm",
     "status": "imported",
     "detail": "",
     "document_id": "6d83b92fa27848e885d687ef01322c61",
-    "local_file": null,
-    "pdf_pages": 0
+    "local_file": null
   },
   {
     "id": "xxgk-annual-2025",
     "title": "西北工业大学2024-2025学年信息公开工作年度报告",
-    "url": "https://xxgk.nwpu.edu.cn:8080/__local/8/3B/86/99636A5BCE1773BD7430977A235_A60C1D8B_48658.pdf",
     "status": "imported",
     "detail": "",
     "document_id": "f1085788e7a84099ae8e661a97ed3dbe",
-    "local_file": null,
-    "pdf_pages": 20
+    "local_file": null
   },
   {
     "id": "job-new-site",
     "title": "关于启用西北工业大学新版就业网的公告",
-    "url": "https://job.nwpu.edu.cn/frontpage/nwpu/html/newsDetail.html?id=b1fad40a3f9c4b51acffdb0b7d0d51d3",
     "status": "needs_browser",
     "detail": "HTTP 412，需要 CUA/浏览器人工打开",
     "document_id": null,
-    "local_file": null,
-    "pdf_pages": 0
+    "local_file": null
   },
   {
     "id": "xl-list-batch",
     "title": "心理中心通知/工作动态（自动抽取失败的 20 条）",
-    "url": "https://xl.nwpu.edu.cn/gzdt/tzgg.htm",
     "status": "needs_browser",
     "detail": "正文不足 100 字且未发现可下载 PDF，需 CUA/人工",
     "document_id": null,
-    "local_file": null,
-    "pdf_pages": 0
+    "local_file": null
   }
 ]

@@ -4,22 +4,23 @@
 `backend/data/campus_seed/files/`（已 gitignore），仓库只提交可复核的清单
 [manifest.json](campus-seed/manifest.json)，避免把学校附件二进制放进 Git。
 
-## 一、已导入数据（26 篇）
+## 一、已导入数据（40 篇）
 
 | 类型 | 数量 | 文件 / 页面 | 来源 |
 |---|---:|---|---|
-| HTML 网页 | 18 | 教务部/民航学院/研究生院通知、学工部制度、心理中心文章、校历、学籍办法 | [教务部](https://jiaowu.nwpu.edu.cn/info/1164/30528.htm)、[民航学院](https://minhang.nwpu.edu.cn/info/1042/1531.htm)、[研究生院](https://gs.nwpu.edu.cn/cn/index/tzgg.htm) |
-| PDF | 5 | 学位论文评阅意见处理办法、教授副教授授课管理办法、研究生培养国际化规定、研究生课程教学管理规定、信息公开年度报告 | [材料学院资料下载](https://cailiao.nwpu.edu.cn/info/2643/31676.htm) |
-| DOCX | 2 | 知识产权声明页、博士后进站审核表（非定向） | [材料学院](https://cailiao.nwpu.edu.cn/info/2643/31676.htm)、[留院](https://liuyuan.nwpu.edu.cn/info/1057/15064.htm) |
+| HTML 网页 | 23 | 教务部/民航学院/研究生院通知、学工部制度、心理中心文章、校历、学籍办法 | [教务部](https://jiaowu.nwpu.edu.cn/info/1164/30528.htm)、[民航学院](https://minhang.nwpu.edu.cn/info/1042/1531.htm)、[研究生院](https://gs.nwpu.edu.cn/cn/index/tzgg.htm) |
+| PDF | 8 | 材料学院制度、信息公开年报、奖助/测评/研究生奖助等 PDF | [材料学院资料下载](https://cailiao.nwpu.edu.cn/info/2643/31676.htm) |
+| DOCX / XLSX | 3 | 知识产权声明页、博士后进站审核表、研究生提前入住流程图 | [材料学院](https://cailiao.nwpu.edu.cn/info/2643/31676.htm)、[留院](https://liuyuan.nwpu.edu.cn/info/1057/15064.htm)、[学工部](https://xgb.nwpu.edu.cn/info/1261/11047.htm) |
+| OCR 文本 | 5 | 5 份扫描 PDF 经本地 RapidOCR 转成 Markdown 后导入 | [学工部制度公开](https://xgb.nwpu.edu.cn/xxgk/zdgk.htm) |
 | DOC（Word 97-2003） | 1 | 在校学习基本情况表 | [材料学院](https://cailiao.nwpu.edu.cn/info/2643/31676.htm) |
 
-另有 1 个扫描版 PDF（《关于进一步加强学生日常管理的通知》）作为**负样本**保留，不导入：pypdf 无文本，系统会给出“扫描件/无文本”提示，不做 OCR。
+另有 1 个扫描版 PDF（《关于进一步加强学生日常管理的通知》）作为**负样本**保留，不导入；需要时可用本地 OCR 流程处理。
 
 **PPT/PPTX 暂不实现**（按约定），上传时会提示另存为 PDF 或复制正文。
 
 ## 二、真实导入结果
 
-- 数据库：36 篇源文件（10 篇原有示例 + 26 篇真实数据），全部 `ready`；92 个 Wiki 词条，95 个来源锚点。
+- 数据库：50 篇源文件（10 篇原有示例 + 40 篇真实数据），全部 `ready`；156 个 Wiki 词条，170 个来源锚点。
 - 真实 `.doc` 由纯 Python 的 `legacy-doc` 解析（不执行宏/嵌入对象），无需 Word/LibreOffice。
 - 真实 `.docx` / `.pdf` 分别由 `python-docx` / `pypdf` 解析。
 - 真实 HTML 通过 URL 导入，保留 `source_url`，并编译为 Wiki 词条。

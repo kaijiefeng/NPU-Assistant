@@ -10,12 +10,13 @@
 
 | 状态 | 数量 | 说明 |
 |---|---:|---|
-| `imported` | 5 | 心理中心 2 篇、校历、学籍办法、信息公开年报 |
+| `imported` | 14 | 直接抓取、CUA 复制、PDF/XLSX 附件导入 |
+| `imported_ocr` | 5 | 本地 RapidOCR 识别后导入（奖助 4 份 + 绿色通道） |
 | `already_present` | 2 | 学生违纪处分办法、学生公寓管理办法（此前已导入） |
-| `downloaded_needs_ocr` | 5 | 4 份奖助 PDF + CUA 下载的绿色通道 PDF；扫描件无文本，待 OCR |
-| `needs_browser` | 11 | WAF/412 或列表页，需 CUA/人工浏览器继续 |
+| `needs_browser` | 2 | 就业网 412、心理中心列表页；留待人工/CUA |
 
 - CUA 试验：用独立 Edge 配置打开“绿色通道”页面，`Ctrl+S` 成功下载 PDF（4 页，扫描件）→ 保存为 `backend/data/campus_manual/files/xgb-zdgk-13428.pdf`。
+- OCR：5 份扫描 PDF 用本机 RapidOCR 识别，低置信度 0 行，全部导入成功。
 - 本轮没有遇到验证码；如遇到，按约定暂停，由人工完成后再继续。
 
 ## 一、处理原则
