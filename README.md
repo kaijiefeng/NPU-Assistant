@@ -197,6 +197,7 @@ NPU-Assistant/
 │  ├─ screenshot.ps1        # Edge 无头模式六页截图（备用）
 │  ├─ campus_sync.ps1       # 受控同步公开校园栏目（建议任务计划每 6 小时）
 │  ├─ manual_queue_fetch.py # 人工队列分流：抓取→下载→人工接管
+│  ├─ remote_search_probe.py # 限定范围网站/公众号检索探针
 │  ├─ ocr_manual_pdfs.py    # 扫描 PDF 本地 OCR（PyMuPDF + RapidOCR）
 │  └─ ui_check.py           # Chrome CDP 交互冒烟 + 六页截图（推荐）
 ├─ docs/
@@ -209,6 +210,7 @@ NPU-Assistant/
 │  ├─ CAMPUS-SEED.md        # 真实校园数据测试集 / 初始知识库（网页/PDF/DOCX/DOC）
 │  ├─ CAMPUS-CONTENT-PLAN.md # 内容领域清单、合法采集与自动更新方案
 │  ├─ CAMPUS-MANUAL-QUEUE.md # 需人工浏览器下载/复制的条目（P0/P1/P2）
+│  ├─ CAMPUS-REMOTE-SEARCH.md # 限定范围联网检索试验（四网站 + 四公众号）
 │  ├─ DEMO.md               # 5 分钟演示脚本与已验证结果
 │  └─ screenshots/          # 六页界面截图（ui_check.py 自动生成）
 └─ README.md
@@ -351,7 +353,7 @@ cd backend
 ..\.venv\Scripts\python.exe -m pytest tests -q
 ```
 
-当前 **121 个用例全部通过**（约 42s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本 / 寒暄回复，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、body_html XSS 链接清洗、对话双层引用与降级、寒暄与闲聊意图（chitchat / 服务范围说明）、历史会话鉴权、移动端 URL/文本/批量收录与 SSRF/8MB/gzip/并发去重、手机扫码/二维码/一键公网隧道/首次启用服务端令牌/真实校园文件解析、管理员令牌、机器人安全（凭据脱敏、api_base 脱敏、webhook token、微信时间窗 + nonce 防重放、self_id、2MB body 上限、日志鉴权）、模型管理与系统设置。
+当前 **125 个用例全部通过**（约 42s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本 / 寒暄回复，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、body_html XSS 链接清洗、对话双层引用与降级、寒暄与闲聊意图（chitchat / 服务范围说明）、历史会话鉴权、移动端 URL/文本/批量收录与 SSRF/8MB/gzip/并发去重、手机扫码/二维码/一键公网隧道/首次启用服务端令牌/真实校园文件解析、管理员令牌、机器人安全（凭据脱敏、api_base 脱敏、webhook token、微信时间窗 + nonce 防重放、self_id、2MB body 上限、日志鉴权）、模型管理与系统设置。
 
 服务启动后还可运行真实 HTTP 冒烟与前端交互检查：
 

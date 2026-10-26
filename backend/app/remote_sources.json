@@ -1,0 +1,96 @@
+{
+  "version": "2026-10-26",
+  "note": "只做查询时远程检索，不写入知识库；结果仅用于回答引用。",
+  "sites": [
+    {
+      "id": "nwpu-www",
+      "name": "西北工业大学官网",
+      "host": "https://www.nwpu.edu.cn",
+      "owner": "1328288089",
+      "enabled": true,
+      "max_results": 5,
+      "allowed_domains": [
+        "www.nwpu.edu.cn"
+      ]
+    },
+    {
+      "id": "nwpu-gs",
+      "name": "西北工业大学研究生院",
+      "host": "https://gs.nwpu.edu.cn",
+      "owner": "1096673008",
+      "enabled": true,
+      "max_results": 5,
+      "allowed_domains": [
+        "gs.nwpu.edu.cn"
+      ]
+    },
+    {
+      "id": "nwpu-jiaowu",
+      "name": "西北工业大学教务处",
+      "host": "https://jiaowu.nwpu.edu.cn",
+      "owner": "866967863",
+      "enabled": true,
+      "max_results": 5,
+      "allowed_domains": [
+        "jiaowu.nwpu.edu.cn"
+      ]
+    },
+    {
+      "id": "nwpu-ic",
+      "name": "西北工业大学集成电路学院",
+      "host": "https://weidianzi.nwpu.edu.cn",
+      "owner": "2124751840",
+      "enabled": true,
+      "max_results": 5,
+      "allowed_domains": [
+        "weidianzi.nwpu.edu.cn"
+      ]
+    }
+  ],
+  "wechat": [
+    {
+      "id": "wechat-nwpu",
+      "name": "西北工业大学（公众号）",
+      "account": "西北工业大学",
+      "aliases": [
+        "西北工业大学"
+      ],
+      "enabled": true,
+      "max_results": 3
+    },
+    {
+      "id": "wechat-gs",
+      "name": "西北工业大学研究生院（公众号）",
+      "account": "西北工业大学研究生院",
+      "aliases": [
+        "西北工业大学研究生教育",
+        "西北工业大学研究生院",
+        "西北工业大学"
+      ],
+      "enabled": true,
+      "max_results": 3
+    },
+    {
+      "id": "wechat-jiaowu",
+      "name": "西北工业大学教务处（公众号）",
+      "account": "西北工业大学教务处",
+      "aliases": [
+        "西北工业大学教务处",
+        "西北工业大学"
+      ],
+      "enabled": true,
+      "max_results": 3
+    },
+    {
+      "id": "wechat-ic",
+      "name": "西工大集成电路学院（公众号）",
+      "account": "西工大集成电路学院",
+      "aliases": [
+        "西工大集成电路学院",
+        "西北工业大学集成电路学院"
+      ],
+      "enabled": true,
+      "max_results": 3
+    }
+  ]
+}

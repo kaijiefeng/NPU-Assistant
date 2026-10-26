@@ -86,6 +86,8 @@ schtasks /Create /TN "NPU-Assistant-CampusSync" /SC HOURLY /MO 6 `
 
 ## 四、官方接口备选方案
 
+另见限定范围联网检索试验：[CAMPUS-REMOTE-SEARCH.md](CAMPUS-REMOTE-SEARCH.md)。该方案不把互联网内容入库，只在查询时检索指定网站/公众号并引用。
+
 已确认学校有 [API 数据使用申请入口](https://dev-portal.nwpu.edu.cn/dev-portal/#/home)，但未发现公开的校园公告 API/MCP。建议并行申请：
 
 - 申请只读的“通知公告列表/详情”接口，字段至少：标题、发布日期、正文、来源 URL、栏目、附件链接；
