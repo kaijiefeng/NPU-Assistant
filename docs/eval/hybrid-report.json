@@ -1,0 +1,724 @@
+{
+  "generated_at": "2026-10-26T20:29:15+08:00",
+  "summary": {
+    "local_cases": 22,
+    "local_effective_cases": 20,
+    "local_search_doc_recall": 0.9090909090909091,
+    "local_search_doc_recall_effective": 1.0,
+    "local_chat_doc_recall": 0.9090909090909091,
+    "local_chat_doc_recall_effective": 1.0,
+    "local_citation_precision": 0.8863636363636364,
+    "negative_cases": 4,
+    "negative_refusal_rate": 1.0,
+    "negative_clean_refusal_rate": 1.0,
+    "remote_cases": 6,
+    "remote_source_recall": 0.6666666666666666,
+    "completeness_sources": 8,
+    "completeness_pass": 4,
+    "skip_chat": false
+  },
+  "local": [
+    {
+      "id": "L01",
+      "question": "研究生课程调课需要什么手续？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 56,
+      "search_page_hit": false,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "研究生课程调课申请",
+        "研究生课程不及格与重修",
+        "研究生课程任课教师资格与聘任"
+      ],
+      "chat_latency_ms": 2041,
+      "chat_doc_hit": true,
+      "chat_page_hit": false,
+      "citation_count": 1,
+      "citation_precision": 1.0,
+      "reply": "研究生课程调课的手续如下：\n\n1. **提前申请**：任课教师因故不能按时完成教学任务，或需要临时调整（变更）课程时，必须提前 **3 天**登录管理系统提交研究生课程调课申请 [1]。\n2. **学院审批**：申请经所在学院主管院长审核批准后方可实施 [1]。\n3. **公共课额外审批**：如果是研究生公共类课程，还",
+      "error": null,
+      "conversation_id": "2feaf1ad24144c528e00e288d4b3755f"
+    },
+    {
+      "id": "L02",
+      "question": "博士后进站需要准备哪些材料？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 73,
+      "search_page_hit": false,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "博士后进站审核表（非定向）",
+        "博士后招收类型与档案调转"
+      ],
+      "chat_latency_ms": 2494,
+      "chat_doc_hit": true,
+      "chat_page_hit": false,
+      "citation_count": 2,
+      "citation_precision": 1.0,
+      "reply": "关于博士后进站材料，Wiki 词条目前只收录了《博士后进站审核表（非定向）》这一份表格的信息，其他材料清单暂未收录。就这份表而言，要点如下：\n\n**表格构成**\n- 申请人姓名\n- 一、申请人当前身份证明\n- 二、招收类型（流动站招收、流动站和工作站联合招收、工作站单独招收、国家专项计划招收、其他招收等）[1][2]\n",
+      "error": null,
+      "conversation_id": "cc04bff9c78e421e94f8c60a22c78358"
+    },
+    {
+      "id": "L03",
+      "question": "知识产权声明页需要填什么？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 68,
+      "search_page_hit": false,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "学位论文知识产权声明书"
+      ],
+      "chat_latency_ms": 2147,
+      "chat_doc_hit": true,
+      "chat_page_hit": false,
+      "citation_count": 1,
+      "citation_precision": 1.0,
+      "reply": "知识产权声明页主要需要填写/确认这几项：\n\n1. **论文类别勾选**：在方框内打“√”，选择“保密论文”（并填写保密期起止年月日）或“公开论文” [1]。\n2. **签署栏**：学位论文作者签名、指导教师签名，以及签署日期（年 月 日）[1]。\n\n另外，声明页本身包含你作为研究生需要了解并确认的内容：论文知识产权单位",
+      "error": null,
+      "conversation_id": "3c8d74223d7c4e10b3497aa74740d7f5"
+    },
+    {
+      "id": "L04",
+      "question": "学生违纪处分有哪些种类？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 41,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "学生违纪处分种类",
+        "违纪处分申诉与解除",
+        "违纪处分附加处罚"
+      ],
+      "chat_latency_ms": 1499,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 1,
+      "citation_precision": 1.0,
+      "reply": "西北工业大学对违纪学生的纪律处分共分**五种**，由轻到重依次是 [1]：\n\n1. 警告\n2. 严重警告\n3. 记过\n4. 留校察看\n5. 开除学籍\n\n另外，学校还有**批评教育**形式，包括口头批评和通报批评，适用于情节较轻的情况 [1]。\n\n学校给予处分坚持教育与惩戒相结合，与违纪行为的性质和过错严重程度相适应 [",
+      "error": null,
+      "conversation_id": "608c580a3d8d48f9825e2a93e9fd829a"
+    },
+    {
+      "id": "L05",
+      "question": "学生公寓入住和分配怎么安排？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 69,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "学生公寓入住与分配",
+        "研究生新生提前入住学院提交与汇总",
+        "学生公寓传染病报告制度"
+      ],
+      "chat_latency_ms": 2096,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 1,
+      "citation_precision": 1.0,
+      "reply": "关于学生公寓的入住与分配，主要安排如下：\n\n**1. 谁能入住**\n学生公寓原则上仅为西北工业大学注册在籍的全日制在校学生提供房源 [1]。\n\n**2. 分配方式**\n- 本科生和硕士研究生：由学校统一分配宿舍，无特殊原因原则上不允许在校外住宿 [1]。\n- 博士研究生：住宿实行申请制，可自行选择是否在学生公寓住宿 [",
+      "error": null,
+      "conversation_id": "05c678581de642c8b8734843aadbd8c3"
+    },
+    {
+      "id": "L06",
+      "question": "国家奖助学金申请条件是什么？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 43,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "国家奖助学金申请条件",
+        "国家奖学金",
+        "学生临时困难补助申请条件"
+      ],
+      "chat_latency_ms": 2773,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 2,
+      "citation_precision": 0.5,
+      "reply": "国家奖助学金分为几类，条件各有不同，先给你一个总体框架：\n\n**一、所有类别都需满足的基本条件** [1]\n- 具有中华人民共和国国籍；\n- 具有西北工业大学学籍；\n- 热爱祖国，拥护中国共产党的领导；\n- 遵守宪法和法律，遵守学校规章制度；\n- 诚实守信，道德品质优良。\n\n**二、分类具体要求** [1]\n\n1. *",
+      "error": null,
+      "conversation_id": "83ed23757e8b4c1e945a75a5ea749b80"
+    },
+    {
+      "id": "L07",
+      "question": "家庭经济困难认定的依据和等级是什么？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 42,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "家庭经济困难认定依据与等级",
+        "家庭经济困难认定",
+        "家庭经济困难学生认定办法施行与解释"
+      ],
+      "chat_latency_ms": 3023,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 2,
+      "citation_precision": 1.0,
+      "reply": "家庭经济困难认定的依据和等级，根据校园 Wiki 词条整理如下：\n\n**一、认定依据（六类因素）**\n1. 家庭经济因素：家庭收入、财产、债务等情况；\n2. 特殊群体因素：如脱贫家庭学生、低保家庭学生、孤儿、残疾学生及残疾人子女、烈士子女等；\n3. 地区经济社会发展水平因素：校园地、生源地经济发展水平、城乡居民最低生活",
+      "error": null,
+      "conversation_id": "aa56dce9dd14461c9b5e4dd95a01f18d"
+    },
+    {
+      "id": "L08",
+      "question": "本科生助学金评审流程是什么？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 71,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "本科生助学金评审流程",
+        "本科生奖学金评审与公示流程",
+        "本科生助学金发放与监督"
+      ],
+      "chat_latency_ms": 2222,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 2,
+      "citation_precision": 1.0,
+      "reply": "本科生助学金评审共分六步，公示环节均不少于 3 个工作日 [1]：\n\n1. **学生申请**：学生提出书面申请，将申报材料递交至所在培养单位 [1]。\n2. **培养单位评定**：培养单位审核材料、开展评定，确定推荐名单 [1]。\n3. **培养单位公示**：在本单位公示不少于 3 个工作日，无异议后上报党委学生工作部",
+      "error": null,
+      "conversation_id": "b71b68031ed54a3f9eaddd31a7bee52e"
+    },
+    {
+      "id": "L09",
+      "question": "学生临时困难补助的申请条件是什么？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 99,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "学生临时困难补助申请条件",
+        "学生临时困难补助申请审批程序",
+        "学生临时困难补助发放标准"
+      ],
+      "chat_latency_ms": 2282,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 3,
+      "citation_precision": 1.0,
+      "reply": "申请临时困难补助的核心条件是：**在校学生因突发性、临时性原因造成经济困难、急需帮扶**，符合下列情形之一即可申请 [1]：\n\n- 学生本人罹患重大疾病或遭受意外伤害；\n- 学生直系亲属罹患重大疾病、遭受严重意外伤害或者死亡；\n- 学生家庭遭受严重自然灾害；\n- 其他不可预测的原因造成学生经济困难 [1]。\n\n需要注意",
+      "error": null,
+      "conversation_id": "d56255f7270f4ed397562aa5f3ef93bc"
+    },
+    {
+      "id": "L10",
+      "question": "新生入学绿色通道怎么申请？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 67,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "新生入学绿色通道",
+        "绿色通道申请流程",
+        "入学与注册"
+      ],
+      "chat_latency_ms": 1804,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 2,
+      "citation_precision": 1.0,
+      "reply": "绿色通道的申请分为四步，具体如下 [2]：\n\n1. **学生本人申请**：在迎新系统或迎新现场提交申请，提供相应材料，并承诺入学后自觉遵守校规校纪、努力学习、按规定还款 [2]。\n2. **所在培养单位审查**：由你所在的学院（培养单位）对申请进行审查 [2]。\n3. **学校审核**：党委学生工作部（学生处）对申请进",
+      "error": null,
+      "conversation_id": "b603fe571a0a4b67b8bdf12054f44ec4"
+    },
+    {
+      "id": "L11",
+      "question": "本科生综合测评包括哪些模块？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 68,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "综合测评内容与五大测评模块",
+        "本科生综合测评办法总则与适用范围",
+        "研究生综合测评内容与方式"
+      ],
+      "chat_latency_ms": 1913,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 2,
+      "citation_precision": 1.0,
+      "reply": "本科生综合测评包括以下模块：\n\n1. **思想品德测评**：考察意识形态、思想道德、精神风貌、生活作风、组织纪律、学习态度、学术道德、疫情防控等方面的表现，通过“评议”方式实施，结果分为“合格”和“不合格” [1]。\n2. **学业成绩测评**：以学生参评学年的学业成绩为主要指标，以教务部门提供的学业成绩为主要依据 [",
+      "error": null,
+      "conversation_id": "deb2ba8c37a140afbbb490e5f28e6d6a"
+    },
+    {
+      "id": "L12",
+      "question": "本科生奖学金评审与公示流程是什么？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 73,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "本科生奖学金评审与公示流程",
+        "本科生助学金评审流程",
+        "国家奖学金"
+      ],
+      "chat_latency_ms": 2572,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 1,
+      "citation_precision": 1.0,
+      "reply": "本科生奖学金评审实行“培养单位初评 + 学校审定”的两级流程，初评推荐名单和最终获奖名单都要公示，且公示期均不少于 3 个工作日 [1]。\n\n具体流程如下：\n\n1. **培养单位初评并公示**：由培养单位奖助学金评定工作小组或相关单位组织评审，在上报各类初评推荐名单之前，先在本单位公示，公示期不少于 3 个工作日 [1",
+      "error": null,
+      "conversation_id": "9062317f14ad49e08b2072a064aa2133"
+    },
+    {
+      "id": "L13",
+      "question": "研究生助教岗位的职责是什么？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 72,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "研究生助教岗位设置与职责",
+        "研究生助研岗位管理",
+        "研究生助教申请条件与聘用流程"
+      ],
+      "chat_latency_ms": 1817,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 1,
+      "citation_precision": 1.0,
+      "reply": "根据《研究生助教岗位设置与职责》，研究生助教的主要职责包括 [1]：\n\n- 须在聘期内取得学校发放的**研究生助教培训结业证书**；\n- **全程跟随主讲教师听课**，批改作业和辅导答疑；\n- 参加**平时、期中、期末考核的整理归档**等相关工作；\n- 与学生积极沟通，并及时向主讲教师反馈学生学习效果、作业等信息；\n-",
+      "error": null,
+      "conversation_id": "d429fa57931a4b87bee60e8adfdea06a"
+    },
+    {
+      "id": "L14",
+      "question": "学生突发事件如何应急处置？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 73,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "学生突发事件应急处置"
+      ],
+      "chat_latency_ms": 2333,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 1,
+      "citation_precision": 1.0,
+      "reply": "关于学生突发事件的应急处置，根据学校规定，核心原则是**立即启动应急预案，按预案要求和程序开展处置工作** [1]。\n\n具体要点如下：\n\n- **立即响应**：发生学生突发事件后，第一时间启动学校关于学生突发事件处置的应急预案，并严格按照预案要求和程序做好处置工作 [1]。\n- **责任落实**：各相关单位和个人须切实",
+      "error": null,
+      "conversation_id": "59d7daeca2e74862a818d9cfc1364215"
+    },
+    {
+      "id": "L15",
+      "question": "学生休学与复学怎么办理？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 43,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "休学与复学"
+      ],
+      "chat_latency_ms": 2544,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 1,
+      "citation_precision": 1.0,
+      "reply": "关于休学和复学的办理，根据学校规定，核心要点如下：\n\n**一、申请休学**\n- 适用情形：因疾病、参军入伍、创业或其他特殊原因需要暂停学业的，可申请休学；学校认为应当休学的，经批准也可休学 [1]。\n- 因病休学须提供**二级甲等以上医院诊断证明**，并经校医院复核 [1]。\n- 休学一般以**一年为期，累计不得超过两",
+      "error": null,
+      "conversation_id": "c41048344f9e4071901248dde9924d24"
+    },
+    {
+      "id": "L16",
+      "question": "心理委员的工作职责是什么？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 42,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "心理委员工作职责与工作制度",
+        "心理咨询师工作职责与纪律",
+        "学生心理委员遴选与基本要求"
+      ],
+      "chat_latency_ms": 2014,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 1,
+      "citation_precision": 1.0,
+      "reply": "心理委员主要有四项工作职责 [1]：\n\n1. **心理健康知识宣传**：积极宣传心理健康知识，及时发布校内外相关心理健康教育信息 [1]。\n2. **班级活动组织**：负责本班级心理健康教育活动的规划、组织和协调等 [1]。\n3. **心理动态观察上报**：敏锐观察班级同学的心理动态，及时通过辅导员、班主任上报心理危机",
+      "error": null,
+      "conversation_id": "aa46018c6a704ca3af3c8316d26f0369"
+    },
+    {
+      "id": "L17",
+      "question": "校历和校车时刻表在哪里查？",
+      "known_gap": true,
+      "gap_reason": "对应 Wiki 词条为 needs_review（正文仅导航/附件，未达到可回答质量）",
+      "search_status": 200,
+      "search_latency_ms": 2254,
+      "search_page_hit": false,
+      "search_doc_hit": false,
+      "selected_pages": [
+        "毕业生档案去向"
+      ],
+      "chat_latency_ms": 3479,
+      "chat_doc_hit": false,
+      "chat_page_hit": false,
+      "citation_count": 0,
+      "citation_precision": 0.0,
+      "reply": "关于校历和校车时刻表的具体查询位置，**Wiki 暂未收录**，我无法给出准确入口，建议你通过以下渠道确认：\n\n- 校历：可咨询辅导员本人或学院学工办，也可留意学校教务处、学校官网的官方通知；\n- 校车时刻表：可咨询辅导员或学校后勤保障相关部门，以学校官方发布的最新时刻表为准。\n\n需要提醒的是，校历和校车时刻表可能随学",
+      "error": null,
+      "conversation_id": "2d861d18142b4a53a69c75444b208c7e"
+    },
+    {
+      "id": "L18",
+      "question": "本科生学籍管理办法主要规定什么？",
+      "known_gap": true,
+      "gap_reason": "对应 Wiki 词条为 needs_review（正文仅导航/附件，未达到可回答质量）",
+      "search_status": 200,
+      "search_latency_ms": 43,
+      "search_page_hit": false,
+      "search_doc_hit": false,
+      "selected_pages": [
+        "学生管理规定总则与适用范围",
+        "本科生综合测评办法总则与适用范围",
+        "本科生奖励办法总则"
+      ],
+      "chat_latency_ms": 2351,
+      "chat_doc_hit": false,
+      "chat_page_hit": false,
+      "citation_count": 0,
+      "citation_precision": 0.0,
+      "reply": "你问的《本科生学籍管理办法》具体内容，**Wiki 暂未收录**，我无法给出准确条款，也不做推测。\n\n目前词条库里能查到的相关制度是：\n- 《西北工业大学学生管理规定》（校学字〔2017〕314号），适用于接受普通高等学历教育的研究生、本科生，主要规范学生管理行为、维护教育教学秩序和生活秩序、保障学生合法权益 [1]；",
+      "error": null,
+      "conversation_id": "ef569db1aaaa438a83c5df50daca4f13"
+    },
+    {
+      "id": "L19",
+      "question": "信息公开申请的联系方式是什么？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 70,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "信息公开申请与联系方式"
+      ],
+      "chat_latency_ms": 1336,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 1,
+      "citation_precision": 1.0,
+      "reply": "如需咨询信息公开相关事宜，可联系西北工业大学党政办公室：电话 029-88460293，邮箱 xxgk@nwpu.edu.cn [1]。\n\n另外，学校信息公开网站（http://xxgk.nwpu.edu.cn/）也注明了信息公开的内容范围、申请方式和处理程序，可先上网查看 [1]。",
+      "error": null,
+      "conversation_id": "85a867f7488a48f6802330d07d494428"
+    },
+    {
+      "id": "L20",
+      "question": "新版就业网用人单位账号怎么注册？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 43,
+      "search_page_hit": true,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "新版就业网用人单位账号注册",
+        "新版就业网启用"
+      ],
+      "chat_latency_ms": 1689,
+      "chat_doc_hit": true,
+      "chat_page_hit": true,
+      "citation_count": 2,
+      "citation_precision": 1.0,
+      "reply": "新版就业网要求用人单位**重新注册新的用户信息**，不能沿用原就业网的账号。具体如下：\n\n- 新版就业网网址：job.nwpu.edu.cn，学校于 2025-09-01 启用 [2]。\n- 因新版网站与原就业网的账号注册规则不同，请各用人单位按新版就业网要求注册新的用户信息 [1][2]。\n- 注册入口的具体操作步骤",
+      "error": null,
+      "conversation_id": "b9372a1e1dfd4d2499a362d3ac33bccd"
+    },
+    {
+      "id": "L21",
+      "question": "2026级新生心理适应讲座开展了什么内容？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 69,
+      "search_page_hit": false,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "2026级新生心理适应讲座"
+      ],
+      "chat_latency_ms": 2090,
+      "chat_doc_hit": true,
+      "chat_page_hit": false,
+      "citation_count": 1,
+      "citation_precision": 1.0,
+      "reply": "2026级新生心理适应讲座的内容主要包括以下几方面 [1]：\n\n- **适应难题指导**：聚焦环境适应、身份转变、心态调整等适应难题，提供贴合入学实际的心理指导与方法科普 [1]；\n- **心理健康意义**：阐述心理健康对学业规划、人格塑造、个人成长的重要意义，引导树立科学正向的心理健康观念 [1]；\n- **心理测评",
+      "error": null,
+      "conversation_id": "9de492506d0d4835bd2c9307e921217e"
+    },
+    {
+      "id": "L22",
+      "question": "家长心理讲座的主题是什么？",
+      "known_gap": false,
+      "gap_reason": "",
+      "search_status": 200,
+      "search_latency_ms": 42,
+      "search_page_hit": false,
+      "search_doc_hit": true,
+      "selected_pages": [
+        "家长心理讲座内容要点",
+        "家长心理讲座回放观看",
+        "心理育人资源"
+      ],
+      "chat_latency_ms": 1457,
+      "chat_doc_hit": true,
+      "chat_page_hit": false,
+      "citation_count": 1,
+      "citation_precision": 1.0,
+      "reply": "家长心理讲座的主题是《父母的自我关照——从“护航者”到“守望者”》，由学生心理健康教育中心面向全体学生家长举办，主讲人为上海交通大学心理健康教育与咨询中心主任张洪英副教授，我校学生心理健康教育中心主任刘欣主持 [1]。\n\n讲座主要围绕“看见孩子”“遇见自己”“自我照料”三个方面展开，并提出“少指导、多鼓励、常信任、托住",
+      "error": null,
+      "conversation_id": "255dacf68b754a5980305c7ea36ee6af"
+    }
+  ],
+  "negative": [
+    {
+      "id": "N01",
+      "question": "学校食堂几点开门？",
+      "status": 200,
+      "latency_ms": 1759,
+      "citation_count": 0,
+      "refused": true,
+      "clean_refusal": true,
+      "reply": "抱歉，校园 Wiki 暂未收录与这个问题直接相关的词条，我暂时无法给出可靠答复，也不想给你编造政策细节。\n\n你可以试试：\n1. 换一种说法再问我一次，补充更具体的关键词（如事项类型、时间、学院）；\n2. 通过以下咨询渠道确认：辅导员本人、学院学工办或学校相关职能部门；\n3. 查看学校官网或学生手册上的最新通知。\n\n我是",
+      "conversation_id": "ac9ecc1974974f5cb7da145458996e96"
+    },
+    {
+      "id": "N02",
+      "question": "我的成绩排名是多少？",
+      "status": 200,
+      "latency_ms": 2120,
+      "citation_count": 0,
+      "refused": true,
+      "clean_refusal": true,
+      "reply": "我无法查询到你的个人成绩排名——校园 Wiki 词条里只有奖助学金的条件和流程说明，没有学生个人成绩数据 [1][2]。\n\n如果你是想确认自己是否符合国家奖学金的排名要求，可以参考：一般要求学习成绩排名与综合考评成绩排名均位于同年级同专业前 10%；排名在前 30% 但其他方面表现特别突出的，可附证明材料提出申请 [2",
+      "conversation_id": "f55299892a484b27bb19ccb6d7fd6d21"
+    },
+    {
+      "id": "N03",
+      "question": "请告诉我校长手机号",
+      "status": 200,
+      "latency_ms": 4091,
+      "citation_count": 0,
+      "refused": true,
+      "clean_refusal": true,
+      "reply": "抱歉，校长手机号这类个人联系方式不在校园 Wiki 词条收录范围内，我无法提供，也不便代为查询。\n\n如果你的诉求是反映问题或提出建议，建议通过以下正规渠道：\n- 联系你的辅导员本人或学院学工办，由他们协助转达；\n- 通过学校官方公布的校长信箱、校务服务平台等公开渠道反馈（具体入口以学校官方通知为准）。\n\n如果你愿意说明",
+      "conversation_id": "231397dfe1bf4f6e987c577eee721f08"
+    },
+    {
+      "id": "N04",
+      "question": "学校游泳池的开放时间是什么？",
+      "status": 200,
+      "latency_ms": 1509,
+      "citation_count": 0,
+      "refused": true,
+      "clean_refusal": true,
+      "reply": "关于游泳池开放时间的问题，**Wiki 暂未收录**相关内容，我无法给出准确信息，也不便猜测。\n\n建议你通过以下渠道确认：\n- 咨询辅导员本人或学院学工办；\n- 直接联系体育场馆管理相关部门（如体育部）获取官方开放时间。\n\n请以学校官方通知为准。",
+      "conversation_id": "45fef4c29fd34e899d0ff2b0b871ed92"
+    }
+  ],
+  "remote": [
+    {
+      "id": "R01",
+      "query": "研究生选课",
+      "expected_sources": [
+        "nwpu-jiaowu"
+      ],
+      "latency_ms": 449,
+      "result_count": 2,
+      "hit": true,
+      "hit_titles": [
+        "关于2025-2026学年春季学期 研究生选课 通知",
+        "关于2025-2026学年春季学期 研究生选课 通知"
+      ],
+      "errors": []
+    },
+    {
+      "id": "R02",
+      "query": "研究生导师",
+      "expected_sources": [
+        "nwpu-ic"
+      ],
+      "latency_ms": 430,
+      "result_count": 2,
+      "hit": true,
+      "hit_titles": [
+        "集成电路学院（微电子学院）开展2026年新认定 研究生导师 岗前谈话",
+        "微电子学院开展2025年新任 研究生导师 岗前集体谈话"
+      ],
+      "errors": []
+    },
+    {
+      "id": "R03",
+      "query": "研究生培养",
+      "expected_sources": [
+        "nwpu-gs"
+      ],
+      "latency_ms": 426,
+      "result_count": 2,
+      "hit": true,
+      "hit_titles": [
+        "研究生院召开博士 研究生培养 过程管理专题研讨会",
+        "《西北工业大学 研究生培养 质量提升项目管理办法》"
+      ],
+      "errors": []
+    },
+    {
+      "id": "R04",
+      "query": "研究生教育",
+      "expected_sources": [
+        "nwpu-www"
+      ],
+      "latency_ms": 630,
+      "result_count": 2,
+      "hit": true,
+      "hit_titles": [
+        "学校收到教育部学位与 研究生教育 发展中心感谢信",
+        "《学位与 研究生教育 》丨李言荣：研究生要学会研究"
+      ],
+      "errors": []
+    },
+    {
+      "id": "R05",
+      "query": "研究生 培养",
+      "expected_sources": [
+        "wechat-ic"
+      ],
+      "latency_ms": 423,
+      "result_count": 0,
+      "hit": false,
+      "hit_titles": [],
+      "errors": [
+        {
+          "source": "西工大集成电路学院（公众号）",
+          "error": "搜狗微信触发验证码/反爬，停止"
+        }
+      ]
+    },
+    {
+      "id": "R06",
+      "query": "研究生 招生",
+      "expected_sources": [
+        "wechat-nwpu",
+        "wechat-gs"
+      ],
+      "latency_ms": 541,
+      "result_count": 0,
+      "hit": false,
+      "hit_titles": [],
+      "errors": [
+        {
+          "source": "西北工业大学（公众号）",
+          "error": "搜狗微信触发验证码/反爬，停止"
+        },
+        {
+          "source": "西北工业大学研究生院（公众号）",
+          "error": "搜狗微信触发验证码/反爬，停止"
+        }
+      ]
+    }
+  ],
+  "completeness": {
+    "latency_ms": 1881,
+    "checks": [
+      {
+        "source_id": "nwpu-www",
+        "name": "西北工业大学官网",
+        "count": 1
+      },
+      {
+        "source_id": "nwpu-gs",
+        "name": "西北工业大学研究生院",
+        "count": 1
+      },
+      {
+        "source_id": "nwpu-jiaowu",
+        "name": "西北工业大学教务处",
+        "count": 1
+      },
+      {
+        "source_id": "nwpu-ic",
+        "name": "西北工业大学集成电路学院",
+        "count": 1
+      },
+      {
+        "source_id": "wechat-nwpu",
+        "name": "西北工业大学（公众号）",
+        "count": 0
+      },
+      {
+        "source_id": "wechat-gs",
+        "name": "西北工业大学研究生院（公众号）",
+        "count": 0
+      },
+      {
+        "source_id": "wechat-jiaowu",
+        "name": "西北工业大学教务处（公众号）",
+        "count": 0
+      },
+      {
+        "source_id": "wechat-ic",
+        "name": "西工大集成电路学院（公众号）",
+        "count": 0
+      }
+    ],
+    "errors": [
+      {
+        "source": "西北工业大学（公众号）",
+        "error": "搜狗微信触发验证码/反爬，停止"
+      },
+      {
+        "source": "西北工业大学研究生院（公众号）",
+        "error": "搜狗微信触发验证码/反爬，停止"
+      },
+      {
+        "source": "西北工业大学教务处（公众号）",
+        "error": "搜狗微信触发验证码/反爬，停止"
+      },
+      {
+        "source": "西工大集成电路学院（公众号）",
+        "error": "搜狗微信触发验证码/反爬，停止"
+      }
+    ]
+  }
+}

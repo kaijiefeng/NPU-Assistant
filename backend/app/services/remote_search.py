@@ -218,6 +218,8 @@ def search_site(
             for row in results
             if (urlsplit(row["url"]).hostname or "").lower() in allowed
         ]
+    for row in results:
+        row["source_id"] = source.id
     _cache_set(key, results)
     return results
 
@@ -287,6 +289,8 @@ def search_wechat(
                 "fetched_at": _now(),
             }
         )
+    for row in results:
+        row["source_id"] = source.id
     _cache_set(key, results)
     return results
 

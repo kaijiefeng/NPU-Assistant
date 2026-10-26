@@ -533,7 +533,23 @@ def search_pages(query: str, *, limit: int = 5) -> dict:
     selected_pages: list[dict] = []
     method = "none"
     try:
-        if exact:
+        if exact and strong_keyword:
+            exact_score = max(score for _page, score, _reason in exact)
+            keyword_score = float(strong_keyword[0]["score"])
+            # 精确别名可能只命中“综合测评”这类泛词；当关键词候选明显更高时，
+            # 优先内容更具体的词条，避免“研究生综合测评”压过“本科生综合测评模块”。
+            if keyword_score > exact_score + 0.08:
+                method = "keyword"
+                selected_pages = [
+                    candidate["page"]
+                    for candidate in _select_keyword_candidates(
+                        keyword, max_pages, keyword_score
+                    )
+                ]
+            else:
+                method = "exact"
+                selected_pages = [page for page, _score, _reason in exact[:max_pages]]
+        elif exact:
             method = "exact"
             selected_pages = [page for page, _score, _reason in exact[:max_pages]]
         elif strong_keyword and strong_keyword[0]["score"] >= KEYWORD_STRONG_THRESHOLD:

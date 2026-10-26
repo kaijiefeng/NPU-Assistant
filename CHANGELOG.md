@@ -19,7 +19,8 @@
 - 新增**人工下载/导入单独清单** `docs/CAMPUS-MANUAL-QUEUE.md` + `docs/campus-seed/manual-queue.json`（22 条 P0/P1/P2），与自动同步源分离；xgb/xygg/jiaowu/xxgk/job 等 WAF/扫描件条目均在此，不混入自动抓取。
 - 新增本地 OCR（PyMuPDF + RapidOCR）处理扫描 PDF；CUA 浏览器下载/复制兜底；
 - 新增限定范围联网检索试验：四个西工大站点站内搜索 + 四个非自有公众号（搜狗微信搜索/原文抓取），只做临时上下文与引用、不写库；
-- 测试：后端 pytest **125 passed**；Chrome CDP 六页冒烟 **console 0 错误**，1440/390 无横向滚动；修复对话输入框引用未定义变量 `counter` 的运行时异常。
+- 新增本地+远程混合检索评测：22 本地题 + 4 负样本 + 6 远程题 + 8 源连通性，输出 JSON/Markdown 报告；修复精确别名误压、拒绝回答引用污染；
+- 测试：后端 pytest **126 passed**；Chrome CDP 六页冒烟 **console 0 错误**，1440/390 无横向滚动；修复对话输入框引用未定义变量 `counter` 的运行时异常。
 
 ## v0.1.1 — 2026-10-24（发布版）
 

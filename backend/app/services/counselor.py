@@ -426,6 +426,26 @@ def _scope_reply(settings: dict[str, Any]) -> str:
     return "\n\n".join(lines)
 
 
+def _clean_refusal_citations(reply: str, citations: list[dict]) -> tuple[str, list[dict]]:
+    """回答明确说“未收录/无法给出”时，不保留无依据的参考词条引用。"""
+    if not citations:
+        return reply, citations
+    markers = (
+        "抱歉",
+        "你的",
+        "你问的",
+        "查不到",
+        "无法给出",
+        "无法提供",
+        "不能提供",
+        "不提供",
+    )
+    if not any(marker in reply[:120] for marker in markers):
+        return reply, citations
+    cleaned = re.sub(r"\n+参考词条：.*$", "", reply, flags=re.S).rstrip()
+    return cleaned, []
+
+
 def _answer_from_pages(
     question: str,
     pages: list[dict],
@@ -456,12 +476,14 @@ def _answer_from_pages(
         reply, citations = wiki_nav.attach_citations(
             reply, pages, settings["citations_enabled"]
         )
+        reply, citations = _clean_refusal_citations(reply, citations)
         return reply, citations, True, "", ""
     model = str(result.get("model") or "")
     provider = (result.get("provider_type") or "").strip().lower()
     reply, citations = wiki_nav.attach_citations(
         content, pages, settings["citations_enabled"]
     )
+    reply, citations = _clean_refusal_citations(reply, citations)
     return reply, citations, False, model, provider
 
 

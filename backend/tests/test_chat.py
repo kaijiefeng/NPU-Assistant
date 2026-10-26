@@ -287,3 +287,11 @@ def test_chat_anonymous_sessions_do_not_share_session_key(client):
     sessions = {item["session_key"] for item in matched.values()}
     assert len(sessions) == 2, "两个匿名会话不应共享同一个 session_key"
     assert all("anonymous-" in session for session in sessions)
+
+def test_refusal_reply_drops_reference_citations():
+    from app.services.counselor import _clean_refusal_citations
+
+    reply = "抱歉，校园 Wiki 未收录该问题。\n\n参考词条：\n[1] 《学生管理规定》"
+    cleaned, citations = _clean_refusal_citations(reply, [{"index": 1}])
+    assert citations == []
+    assert "参考词条" not in cleaned

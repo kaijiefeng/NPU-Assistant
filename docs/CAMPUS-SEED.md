@@ -47,7 +47,7 @@
 ## 四、测试
 
 - `backend/tests/test_parsing.py` 使用本目录三个真实样本（`.doc`/`.docx`/`.pdf`）做解析回归；样本位于 `backend/tests/fixtures/campus/`，来源与许可说明见同目录 README。
-- 全量 pytest：**125 passed**。
+- 全量 pytest：**126 passed**。
 - UI：内容管理 → 源文件可看到 20 条；知识库词条 56 条；真实问答引用正常。
 
 ## 五、采集说明与限制
