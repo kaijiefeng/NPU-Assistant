@@ -84,6 +84,26 @@ def test_import_text_validation(client, compile_ready):
 # ---------------------------------------------------------------------------
 # 2) URL 收录
 # ---------------------------------------------------------------------------
+def test_extract_article_supports_cms_vsb_content():
+    """西工大 CMS 的 #vsb_content/.v_news_content 应作为正文根节点。"""
+    from app.services import importer
+
+    html = (
+        "<html><body><div id='header'>首页 新闻 通知</div>"
+        "<div id='vsb_content' class='v_news_content'>"
+        "<p>第一条 为规范学生管理，结合学校实际，制定本办法。</p>"
+        "<p>第二条 本办法适用于全体注册在籍学生，具体解释由学生工作部负责。</p>"
+        "<p>第三条 学生应当遵守校纪校规，维护正常教学秩序和校园安全。</p>"
+        "<p>第四条 对违反本办法的学生，学校按照有关规定给予相应处理。</p>"
+        "</div><div id='footer'>版权所有</div></body></html>"
+    )
+    article = importer.extract_article(html, url="https://xgb.nwpu.edu.cn/info/1227/10612.htm")
+    assert "第一条" in article["text"]
+    assert "第三条" in article["text"]
+    assert "首页 新闻 通知" not in article["text"]
+    assert "版权所有" not in article["text"]
+
+
 def test_import_url_extracts_wechat_style_article(client, compile_ready, article_server):
     url = f"{article_server.base_url}/article"
     response = _import_url(client, url=url, tags=["公众号", "奖助"])

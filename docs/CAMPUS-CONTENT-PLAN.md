@@ -80,7 +80,7 @@ schtasks /Create /TN "NPU-Assistant-CampusSync" /SC HOURLY /MO 6 `
 ### 3.3 当前限制
 
 - 自动源 `gs-tzgg` 第一页 10 条已全部拉取（去重后新增 7 条）；其它源受 WAF/页面结构限制，自动开关默认关闭，避免违规绕过。
-- 需要人工浏览器下载/复制的条目单独维护在 **[CAMPUS-MANUAL-QUEUE.md](CAMPUS-MANUAL-QUEUE.md)**（含 23 条 P0/P1/P2 与 JSON 清单），不混入自动源。
+- 需要人工浏览器下载/复制的条目单独维护在 **[CAMPUS-MANUAL-QUEUE.md](CAMPUS-MANUAL-QUEUE.md)**（含 23 条 P0/P1/P2 与 JSON 清单），分流结果见 `docs/campus-seed/manual-queue-results.json`，不混入自动源。
 - 自动更新是“新 URL 增量”，不做全站递归；页面内容变更暂不自动覆盖（可在后续加入 hash 变更检测）。
 - 不包含附件解析/下载；PPT/PPTX 暂不实现。
 
@@ -95,7 +95,7 @@ schtasks /Create /TN "NPU-Assistant-CampusSync" /SC HOURLY /MO 6 `
 
 ## 五、初始库与后续目标
 
-- 当前：**29 篇源文件 / 65 个词条 / 67 个来源锚点**（19 篇真实 + 10 篇示例）。
+- 当前：**36 篇源文件 / 92 个词条 / 95 个来源锚点**（26 篇真实 + 10 篇示例）。
 - 目标（下一阶段）：补到 **40 篇**，重点补 xgb 制度公开（奖助/违纪/宿舍）、心理中心、校历/一卡通；每篇保留来源 URL、抓取时间、SHA256 清单。
 - 清单：[`docs/CAMPUS-SEED.md`](CAMPUS-SEED.md)、[`docs/campus-seed/manifest.json`](campus-seed/manifest.json)。
 

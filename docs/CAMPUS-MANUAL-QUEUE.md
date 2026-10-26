@@ -2,7 +2,21 @@
 
 这是与自动同步源分开的**人工队列**。自动同步只处理允许的公开列表页（当前仅研究生院）；下列条目因 WAF、页面结构、扫描件或附件限制，需人工在浏览器中打开/下载后导入。
 
-机器可读清单：[`docs/campus-seed/manual-queue.json`](campus-seed/manual-queue.json)（23 条，P0/P1/P2）。
+机器可读清单：[`docs/campus-seed/manual-queue.json`](campus-seed/manual-queue.json)（23 条，P0/P1/P2）；本轮分流结果：[`manual-queue-results.json`](campus-seed/manual-queue-results.json)。
+
+## 〇、本轮分流结果（2026-10-26）
+
+按「互联网抓取 → 自动下载 → 人工接管」处理后的状态：
+
+| 状态 | 数量 | 说明 |
+|---|---:|---|
+| `imported` | 5 | 心理中心 2 篇、校历、学籍办法、信息公开年报 |
+| `already_present` | 2 | 学生违纪处分办法、学生公寓管理办法（此前已导入） |
+| `downloaded_needs_ocr` | 5 | 4 份奖助 PDF + CUA 下载的绿色通道 PDF；扫描件无文本，待 OCR |
+| `needs_browser` | 11 | WAF/412 或列表页，需 CUA/人工浏览器继续 |
+
+- CUA 试验：用独立 Edge 配置打开“绿色通道”页面，`Ctrl+S` 成功下载 PDF（4 页，扫描件）→ 保存为 `backend/data/campus_manual/files/xgb-zdgk-13428.pdf`。
+- 本轮没有遇到验证码；如遇到，按约定暂停，由人工完成后再继续。
 
 ## 一、处理原则
 

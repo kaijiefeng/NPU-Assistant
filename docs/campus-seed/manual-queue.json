@@ -11,7 +11,13 @@
       "priority": "P0",
       "reason": "xgb 列表对脚本返回 403（WAF），自动同步停用",
       "action": "浏览器打开 → 复制正文用「文本收录」，或另存 HTML 后上传",
-      "status": "pending"
+      "status": "downloaded_needs_ocr",
+      "attachment_url": "https://xgb.nwpu.edu.cn/__local/7/A2/AB/03032E4C0D46A2AAB5FFC01BCC9_8790D91F_3887B6.pdf",
+      "result": {
+        "detail": "PDF 8 页，无可提取文本，需人工 OCR",
+        "document_id": null,
+        "local_file": "backend\\data\\campus_manual\\files\\xgb-zdgk-13408.pdf"
+      }
     },
     {
       "id": "xgb-zdgk-13418",
@@ -22,7 +28,13 @@
       "priority": "P0",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "downloaded_needs_ocr",
+      "attachment_url": "https://xgb.nwpu.edu.cn/__local/9/FC/2F/20A093F28EA1C7B1367B4812B9A_07613D11_3E4078.pdf",
+      "result": {
+        "detail": "PDF 8 页，无可提取文本，需人工 OCR",
+        "document_id": null,
+        "local_file": "backend\\data\\campus_manual\\files\\xgb-zdgk-13418.pdf"
+      }
     },
     {
       "id": "xgb-zdgk-13448",
@@ -33,7 +45,13 @@
       "priority": "P0",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "downloaded_needs_ocr",
+      "attachment_url": "https://xgb.nwpu.edu.cn/__local/9/07/FD/11981B6C835AC559D614EEB2271_03924852_165885.pdf",
+      "result": {
+        "detail": "PDF 4 页，无可提取文本，需人工 OCR",
+        "document_id": null,
+        "local_file": "backend\\data\\campus_manual\\files\\xgb-zdgk-13448.pdf"
+      }
     },
     {
       "id": "xgb-zdgk-13438",
@@ -44,7 +62,13 @@
       "priority": "P0",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "downloaded_needs_ocr",
+      "attachment_url": "https://xgb.nwpu.edu.cn/__local/C/3C/29/718AED82ED39CED6AF70576853C_CB730589_218570.pdf",
+      "result": {
+        "detail": "PDF 4 页，无可提取文本，需人工 OCR",
+        "document_id": null,
+        "local_file": "backend\\data\\campus_manual\\files\\xgb-zdgk-13438.pdf"
+      }
     },
     {
       "id": "xgb-zdgk-13428",
@@ -55,7 +79,12 @@
       "priority": "P1",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "downloaded_needs_ocr",
+      "result": {
+        "detail": "CUA 浏览器 Ctrl+S 下载成功；PDF 4 页，无可提取文本，需人工 OCR",
+        "document_id": null,
+        "local_file": "backend/data/campus_manual/files/xgb-zdgk-13428.pdf"
+      }
     },
     {
       "id": "xgb-zdgk-11300",
@@ -66,7 +95,12 @@
       "priority": "P1",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "needs_browser",
+      "result": {
+        "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
+        "document_id": null,
+        "local_file": null
+      }
     },
     {
       "id": "xgb-zdgk-11299",
@@ -77,7 +111,12 @@
       "priority": "P1",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "needs_browser",
+      "result": {
+        "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
+        "document_id": null,
+        "local_file": null
+      }
     },
     {
       "id": "xgb-zdgk-11087",
@@ -88,7 +127,12 @@
       "priority": "P1",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "needs_browser",
+      "result": {
+        "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
+        "document_id": null,
+        "local_file": null
+      }
     },
     {
       "id": "xgb-zdgk-10612",
@@ -99,7 +143,12 @@
       "priority": "P0",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "already_present",
+      "result": {
+        "detail": "知识库已有相同 source_url，跳过",
+        "document_id": "3c5ce6e3bcc048e5b6408fe5a7e940f4",
+        "local_file": null
+      }
     },
     {
       "id": "xgb-zdgk-10600",
@@ -110,7 +159,12 @@
       "priority": "P0",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "already_present",
+      "result": {
+        "detail": "知识库已有相同 source_url，跳过",
+        "document_id": "d45631d951334583970c7d8875119cc5",
+        "local_file": null
+      }
     },
     {
       "id": "xgb-zdgk-10611",
@@ -121,7 +175,12 @@
       "priority": "P1",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "needs_browser",
+      "result": {
+        "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
+        "document_id": null,
+        "local_file": null
+      }
     },
     {
       "id": "xgb-zdgk-10610",
@@ -132,7 +191,12 @@
       "priority": "P1",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "needs_browser",
+      "result": {
+        "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
+        "document_id": null,
+        "local_file": null
+      }
     },
     {
       "id": "xgb-zdgk-10609",
@@ -143,7 +207,12 @@
       "priority": "P1",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "needs_browser",
+      "result": {
+        "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
+        "document_id": null,
+        "local_file": null
+      }
     },
     {
       "id": "xgb-zdgk-10608",
@@ -154,7 +223,12 @@
       "priority": "P2",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "needs_browser",
+      "result": {
+        "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
+        "document_id": null,
+        "local_file": null
+      }
     },
     {
       "id": "xgb-fwzx-11046",
@@ -165,7 +239,12 @@
       "priority": "P1",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "needs_browser",
+      "result": {
+        "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
+        "document_id": null,
+        "local_file": null
+      }
     },
     {
       "id": "xgb-fwzx-11047",
@@ -176,7 +255,12 @@
       "priority": "P2",
       "reason": "同上（xgb WAF 403）",
       "action": "浏览器打开 → 文本收录 / 另存 HTML",
-      "status": "pending"
+      "status": "needs_browser",
+      "result": {
+        "detail": "页面返回 WAF/拒绝提示，需 CUA/浏览器人工打开",
+        "document_id": null,
+        "local_file": null
+      }
     },
     {
       "id": "xl-rcgz-4102",
@@ -187,7 +271,12 @@
       "priority": "P1",
       "reason": "自动抽取未识别正文（页面结构特殊），需人工浏览器复制",
       "action": "浏览器打开 → 复制正文用「文本收录」",
-      "status": "pending"
+      "status": "imported",
+      "result": {
+        "detail": "",
+        "document_id": "4a91d758d7d0477db717b9e05d512d07",
+        "local_file": null
+      }
     },
     {
       "id": "xl-rcgz-4072",
@@ -198,7 +287,12 @@
       "priority": "P2",
       "reason": "自动抽取未识别正文（页面结构特殊）",
       "action": "浏览器打开 → 复制正文用「文本收录」",
-      "status": "pending"
+      "status": "imported",
+      "result": {
+        "detail": "",
+        "document_id": "8948525a001c4dafa7020a6ff0d073b6",
+        "local_file": null
+      }
     },
     {
       "id": "xygg-22073",
@@ -209,7 +303,12 @@
       "priority": "P1",
       "reason": "正文为校历/时刻表图片，自动提取无文本；需人工另存图片或抄录",
       "action": "浏览器打开 → 保存图片/表格 → 用「文件」或「文本」收录",
-      "status": "pending"
+      "status": "imported",
+      "result": {
+        "detail": "",
+        "document_id": "2342ec6c97fe4374bd5c7fabc1e20975",
+        "local_file": null
+      }
     },
     {
       "id": "xxgk-5921",
@@ -220,7 +319,12 @@
       "priority": "P1",
       "reason": "信息公开页为扫描图片，pypdf 无文本；需人工 OCR 或复制",
       "action": "浏览器打开 → OCR/复制正文 → 文本收录",
-      "status": "pending"
+      "status": "imported",
+      "result": {
+        "detail": "",
+        "document_id": "6d83b92fa27848e885d687ef01322c61",
+        "local_file": null
+      }
     },
     {
       "id": "xxgk-annual-2025",
@@ -231,7 +335,12 @@
       "priority": "P2",
       "reason": "直链对脚本 403，需浏览器人工下载",
       "action": "浏览器打开/下载 PDF → 用「文件」收录",
-      "status": "pending"
+      "status": "imported",
+      "result": {
+        "detail": "",
+        "document_id": "f1085788e7a84099ae8e661a97ed3dbe",
+        "local_file": null
+      }
     },
     {
       "id": "job-new-site",
@@ -242,7 +351,12 @@
       "priority": "P2",
       "reason": "就业网对脚本返回 412/WAF，需浏览器人工处理",
       "action": "浏览器打开 → 文本收录",
-      "status": "pending"
+      "status": "needs_browser",
+      "result": {
+        "detail": "HTTP 412，需要 CUA/浏览器人工打开",
+        "document_id": null,
+        "local_file": null
+      }
     },
     {
       "id": "xl-list-batch",
@@ -253,7 +367,12 @@
       "priority": "P2",
       "reason": "自动同步逐页抽取正文均失败（页面结构特殊）",
       "action": "浏览器打开列表逐条复制正文；优先新生适应/咨询相关文章",
-      "status": "pending"
+      "status": "needs_browser",
+      "result": {
+        "detail": "正文不足 100 字且未发现可下载 PDF，需 CUA/人工",
+        "document_id": null,
+        "local_file": null
+      }
     }
   ]
 }

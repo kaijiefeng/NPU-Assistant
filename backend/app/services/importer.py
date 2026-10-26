@@ -65,7 +65,8 @@ _NOISE_TAGS = (
     "header",
     "footer",
     "aside",
-    "form",
+    # 注意：不要整块删除 form。部分高校 CMS 把正文放在 <form> 内，
+    # 删除 form 会把 #vsb_content 一起删掉；表单噪声交给链接密度清理。
     "iframe",
     "svg",
     "canvas",
@@ -776,7 +777,11 @@ def _compute_text_metrics(
                 classes = [str(item) for item in classes]
             else:
                 classes = [classes]
-            if node_id == "js_content" or "rich_media_content" in classes:
+            if (
+                node_id in {"js_content", "vsb_content", "vsb_content_100", "vsb_content_2"}
+                or "rich_media_content" in classes
+                or "v_news_content" in classes
+            ):
                 media_candidates.append(node)
             role = str(node.get("role") or "").strip().lower()
             if node.name in ("article", "main") or role == "main":
