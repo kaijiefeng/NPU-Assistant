@@ -2,7 +2,7 @@
 
 这是与自动同步源分开的**人工队列**。自动同步只处理允许的公开列表页（当前仅研究生院）；下列条目因 WAF、页面结构、扫描件或附件限制，需人工在浏览器中打开/下载后导入。
 
-机器可读清单：[`docs/campus-seed/manual-queue.json`](campus-seed/manual-queue.json)（22 条，P0/P1/P2）。
+机器可读清单：[`docs/campus-seed/manual-queue.json`](campus-seed/manual-queue.json)（23 条，P0/P1/P2）。
 
 ## 一、处理原则
 
@@ -47,6 +47,7 @@
 | 宿舍管理 | 研究生新生提前入住公寓流程图 | <https://xgb.nwpu.edu.cn/info/1261/11047.htm> |
 | 心理健康 | 2026级新生心理适应讲座 | <https://xl.nwpu.edu.cn/info/1009/4072.htm> |
 | 信息公开 | 2024-2025学年信息公开年度报告 PDF | <https://xxgk.nwpu.edu.cn:8080/__local/8/3B/86/99636A5BCE1773BD7430977A235_A60C1D8B_48658.pdf> |
+| 心理健康 | 心理中心通知/工作动态（自动抽取失败的 20 条） | <https://xl.nwpu.edu.cn/gzdt/tzgg.htm> |
 | 就业 | 关于启用新版就业网的公告 | <https://job.nwpu.edu.cn/frontpage/nwpu/html/newsDetail.html?id=b1fad40a3f9c4b51acffdb0b7d0d51d3> |
 
 ## 五、为什么这些不能自动抓

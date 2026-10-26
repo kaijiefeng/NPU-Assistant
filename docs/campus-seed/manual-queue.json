@@ -243,6 +243,17 @@
       "reason": "就业网对脚本返回 412/WAF，需浏览器人工处理",
       "action": "浏览器打开 → 文本收录",
       "status": "pending"
+    },
+    {
+      "id": "xl-list-batch",
+      "domain": "心理健康",
+      "title": "心理中心通知/工作动态（自动抽取失败的 20 条）",
+      "url": "https://xl.nwpu.edu.cn/gzdt/tzgg.htm",
+      "format": "html",
+      "priority": "P2",
+      "reason": "自动同步逐页抽取正文均失败（页面结构特殊）",
+      "action": "浏览器打开列表逐条复制正文；优先新生适应/咨询相关文章",
+      "status": "pending"
     }
   ]
 }

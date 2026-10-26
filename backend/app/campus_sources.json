@@ -134,11 +134,11 @@
         "校园公开资料",
         "心理健康"
       ],
-      "enabled": true,
+      "enabled": false,
       "interval_hours": 12,
       "max_items": 5,
       "exclude_keywords": [],
-      "legal_note": "公开心理中心通知；只抓正文"
+      "legal_note": "公开心理中心通知；只抓正文；自动抽取正文失败，转人工队列"
     },
     {
       "id": "xl-rcgz",
@@ -149,11 +149,11 @@
         "校园公开资料",
         "心理健康"
       ],
-      "enabled": true,
+      "enabled": false,
       "interval_hours": 12,
       "max_items": 5,
       "exclude_keywords": [],
-      "legal_note": "公开心理中心工作动态；只抓正文"
+      "legal_note": "公开心理中心工作动态；只抓正文；自动抽取正文失败，转人工队列"
     }
   ]
 }
