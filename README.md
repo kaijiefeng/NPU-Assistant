@@ -211,6 +211,7 @@ NPU-Assistant/
 │  ├─ CAMPUS-CONTENT-PLAN.md # 内容领域清单、合法采集与自动更新方案
 │  ├─ CAMPUS-MANUAL-QUEUE.md # 需人工浏览器下载/复制的条目（P0/P1/P2）
 │  ├─ CAMPUS-REMOTE-SEARCH.md # 限定范围联网检索试验（四网站 + 四公众号）
+│  ├─ DATA-PROVENANCE.md      # 真实/示例数据审计与源文件管理
 │  ├─ eval/                 # 混合检索测试集、方案与首轮报告
 │  ├─ DEMO.md               # 5 分钟演示脚本与已验证结果
 │  └─ screenshots/          # 六页界面截图（ui_check.py 自动生成）

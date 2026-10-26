@@ -139,6 +139,27 @@ function docStatusBadge(status, error) {
   return `<span class="badge badge-${meta.tone} status-badge" title="${esc(error || meta.label)}"><span class="badge-dot"></span>${esc(meta.label)}</span>`;
 }
 
+function docSourceBadge(doc) {
+  const title = String(doc.title || '');
+  const isExample = /（示例）/.test(title) || normalizeList(doc.tags).includes('示例');
+  if (doc.source_url) {
+    const host = (() => {
+      try {
+        return new URL(doc.source_url).hostname;
+      } catch {
+        return '网页';
+      }
+    })();
+    return `<span class="badge badge-blue" title="${esc(doc.source_url)}">网页</span> <a class="doc-source-link" href="${esc(
+      doc.source_url,
+    )}" target="_blank" rel="noopener noreferrer" title="${esc(doc.source_url)}">${esc(host)}</a>`;
+  }
+  if (isExample) {
+    return '<span class="badge badge-amber" title="示例数据，非真实来源">示例</span>';
+  }
+  return '<span class="badge badge-slate" title="本地文件">本地</span>';
+}
+
 function pageStatusBadge(status) {
   const meta = pageStatus(status);
   return `<span class="badge badge-${meta.tone}"><span class="badge-dot"></span>${esc(meta.label)}</span>`;
@@ -247,7 +268,10 @@ function renderStats() {
   const tabPages = document.getElementById('tabPageCount');
   if (tabPages) tabPages.textContent = state.pagesTotal ? `· ${state.pagesTotal}` : '';
   const tabDocs = document.getElementById('tabDocCount');
-  if (tabDocs) tabDocs.textContent = state.docs.length ? `· ${state.docs.length}` : '';
+  const docTotal = state.docsLoaded
+    ? state.docs.length
+    : state.wikiStats?.documents ?? state.kStats?.documents ?? 0;
+  if (tabDocs) tabDocs.textContent = docTotal ? `· ${docTotal}` : '';
   const docCount = document.getElementById('docCount');
   if (docCount) docCount.textContent = state.docsLoaded ? `（${state.docs.length}）` : '';
 }
@@ -961,7 +985,7 @@ function renderDocs() {
   holder.innerHTML = `<div class="table-wrap">
     <table class="table docs-table">
       <thead><tr>
-        <th>源文件</th><th>类型</th><th>状态</th><th>词条数</th><th>大小</th><th>更新时间</th><th class="th-actions">操作</th>
+        <th>源文件</th><th>来源</th><th>类型</th><th>状态</th><th>词条数</th><th>大小</th><th>更新时间</th><th class="th-actions">操作</th>
       </tr></thead>
       <tbody>${state.docs
         .map((doc) => {
@@ -980,6 +1004,7 @@ function renderDocs() {
                 </div>
               </div>
             </td>
+            <td data-label="来源">${docSourceBadge(doc)}</td>
             <td data-label="类型"><span class="badge badge-blue">${esc(extLabel(ext))}</span></td>
             <td data-label="状态">${docStatusBadge(doc.status, doc.error)}</td>
             <td data-label="词条数">${fmtNumber(doc.page_count || 0)}</td>
