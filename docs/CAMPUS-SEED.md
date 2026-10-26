@@ -4,11 +4,11 @@
 `backend/data/campus_seed/files/`（已 gitignore），仓库只提交可复核的清单
 [manifest.json](campus-seed/manifest.json)，避免把学校附件二进制放进 Git。
 
-## 一、已导入数据（10 篇）
+## 一、已导入数据（12 篇）
 
 | 类型 | 数量 | 文件 / 页面 | 来源 |
 |---|---:|---|---|
-| HTML 网页 | 3 | 教务部课程思政通知、民航学院学生日常管理通知、研究生院系统维护公示 | [教务部](https://jiaowu.nwpu.edu.cn/info/1164/30528.htm)、[民航学院](https://minhang.nwpu.edu.cn/info/1042/1531.htm)、[研究生院](https://gs.nwpu.edu.cn/info/2141/32257.htm) |
+| HTML 网页 | 5 | 教务部课程思政通知、民航学院学生日常管理通知、研究生院系统维护公示、研究生院研究基金申报通知、学位评定委员会时间安排 | [教务部](https://jiaowu.nwpu.edu.cn/info/1164/30528.htm)、[民航学院](https://minhang.nwpu.edu.cn/info/1042/1531.htm)、[研究生院](https://gs.nwpu.edu.cn/cn/index/tzgg.htm) |
 | PDF | 4 | 学位论文评阅意见处理办法、教授副教授授课管理办法、研究生培养国际化规定、研究生课程教学管理规定 | [材料学院资料下载](https://cailiao.nwpu.edu.cn/info/2643/31676.htm) |
 | DOCX | 2 | 知识产权声明页、博士后进站审核表（非定向） | [材料学院](https://cailiao.nwpu.edu.cn/info/2643/31676.htm)、[留院](https://liuyuan.nwpu.edu.cn/info/1057/15064.htm) |
 | DOC（Word 97-2003） | 1 | 在校学习基本情况表 | [材料学院](https://cailiao.nwpu.edu.cn/info/2643/31676.htm) |
@@ -19,7 +19,7 @@
 
 ## 二、真实导入结果
 
-- 数据库：20 篇源文件（10 篇原有示例 + 10 篇真实数据），全部 `ready`；56 个 Wiki 词条，58 个来源锚点。
+- 数据库：22 篇源文件（10 篇原有示例 + 12 篇真实数据），全部 `ready`；58 个 Wiki 词条，60 个来源锚点。
 - 真实 `.doc` 由纯 Python 的 `legacy-doc` 解析（不执行宏/嵌入对象），无需 Word/LibreOffice。
 - 真实 `.docx` / `.pdf` 分别由 `python-docx` / `pypdf` 解析。
 - 真实 HTML 通过 URL 导入，保留 `source_url`，并编译为 Wiki 词条。
@@ -46,7 +46,7 @@
 ## 四、测试
 
 - `backend/tests/test_parsing.py` 使用本目录三个真实样本（`.doc`/`.docx`/`.pdf`）做解析回归；样本位于 `backend/tests/fixtures/campus/`，来源与许可说明见同目录 README。
-- 全量 pytest：**115 passed**。
+- 全量 pytest：**120 passed**。
 - UI：内容管理 → 源文件可看到 20 条；知识库词条 56 条；真实问答引用正常。
 
 ## 五、采集说明与限制

@@ -140,7 +140,7 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 
 | 验证项 | 命令 | 实测结果 |
 |--------|------|----------|
-| pytest 全量 | `.\scripts\check.ps1` | **115 passed**，1 warning（`StarletteDeprecationWarning`，依赖提示，无影响），耗时约 42s |
+| pytest 全量 | `.\scripts\check.ps1` | **120 passed**，1 warning（`StarletteDeprecationWarning`，依赖提示，无影响），耗时约 42s |
 | 用例分布 | — | test_bots 38 / test_wiki 19 / test_chat 17 / test_import 16 / test_system 11 / test_models 5 / test_mobile 4 |
 | 测试隔离 | `conftest.py` | 临时 `NPU_DATA_DIR`/`NPU_DB_PATH`/`NPU_WIKI_SEED_PATH`；每用例重置数据库与上传目录；不污染 `backend/data/app.db` |
 | fake LLM / fake importer | `conftest.py` | fake LLM 按提示词分流（编译 / 合并 / 导航 / 回答 / 寒暄，含失败模式）；本地 `http.server` 提供公众号样式 HTML、4MB / 9MB / gzip 页面验证 URL 抓取上限；机器人入库用 fake importer（threading.Event 验证微信后台线程） |
@@ -226,7 +226,7 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 | URL 并发去重（多请求同时收录同一链接） | importer：同 URL 进程内串行锁 + `documents.source_url` 唯一部分索引 + `IntegrityError` 兜底返回既有文档 | test_import 新增 1 条：4 线程并发收录同一 URL → 仅一次 201、其余 200 duplicated，最终文档数 1 |
 | 安全复审 4 项：机器人日志未鉴权、`api_base` 泄露凭据、微信 nonce 可重放、webhook 超大 body | bots.py：`GET /bots/logs` 加 `require_admin_token`；`api_base`/outbound `url` 去 userinfo+query+fragment 回显且 PUT 回填脱敏值不覆盖；微信 nonce 进程内防重放（TTL 330s/上限 1000，签名失败不消费）；OneBot/微信 webhook body 上限 2MB → 413 | test_bots 新增 5 条：日志 401/带令牌 200 且 webhook 不受影响、`api_base` 脱敏+PUT 保留原值+outbound url 脱敏、微信 GET/POST nonce 重放 403/换 nonce 200/坏签名不消费、空 nonce 登记放行、2MB 超限 413 |
 
-> 安全修复后全量 **104 passed**（v0.1.0）；v0.1.1 新增手机扫码/隧道/首次启用令牌测试后 **110 passed**；v0.1.2 新增真实 .doc/.docx/.pdf 解析测试后 **115 passed**（test_parsing 5）。
+> 安全修复后全量 **104 passed**（v0.1.0）；v0.1.1 新增手机扫码/隧道/首次启用令牌测试后 **110 passed**；v0.1.2 新增真实 .doc/.docx/.pdf 解析测试后 **120 passed**（test_parsing 5 + test_campus_sync 5）。
 
 ### 9.7 v0.1.1 扫码联网 / 一键公网（2026-10-23 实测）
 
@@ -239,14 +239,15 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 - 六个页面：`#/chat`、`#/knowledge`、`#/manage`、`#/models`、`#/bots`、`#/settings`；侧栏分「使用 / 运维」两组。
 - 知识库只读浏览；内容管理拆「收录资料 / 源文件 / 词条维护」三 Tab；模型「模型 / Provider」、机器人「通道 / 调试 / 日志」、设置「基础 / 移动访问与安全 / 回复与引用」。
 - 移除全局顶栏扫码、版本号/API 文档/安装按钮、知识库统计卡与快速收录、设置实时预览/配置建议；扫码入口迁入设置。
-- 验收：`scripts/ui_check.py` 六页渲染 + 真实问答/来源折叠行通过，console **0 错误**；1440×960 与 390×844 均无横向滚动；内容管理移动端统计 2×2、源文件列表首屏可见；pytest **115 passed**。
+- 验收：`scripts/ui_check.py` 六页渲染 + 真实问答/来源折叠行通过，console **0 错误**；1440×960 与 390×844 均无横向滚动；内容管理移动端统计 2×2、源文件列表首屏可见；pytest **120 passed**。
 - 截图：`docs/screenshots/{chat,knowledge,manage,models,bots,settings}.png`；手册静态图与 2 个 GIF 已同步新界面。
 
 ### 9.9 真实校园数据 / 初始知识库（2026-10-24 实测）
 
-- 通过公开页面导入 **10 篇真实数据**：HTML 3（教务部、民航学院、研究生院）、PDF 4（材料学院制度）、DOCX 2（知识产权声明、博士后审核表）、DOC 1（在校学习基本情况表）。
-- 数据库达到 **20 篇源文件 / 56 个词条 / 58 个来源锚点**，全部 `ready`；`.doc` 使用纯 Python `legacy-doc` 解析，无需 Word/LibreOffice。
+- 通过公开页面导入 **12 篇真实数据**：HTML 5（教务部、民航学院、研究生院）、PDF 4（材料学院制度）、DOCX 2（知识产权声明、博士后审核表）、DOC 1（在校学习基本情况表）。
+- 数据库达到 **22 篇源文件 / 58 个词条 / 60 个来源锚点**，全部 `ready`；`.doc` 使用纯 Python `legacy-doc` 解析，无需 Word/LibreOffice。
+- 自动更新 MVP：`scripts/campus_sync.ps1` 可从研究生院公开通知列表增量导入（robots/限速/限条数/去重）；WAF 拦截的源默认关闭，转人工/官方接口。
 - 抽查真实问答：研究生课程调课、博士后进站材料、知识产权声明，均返回真实 PDF/DOCX 来源与原文摘录。
 - 负样本：扫描版 PDF 无文本，系统明确提示“扫描件/无文本”，不做 OCR；PPT/PPTX 按约定暂不实现。
-- 测试：`backend/tests/test_parsing.py` 使用真实 `.doc/.docx/.pdf` 样本回归；全量 pytest **115 passed**。
+- 测试：`backend/tests/test_parsing.py` 使用真实 `.doc/.docx/.pdf` 样本回归；全量 pytest **120 passed**。
 - 清单与来源：[CAMPUS-SEED.md](CAMPUS-SEED.md)、[campus-seed/manifest.json](campus-seed/manifest.json)；文件本体在 `backend/data/campus_seed/files/`（gitignored）。

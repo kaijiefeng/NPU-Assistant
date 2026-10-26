@@ -1,0 +1,159 @@
+{
+  "version": "2026-10-26",
+  "user_agent": "NPU-Assistant campus-sync/0.1 (public campus information; contact: campus-admin)",
+  "request_delay_seconds": 3,
+  "default_max_items": 5,
+  "sources": [
+    {
+      "id": "xygg-xngg",
+      "name": "校园公告-综合通知",
+      "list_url": "https://xygg.nwpu.edu.cn/xygg/xngg.htm",
+      "tags": [
+        "真实数据",
+        "校园公开资料",
+        "校园公告"
+      ],
+      "enabled": false,
+      "interval_hours": 6,
+      "max_items": 5,
+      "exclude_keywords": [
+        "采购",
+        "招标",
+        "竞选",
+        "中标",
+        "成交",
+        "废标"
+      ],
+      "legal_note": "公开列表页；仅抓取详情页正文，不抓验证码附件；列表页对脚本返回 403（WAF），自动同步停用，改为人工审核/官方接口"
+    },
+    {
+      "id": "jiaowu-tzgg",
+      "name": "教务部-通知公告",
+      "list_url": "https://jiaowu.nwpu.edu.cn/jxxx1/tzgg.htm",
+      "tags": [
+        "真实数据",
+        "校园公开资料",
+        "教学教务"
+      ],
+      "enabled": false,
+      "interval_hours": 6,
+      "max_items": 5,
+      "exclude_keywords": [
+        "采购",
+        "招标",
+        "中标",
+        "成交"
+      ],
+      "legal_note": "公开通知列表；附件下载需正常浏览器会话，默认不自动抓附件；列表页对脚本返回 403（WAF），自动同步停用，改为人工审核/官方接口"
+    },
+    {
+      "id": "gs-tzgg",
+      "name": "研究生院-通知公告",
+      "list_url": "https://gs.nwpu.edu.cn/cn/index/tzgg.htm",
+      "tags": [
+        "真实数据",
+        "校园公开资料",
+        "研究生教育"
+      ],
+      "enabled": true,
+      "interval_hours": 6,
+      "max_items": 5,
+      "exclude_keywords": [
+        "采购",
+        "招标",
+        "中标",
+        "成交"
+      ],
+      "legal_note": "公开通知列表；只抓正文"
+    },
+    {
+      "id": "xgb-zdgk",
+      "name": "学生工作部-制度公开",
+      "list_url": "https://xgb.nwpu.edu.cn/xxgk/zdgk.htm",
+      "tags": [
+        "真实数据",
+        "校园公开资料",
+        "规章制度"
+      ],
+      "enabled": false,
+      "interval_hours": 12,
+      "max_items": 8,
+      "exclude_keywords": [],
+      "legal_note": "公开制度页面，含学生奖助/管理规章；只抓正文；列表页对脚本返回 403（WAF），自动同步停用，改为人工审核/官方接口"
+    },
+    {
+      "id": "xgb-jlzz",
+      "name": "学生工作部-奖励资助",
+      "list_url": "https://xgb.nwpu.edu.cn/glfw/jlzz.htm",
+      "tags": [
+        "真实数据",
+        "校园公开资料",
+        "奖助学金"
+      ],
+      "enabled": false,
+      "interval_hours": 12,
+      "max_items": 5,
+      "exclude_keywords": [
+        "采购",
+        "招标",
+        "中标",
+        "成交"
+      ],
+      "legal_note": "公开奖励资助栏目；只抓正文；列表页对脚本返回 403（WAF），自动同步停用，改为人工审核/官方接口"
+    },
+    {
+      "id": "xgb-tzgg",
+      "name": "学生工作部-通知公告",
+      "list_url": "https://xgb.nwpu.edu.cn/xwzx/tzgg.htm",
+      "tags": [
+        "真实数据",
+        "校园公开资料",
+        "学生事务"
+      ],
+      "enabled": false,
+      "interval_hours": 6,
+      "max_items": 5,
+      "exclude_keywords": [
+        "采购",
+        "招标",
+        "竞选",
+        "中标",
+        "成交",
+        "月饼",
+        "窗帘",
+        "提示牌"
+      ],
+      "legal_note": "公开通知列表；过滤采购/竞选类公告；列表页对脚本返回 403（WAF），自动同步停用，改为人工审核/官方接口"
+    },
+    {
+      "id": "xl-tzgg",
+      "name": "心理健康教育中心-通知公告",
+      "list_url": "https://xl.nwpu.edu.cn/gzdt/tzgg.htm",
+      "tags": [
+        "真实数据",
+        "校园公开资料",
+        "心理健康"
+      ],
+      "enabled": true,
+      "interval_hours": 12,
+      "max_items": 5,
+      "exclude_keywords": [],
+      "legal_note": "公开心理中心通知；只抓正文"
+    },
+    {
+      "id": "xl-rcgz",
+      "name": "心理健康教育中心-日常工作",
+      "list_url": "https://xl.nwpu.edu.cn/gzdt/rcgz.htm",
+      "tags": [
+        "真实数据",
+        "校园公开资料",
+        "心理健康"
+      ],
+      "enabled": true,
+      "interval_hours": 12,
+      "max_items": 5,
+      "exclude_keywords": [],
+      "legal_note": "公开心理中心工作动态；只抓正文"
+    }
+  ]
+}

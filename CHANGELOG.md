@@ -14,7 +14,9 @@
 - 视觉：浅背景、白卡片、细边框、柔和阴影、统一圆角与标题层级；移动端内容管理统计改为 2×2 紧凑布局。
 - 文档/手册：六页截图、手册文字与 GIF 全部按新界面更新；`scripts/ui_check.py` 改为六页并校验来源折叠行；`screenshot.ps1` 同步。
 - 新增 `.doc`（Word 97-2003）纯 Python 解析（`legacy-doc`），并补充 3 个真实西工大 `.doc/.docx/.pdf` 解析回归；真实校园数据测试集/初始库 10 篇（3 网页 + 4 PDF + 2 DOCX + 1 DOC，PPT 暂不实现）。
-- 测试：后端 pytest **115 passed**；Chrome CDP 六页冒烟 **console 0 错误**，1440/390 无横向滚动；修复对话输入框引用未定义变量 `counter` 的运行时异常。
+- 新增受控校园栏目同步 MVP：源注册表 `backend/app/campus_sources.json`、`services/campus_sync.py`、`scripts/campus_sync.py|ps1`；robots/限速/限条数/去重，研究生院源可定时增量更新；其余 WAF 源默认关闭、转人工/官方接口。
+- 新增内容领域清单与合法更新方案 `docs/CAMPUS-CONTENT-PLAN.md`；初始库扩到 22 篇（12 篇真实 + 10 篇示例）/ 58 词条 / 60 来源锚点。
+- 测试：后端 pytest **120 passed**；Chrome CDP 六页冒烟 **console 0 错误**，1440/390 无横向滚动；修复对话输入框引用未定义变量 `counter` 的运行时异常。
 
 ## v0.1.1 — 2026-10-24（发布版）
 
