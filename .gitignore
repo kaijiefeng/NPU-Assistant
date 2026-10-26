@@ -28,3 +28,4 @@ node_modules/
 dist/
 backend/data/admin_token.txt
 backend/data/campus_seed/
+backend/data/campus_manual/

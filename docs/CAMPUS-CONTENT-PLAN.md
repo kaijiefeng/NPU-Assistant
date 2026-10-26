@@ -80,6 +80,7 @@ schtasks /Create /TN "NPU-Assistant-CampusSync" /SC HOURLY /MO 6 `
 ### 3.3 当前限制
 
 - 目前仅 `gs-tzgg` 可稳定自动同步；其它源受 WAF/页面结构限制，自动开关默认关闭，避免违规绕过。
+- 需要人工浏览器下载/复制的条目单独维护在 **[CAMPUS-MANUAL-QUEUE.md](CAMPUS-MANUAL-QUEUE.md)**（含 22 条 P0/P1/P2 与 JSON 清单），不混入自动源。
 - 自动更新是“新 URL 增量”，不做全站递归；页面内容变更暂不自动覆盖（可在后续加入 hash 变更检测）。
 - 不包含附件解析/下载；PPT/PPTX 暂不实现。
 

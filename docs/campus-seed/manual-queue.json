@@ -1,0 +1,248 @@
+{
+  "version": "2026-10-26",
+  "note": "需要人工在浏览器打开/下载后再导入的条目。自动同步不处理这些源；原因见每项 reason。文件下载后放到 backend/data/campus_manual/files/（gitignored），用内容管理→收录资料导入。",
+  "items": [
+    {
+      "id": "xgb-zdgk-13408",
+      "domain": "奖助学金",
+      "title": "西北工业大学国家奖助学金评审办法",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/13408.htm",
+      "format": "html",
+      "priority": "P0",
+      "reason": "xgb 列表对脚本返回 403（WAF），自动同步停用",
+      "action": "浏览器打开 → 复制正文用「文本收录」，或另存 HTML 后上传",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-zdgk-13418",
+      "domain": "奖助学金",
+      "title": "西北工业大学家庭经济困难学生认定办法",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/13418.htm",
+      "format": "html",
+      "priority": "P0",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-zdgk-13448",
+      "domain": "奖助学金",
+      "title": "西北工业大学本科生助学金实施细则",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/13448.htm",
+      "format": "html",
+      "priority": "P0",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-zdgk-13438",
+      "domain": "奖助学金",
+      "title": "西北工业大学学生临时困难补助发放管理办法",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/13438.htm",
+      "format": "html",
+      "priority": "P0",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-zdgk-13428",
+      "domain": "奖助学金",
+      "title": "西北工业大学新生入学“绿色通道”管理办法",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/13428.htm",
+      "format": "html",
+      "priority": "P1",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-zdgk-11300",
+      "domain": "奖助学金",
+      "title": "西北工业大学本科生综合测评办法",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/11300.htm",
+      "format": "html",
+      "priority": "P1",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-zdgk-11299",
+      "domain": "奖助学金",
+      "title": "西北工业大学本科生奖励办法",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/11299.htm",
+      "format": "html",
+      "priority": "P1",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-zdgk-11087",
+      "domain": "奖助学金",
+      "title": "西北工业大学研究生奖助体系实施办法",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/11087.htm",
+      "format": "html",
+      "priority": "P1",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-zdgk-10612",
+      "domain": "日常管理",
+      "title": "西北工业大学学生违纪处分管理办法",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/10612.htm",
+      "format": "html",
+      "priority": "P0",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-zdgk-10600",
+      "domain": "宿舍管理",
+      "title": "西北工业大学学生公寓管理办法（试行）",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/10600.htm",
+      "format": "html",
+      "priority": "P0",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-zdgk-10611",
+      "domain": "安全应急",
+      "title": "西北工业大学学生安全管理办法",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/10611.htm",
+      "format": "html",
+      "priority": "P1",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-zdgk-10610",
+      "domain": "学籍与日常管理",
+      "title": "西北工业大学学生管理规定",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/10610.htm",
+      "format": "html",
+      "priority": "P1",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-zdgk-10609",
+      "domain": "心理健康",
+      "title": "西北工业大学学生心理委员管理规定",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/10609.htm",
+      "format": "html",
+      "priority": "P1",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-zdgk-10608",
+      "domain": "心理健康",
+      "title": "西北工业大学心理咨询师管理办法",
+      "url": "https://xgb.nwpu.edu.cn/info/1227/10608.htm",
+      "format": "html",
+      "priority": "P2",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-fwzx-11046",
+      "domain": "办事流程",
+      "title": "西北工业大学学生工作平台帮助手册",
+      "url": "https://xgb.nwpu.edu.cn/info/1261/11046.htm",
+      "format": "html",
+      "priority": "P1",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xgb-fwzx-11047",
+      "domain": "宿舍管理",
+      "title": "研究生新生提前入住学生公寓业务办理流程图",
+      "url": "https://xgb.nwpu.edu.cn/info/1261/11047.htm",
+      "format": "html",
+      "priority": "P2",
+      "reason": "同上（xgb WAF 403）",
+      "action": "浏览器打开 → 文本收录 / 另存 HTML",
+      "status": "pending"
+    },
+    {
+      "id": "xl-rcgz-4102",
+      "domain": "心理健康",
+      "title": "2026级新生校园生活适应访谈工作全面启动",
+      "url": "https://xl.nwpu.edu.cn/info/1009/4102.htm",
+      "format": "html",
+      "priority": "P1",
+      "reason": "自动抽取未识别正文（页面结构特殊），需人工浏览器复制",
+      "action": "浏览器打开 → 复制正文用「文本收录」",
+      "status": "pending"
+    },
+    {
+      "id": "xl-rcgz-4072",
+      "domain": "心理健康",
+      "title": "我校2026级新生心理适应讲座圆满结束",
+      "url": "https://xl.nwpu.edu.cn/info/1009/4072.htm",
+      "format": "html",
+      "priority": "P2",
+      "reason": "自动抽取未识别正文（页面结构特殊）",
+      "action": "浏览器打开 → 复制正文用「文本收录」",
+      "status": "pending"
+    },
+    {
+      "id": "xygg-22073",
+      "domain": "校历校车",
+      "title": "西北工业大学校历、校车时刻表",
+      "url": "https://xygg.nwpu.edu.cn/info/1003/22073.htm",
+      "format": "html+图片",
+      "priority": "P1",
+      "reason": "正文为校历/时刻表图片，自动提取无文本；需人工另存图片或抄录",
+      "action": "浏览器打开 → 保存图片/表格 → 用「文件」或「文本」收录",
+      "status": "pending"
+    },
+    {
+      "id": "xxgk-5921",
+      "domain": "学籍与注册",
+      "title": "西北工业大学本科生学籍管理办法",
+      "url": "https://xxgk.nwpu.edu.cn/info/1541/5921.htm",
+      "format": "扫描图片/PDF",
+      "priority": "P1",
+      "reason": "信息公开页为扫描图片，pypdf 无文本；需人工 OCR 或复制",
+      "action": "浏览器打开 → OCR/复制正文 → 文本收录",
+      "status": "pending"
+    },
+    {
+      "id": "xxgk-annual-2025",
+      "domain": "信息公开",
+      "title": "西北工业大学2024-2025学年信息公开工作年度报告",
+      "url": "https://xxgk.nwpu.edu.cn:8080/__local/8/3B/86/99636A5BCE1773BD7430977A235_A60C1D8B_48658.pdf",
+      "format": "pdf",
+      "priority": "P2",
+      "reason": "直链对脚本 403，需浏览器人工下载",
+      "action": "浏览器打开/下载 PDF → 用「文件」收录",
+      "status": "pending"
+    },
+    {
+      "id": "job-new-site",
+      "domain": "就业",
+      "title": "关于启用西北工业大学新版就业网的公告",
+      "url": "https://job.nwpu.edu.cn/frontpage/nwpu/html/newsDetail.html?id=b1fad40a3f9c4b51acffdb0b7d0d51d3",
+      "format": "html",
+      "priority": "P2",
+      "reason": "就业网对脚本返回 412/WAF，需浏览器人工处理",
+      "action": "浏览器打开 → 文本收录",
+      "status": "pending"
+    }
+  ]
+}

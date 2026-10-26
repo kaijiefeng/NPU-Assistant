@@ -53,5 +53,6 @@
 
 - 附件下载走公开页面的正常会话（先访问详情页，再带 Cookie/Referer 下载）；不是绕过验证码。
 - 部分栏目有 WAF（如 `xxgk` 直接 PDF 对脚本返回 403），本次只保留能稳定取得且可解析的公开材料。
-- 未实现“定时栏目爬取/全站爬虫”；本批数据通过人工/脚本一次性采集并导入，后续可按 `docs/MOBILE-OPS.md` 的受控采集方案扩展。
+- 未实现“定时栏目爬取/全站爬虫”；本批数据通过人工/脚本一次性采集并导入，后续可按 `docs/CAMPUS-CONTENT-PLAN.md` 的受控采集方案扩展。
+- 需要人工下载/复制的条目单独维护在 [CAMPUS-MANUAL-QUEUE.md](CAMPUS-MANUAL-QUEUE.md)（22 条，含 JSON 清单）；自动源只处理研究生院公开通知。
 - 真实文件仅用于校内演示/测试；如学校要求撤下，请删除 `backend/data/campus_seed/files/` 与对应 `documents` 记录。
