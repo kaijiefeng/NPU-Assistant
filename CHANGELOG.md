@@ -15,7 +15,7 @@
 - 文档/手册：六页截图、手册文字与 GIF 全部按新界面更新；`scripts/ui_check.py` 改为六页并校验来源折叠行；`screenshot.ps1` 同步。
 - 新增 `.doc`（Word 97-2003）纯 Python 解析（`legacy-doc`），并补充 3 个真实西工大 `.doc/.docx/.pdf` 解析回归；真实校园数据测试集/初始库 10 篇（3 网页 + 4 PDF + 2 DOCX + 1 DOC，PPT 暂不实现）。
 - 新增受控校园栏目同步 MVP：源注册表 `backend/app/campus_sources.json`、`services/campus_sync.py`、`scripts/campus_sync.py|ps1`；robots/限速/限条数/去重，研究生院源可定时增量更新；其余 WAF 源默认关闭、转人工/官方接口。
-- 新增内容领域清单与合法更新方案 `docs/CAMPUS-CONTENT-PLAN.md`；初始库扩到 **50 篇**（40 篇真实 + 10 篇示例）/ 156 词条 / 170 来源锚点。
+- 新增内容领域清单与合法更新方案 `docs/CAMPUS-CONTENT-PLAN.md`；初始库扩到 **53 篇**（43 篇真实 + 10 篇示例）/ 162 词条 / 176 来源锚点。
 - 新增**人工下载/导入单独清单** `docs/CAMPUS-MANUAL-QUEUE.md` + `docs/campus-seed/manual-queue.json`（22 条 P0/P1/P2），与自动同步源分离；xgb/xygg/jiaowu/xxgk/job 等 WAF/扫描件条目均在此，不混入自动抓取。
 - 新增本地 OCR（PyMuPDF + RapidOCR）处理扫描 PDF；CUA 浏览器下载/复制兜底；
 - 测试：后端 pytest **121 passed**；Chrome CDP 六页冒烟 **console 0 错误**，1440/390 无横向滚动；修复对话输入框引用未定义变量 `counter` 的运行时异常。

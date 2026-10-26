@@ -359,10 +359,10 @@
       "priority": "P2",
       "reason": "就业网对脚本返回 412/WAF，需浏览器人工处理",
       "action": "浏览器打开 → 文本收录",
-      "status": "needs_browser",
+      "status": "imported",
       "result": {
-        "detail": "HTTP 412，需要 CUA/浏览器人工打开",
-        "document_id": null,
+        "detail": "CUA 浏览器复制正文导入",
+        "document_id": "3fd3cdd473c64d2aa32834a2344a8201",
         "local_file": null
       }
     },
@@ -375,10 +375,10 @@
       "priority": "P2",
       "reason": "自动同步逐页抽取正文均失败（页面结构特殊）",
       "action": "浏览器打开列表逐条复制正文；优先新生适应/咨询相关文章",
-      "status": "needs_browser",
+      "status": "imported",
       "result": {
-        "detail": "正文不足 100 字且未发现可下载 PDF，需 CUA/人工",
-        "document_id": null,
+        "detail": "从列表选 2 篇（新生班级团建、家长心理讲座）导入",
+        "document_id": "992a7513d5104548b727a4c72dbf3f0c",
         "local_file": null
       }
     }

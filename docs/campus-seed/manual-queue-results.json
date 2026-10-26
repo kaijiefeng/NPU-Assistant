@@ -170,17 +170,17 @@
   {
     "id": "job-new-site",
     "title": "关于启用西北工业大学新版就业网的公告",
-    "status": "needs_browser",
-    "detail": "HTTP 412，需要 CUA/浏览器人工打开",
-    "document_id": null,
+    "status": "imported",
+    "detail": "CUA 浏览器复制正文导入",
+    "document_id": "3fd3cdd473c64d2aa32834a2344a8201",
     "local_file": null
   },
   {
     "id": "xl-list-batch",
     "title": "心理中心通知/工作动态（自动抽取失败的 20 条）",
-    "status": "needs_browser",
-    "detail": "正文不足 100 字且未发现可下载 PDF，需 CUA/人工",
-    "document_id": null,
+    "status": "imported",
+    "detail": "从列表选 2 篇（新生班级团建、家长心理讲座）导入",
+    "document_id": "992a7513d5104548b727a4c72dbf3f0c",
     "local_file": null
   }
 ]
