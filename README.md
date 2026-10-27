@@ -6,12 +6,12 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 
 > **v0.1.0 首个发布版本**：知识层改为 **LLM Wiki**——「源文件 → LLM 编译词条 → 导航选页 → 词条阅读回答 → 双层引用」，不再使用切片检索、embedding、向量库或 rerank。设计细节见 **[docs/WIKI-DESIGN.md](docs/WIKI-DESIGN.md)**。
 >
-> ⚠️ 本项目为教学演示 / MVP 原型。示例 Wiki 中的时间、金额、电话、地点均为**示例数据**，实际政策以学校官方发布为准。
+> ⚠️ 本项目为教学演示 / MVP 原型。当前演示库仅保留真实校园公开资料；实际政策以学校官方发布为准。
 >
 > 📘 **普通用户（学生 / 辅导员）请直接看 [图文使用手册](frontend/manual/index.html)**：包含手机截图、短动图和常见问题；运行服务后也可访问 <http://127.0.0.1:8000/manual/index.html>。
 >
-> 🚀 **当前发布版本：v0.1.1**（2026-10-24）· 对应分支 `release`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
-> 🎨 **v0.1.2 开发中**（分支 `develop`）：UI/信息架构重构——学生界面更简洁现代，运维功能分区更清晰。以下文档默认描述 develop 工作树。
+> 🚀 **当前发布版本：v0.1.3**（2026-10-27）· 对应分支 `release`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
+> 🎯 **v0.2.0 开发方向**：冻结功能，专注构建 NPU 学生手册数据集；方案见 **[docs/NPU-STUDENT-HANDBOOK-PLAN.md](docs/NPU-STUDENT-HANDBOOK-PLAN.md)**。
 
 ---
 
