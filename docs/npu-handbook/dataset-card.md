@@ -65,6 +65,6 @@ pu-handbook-negative-2026.1.jsonl
 
 ## v2026.2-draft 补充
 
-- 新增 3 篇官方文档：本科生 GPA 计算办法、本科生选课办法、学生体质健康标准测试评分标准；
-- 新增 16 条补充 QA 草案（qa-supplement.jsonl），待人工复核；
+- 新增 9 篇官方文档：GPA、选课、体测评分标准，以及集成电路学院简介/专业/开放日/联系方式、鸿蒙 OS 菁英班、鸿蒙 PC 合作；
+- 新增 42 条补充 QA 草案（qa-supplement.jsonl + qa-supplement-ic.jsonl），待人工复核；
 - v2026.1 发布文件保持不变。

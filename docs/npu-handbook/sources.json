@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T13:02:58+08:00",
+  "generated_at": "2026-10-27T14:06:27+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -704,6 +704,20 @@
       "in_dataset": true
     },
     {
+      "id": "bace413ea0334defa8a4c1ecaddfa2b1",
+      "title": "西北工业大学与华为深化鸿蒙PC产学研合作",
+      "filename": "西北工业大学与华为深化鸿蒙PC产学研合作.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://jsj.nwpu.edu.cn/info/1598/29015.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"校企合作\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 1417,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
       "id": "6579fcee2d254911b00752f2c58225bb",
       "title": "西北工业大学博士后进站审核表（非定向）",
       "filename": "西工大-博士后进站审核表（非定向）.docx",
@@ -1079,6 +1093,76 @@
       "page_count": 9,
       "char_count": 8030,
       "category": "教学与考试",
+      "in_dataset": true
+    },
+    {
+      "id": "2f9575a015094dc0bd45ae96f847ebb9",
+      "title": "西北工业大学集成电路学院2026年暑期校园开放日方案",
+      "filename": "西北工业大学集成电路学院2026年暑期校园开放日方案.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/1132/18523.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"研究生招生\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 1762,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
+      "id": "8c386981dc6b4120b46a9153a72ded0d",
+      "title": "西北工业大学集成电路学院本科专业概况",
+      "filename": "西北工业大学集成电路学院本科专业概况.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/rcpy2/bkspy/zygk.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"本科专业\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 887,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
+      "id": "b516e75c942f4d1cae52883338156321",
+      "title": "西北工业大学集成电路学院联系方式",
+      "filename": "西北工业大学集成电路学院联系方式.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/jzlm/xygk/lxwm.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"联系方式\"]",
+      "status": "ready",
+      "page_count": 1,
+      "char_count": 267,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
+      "id": "dcc1deaeaa83423e9628739c43a27952",
+      "title": "西北工业大学集成电路学院（微电子学院）学院简介",
+      "filename": "西北工业大学集成电路学院（微电子学院）学院简介.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/xygk/xyjj.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"微电子\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 330,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
+      "id": "d8a08bd9cd7f46c4aaf8f11908792549",
+      "title": "西工大-华为鸿蒙OS菁英班",
+      "filename": "西工大-华为鸿蒙OS菁英班.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://news.nwpu.edu.cn/info/1003/78401.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"校企合作\"]",
+      "status": "ready",
+      "page_count": 1,
+      "char_count": 542,
+      "category": "其他",
       "in_dataset": true
     },
     {
