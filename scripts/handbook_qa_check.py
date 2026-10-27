@@ -16,7 +16,8 @@ ALLOWED = {"nwpu.edu.cn", "mp.weixin.qq.com"}
 
 
 def norm(text: str) -> str:
-    return re.sub(r"\s+", "", text or "")
+    text = re.sub(r"<!-- page: \d+ -->", "", text or "")
+    return re.sub(r"\s+", "", text)
 
 
 def main() -> int:

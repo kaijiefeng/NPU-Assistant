@@ -126,6 +126,8 @@ def sentence_around(body: str, pos: int) -> str:
             cursor = next_end + 1 if next_end != -1 else len(body)
     start = max(body.rfind("。", 0, line_start), line_start - 1) + 1
     quote = re.sub(r"\s+", " ", body[start : start + 420]).strip()
+    quote = re.sub(r"<!--.*?-->", "", quote).strip()
+    quote = quote.split("<!--", 1)[0].strip()
     return quote
 
 
@@ -145,6 +147,8 @@ def main() -> int:
             quote = sentence_around(body, pos)
             if hint not in quote and hint.lower() not in quote.lower():
                 quote = re.sub(r"\s+", " ", body[pos : pos + 220]).strip()
+                quote = re.sub(r"<!--.*?-->", "", quote).strip()
+                quote = quote.split("<!--", 1)[0].strip()
             source = by_id.get(doc_id, {})
             record = {
                 "id": f"npu-handbook-{index:04d}",
