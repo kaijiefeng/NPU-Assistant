@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-10-27T17:41:28+08:00",
+  "answerable": 467,
+  "search_cases": 467,
+  "search_doc_recall": 1.0,
+  "chat_cases": 50,
+  "chat_doc_recall": 1.0,
+  "negative_cases": 10,
+  "refusal_rate": 1.0,
+  "search_latency_ms_avg": 82.52462526766595,
+  "chat_latency_ms_avg": 2448.72
+}

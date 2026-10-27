@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T17:29:00+08:00",
+  "generated_at": "2026-10-27T17:37:49+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -270,20 +270,6 @@
       "in_dataset": true
     },
     {
-      "id": "6cd8ad0e5fdc4b08acd2c901ab9fe3d9",
-      "title": "央视专题视频聚焦西工大与华为鸿蒙教研实践",
-      "filename": "央视专题视频聚焦西工大与华为鸿蒙教研实践.md",
-      "file_ext": ".md",
-      "source_type": "url",
-      "source_url": "https://www.nwpu.edu.cn/info/1198/124088.htm",
-      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"产教融合\"]",
-      "status": "ready",
-      "page_count": 2,
-      "char_count": 1045,
-      "category": "其他",
-      "in_dataset": true
-    },
-    {
       "id": "44abd0d02c644d4aad5f43bd98941d97",
       "title": "学校超市营业信息",
       "filename": "学校超市营业信息.md",
@@ -477,20 +463,6 @@
       "page_count": 2,
       "char_count": 1739,
       "category": "教学与考试",
-      "in_dataset": true
-    },
-    {
-      "id": "8d240112353e42f3bfb70d58389cb7da",
-      "title": "教育实验学院赴华为西安研究所调研鸿蒙菁英班",
-      "filename": "教育实验学院赴华为西安研究所调研鸿蒙菁英班.md",
-      "file_ext": ".md",
-      "source_type": "url",
-      "source_url": "https://honors.nwpu.edu.cn/info/1017/1743.htm",
-      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"校企合作\"]",
-      "status": "ready",
-      "page_count": 2,
-      "char_count": 893,
-      "category": "其他",
       "in_dataset": true
     },
     {
@@ -1040,20 +1012,6 @@
       "in_dataset": true
     },
     {
-      "id": "258766dd995c44efa99d76ca1400af83",
-      "title": "西北工业大学教育实验学院-HarmonyOS菁英班招募宣讲",
-      "filename": "西北工业大学教育实验学院-HarmonyOS菁英班招募宣讲.md",
-      "file_ext": ".md",
-      "source_type": "url",
-      "source_url": "https://honors.nwpu.edu.cn/info/1037/3085.htm",
-      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"校企合作\"]",
-      "status": "ready",
-      "page_count": 2,
-      "char_count": 497,
-      "category": "其他",
-      "in_dataset": true
-    },
-    {
       "id": "c0b191a9a0f549769179c6e6f4afc6fb",
       "title": "西北工业大学新生入学“绿色通道”管理办法",
       "filename": "xgb-zdgk-13428.md",
@@ -1432,20 +1390,6 @@
       "in_dataset": true
     },
     {
-      "id": "d8a08bd9cd7f46c4aaf8f11908792549",
-      "title": "西工大-华为鸿蒙OS菁英班",
-      "filename": "西工大-华为鸿蒙OS菁英班.md",
-      "file_ext": ".md",
-      "source_type": "url",
-      "source_url": "https://news.nwpu.edu.cn/info/1003/78401.htm",
-      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"校企合作\"]",
-      "status": "ready",
-      "page_count": 1,
-      "char_count": 542,
-      "category": "其他",
-      "in_dataset": true
-    },
-    {
       "id": "e75c6d56903145b98ea0b6e05da34a53",
       "title": "西工大荣获华为鸿蒙行业共创灯塔奖",
       "filename": "西工大荣获华为鸿蒙行业共创灯塔奖.md",
@@ -1456,34 +1400,6 @@
       "status": "ready",
       "page_count": 3,
       "char_count": 946,
-      "category": "其他",
-      "in_dataset": true
-    },
-    {
-      "id": "21824a0a2d564c89902766802e846c52",
-      "title": "计算机学院鸿蒙产教融合交流会",
-      "filename": "计算机学院鸿蒙产教融合交流会.md",
-      "file_ext": ".md",
-      "source_type": "url",
-      "source_url": "https://jsj.nwpu.edu.cn/info/1598/26775.htm",
-      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"产教融合\"]",
-      "status": "ready",
-      "page_count": 3,
-      "char_count": 1651,
-      "category": "国际交流",
-      "in_dataset": true
-    },
-    {
-      "id": "b40dd04d52f847dfa7a3bf3366ca7509",
-      "title": "软件学院华为HarmonyOS菁英班招募宣讲会",
-      "filename": "软件学院华为HarmonyOS菁英班招募宣讲会.md",
-      "file_ext": ".md",
-      "source_type": "url",
-      "source_url": "https://ruanjian.nwpu.edu.cn/info/1010/4431.htm",
-      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"校企合作\"]",
-      "status": "ready",
-      "page_count": 1,
-      "char_count": 550,
       "category": "其他",
       "in_dataset": true
     },
