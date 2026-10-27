@@ -12,7 +12,7 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 >
 > 🚀 **当前发布版本：v0.1.3**（2026-10-27）· 对应分支 `release`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
 > 🎯 **v0.2.0 数据集已发布**：NPU Student Handbook QA v2026.1（300 可答 + 10 不可答；检索 100% / 引用 98% / 拒答 100%）；见 **[docs/npu-handbook/release/](docs/npu-handbook/release/)**。
-> ➕ **v2026.2-draft 补充**：新增 9 篇官方文档（GPA、选课、体测、集成电路学院、鸿蒙）与 42 条补充 QA；见 **[docs/npu-handbook/SUPPLEMENT-IC.md](docs/npu-handbook/SUPPLEMENT-IC.md)**。
+> ➕ **v2026.2-draft 补充**：新增 13 篇官方文档（GPA、选课、体测、集成电路学院、鸿蒙）与 60 条补充 QA；见 **[docs/npu-handbook/SUPPLEMENT-IC.md](docs/npu-handbook/SUPPLEMENT-IC.md)**。
 
 ---
 

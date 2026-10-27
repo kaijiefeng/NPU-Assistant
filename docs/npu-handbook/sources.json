@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T14:06:27+08:00",
+  "generated_at": "2026-10-27T14:12:28+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -914,6 +914,20 @@
       "in_dataset": true
     },
     {
+      "id": "258766dd995c44efa99d76ca1400af83",
+      "title": "西北工业大学教育实验学院-HarmonyOS菁英班招募宣讲",
+      "filename": "西北工业大学教育实验学院-HarmonyOS菁英班招募宣讲.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://honors.nwpu.edu.cn/info/1037/3085.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"校企合作\"]",
+      "status": "ready",
+      "page_count": 2,
+      "char_count": 497,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
       "id": "c0b191a9a0f549769179c6e6f4afc6fb",
       "title": "西北工业大学新生入学“绿色通道”管理办法",
       "filename": "xgb-zdgk-13428.md",
@@ -1110,6 +1124,20 @@
       "in_dataset": true
     },
     {
+      "id": "9e4a6b45003c4126aed1c6d5889d1695",
+      "title": "西北工业大学集成电路学院先进集成与可靠性团队",
+      "filename": "西北工业大学集成电路学院先进集成与可靠性团队.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/2791/15863.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"科研团队\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 1265,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
       "id": "8c386981dc6b4120b46a9153a72ded0d",
       "title": "西北工业大学集成电路学院本科专业概况",
       "filename": "西北工业大学集成电路学院本科专业概况.md",
@@ -1120,6 +1148,34 @@
       "status": "ready",
       "page_count": 3,
       "char_count": 887,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
+      "id": "aeedb078e4214da9bc2dded3cea10b3d",
+      "title": "西北工业大学集成电路学院研究生学科概况",
+      "filename": "西北工业大学集成电路学院研究生学科概况.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/rcpy2/yjspy/xkgk.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"研究生教育\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 1301,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
+      "id": "6af239eb83084602b773b7719ee06ea6",
+      "title": "西北工业大学集成电路学院科研概况",
+      "filename": "西北工业大学集成电路学院科研概况.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/kxyj/kygk.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"科研\"]",
+      "status": "ready",
+      "page_count": 2,
+      "char_count": 487,
       "category": "其他",
       "in_dataset": true
     },
