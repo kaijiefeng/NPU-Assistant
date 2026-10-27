@@ -15,6 +15,7 @@
 | `qa-pilot.jsonl` | 50 条试点 QA 草案 |
 | `QA-PILOT.md` | 试点 QA 统计 |
 | `QA-CHECK.md` | 引用/来源自动校验（当前 PASS） |
+| `QA-REVIEW.md` | 50 条人工复核表 |
 
 ## M2 结论
 
