@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 QA = ROOT / "docs/npu-handbook/qa-pilot.jsonl"
+NEG = ROOT / "docs/npu-handbook/qa-pilot-negative.jsonl"
 CORPUS = ROOT / "docs/npu-handbook/corpus"
 REPORT = ROOT / "docs/npu-handbook/QA-CHECK.md"
 ALLOWED = {"nwpu.edu.cn", "mp.weixin.qq.com"}
@@ -54,6 +55,10 @@ def main() -> int:
     for question, count in questions.items():
         if count > 1:
             issues.append(("", f"重复问题：{question} × {count}"))
+    negatives = [json.loads(line) for line in NEG.read_text(encoding="utf-8").splitlines() if line.strip()] if NEG.exists() else []
+    neg_issues = [x for x in negatives if x.get("answerable") is not False or x.get("expected_behavior") != "refuse"]
+    if neg_issues:
+        issues.append(("", f"负样本字段不合法：{len(neg_issues)} 条"))
     status = "PASS" if not issues else "FAIL"
     lines = [
         "# 学生手册试点 QA 校验",
@@ -64,7 +69,8 @@ def main() -> int:
         "",
         "| 检查项 | 结果 |",
         "|---|---|",
-        f"| 记录数 = 50 | {'✅' if len(rows) == 50 else '❌'} |",
+        f"| 可答记录数 = 50 | {'✅' if len(rows) == 50 else '❌'} |",
+        f"| 不可答记录数 = 10 | {'✅' if len(negatives) == 10 else '❌'} |",
         f"| 来源 URL 白名单 | {'✅' if not any('域名' in x[1] for x in issues) else '❌'} |",
         f"| quote 可在语料中找到 | {'✅' if not any('quote 未在语料' in x[1] for x in issues) else '❌'} |",
         f"| 无重复问题 | {'✅' if not any('重复问题' in x[1] for x in issues) else '❌'} |",
