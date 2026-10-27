@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T14:22:14+08:00",
+  "generated_at": "2026-10-27T14:41:34+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -1362,6 +1362,34 @@
       "in_dataset": true
     },
     {
+      "id": "cda87aa9c5b4476c9ad82bac60675d6e",
+      "title": "集成电路学院学生会管理细则",
+      "filename": "集成电路学院学生会管理细则.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/1125/1857.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"学生组织\"]",
+      "status": "ready",
+      "page_count": 6,
+      "char_count": 5550,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
+      "id": "382e38fc9ccd42e3b9047c4bd44b4067",
+      "title": "集成电路学院学生社团",
+      "filename": "集成电路学院学生社团.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/1125/1853.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"学生组织\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 1709,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
       "id": "0af524dd589242ca97296db37f651b33",
       "title": "集成电路学院毕业生就业常见问题",
       "filename": "集成电路学院毕业生就业常见问题.md",
@@ -1373,6 +1401,20 @@
       "page_count": 3,
       "char_count": 1629,
       "category": "就业与档案",
+      "in_dataset": true
+    },
+    {
+      "id": "847c72231e4e4ecdb5474fa2b6a19d95",
+      "title": "集成电路学院铸剑8班第二期招生通知",
+      "filename": "集成电路学院铸剑8班第二期招生通知.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/1138/17943.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"学生培养\"]",
+      "status": "ready",
+      "page_count": 1,
+      "char_count": 1036,
+      "category": "其他",
       "in_dataset": true
     }
   ],

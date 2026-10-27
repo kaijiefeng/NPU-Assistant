@@ -970,6 +970,26 @@
     "file": "d187c1c0e272454bb8cedf969e4f8a26.md"
   },
   {
+    "id": "cda87aa9c5b4476c9ad82bac60675d6e",
+    "title": "集成电路学院学生会管理细则",
+    "category": "其他",
+    "source_url": "https://weidianzi.nwpu.edu.cn/info/1125/1857.htm",
+    "sha256": "59471fcec8b46a419bc10533f905954b2bd6d107eeac107c46a4f5f7d0bf1914",
+    "page_count": null,
+    "chars": 5549,
+    "file": "cda87aa9c5b4476c9ad82bac60675d6e.md"
+  },
+  {
+    "id": "382e38fc9ccd42e3b9047c4bd44b4067",
+    "title": "集成电路学院学生社团",
+    "category": "其他",
+    "source_url": "https://weidianzi.nwpu.edu.cn/info/1125/1853.htm",
+    "sha256": "72447b924f87abd8e6ed79a89b6221033970ef2ecc1f0eb19d44c1605335eca8",
+    "page_count": null,
+    "chars": 1708,
+    "file": "382e38fc9ccd42e3b9047c4bd44b4067.md"
+  },
+  {
     "id": "0af524dd589242ca97296db37f651b33",
     "title": "集成电路学院毕业生就业常见问题",
     "category": "就业与档案",
@@ -978,5 +998,15 @@
     "page_count": null,
     "chars": 1628,
     "file": "0af524dd589242ca97296db37f651b33.md"
+  },
+  {
+    "id": "847c72231e4e4ecdb5474fa2b6a19d95",
+    "title": "集成电路学院铸剑8班第二期招生通知",
+    "category": "其他",
+    "source_url": "https://weidianzi.nwpu.edu.cn/info/1138/17943.htm",
+    "sha256": "7cb0a530a16f0c9530fbab6cebdeec21fe51afae70042313e44c611eb0506d38",
+    "page_count": null,
+    "chars": 1035,
+    "file": "847c72231e4e4ecdb5474fa2b6a19d95.md"
   }
 ]
