@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T16:03:05+08:00",
+  "generated_at": "2026-10-27T16:13:04+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -1597,6 +1597,20 @@
       "page_count": 3,
       "char_count": 1629,
       "category": "就业与档案",
+      "in_dataset": true
+    },
+    {
+      "id": "49d1aae5b9624ad6aaa2508e326d1932",
+      "title": "集成电路学院第七次学生代表大会暨第六次研究生代表大会通知",
+      "filename": "集成电路学院第七次学生代表大会暨第六次研究生代表大会通知.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/2781/17803.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"学生组织\"]",
+      "status": "ready",
+      "page_count": 2,
+      "char_count": 1199,
+      "category": "其他",
       "in_dataset": true
     },
     {

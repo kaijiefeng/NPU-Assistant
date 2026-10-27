@@ -49,3 +49,9 @@ pu-handbook-qa-2026.9.jsonl
 -
 pu-handbook-negative-2026.9.jsonl
 - metrics.json
+
+## v2026.10-draft 待并入
+
+- 新增 1 篇官方文档：第七次学生代表大会暨第六次研究生代表大会通知；
+- 新增 4 条补充 QA（qa-supplement-ic12.jsonl），引用命中 4/4；
+- 待复核后并入 v2026.10。
