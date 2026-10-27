@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T15:38:55+08:00",
+  "generated_at": "2026-10-27T15:51:50+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -1246,6 +1246,62 @@
       "status": "ready",
       "page_count": 3,
       "char_count": 1265,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
+      "id": "4fb159e6c21d4d419b2dde125af01007",
+      "title": "西北工业大学集成电路学院历史沿革",
+      "filename": "西北工业大学集成电路学院历史沿革.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/xygk/lsyg.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"学院概况\"]",
+      "status": "ready",
+      "page_count": 2,
+      "char_count": 582,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
+      "id": "5ca03d9644894fb9b8bc6804d432ba2c",
+      "title": "西北工业大学集成电路学院国内合作",
+      "filename": "西北工业大学集成电路学院国内合作.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/dwhz/gnhz.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"国内合作\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 1440,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
+      "id": "923631ec26954c9cb853281d00f4c97d",
+      "title": "西北工业大学集成电路学院国际合作",
+      "filename": "西北工业大学集成电路学院国际合作.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/dwhz/gjhz.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"国际合作\"]",
+      "status": "ready",
+      "page_count": 2,
+      "char_count": 1268,
+      "category": "国际交流",
+      "in_dataset": true
+    },
+    {
+      "id": "83396989a1c845719dc8c82678173b58",
+      "title": "西北工业大学集成电路学院学院领导",
+      "filename": "西北工业大学集成电路学院学院领导.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/xygk/xyld.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"学院概况\"]",
+      "status": "ready",
+      "page_count": 2,
+      "char_count": 751,
       "category": "其他",
       "in_dataset": true
     },

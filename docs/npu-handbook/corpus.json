@@ -890,6 +890,46 @@
     "file": "9e4a6b45003c4126aed1c6d5889d1695.md"
   },
   {
+    "id": "4fb159e6c21d4d419b2dde125af01007",
+    "title": "西北工业大学集成电路学院历史沿革",
+    "category": "其他",
+    "source_url": "https://weidianzi.nwpu.edu.cn/xygk/lsyg.htm",
+    "sha256": "222a646b00f859c2e1941205f8af0182fe382201374ef1840c0e8db99d30de2c",
+    "page_count": null,
+    "chars": 576,
+    "file": "4fb159e6c21d4d419b2dde125af01007.md"
+  },
+  {
+    "id": "5ca03d9644894fb9b8bc6804d432ba2c",
+    "title": "西北工业大学集成电路学院国内合作",
+    "category": "其他",
+    "source_url": "https://weidianzi.nwpu.edu.cn/dwhz/gnhz.htm",
+    "sha256": "25960570891df46f517a9ce6e415966c05a143a67c912d97a86b081c68e7208c",
+    "page_count": null,
+    "chars": 1439,
+    "file": "5ca03d9644894fb9b8bc6804d432ba2c.md"
+  },
+  {
+    "id": "923631ec26954c9cb853281d00f4c97d",
+    "title": "西北工业大学集成电路学院国际合作",
+    "category": "国际交流",
+    "source_url": "https://weidianzi.nwpu.edu.cn/dwhz/gjhz.htm",
+    "sha256": "edc9896d811d046cc28b1f844e9e6c16e5fcb5004117af963315741af4b72f94",
+    "page_count": null,
+    "chars": 1262,
+    "file": "923631ec26954c9cb853281d00f4c97d.md"
+  },
+  {
+    "id": "83396989a1c845719dc8c82678173b58",
+    "title": "西北工业大学集成电路学院学院领导",
+    "category": "其他",
+    "source_url": "https://weidianzi.nwpu.edu.cn/xygk/xyld.htm",
+    "sha256": "d523db983a62bf47838f1a7e32d098080dabe30566ee1d2f30a03ac791141524",
+    "page_count": null,
+    "chars": 745,
+    "file": "83396989a1c845719dc8c82678173b58.md"
+  },
+  {
     "id": "e27a39b336b34bccab58c576414f3f79",
     "title": "西北工业大学集成电路学院导师招生学科信息",
     "category": "其他",

@@ -50,3 +50,9 @@ pu-handbook-qa-2026.7.jsonl
 -
 pu-handbook-negative-2026.7.jsonl
 - metrics.json
+
+## v2026.8-draft 待并入
+
+- 新增 4 篇官方文档：历史沿革、学院领导、国际合作、国内合作；
+- 新增 12 条补充 QA（qa-supplement-ic10.jsonl），引用命中 12/12；
+- 待复核后并入 v2026.8。
