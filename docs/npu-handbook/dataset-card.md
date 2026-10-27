@@ -49,3 +49,9 @@ pu-handbook-qa-2026.6.jsonl
 -
 pu-handbook-negative-2026.6.jsonl
 - metrics.json
+
+## v2026.7-draft 待并入
+
+- 新增 2 篇官方文档：全国首家鸿蒙系统教学适配、央视鸿蒙教研专题；
+- 新增 4 条补充 QA（qa-supplement-ic9.jsonl），引用命中 3/4；
+- 待复核后并入 v2026.7。

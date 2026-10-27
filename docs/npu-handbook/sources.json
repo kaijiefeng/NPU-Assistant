@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T15:24:38+08:00",
+  "generated_at": "2026-10-27T15:38:55+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -71,6 +71,20 @@
       "page_count": 2,
       "char_count": 663,
       "category": "就业与档案",
+      "in_dataset": true
+    },
+    {
+      "id": "541bc9079527486e83a5a7e9126f5d7d",
+      "title": "全国首家鸿蒙系统教学适配应用落地西工大",
+      "filename": "全国首家鸿蒙系统教学适配应用落地西工大.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://jsj.nwpu.edu.cn/info/1598/26865.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"教学\"]",
+      "status": "ready",
+      "page_count": 1,
+      "char_count": 596,
+      "category": "教学与考试",
       "in_dataset": true
     },
     {
@@ -253,6 +267,20 @@
       "page_count": 3,
       "char_count": 2315,
       "category": "图书馆与文体",
+      "in_dataset": true
+    },
+    {
+      "id": "6cd8ad0e5fdc4b08acd2c901ab9fe3d9",
+      "title": "央视专题视频聚焦西工大与华为鸿蒙教研实践",
+      "filename": "央视专题视频聚焦西工大与华为鸿蒙教研实践.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://www.nwpu.edu.cn/info/1198/124088.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"产教融合\"]",
+      "status": "ready",
+      "page_count": 2,
+      "char_count": 1045,
+      "category": "其他",
       "in_dataset": true
     },
     {
