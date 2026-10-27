@@ -11,8 +11,8 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 > 📘 **普通用户（学生 / 辅导员）请直接看 [图文使用手册](frontend/manual/index.html)**：包含手机截图、短动图和常见问题；运行服务后也可访问 <http://127.0.0.1:8000/manual/index.html>。
 >
 > 🚀 **当前发布版本：v0.1.3**（2026-10-27）· 对应分支 `release`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
-> 🎯 **v0.2.0 数据集已发布**：NPU Student Handbook QA **v2026.16**（469 可答 + 10 不可答；检索 100% / 引用 100% / 拒答 100%）；见 **[docs/npu-handbook/release/v2026.16/](docs/npu-handbook/release/v2026.16/)**。
-> ➕ **v2026.16 补充**：新增 2026 届研究生优秀毕业生风采录与 3 条 QA；见 **[docs/npu-handbook/README.md](docs/npu-handbook/README.md)**。
+> 🎯 **v0.2.0 数据集已发布**：NPU Student Handbook QA **v2026.17**（478 可答 + 10 不可答；检索 100% / 引用 100% / 拒答 100%）；见 **[docs/npu-handbook/release/v2026.17/](docs/npu-handbook/release/v2026.17/)**。
+> ➕ **v2026.17 补充**：新增 2026 级本科新生破冰活动、新生见面会等官方文档与 10 条 QA；见 **[docs/npu-handbook/README.md](docs/npu-handbook/README.md)**。
 
 ---
 

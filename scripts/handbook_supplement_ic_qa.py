@@ -10,8 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "backend/data/app.db"
 CORPUS = ROOT / "docs/npu-handbook/corpus"
-OUT = ROOT / "docs/npu-handbook/qa-supplement-ic13.jsonl"
-REPORT = ROOT / "docs/npu-handbook/SUPPLEMENT-IC13.md"
+OUT = ROOT / "docs/npu-handbook/qa-supplement-ic20.jsonl"
+REPORT = ROOT / "docs/npu-handbook/SUPPLEMENT-IC20.md"
 
 
 def norm(text: str) -> str:

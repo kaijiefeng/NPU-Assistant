@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T17:08:33+08:00",
+  "generated_at": "2026-10-27T17:16:22+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -1513,6 +1513,34 @@
       "page_count": 3,
       "char_count": 2280,
       "category": "就业与档案",
+      "in_dataset": true
+    },
+    {
+      "id": "165a60c66bb44d83bcf8ebc047fe27d1",
+      "title": "集成电路学院2026级本科新生破冰活动",
+      "filename": "集成电路学院2026级本科新生破冰活动.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/2001/19133.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"新生入学教育\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 775,
+      "category": "迎新与新生",
+      "in_dataset": true
+    },
+    {
+      "id": "2d1e1ab8b51549baa8f37a1ddda6c916",
+      "title": "集成电路学院2026级本科新生见面会暨军训动员大会",
+      "filename": "集成电路学院2026级本科新生见面会暨军训动员大会.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/2001/18973.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"新生入学教育\"]",
+      "status": "ready",
+      "page_count": 2,
+      "char_count": 691,
+      "category": "迎新与新生",
       "in_dataset": true
     },
     {
