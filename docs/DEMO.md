@@ -2,7 +2,7 @@
 
 > 目标：在 5 分钟内完整展示「LLM Wiki 编译 → 词条导航 → 双层引用回答 → 多渠道机器人」四类核心能力。
 > 演示环境：Windows + 已安装依赖的 `.venv`，默认地址 <http://127.0.0.1:8000>；配置真实 DeepSeek 时问答质量最佳。
-> 当前演示库只保留真实校园公开资料；`backend/data/wiki_seed.json` 是 63 篇真实来源的快照。
+> 当前演示库只保留真实校园公开资料；`backend/data/wiki_seed.json` 是 75 篇真实来源的快照。
 > 六个页面的实际界面截图见 `docs/screenshots/`（由 `scripts/ui_check.py` 自动生成），可先整体浏览再按下述脚本演示。
 
 ## 0. 演示前检查（30 秒）
@@ -41,7 +41,7 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 - 无需任何 API Key，词条可正常浏览（预编译快照已随仓库提供）；
 - 搜索返回 `method=exact` 或 `method=keyword`，命中「国家奖学金」相关词条；
 - 词条详情包含 `body_html` 渲染后的正文、别名/标签、来源锚点与相关词条；
-- 切换到「源文件」Tab，可看到 63 篇真实源文件与各自编译出的 `page_count`。
+- 切换到「源文件」Tab，可看到 75 篇真实源文件与各自编译出的 `page_count`。
 
 ## 2. 用 DeepSeek 问政策问题（约 90 秒）— 双层引用核心亮点
 
@@ -188,7 +188,7 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 
 ### 9.4 演示数据基线
 
-- 源文件：63 篇真实校园公开资料（网页导入 + 本地 PDF/DOC/DOCX）；
+- 源文件：75 篇真实校园公开资料（网页导入 + 本地 PDF/DOC/DOCX）；
 - Wiki：28 个词条 / 30 条来源锚点 / 9 个标签分组（`backend/data/wiki_seed.json` 预编译快照，冷启动自动导入）；
 - 模型：默认 `DeepSeek Chat`；内置 mock 仅用于链路/降级演示（不能编译）；
 - 机器人：控制台调试通道默认可用；QQ / 微信通道按需创建；
@@ -244,8 +244,8 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 
 ### 9.9 真实校园数据 / 初始知识库（2026-10-24 实测）
 
-- 通过公开页面导入 **63 篇真实数据**：HTML 26、PDF 8、DOCX/XLSX 3、DOC 1，另有 5 份扫描 PDF 经本地 OCR 导入。
-- 数据库达到 **63 篇真实源文件 / 186 个词条 / 217 个来源锚点**，全部 `ready`；`.doc` 使用纯 Python `legacy-doc` 解析，无需 Word/LibreOffice。
+- 初始 43 篇 + TDD 补齐 32 篇 = **75 篇真实数据**；来源含官网 HTML、PDF、DOCX/DOC、OCR 文本与官方内容清洗摘录。
+- 数据库达到 **75 篇真实源文件 / 203 个词条 / 241 个来源锚点**，全部 `ready`；`.doc` 使用纯 Python `legacy-doc` 解析，无需 Word/LibreOffice。
 - 自动更新 MVP：`scripts/campus_sync.ps1` 可从研究生院公开通知列表增量导入（robots/限速/限条数/去重）；WAF 拦截的源默认关闭，转人工/官方接口。
 - 抽查真实问答：研究生课程调课、博士后进站材料、知识产权声明，均返回真实 PDF/DOCX 来源与原文摘录。
 - 负样本：扫描版 PDF 无文本时系统明确提示；需要时走本地 OCR 流程。PPT/PPTX 按约定暂不实现。

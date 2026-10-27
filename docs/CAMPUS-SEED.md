@@ -4,9 +4,9 @@
 `backend/data/campus_seed/files/`（已 gitignore），仓库只提交可复核的清单
 [manifest.json](campus-seed/manifest.json)，避免把学校附件二进制放进 Git。
 
-## 一、已导入数据（初始 43 篇 + TDD 补齐 20 篇 = 63 篇）
+## 一、已导入数据（初始 43 篇 + TDD 补齐 32 篇 = 75 篇）
 
-下表为初始真实数据 43 篇；本轮 TDD 补齐的 20 篇校园卡、校园网、请假、考试、宿舍报修、图书馆、医保、在读证明、三方协议、心理咨询等来源见 [eval/REALWORLD-TDD.md](eval/REALWORLD-TDD.md)。
+下表为初始真实数据 43 篇；本轮 TDD 补齐的 32 篇校园卡、校园网、请假、考试、宿舍洗浴/洗衣/空调/报修、图书馆、医保、在读证明、三方协议、心理咨询、体育场馆、户口等来源见 [eval/REALWORLD-TDD.md](eval/REALWORLD-TDD.md)。
 
 | 类型 | 数量 | 文件 / 页面 | 来源 |
 |---|---:|---|---|
@@ -22,7 +22,7 @@
 
 ## 二、真实导入结果
 
-- 数据库：63 篇真实源文件，全部 `ready`；186 个 Wiki 词条，217 个来源锚点；示例已清理。
+- 数据库：75 篇真实源文件，全部 `ready`；203 个 Wiki 词条，241 个来源锚点；示例已清理。
 - 真实 `.doc` 由纯 Python 的 `legacy-doc` 解析（不执行宏/嵌入对象），无需 Word/LibreOffice。
 - 真实 `.docx` / `.pdf` 分别由 `python-docx` / `pypdf` 解析。
 - 真实 HTML 通过 URL 导入，保留 `source_url`，并编译为 Wiki 词条。

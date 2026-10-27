@@ -15,13 +15,13 @@
 - 文档/手册：六页截图、手册文字与 GIF 全部按新界面更新；`scripts/ui_check.py` 改为六页并校验来源折叠行；`screenshot.ps1` 同步。
 - 新增 `.doc`（Word 97-2003）纯 Python 解析（`legacy-doc`），并补充 3 个真实西工大 `.doc/.docx/.pdf` 解析回归；真实校园数据测试集/初始库 10 篇（3 网页 + 4 PDF + 2 DOCX + 1 DOC，PPT 暂不实现）。
 - 新增受控校园栏目同步 MVP：源注册表 `backend/app/campus_sources.json`、`services/campus_sync.py`、`scripts/campus_sync.py|ps1`；robots/限速/限条数/去重，研究生院源可定时增量更新；其余 WAF 源默认关闭、转人工/官方接口。
-- 新增内容领域清单与合法更新方案 `docs/CAMPUS-CONTENT-PLAN.md`；初始库扩到 63 篇真实来源；2026-10-27 已清理全部示例，当前 **63 篇 / 186 词条 / 217 来源锚点**。
+- 新增内容领域清单与合法更新方案 `docs/CAMPUS-CONTENT-PLAN.md`；初始库扩到 75 篇真实来源；2026-10-27 已清理全部示例，当前 **75 篇 / 203 词条 / 241 来源锚点**。
 - 新增**人工下载/导入单独清单** `docs/CAMPUS-MANUAL-QUEUE.md` + `docs/campus-seed/manual-queue.json`（22 条 P0/P1/P2），与自动同步源分离；xgb/xygg/jiaowu/xxgk/job 等 WAF/扫描件条目均在此，不混入自动抓取。
 - 新增本地 OCR（PyMuPDF + RapidOCR）处理扫描 PDF；CUA 浏览器下载/复制兜底；
 - 新增限定范围联网检索试验：四个西工大站点站内搜索 + 四个非自有公众号（搜狗微信搜索/原文抓取），只做临时上下文与引用、不写库；
-- 清理全部 10 篇示例文档与示例种子，仅保留 63 篇真实来源；重建真实内容快照 `wiki_seed.json`；
+- 清理全部 10 篇示例文档与示例种子；随后按 TDD 补齐真实来源到 75 篇，重建真实内容快照 `wiki_seed.json`；
 - 内容管理「源文件」新增来源列（网页原文/本地/示例），静态缓存升级 v6；新增 DATA-PROVENANCE.md 数据审计；
-- 新增真实学生问题 TDD：24 题基线仅 4/24 检索命中，抓取/清洗校园卡、校园网、请假、考试、宿舍报修、图书馆、医保、在读证明、三方协议、心理咨询等官方来源后达到 **24/24 端到端有依据命中**；新增 `docs/eval/REALWORLD-TDD.md`。
+- 新增真实学生问题 TDD：42 题（含宿舍洗浴/洗衣/空调/水电/门禁/自习室等生活类），P0 **18/18**、整体 **40/42** 端到端有依据命中；新增 `docs/eval/REALWORLD-TDD.md`、`COVERAGE-MATRIX.md`。
 - 新增本地+远程混合检索评测：22 本地题 + 4 负样本 + 6 远程题 + 8 源连通性，输出 JSON/Markdown 报告；修复精确别名误压、拒绝回答引用污染；
 - 测试：后端 pytest **126 passed**；Chrome CDP 六页冒烟 **console 0 错误**，1440/390 无横向滚动；修复对话输入框引用未定义变量 `counter` 的运行时异常。
 

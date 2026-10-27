@@ -20,6 +20,11 @@ def norm(text: str) -> str:
     return re.sub(r"\s+", "", str(text or ""))
 
 
+def is_refusal(reply: str) -> bool:
+    markers = ("未收录", "没有收录", "无法给出", "无法提供", "查不到", "不能提供", "不提供", "暂未收录")
+    return any(marker in (reply or "") for marker in markers)
+
+
 def citation_text(citations: list[dict]) -> str:
     parts: list[str] = []
     for citation in citations or []:
@@ -64,7 +69,10 @@ def run_case(client: httpx.Client, case: dict, *, skip_chat: bool) -> dict:
 
     keywords = [norm(word) for word in case.get("keywords", [])]
     search_hit = bool(keywords) and all(word in search_text for word in keywords)
-    chat_hit = citation_count > 0 and bool(keywords) and all(word in citation_grounded_text for word in keywords)
+    if case.get("expected") == "refusal":
+        chat_hit = citation_count == 0 and is_refusal(str(chat_data.get("reply") or ""))
+    else:
+        chat_hit = citation_count > 0 and bool(keywords) and all(word in citation_grounded_text for word in keywords)
     return {
         "id": case["id"],
         "priority": case["priority"],
