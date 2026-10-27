@@ -2,13 +2,16 @@
 
 本文件记录 NPU-Assistant 的发布版本。版本号遵循语义化版本：`主版本.次版本.修订号`。
 
-## v0.2.0 — 开发中（develop）
+## v0.2.0 — 2026-10-27（数据集发布）
 
 主题：**NPU 学生手册数据集**。
 
 - M2 来源盘点：75 篇已入库文档分类，27 个 P0/P1 待补官方来源；`docs/npu-handbook/sources.json`、`coverage.csv`；
 - M3 语料抽取：75 篇统一 Markdown，带来源、sha256、PDF 页码标记；`docs/npu-handbook/corpus/`；
-- 定义 QA schema 与 dataset card 草案；下一步 M4 生成并人工复核 50 条试点 QA。
+- M4 试点 QA：50 条可答 + 10 条不可答，逐条复核通过；
+- M5 冻结：300 条可答 + 10 条不可答，页面级 QA，来源 URL/quote/重复校验通过；
+- M6 评测：检索文档召回 **100%**、引用文档召回 **98%**、拒答率 **100%**；
+- M7 发布：`docs/npu-handbook/release/`，dataset card 与 metrics。
 
 ## v0.1.3 — 2026-10-27（当前发布，冻结）
 

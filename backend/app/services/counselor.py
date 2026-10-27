@@ -439,8 +439,13 @@ def _clean_refusal_citations(reply: str, citations: list[dict]) -> tuple[str, li
         "无法提供",
         "不能提供",
         "不提供",
+        "暂未收录",
+        "没有收录",
+        "未收录",
+        "没有直接提到",
+        "无法确认",
     )
-    if not any(marker in reply[:120] for marker in markers):
+    if not any(marker in reply[:260] for marker in markers):
         return reply, citations
     cleaned = re.sub(r"\n+参考词条：.*$", "", reply, flags=re.S).rstrip()
     return cleaned, []
