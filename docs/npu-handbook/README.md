@@ -26,6 +26,7 @@
 | `DATASET.md` / `DATASET-CHECK.md` | 冻结数据集统计与校验 |
 | `M6-REPORT.md` / `M6-REPORT.json` | 检索/引用/拒答评测 |
 | `release/` | v2026.1 发布文件与 dataset card |
+| `OPEN-SOURCE-SOURCES.md` | NWPU 相关开源资料调研（仅覆盖参考） |
 
 ## 数据来源
 
