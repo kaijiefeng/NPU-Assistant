@@ -70,6 +70,7 @@ class ImportTextRequest(BaseModel):
     title: str | None = None
     text: str | None = None
     tags: list[str] | str | None = None
+    source_url: str | None = None
 
 
 class ImportBatchRequest(BaseModel):
@@ -164,6 +165,7 @@ def import_text(payload: ImportTextRequest) -> dict:
             payload.title,
             payload.text or "",
             tags=payload.tags,
+            source_url=payload.source_url or "",
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=importer.error_text(exc)) from exc

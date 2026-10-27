@@ -1159,6 +1159,7 @@ def import_text(
     title: str | None,
     text: str,
     tags: list[str] | str | None = None,
+    source_url: str = "",
 ) -> dict:
     """收录一段纯文本（微信/QQ 转发的通知等），返回结构与 :func:`import_url` 相同。"""
     body = _normalize_plain_body(text)
@@ -1174,11 +1175,19 @@ def import_text(
 
     first_line = next((line for line in body.split("\n") if line.strip()), "")
     final_title = _clean_title(title) or _clean_title(first_line[:40]) or _fallback_untitled()
-    document = ingest.ingest_text(
-        final_title,
-        body,
-        tags=ingest.normalize_tags(tags),
-    )
+    if source_url:
+        document = ingest.ingest_url(
+            final_title,
+            body,
+            url=source_url,
+            tags=ingest.normalize_tags(tags),
+        )
+    else:
+        document = ingest.ingest_text(
+            final_title,
+            body,
+            tags=ingest.normalize_tags(tags),
+        )
     pages = _pages_for_document(document.get("id"))
     logger.info("文本收录完成：《%s》（%s 字，%s 个词条）", final_title, length, len(pages))
     return {"duplicated": False, "document": document, "pages": pages}

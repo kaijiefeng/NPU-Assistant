@@ -212,7 +212,9 @@ NPU-Assistant/
 │  ├─ CAMPUS-MANUAL-QUEUE.md # 需人工浏览器下载/复制的条目（P0/P1/P2）
 │  ├─ CAMPUS-REMOTE-SEARCH.md # 限定范围联网检索试验（四网站 + 四公众号）
 │  ├─ DATA-PROVENANCE.md      # 真实/示例数据审计与源文件管理
-│  ├─ eval/                 # 混合检索测试集、方案与首轮报告
+│  ├─ eval/                 # 混合检索/真实问题 TDD 测试集与报告
+│  │  ├─ REALWORLD-TDD.md   # 24 道真实学生问题：红→补库→绿
+│  │  └─ HYBRID-TEST-PLAN.md # 本地+远程混合检索评测
 │  ├─ DEMO.md               # 5 分钟演示脚本与已验证结果
 │  └─ screenshots/          # 六页界面截图（ui_check.py 自动生成）
 └─ README.md
@@ -268,7 +270,7 @@ Wiki 编译与高质量回答都依赖真实 LLM；默认的 mock 模型只用�
 
 ## 八、预编译 Wiki 快照（离线演示）
 
-- `backend/data/wiki_seed.json` 是当前 **43 篇真实来源**的词条快照（文档 / 词条 / 来源锚点 / 关联链接），冷启动可直接浏览；源文件与数据库运行时文件不入库。
+- `backend/data/wiki_seed.json` 是当前 **63 篇真实来源**的词条快照（文档 / 词条 / 来源锚点 / 关联链接），冷启动可直接浏览；源文件与数据库运行时文件不入库。
 - 冷启动且 `wiki_pages` 为空时自动导入；也可在「知识库 → 源文件」点「导入预编译快照」或调用 `POST /api/knowledge/seed`（幂等）。
 - 重新生成快照（会消耗 LLM Token）：
 

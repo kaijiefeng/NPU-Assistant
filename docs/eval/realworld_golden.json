@@ -1,0 +1,30 @@
+{
+  "version": "2026-10-27",
+  "note": "真实学生高频问题 TDD 测试集；keywords 用“标题/摘要/引用摘录/回答”中的中文关键词判断是否命中。",
+  "cases": [
+    {"id": "Q01", "priority": "P0", "category": "校园卡", "question": "校园卡丢了怎么挂失和补办？", "keywords": ["校园卡", "补办"]},
+    {"id": "Q02", "priority": "P0", "category": "校园卡", "question": "校园卡在哪里充值？", "keywords": ["校园卡", "充值"]},
+    {"id": "Q03", "priority": "P0", "category": "校园网", "question": "校园网怎么连接和认证？", "keywords": ["校园网", "认证"]},
+    {"id": "Q04", "priority": "P0", "category": "请假", "question": "学生请假和销假怎么办理？", "keywords": ["请假", "销假"]},
+    {"id": "Q05", "priority": "P0", "category": "考试", "question": "本科生补考、缓考和重修怎么规定？", "keywords": ["补考", "缓考", "重修"]},
+    {"id": "Q06", "priority": "P0", "category": "宿舍", "question": "宿舍设施坏了怎么报修？", "keywords": ["报修"]},
+    {"id": "Q07", "priority": "P0", "category": "图书馆", "question": "图书馆开放时间和入馆规则是什么？", "keywords": ["图书馆", "开放"]},
+    {"id": "Q08", "priority": "P0", "category": "医保", "question": "大学生医保怎么报销？", "keywords": ["医保", "报销"]},
+    {"id": "Q09", "priority": "P0", "category": "证明", "question": "本科生在读证明怎么办理？", "keywords": ["在读证明"]},
+    {"id": "Q10", "priority": "P0", "category": "就业", "question": "就业三方协议怎么签？", "keywords": ["三方协议"]},
+    {"id": "Q11", "priority": "P0", "category": "校历", "question": "校历和校车时刻表在哪里查？", "keywords": ["校历", "校车"]},
+    {"id": "Q12", "priority": "P0", "category": "心理", "question": "心理咨询怎么预约？", "keywords": ["心理咨询", "预约"]},
+    {"id": "Q13", "priority": "P1", "category": "宿舍", "question": "宿舍调换和退宿怎么办理？", "keywords": ["调换", "退宿"]},
+    {"id": "Q14", "priority": "P1", "category": "学籍", "question": "休学和复学怎么办理？", "keywords": ["休学", "复学"]},
+    {"id": "Q15", "priority": "P1", "category": "学籍", "question": "本科生转专业有什么条件？", "keywords": ["转专业"]},
+    {"id": "Q16", "priority": "P1", "category": "档案", "question": "毕业生档案和报到证怎么办理？", "keywords": ["档案", "报到证"]},
+    {"id": "Q17", "priority": "P1", "category": "资助", "question": "国家助学贷款怎么申请？", "keywords": ["助学贷款"]},
+    {"id": "Q18", "priority": "P1", "category": "后勤", "question": "学校快递点在哪里？", "keywords": ["快递"]},
+    {"id": "Q19", "priority": "P1", "category": "后勤", "question": "学校食堂有哪些？", "keywords": ["食堂"]},
+    {"id": "Q20", "priority": "P1", "category": "安全", "question": "校园内遇到紧急情况怎么报警？", "keywords": ["报警", "安全"]},
+    {"id": "Q21", "priority": "P2", "category": "奖助", "question": "国家奖学金申请条件是什么？", "keywords": ["国家奖学金"]},
+    {"id": "Q22", "priority": "P2", "category": "违纪", "question": "学生违纪处分有哪些种类？", "keywords": ["违纪处分"]},
+    {"id": "Q23", "priority": "P2", "category": "教学", "question": "研究生课程调课需要什么手续？", "keywords": ["调课"]},
+    {"id": "Q24", "priority": "P2", "category": "博士后", "question": "博士后进站需要哪些材料？", "keywords": ["博士后", "进站"]}
+  ]
+}
