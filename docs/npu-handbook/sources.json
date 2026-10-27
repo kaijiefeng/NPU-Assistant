@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T14:16:16+08:00",
+  "generated_at": "2026-10-27T14:19:13+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -1152,6 +1152,20 @@
       "in_dataset": true
     },
     {
+      "id": "e27a39b336b34bccab58c576414f3f79",
+      "title": "西北工业大学集成电路学院导师招生学科信息",
+      "filename": "西北工业大学集成电路学院导师招生学科信息.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/rcpy2/yjspy/dsjs.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"导师\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 3998,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
       "id": "8c386981dc6b4120b46a9153a72ded0d",
       "title": "西北工业大学集成电路学院本科专业概况",
       "filename": "西北工业大学集成电路学院本科专业概况.md",
@@ -1166,6 +1180,20 @@
       "in_dataset": true
     },
     {
+      "id": "974ed1a81a154da89edc9940b5a6fd9f",
+      "title": "西北工业大学集成电路学院混合信号ASIC设计团队",
+      "filename": "西北工业大学集成电路学院混合信号ASIC设计团队.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/2791/15853.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"科研团队\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 1865,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
       "id": "aeedb078e4214da9bc2dded3cea10b3d",
       "title": "西北工业大学集成电路学院研究生学科概况",
       "filename": "西北工业大学集成电路学院研究生学科概况.md",
@@ -1176,6 +1204,20 @@
       "status": "ready",
       "page_count": 3,
       "char_count": 1301,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
+      "id": "96d042591c7048229d350256cdcad26e",
+      "title": "西北工业大学集成电路学院科研平台",
+      "filename": "西北工业大学集成电路学院科研平台.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/kxyj/kypt.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"科研平台\"]",
+      "status": "ready",
+      "page_count": 1,
+      "char_count": 222,
       "category": "其他",
       "in_dataset": true
     },
