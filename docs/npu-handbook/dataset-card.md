@@ -49,3 +49,9 @@ pu-handbook-qa-2026.5.jsonl
 -
 pu-handbook-negative-2026.5.jsonl
 - metrics.json
+
+## v2026.6-draft 待并入
+
+- 新增 3 篇官方文档：贵州航天测试联合实验室、中科芯合作、共享实验平台调研；
+- 新增 4 条补充 QA（qa-supplement-ic8.jsonl），引用命中 4/4；
+- 待复核后并入 v2026.6。

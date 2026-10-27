@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T14:57:14+08:00",
+  "generated_at": "2026-10-27T15:24:38+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -228,6 +228,20 @@
       "in_dataset": true
     },
     {
+      "id": "616344aaa22c4258bb8180b939421d8c",
+      "title": "国有资产管理处调研微电子学院共享实验平台",
+      "filename": "国有资产管理处调研微电子学院共享实验平台.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/1137/3414.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"实验室\"]",
+      "status": "ready",
+      "page_count": 1,
+      "char_count": 400,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
       "id": "1b13951b18624c1e81ae016e5b418cb8",
       "title": "图书文献-迎新网：图书馆开馆时间与使用",
       "filename": "图书文献-迎新网：图书馆开馆时间与使用.md",
@@ -365,6 +379,34 @@
       "page_count": 1,
       "char_count": 188,
       "category": "宿舍与生活",
+      "in_dataset": true
+    },
+    {
+      "id": "c5251d74459e4ebbabc76e39cdfd0774",
+      "title": "微电子学院与中科芯集成电路公司合作交流",
+      "filename": "微电子学院与中科芯集成电路公司合作交流.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/1137/1737.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"校企合作\"]",
+      "status": "ready",
+      "page_count": 1,
+      "char_count": 585,
+      "category": "国际交流",
+      "in_dataset": true
+    },
+    {
+      "id": "49cf662e73ad48709f23226e4b3382f0",
+      "title": "微电子学院与贵州航天测试研究所联合研究实验室",
+      "filename": "微电子学院与贵州航天测试研究所联合研究实验室.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/1137/5624.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"实验室\"]",
+      "status": "ready",
+      "page_count": 1,
+      "char_count": 513,
+      "category": "其他",
       "in_dataset": true
     },
     {
