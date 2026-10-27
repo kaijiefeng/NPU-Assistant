@@ -40,6 +40,16 @@
     "file": "94ad9924d83e4f71b08dad6672e05365.md"
   },
   {
+    "id": "4527a052401843809d3663e5a49f21f4",
+    "title": "中兴通讯蓝剑计划集成电路学院座谈会",
+    "category": "就业与档案",
+    "source_url": "https://weidianzi.nwpu.edu.cn/info/1137/6494.htm",
+    "sha256": "939802a8a0c5464869a73b79af0780b24169aaa4f904a3f77d01a1adb22884d2",
+    "page_count": null,
+    "chars": 662,
+    "file": "4527a052401843809d3663e5a49f21f4.md"
+  },
+  {
     "id": "98253266b990456bbc4922f9fb62525d",
     "title": "关于2026年大学生医保报销的通知",
     "category": "医疗与医保",
@@ -948,5 +958,25 @@
     "page_count": null,
     "chars": 694,
     "file": "2beca9b4b460441483c4517f5995d9de.md"
+  },
+  {
+    "id": "d187c1c0e272454bb8cedf969e4f8a26",
+    "title": "集成电路学院学子签约中兴蓝剑计划",
+    "category": "就业与档案",
+    "source_url": "https://weidianzi.nwpu.edu.cn/info/1137/16913.htm",
+    "sha256": "7021f4e177232ed14103890ae304cd3c00cd1d16d447f5d7d50313313ce86602",
+    "page_count": null,
+    "chars": 1415,
+    "file": "d187c1c0e272454bb8cedf969e4f8a26.md"
+  },
+  {
+    "id": "0af524dd589242ca97296db37f651b33",
+    "title": "集成电路学院毕业生就业常见问题",
+    "category": "就业与档案",
+    "source_url": "https://weidianzi.nwpu.edu.cn/info/1039/1045.htm",
+    "sha256": "de492b0934ef604c6d5ef79d33bd6655db0a43f169ea6de15364f2d507bd1189",
+    "page_count": null,
+    "chars": 1628,
+    "file": "0af524dd589242ca97296db37f651b33.md"
   }
 ]

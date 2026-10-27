@@ -65,6 +65,6 @@ pu-handbook-negative-2026.1.jsonl
 
 ## v2026.2-draft 补充
 
-- 新增 20 篇官方文档：GPA、选课、体测评分标准，以及集成电路学院简介/专业/开放日/联系方式/学科/科研/平台/团队/导师/竞赛/就业、鸿蒙 OS 菁英班、鸿蒙 PC 合作；
-- 新增 86 条补充 QA 草案（qa-supplement.jsonl + qa-supplement-ic.jsonl + qa-supplement-ic2.jsonl + qa-supplement-ic3.jsonl + qa-supplement-ic4.jsonl），待人工复核；
+- 新增 23 篇官方文档：GPA、选课、体测评分标准，以及集成电路学院简介/专业/开放日/联系方式/学科/科研/平台/团队/导师/竞赛/就业指导/就业典型、鸿蒙 OS 菁英班、鸿蒙 PC 合作；
+- 新增 100 条补充 QA 草案（qa-supplement.jsonl + qa-supplement-ic.jsonl + qa-supplement-ic2.jsonl + qa-supplement-ic3.jsonl + qa-supplement-ic4.jsonl + qa-supplement-ic5.jsonl），待人工复核；
 - v2026.1 发布文件保持不变。
