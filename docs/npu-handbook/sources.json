@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T15:51:50+08:00",
+  "generated_at": "2026-10-27T16:03:05+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -477,6 +477,20 @@
       "page_count": 2,
       "char_count": 1739,
       "category": "教学与考试",
+      "in_dataset": true
+    },
+    {
+      "id": "8d240112353e42f3bfb70d58389cb7da",
+      "title": "教育实验学院赴华为西安研究所调研鸿蒙菁英班",
+      "filename": "教育实验学院赴华为西安研究所调研鸿蒙菁英班.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://honors.nwpu.edu.cn/info/1017/1743.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"校企合作\"]",
+      "status": "ready",
+      "page_count": 2,
+      "char_count": 893,
+      "category": "其他",
       "in_dataset": true
     },
     {

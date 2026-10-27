@@ -50,3 +50,9 @@ pu-handbook-qa-2026.8.jsonl
 -
 pu-handbook-negative-2026.8.jsonl
 - metrics.json
+
+## v2026.9-draft 待并入
+
+- 新增 1 篇官方文档：教育实验学院赴华为西安研究所调研鸿蒙菁英班；
+- 新增 2 条补充 QA（qa-supplement-ic11.jsonl），引用命中 2/2；
+- 待复核后并入 v2026.9。
