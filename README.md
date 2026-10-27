@@ -212,6 +212,7 @@ NPU-Assistant/
 │  ├─ CAMPUS-MANUAL-QUEUE.md # 需人工浏览器下载/复制的条目（P0/P1/P2）
 │  ├─ CAMPUS-REMOTE-SEARCH.md # 限定范围联网检索试验（四网站 + 四公众号）
 │  ├─ DATA-PROVENANCE.md      # 真实/示例数据审计与源文件管理
+│  ├─ EXTERNAL-DATA-POLICY.md # 外部数据边界与来源白名单审计
 │  ├─ eval/                 # 混合检索/真实问题 TDD 测试集与报告
 │  │  ├─ REALWORLD-TDD.md   # 42 道真实学生问题：红→补库→绿
 │  │  ├─ COVERAGE-MATRIX.md # 参考开源数据集的校园问答覆盖矩阵

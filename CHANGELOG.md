@@ -23,6 +23,7 @@
 - 内容管理「源文件」新增来源列（网页原文/本地/示例），静态缓存升级 v6；新增 DATA-PROVENANCE.md 数据审计；
 - 新增真实学生问题 TDD：42 题（含宿舍洗浴/洗衣/空调/水电/门禁/自习室等生活类），P0 **18/18**、整体 **40/42** 端到端有依据命中；新增 `docs/eval/REALWORLD-TDD.md`、`COVERAGE-MATRIX.md`。
 - 新增本地+远程混合检索评测：22 本地题 + 4 负样本 + 6 远程题 + 8 源连通性，输出 JSON/Markdown 报告；修复精确别名误压、拒绝回答引用污染；
+- 新增外部来源审计 scripts/audit_sources.py 与 docs/EXTERNAL-DATA-POLICY.md：75 篇文档、seed 均无非西工大 URL；开源数据集只做覆盖清单、不导入。
 - 测试：后端 pytest **126 passed**；Chrome CDP 六页冒烟 **console 0 错误**，1440/390 无横向滚动；修复对话输入框引用未定义变量 `counter` 的运行时异常。
 
 ## v0.1.1 — 2026-10-24（发布版）
