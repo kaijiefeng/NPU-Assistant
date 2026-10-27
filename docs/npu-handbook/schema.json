@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NPU Student Handbook QA Record",
+  "type": "object",
+  "required": ["id", "question", "answer", "category", "answerable", "source", "review", "version"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^npu-handbook-[0-9]{4,}$"},
+    "question": {"type": "string", "minLength": 4},
+    "answer": {"type": "string", "minLength": 10},
+    "category": {"type": "string"},
+    "answerable": {"type": "boolean"},
+    "source": {
+      "type": "object",
+      "required": ["document_title", "source_url", "quote"],
+      "properties": {
+        "document_title": {"type": "string"},
+        "source_url": {"type": "string"},
+        "page": {"type": ["integer", "null"]},
+        "section": {"type": "string"},
+        "quote": {"type": "string", "minLength": 10},
+        "sha256": {"type": "string"},
+        "effective_date": {"type": ["string", "null"]}
+      }
+    },
+    "review": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["draft", "approved", "rejected"]},
+        "reviewer": {"type": "string"},
+        "reviewed_at": {"type": "string"}
+      }
+    },
+    "version": {"type": "string"},
+    "notes": {"type": "string"}
+  },
+  "additionalProperties": false
+}

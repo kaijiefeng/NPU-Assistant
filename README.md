@@ -217,6 +217,8 @@ NPU-Assistant/
 │  │  ├─ REALWORLD-TDD.md   # 42 道真实学生问题：红→补库→绿
 │  │  ├─ COVERAGE-MATRIX.md # 参考开源数据集的校园问答覆盖矩阵
 │  │  └─ HYBRID-TEST-PLAN.md # 本地+远程混合检索评测
+│  ├─ NPU-STUDENT-HANDBOOK-PLAN.md # v0.2.0 学生手册数据集方案
+│  ├─ npu-handbook/         # M2 来源清单、QA schema、M3 语料
 │  ├─ DEMO.md               # 5 分钟演示脚本与已验证结果
 │  └─ screenshots/          # 六页界面截图（ui_check.py 自动生成）
 └─ README.md
