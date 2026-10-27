@@ -509,6 +509,88 @@ def _no_hit_reply(settings: dict[str, Any]) -> str:
     )
 
 
+def _remote_query_variants(question: str) -> list[str]:
+    """把口语问题收窄成站内搜索更容易命中的关键词。"""
+    text = str(question or "").strip("？?。！! ")
+    variants = [text]
+    mappings = (
+        ("综测", "综合测评"),
+        ("综合素质", "综合测评"),
+        ("综合测评", "综合测评"),
+        ("奖学金", "奖学金"),
+        ("助学金", "助学金"),
+        ("推免", "推荐免试"),
+        ("保研", "推荐免试"),
+        ("招生", "招生"),
+        ("导师", "导师"),
+    )
+    for key, term in mappings:
+        if key in text and term not in variants:
+            variants.append(term)
+    if "集成电路" in text:
+        variants.append("集成电路学院 " + text[:12])
+    return list(dict.fromkeys(variants))[:3]
+
+
+_REMOTE_TOPIC_TERMS = (
+    "综合测评",
+    "综测",
+    "素质",
+    "奖学金",
+    "助学金",
+    "推免",
+    "推荐免试",
+    "招生",
+    "导师",
+    "教师",
+    "辅导员",
+    "课程",
+    "专业",
+    "实验室",
+    "博士",
+    "硕士",
+    "考试",
+    "复试",
+    "名单",
+    "电话",
+    "办公室",
+)
+_REMOTE_STOPWORDS = {
+    "怎么",
+    "如何",
+    "计算",
+    "请问",
+    "一下",
+    "多少",
+    "哪些",
+    "什么",
+    "是否",
+    "可以",
+    "需要",
+    "学校",
+    "学院",
+    "本科生",
+    "研究生",
+    "的",
+    "吗",
+    "呢",
+}
+
+
+def _remote_relevant(question: str, row: dict) -> bool:
+    blob = f"{row.get('title') or ''} {row.get('snippet') or ''}"
+    if "综测" in question and any(term in blob for term in ("综合测评", "综测", "素质")):
+        return True
+    if any(term in question and term in blob for term in _REMOTE_TOPIC_TERMS):
+        return True
+    tokens = [
+        token
+        for token in text_utils.tokenize(question)
+        if len(token) >= 2 and token not in _REMOTE_STOPWORDS
+    ]
+    return sum(1 for token in tokens if token in blob) >= 2
+
+
 def _remote_results(question: str) -> list[dict]:
     """只在 Wiki 无命中时调用：检索学院官网/官方公众号，不写入知识库。"""
     if not getattr(config, "REMOTE_FALLBACK_ENABLED", True):
@@ -534,33 +616,45 @@ def _remote_results(question: str) -> list[dict]:
         "培养",
         "考试",
         "复试",
+        "本科生",
+        "研究生",
+        "综测",
+        "综合测评",
+        "综合素质",
+        "奖助",
+        "奖学金",
+        "助学金",
+        "评优",
+        "推免",
+        "保研",
     )
     if not any(marker in question for marker in markers):
         return []
-    try:
-        payload = remote_search.search_all(
-            question,
-            source_ids=["nwpu-ic", "nwpu-www", "wechat-ic"],
-            limit=3,
-        )
-    except Exception:  # pragma: no cover - 网络/反爬异常不应影响回答
-        logger.exception("联网补充检索失败")
-        return []
     results: list[dict] = []
     seen: set[str] = set()
-    for row in payload.get("results") or []:
-        if row.get("error") or not row.get("url"):
+    for query in _remote_query_variants(question):
+        try:
+            payload = remote_search.search_all(
+                query,
+                source_ids=["nwpu-ic", "nwpu-www", "wechat-ic"],
+                limit=3,
+            )
+        except Exception:  # pragma: no cover - 网络/反爬异常不应影响回答
+            logger.exception("联网补充检索失败")
             continue
-        key = str(row.get("url") or row.get("title") or "")
-        if not key or key in seen:
-            continue
-        snippet = _shorten(row.get("snippet") or row.get("content"), 240)
-        if not snippet:
-            continue
-        seen.add(key)
-        results.append({**row, "snippet": snippet})
-        if len(results) >= 3:
-            break
+        for row in payload.get("results") or []:
+            if row.get("error") or not row.get("url"):
+                continue
+            key = str(row.get("url") or row.get("title") or "")
+            if not key or key in seen:
+                continue
+            snippet = _shorten(row.get("snippet") or row.get("content"), 240)
+            if not snippet or not _remote_relevant(question, {**row, "snippet": snippet}):
+                continue
+            seen.add(key)
+            results.append({**row, "snippet": snippet})
+            if len(results) >= 3:
+                return results
     return results
 
 
