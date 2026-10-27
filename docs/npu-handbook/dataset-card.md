@@ -53,3 +53,9 @@ pu-handbook-qa-2026.3.jsonl
 -
 pu-handbook-negative-2026.3.jsonl
 - metrics.json
+
+## v2026.4-draft 待并入
+
+- 新增 4 篇官方文档：鸿蒙灯塔奖、鸿蒙产教融合交流会、器件制备与测试平台、数字集成电路实验教学设备；
+- 新增 16 条补充 QA（qa-supplement-ic7.jsonl），引用命中 15/16；
+- 待复核后并入 v2026.4。

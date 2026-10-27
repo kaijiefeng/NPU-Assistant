@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T14:41:34+08:00",
+  "generated_at": "2026-10-27T14:57:14+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -406,6 +406,20 @@
       "status": "ready",
       "page_count": 2,
       "char_count": 1739,
+      "category": "教学与考试",
+      "in_dataset": true
+    },
+    {
+      "id": "ed0e3c3bf5c048c0a0f8c6c66e9bf333",
+      "title": "数字集成电路实验教学设备采购公告",
+      "filename": "数字集成电路实验教学设备采购公告.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/1138/17853.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"实验室\"]",
+      "status": "ready",
+      "page_count": 2,
+      "char_count": 298,
       "category": "教学与考试",
       "in_dataset": true
     },
@@ -1292,6 +1306,34 @@
       "in_dataset": true
     },
     {
+      "id": "e75c6d56903145b98ea0b6e05da34a53",
+      "title": "西工大荣获华为鸿蒙行业共创灯塔奖",
+      "filename": "西工大荣获华为鸿蒙行业共创灯塔奖.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://jsj.nwpu.edu.cn/info/1598/28655.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"产教融合\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 946,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
+      "id": "21824a0a2d564c89902766802e846c52",
+      "title": "计算机学院鸿蒙产教融合交流会",
+      "filename": "计算机学院鸿蒙产教融合交流会.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://jsj.nwpu.edu.cn/info/1598/26775.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"产教融合\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 1651,
+      "category": "国际交流",
+      "in_dataset": true
+    },
+    {
       "id": "b40dd04d52f847dfa7a3bf3366ca7509",
       "title": "软件学院华为HarmonyOS菁英班招募宣讲会",
       "filename": "软件学院华为HarmonyOS菁英班招募宣讲会.md",
@@ -1345,6 +1387,20 @@
       "page_count": 1,
       "char_count": 695,
       "category": "学位与论文",
+      "in_dataset": true
+    },
+    {
+      "id": "f9324a15d6d34d248f2dc3b6012c263a",
+      "title": "集成电路学院器件制备与测试平台采购公告",
+      "filename": "集成电路学院器件制备与测试平台采购公告.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/1138/17863.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"实验室\"]",
+      "status": "ready",
+      "page_count": 2,
+      "char_count": 318,
+      "category": "其他",
       "in_dataset": true
     },
     {
