@@ -1151,6 +1151,8 @@ def export_seed_wiki(path: str | Path) -> dict:
                 "char_count": int(row.get("char_count") or 0),
                 "page_count": int(row.get("page_count") or 0),
                 "status": row.get("status") or "ready",
+                "source_type": row.get("source_type") or "file",
+                "source_url": row.get("source_url") or "",
                 "created_at": row.get("created_at"),
                 "updated_at": row.get("updated_at"),
             }
@@ -1392,8 +1394,8 @@ def _import_seed_payload(payload: dict) -> dict:
         stored_path = _copy_seed_source(new_id, filename)
         db.execute(
             "INSERT INTO documents(id, title, filename, stored_path, file_ext, size_bytes, status, "
-            "error, tags, char_count, page_count, created_at, updated_at) "
-            "VALUES(?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?)",
+            "error, tags, char_count, page_count, source_type, source_url, created_at, updated_at) "
+            "VALUES(?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?)",
             (
                 new_id,
                 title,
@@ -1405,6 +1407,8 @@ def _import_seed_payload(payload: dict) -> dict:
                 db.to_json([str(tag) for tag in tags if str(tag).strip()]),
                 int(doc.get("char_count") or 0),
                 int(doc.get("page_count") or 0),
+                str(doc.get("source_type") or "file"),
+                str(doc.get("source_url") or ""),
                 timestamp,
                 str(doc.get("updated_at") or timestamp),
             ),

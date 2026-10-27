@@ -20,7 +20,7 @@
 
 ## 二、真实导入结果
 
-- 数据库：53 篇源文件（10 篇原有示例 + 43 篇真实数据），全部 `ready`；162 个 Wiki 词条，176 个来源锚点。
+- 数据库：43 篇真实源文件，全部 `ready`；141 个 Wiki 词条，161 个来源锚点；示例已清理。
 - 真实 `.doc` 由纯 Python 的 `legacy-doc` 解析（不执行宏/嵌入对象），无需 Word/LibreOffice。
 - 真实 `.docx` / `.pdf` 分别由 `python-docx` / `pypdf` 解析。
 - 真实 HTML 通过 URL 导入，保留 `source_url`，并编译为 Wiki 词条。

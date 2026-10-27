@@ -50,7 +50,7 @@ graph TD
     subgraph Data["数据层"]
         SQLite[("SQLite<br/>documents / wiki_pages / wiki_sources /<br/>wiki_links / wiki_builds / providers /<br/>models_registry / conversations /<br/>messages / bot_channels / settings")]
         Uploads["uploads/<br/>上传源文件"]
-        SeedDocs["seed_docs/<br/>10 篇示例源文件"]
+        SeedDocs["seed_docs/<br/>演示源文件目录（已清理）"]
         WikiSeed["wiki_seed.json<br/>预编译快照（离线）"]
     end
 

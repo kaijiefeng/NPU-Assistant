@@ -176,7 +176,7 @@ NPU-Assistant/
 │  │  │  └─ bot_pipeline.py # 机器人统一入站处理（复用 counselor；管理员入库命令）
 │  │  └─ adapters/          # onebot（QQ）、wechat_mp（公众号）、base
 │  ├─ data/
-│  │  ├─ seed_docs/         # 10 篇示例源文件（中文 Markdown）
+│  │  ├─ seed_docs/         # 演示源文件目录（示例已清理，仅保留 .gitkeep）
 │  │  ├─ wiki_seed.json     # 真实 LLM 预编译的 Wiki 快照（冷启动离线可用）
 │  │  └─ uploads/           # 上传源文件落盘目录
 │  ├─ tests/                # pytest（conftest 临时数据目录 + fake LLM）
@@ -268,7 +268,7 @@ Wiki 编译与高质量回答都依赖真实 LLM；默认的 mock 模型只用�
 
 ## 八、预编译 Wiki 快照（离线演示）
 
-- `backend/data/wiki_seed.json` 是用**真实 LLM 对 10 篇示例源文件编译**后导出的快照（源文件 / 词条 / 来源锚点 / 关联链接），随仓库提交。
+- `backend/data/wiki_seed.json` 是当前 **43 篇真实来源**的词条快照（文档 / 词条 / 来源锚点 / 关联链接），冷启动可直接浏览；源文件与数据库运行时文件不入库。
 - 冷启动且 `wiki_pages` 为空时自动导入；也可在「知识库 → 源文件」点「导入预编译快照」或调用 `POST /api/knowledge/seed`（幂等）。
 - 重新生成快照（会消耗 LLM Token）：
 

@@ -97,7 +97,7 @@ schtasks /Create /TN "NPU-Assistant-CampusSync" /SC HOURLY /MO 6 `
 
 ## 五、初始库与后续目标
 
-- 当前：**53 篇源文件 / 162 个词条 / 176 个来源锚点**（43 篇真实 + 10 篇示例）。
+- 当前：**43 篇真实源文件 / 141 个词条 / 161 个来源锚点**（示例已清理）。
 - 已到 **43 篇真实数据**；下一阶段补到 **60 篇**，重点补就业、心理中心列表、校历/一卡通、办事流程；每篇保留来源 URL、抓取时间、SHA256 清单。
 - 清单：[`docs/CAMPUS-SEED.md`](CAMPUS-SEED.md)、[`docs/campus-seed/manifest.json`](campus-seed/manifest.json)。
 
