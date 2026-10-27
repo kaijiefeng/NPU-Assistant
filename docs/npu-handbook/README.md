@@ -1,19 +1,19 @@
 # NPU 学生手册数据集（v0.2.0）
 
-状态：**v2026.3 已发布：408 可答 + 10 不可答；新增 4 篇鸿蒙/实验室文档与 16 条 QA 待并入 v2026.4**。
+状态：**v2026.4 已发布：422 可答 + 10 不可答；检索 100% / 引用 96% / 拒答 100%**。
 
 ## 当前规模
 
 - 已入库文档：105 篇
 - Wiki 词条：270
 - 来源锚点：317
-- v2026.3：408 可答 + 10 不可答
+- v2026.4：422 可答 + 10 不可答
 
 ## 文件
 
 | 文件 | 作用 |
 |---|---|
-| `sources.json` | 101 篇已入库文档 + 27 个待补官方来源 |
+| `sources.json` | 105 篇已入库文档 + 27 个待补官方来源 |
 | `coverage.csv` | 类别覆盖统计 |
 | `INVENTORY.md` | M2 盘点摘要 |
 | `schema.json` | QA 数据格式 |
@@ -34,7 +34,11 @@
 | `qa-dataset-negative-v2026.3.jsonl` | v2026.3：10 条不可答 |
 | `DATASET-V2026.3.md` | v2026.3 统计 |
 | `M6-REPORT-v2026.3.md` / `.json` | v2026.3 评测 |
-| `release/` | v2026.1 / v2026.3 发布文件与 dataset card |
+| `qa-dataset-v2026.4.jsonl` | v2026.4：422 条可答 |
+| `qa-dataset-negative-v2026.4.jsonl` | v2026.4：10 条不可答 |
+| `DATASET-V2026.4.md` | v2026.4 统计 |
+| `M6-REPORT-v2026.4.md` / `.json` | v2026.4 评测 |
+| `release/` | v2026.1 / v2026.3 / v2026.4 发布文件与 dataset card |
 | `OPEN-SOURCE-SOURCES.md` | NWPU 相关开源资料调研（仅覆盖参考） |
 | `qa-supplement*.jsonl` | 补充 QA 草案与已复核记录 |
 | `SUPPLEMENT*.md` | 补充说明 |
@@ -58,23 +62,23 @@
 ## 构建流程
 
 ```text
-101 篇官方来源
+105 篇官方来源
   → 统一 Markdown 语料（来源、sha256、页码）
   → Wiki 词条页面级 QA
   → 自动校验 + 引用命中复核
-  → v2026.3：408 可答 + 10 不可答
+  → v2026.4：422 可答 + 10 不可答
   → 检索/引用/拒答评测
 ```
 
-## 评测结果（v2026.3）
+## 评测结果（v2026.4）
 
 | 指标 | 结果 |
 |---|---:|
-| 检索文档召回 | **100%**（408/408） |
-| 端到端引用文档召回 | **100%**（50/50 抽样） |
+| 检索文档召回 | **100%**（422/422） |
+| 端到端引用文档召回 | **96%**（48/50 抽样） |
 | 不可答拒答率 | **100%**（10/10） |
-| 检索平均耗时 | 77 ms |
-| 回答平均耗时 | 2589 ms |
+| 检索平均耗时 | 106 ms |
+| 回答平均耗时 | 2471 ms |
 
 ## 已知局限
 
@@ -90,5 +94,5 @@
 .\.venv\Scripts\python.exe scripts\handbook_extract.py
 .\.venv\Scripts\python.exe scripts\handbook_page_dataset.py
 .\.venv\Scripts\python.exe scripts\handbook_dataset_check.py
-.\.venv\Scripts\python.exe scripts\eval_handbook_v2026_3.py --chat-limit 50
+.\.venv\Scripts\python.exe scripts\eval_handbook_v2026_4.py --chat-limit 50
 ```

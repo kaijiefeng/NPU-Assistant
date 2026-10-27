@@ -443,6 +443,7 @@ def _clean_refusal_citations(reply: str, citations: list[dict]) -> tuple[str, li
         "没有收录",
         "未收录",
         "没有直接提到",
+        "没有直接规定",
         "无法确认",
     )
     if not any(marker in reply[:260] for marker in markers):
