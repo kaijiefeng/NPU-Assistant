@@ -42,6 +42,7 @@ os.environ["NPU_DB_PATH"] = str(_TMP_ROOT / "app.db")
 os.environ["NPU_AUTO_SEED"] = "0"
 os.environ["NPU_ADMIN_TOKEN"] = ""
 os.environ["NPU_REMOTE_FALLBACK"] = "0"
+os.environ["NPU_LLM_JUDGE"] = "0"
 os.environ["NPU_MAX_UPLOAD_MB"] = "20"
 # 预编译快照指向临时目录，保证测试不受仓库 wiki_seed.json 是否存在影响
 os.environ["NPU_WIKI_SEED_PATH"] = str(_TMP_ROOT / "wiki_seed.json")

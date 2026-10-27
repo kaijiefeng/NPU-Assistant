@@ -581,13 +581,21 @@ def _remote_relevant(question: str, row: dict) -> bool:
     blob = f"{row.get('title') or ''} {row.get('snippet') or ''}"
     if "综测" in question and any(term in blob for term in ("综合测评", "综测", "素质")):
         return True
-    if any(term in question and term in blob for term in _REMOTE_TOPIC_TERMS):
-        return True
     tokens = [
         token
         for token in text_utils.tokenize(question)
         if len(token) >= 2 and token not in _REMOTE_STOPWORDS
     ]
+    if any(term in question and term in blob for term in _REMOTE_TOPIC_TERMS):
+        # 主题词之外，还要有“申请/材料/条件/时间”等具体动作词，
+        # 避免“奖学金”只命中“颁奖仪式/优秀毕业生”这类泛新闻。
+        detail = [
+            token
+            for token in tokens
+            if token not in _REMOTE_TOPIC_TERMS and token not in _COMPLETENESS_STOPWORDS
+        ]
+        if not detail or all(token in blob for token in detail):
+            return True
     return sum(1 for token in tokens if token in blob) >= 2
 
 
@@ -669,18 +677,230 @@ def _needs_remote_fallback(reply: str, citations: list[dict]) -> bool:
     )
 
 
-def _remote_reply(question: str) -> tuple[str, list[dict]]:
+# ---------------------------------------------------------------------------
+# 回答完整性判断：规则初筛 + LLM 复核
+# ---------------------------------------------------------------------------
+_COMPLETENESS_STOPWORDS = {
+    "怎么",
+    "如何",
+    "计算",
+    "请问",
+    "一下",
+    "多少",
+    "哪些",
+    "什么",
+    "是否",
+    "可以",
+    "需要",
+    "学校",
+    "学院",
+    "本科生",
+    "研究生",
+    "老师",
+    "的",
+    "吗",
+    "呢",
+    "我",
+    "想",
+    "问",
+}
+
+
+def _question_slots(question: str) -> list[tuple[str, tuple[str, ...]]]:
+    """识别问题中的“具体信息槽位”。"""
+    text = str(question or "")
+    slots: list[tuple[str, tuple[str, ...]]] = []
+    if re.search(r"(20\d{2}|今年|明年|什么时候|时间|日期|几月|几号)", text):
+        slots.append(("time", ("202", "年", "月", "日", "时间", "截止")))
+    if any(word in text for word in ("电话", "联系方式", "邮箱", "办公室", "地点", "在哪")):
+        slots.append(("contact", ("029-", "@", "室", "楼", "电话", "邮箱")))
+    if any(word in text for word in ("怎么算", "计算公式", "公式", "权重", "分值", "比例", "评分")):
+        slots.append(("formula", ("公式", "权重", "分值", "比例", "计算", "测评")))
+    if any(word in text for word in ("名单", "有哪些人", "谁负责", "人员")):
+        slots.append(("list", ("、", "，", "老师", "辅导员", "名单", "负责")))
+    if any(word in text for word in ("条件", "资格", "要求", "门槛")):
+        slots.append(("condition", ("条件", "要求", "资格", "以上", "前")))
+    if any(word in text for word in ("多少", "几", "金额", "费用")):
+        slots.append(("number", ("元", "万", "%", "人", "个", "分")))
+    return slots
+
+
+def _citation_text(citations: list[dict]) -> str:
+    parts: list[str] = []
+    for citation in citations:
+        parts.append(str(citation.get("summary") or ""))
+        parts.append(str(citation.get("snippet") or ""))
+        for source in citation.get("sources") or []:
+            parts.append(str(source.get("quote") or ""))
+    return " ".join(parts)
+
+
+def _rule_completeness(
+    question: str,
+    reply: str,
+    citations: list[dict],
+) -> dict:
+    """快速、可解释的完整性判断。"""
+    slots = _question_slots(question)
+    answer_text = f"{reply or ''} {_citation_text(citations)}"
+    missing: list[str] = []
+    for name, markers in slots:
+        if not any(marker in answer_text for marker in markers):
+            missing.append(name)
+    if "formula" in [name for name, _ in slots]:
+        hedges = ("由各培养单位", "由学院", "具体以", "另行制定", "以学院公布")
+        if any(hedge in (reply or "") for hedge in hedges) and not re.search(r"\d", reply or ""):
+            if "formula" not in missing:
+                missing.append("formula_detail")
+    if not citations:
+        missing.append("no_citation")
+    tokens = [
+        token
+        for token in text_utils.tokenize(question)
+        if len(token) >= 2 and token not in _COMPLETENESS_STOPWORDS
+    ]
+    if tokens:
+        hit = sum(1 for token in tokens if token in answer_text)
+        coverage = hit / len(tokens)
+    else:
+        coverage = 1.0
+    if coverage < 0.45:
+        missing.append("coverage")
+    unique_missing = list(dict.fromkeys(missing))
+    complete = not unique_missing
+    if complete and coverage >= 0.55:
+        confidence = 0.9
+    elif unique_missing:
+        confidence = min(0.95, 0.5 + 0.15 * len(unique_missing))
+    else:
+        confidence = 0.55
+    return {
+        "complete": complete,
+        "confidence": confidence,
+        "missing": unique_missing[:5],
+        "need_remote": bool(unique_missing),
+        "reason": "rule:" + (",".join(unique_missing) if unique_missing else "complete"),
+        "judge": "rule",
+    }
+
+
+_JUDGE_CACHE: dict[str, tuple[float, dict]] = {}
+_JUDGE_CACHE_TTL = 10 * 60
+
+
+def _llm_judge_completeness(
+    question: str,
+    reply: str,
+    citations: list[dict],
+) -> dict | None:
+    """让模型只做“是否完整”的裁判；失败时返回 None，由规则兜底。"""
+    if not getattr(config, "LLM_COMPLETENESS_JUDGE_ENABLED", True):
+        return None
+    try:
+        model = llm.default_model()
+    except Exception:  # pragma: no cover
+        return None
+    if not model or (model.get("provider_type") or "").strip().lower() == "mock":
+        return None
+    key = (
+        str(question)
+        + "|"
+        + ",".join(str(item.get("page_id") or "") for item in citations)
+        + "|"
+        + str(len(reply or ""))
+    )
+    cached = _JUDGE_CACHE.get(key)
+    if cached and time.time() - cached[0] < _JUDGE_CACHE_TTL:
+        return cached[1]
+    citation_text = "\n".join(
+        f"[{item.get('index')}] {item.get('page_title')}: {item.get('summary')}"
+        for item in citations[:3]
+    )
+    prompt = (
+        "你是校园问答系统的“回答完整性裁判”，不是回答者。\n"
+        "判断给定的 Wiki 回答是否完整回答了用户问题。\n\n"
+        "判断标准：\n"
+        "1. 问题问具体信息（时间、电话、公式、名单、条件、分值）时，回答必须给出对应具体内容；\n"
+        "2. 引用只是总则/概况/简介，但问题问具体细则，判为不完整；\n"
+        "3. 回答出现“具体以……为准”“建议咨询”且没有具体值，判为不完整；\n"
+        "4. 回答覆盖问题主要部分，判为完整；\n"
+        "5. 不确定时倾向 complete=false，但 confidence 降低。\n\n"
+        "只输出 JSON，不要解释：\n"
+        '{"complete": true/false, "confidence": 0.0-1.0, '
+        '"missing": ["最多3项"], "need_remote": true/false, "reason": "简短原因"}\n\n'
+        f"【用户问题】\n{question}\n\n"
+        f"【Wiki 回答】\n{(reply or '')[:1200]}\n\n"
+        f"【引用摘要】\n{citation_text[:1200]}"
+    )
+    result = llm.chat(
+        [
+            {"role": "system", "content": "你只输出 JSON，不回答用户问题。"},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0,
+        max_tokens=300,
+    )
+    if result.get("fallback") or not result.get("content"):
+        return None
+    match = re.search(r"\{.*\}", str(result.get("content")), re.S)
+    if not match:
+        return None
+    try:
+        data = json.loads(match.group(0))
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(data, dict) or not isinstance(data.get("complete"), bool):
+        return None
+    missing = data.get("missing") if isinstance(data.get("missing"), list) else []
+    decision = {
+        "complete": bool(data.get("complete")),
+        "confidence": max(0.0, min(1.0, float(data.get("confidence") or 0.5))),
+        "missing": [str(item)[:40] for item in missing[:3]],
+        "need_remote": bool(data.get("need_remote", not data.get("complete"))),
+        "reason": "llm:" + str(data.get("reason") or "")[:80],
+        "judge": "llm",
+    }
+    if len(_JUDGE_CACHE) > 200:
+        _JUDGE_CACHE.clear()
+    _JUDGE_CACHE[key] = (time.time(), decision)
+    return decision
+
+
+def _judge_answer_completeness(
+    question: str,
+    reply: str,
+    citations: list[dict],
+) -> dict:
+    """规则先判；只有模糊且存在具体槽位时才请 LLM 复核。"""
+    rule = _rule_completeness(question, reply, citations)
+    if rule["confidence"] >= 0.8:
+        return rule
+    if not _question_slots(question):
+        return rule
+    judged = _llm_judge_completeness(question, reply, citations)
+    return judged or rule
+
+
+def _remote_reply(
+    question: str,
+    *,
+    start_index: int = 1,
+    intro: str | None = None,
+) -> tuple[str, list[dict]]:
     """把官网/公众号检索结果整理为带来源的回答；不调用模型、不编造细节。"""
     results = _remote_results(question)
     if not results:
         return "", []
     lines = [
-        "校园 Wiki 暂未收录与这个问题直接相关的词条；我临时联网检索了学院官网/官方公众号，"
-        "找到以下公开信息，供你核对：",
+        intro
+        or (
+            "校园 Wiki 暂未收录与这个问题直接相关的词条；我临时联网检索了学院官网/官方公众号，"
+            "找到以下公开信息，供你核对："
+        ),
         "",
     ]
     citations: list[dict] = []
-    for index, row in enumerate(results, start=1):
+    for index, row in enumerate(results, start=start_index):
         title = str(row.get("title") or "未命名来源").strip()
         source_name = str(row.get("account") or row.get("source") or "西工大官方来源").strip()
         date = str(row.get("date") or "").strip()
@@ -764,6 +984,12 @@ def answer(
 
     citations: list[dict] = []
     navigation: dict = {"method": "none", "pages": []}
+    retrieval: dict = {
+        "wiki_used": False,
+        "remote_used": False,
+        "complete": None,
+        "reason": "",
+    }
     fallback_used = True
     pages: list[dict] = []
 
@@ -791,6 +1017,7 @@ def answer(
                     text, max_pages=settings["max_pages"]
                 )
             if pages:
+                retrieval["wiki_used"] = True
                 reply, citations, fallback_used, answer_model, answer_provider = (
                     _answer_from_pages(text, pages, settings, history)
                 )
@@ -798,17 +1025,41 @@ def answer(
                     model_label = answer_model
                 if answer_provider:
                     provider_type = answer_provider
-                if _needs_remote_fallback(reply, citations):
-                    remote_reply, remote_citations = _remote_reply(text)
-                    if remote_citations:
-                        reply = remote_reply
-                        citations = remote_citations
-                        navigation = {"method": "remote", "pages": []}
-                        fallback_used = True
-                        logger.info(
-                            "词条回答未覆盖问题，已转官网/公众号检索：%s 条",
-                            len(remote_citations),
+                decision = _judge_answer_completeness(text, reply, citations)
+                retrieval["complete"] = decision["complete"]
+                retrieval["reason"] = decision["reason"]
+                if decision["need_remote"]:
+                    if citations:
+                        remote_reply, remote_citations = _remote_reply(
+                            text,
+                            start_index=len(citations) + 1,
+                            intro=(
+                                "补充检索：Wiki 已有基础说明，我又查了学院官网/官方公众号，"
+                                "找到以下公开信息，供你核对："
+                            ),
                         )
+                        if remote_citations:
+                            reply = reply.rstrip() + "\n\n" + remote_reply
+                            citations = citations + remote_citations
+                            navigation = {"method": "remote", "pages": []}
+                            fallback_used = True
+                            retrieval["remote_used"] = True
+                            logger.info(
+                                "词条回答不完整，已追加官网/公众号检索：%s 条",
+                                len(remote_citations),
+                            )
+                    else:
+                        remote_reply, remote_citations = _remote_reply(text)
+                        if remote_citations:
+                            reply = remote_reply
+                            citations = remote_citations
+                            navigation = {"method": "remote", "pages": []}
+                            fallback_used = True
+                            retrieval["remote_used"] = True
+                            logger.info(
+                                "词条回答未覆盖问题，已转官网/公众号检索：%s 条",
+                                len(remote_citations),
+                            )
             elif non_campus:
                 reply = _scope_reply(settings)
                 citations = []
@@ -822,6 +1073,8 @@ def answer(
                     citations = remote_citations
                     navigation = {"method": "remote", "pages": []}
                     fallback_used = True
+                    retrieval["remote_used"] = True
+                    retrieval["reason"] = "wiki_no_hit:remote"
                     logger.info("Wiki 无命中，已转官网/公众号检索：%s 条", len(remote_citations))
                 else:
                     reply = _no_hit_reply(settings)
@@ -869,6 +1122,7 @@ def answer(
         "fallback": fallback_used,
         "sources_used": len(citations),
         "navigation": navigation,
+        "retrieval": retrieval,
     }
 
 

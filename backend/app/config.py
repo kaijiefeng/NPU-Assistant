@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 
 APP_NAME = "NPU-Assistant"
-APP_VERSION = "0.1.4"
+APP_VERSION = "0.1.5"
 APP_DESCRIPTION = "校园助手 NPU-Assistant：辅导员数字分身 · LLM Wiki 知识库 · 模型管理 · 微信/QQ 机器人"
 
 # backend/app/config.py -> backend/
@@ -62,6 +62,13 @@ AUTO_SEED = os.environ.get("NPU_AUTO_SEED", "1").strip().lower() not in {"0", "f
 
 # Wiki 无命中时，是否允许转向学院官网/官方公众号做一次临时远程检索。
 # 只用于本次回答的引用，不写入知识库；测试环境默认关闭。
+LLM_COMPLETENESS_JUDGE_ENABLED = os.environ.get("NPU_LLM_JUDGE", "1").strip().lower() not in {
+    "0",
+    "false",
+    "no",
+    "off",
+}
+
 REMOTE_FALLBACK_ENABLED = os.environ.get("NPU_REMOTE_FALLBACK", "1").strip().lower() not in {
     "0",
     "false",
