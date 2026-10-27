@@ -442,6 +442,7 @@ def _clean_refusal_citations(reply: str, citations: list[dict]) -> tuple[str, li
         "未收录",
         "没有直接提到",
         "没有直接规定",
+        "没有直接写明",
         "没有明确提到",
         "无法确认",
         "无法查询",
@@ -511,6 +512,30 @@ def _no_hit_reply(settings: dict[str, Any]) -> str:
 def _remote_results(question: str) -> list[dict]:
     """只在 Wiki 无命中时调用：检索学院官网/官方公众号，不写入知识库。"""
     if not getattr(config, "REMOTE_FALLBACK_ENABLED", True):
+        return []
+    # 只对“找官方信息”的问题联网，避免把个人成绩、生活服务类拒答变成无关引用。
+    markers = (
+        "学院",
+        "官网",
+        "通知",
+        "招生",
+        "名单",
+        "电话",
+        "办公室",
+        "辅导员",
+        "教师",
+        "老师",
+        "课程",
+        "专业",
+        "实验室",
+        "博士",
+        "硕士",
+        "导师",
+        "培养",
+        "考试",
+        "复试",
+    )
+    if not any(marker in question for marker in markers):
         return []
     try:
         payload = remote_search.search_all(

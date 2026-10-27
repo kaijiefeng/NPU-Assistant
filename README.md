@@ -11,8 +11,8 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 > 📘 **普通用户（学生 / 辅导员）请直接看 [图文使用手册](frontend/manual/index.html)**：包含手机截图、短动图和常见问题；运行服务后也可访问 <http://127.0.0.1:8000/manual/index.html>。
 >
 > 🚀 **当前发布版本：v0.1.4**（2026-10-27）· 对应分支 `release`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
-> 🎯 **v0.2.0 数据集已发布**：NPU Student Handbook QA **v2026.20**（473 可答 + 10 不可答；含教师/辅导员/行政人员；检索 100% / 引用 100% / 拒答 100%）；见 **[docs/npu-handbook/release/v2026.20/](docs/npu-handbook/release/v2026.20/)**。
-> ➕ **v2026.20 新增**：学院综合/教务/学工办公室人员、辅导员联系方式；Wiki 无命中时可转官网/公众号临时检索。见 **[docs/npu-handbook/README.md](docs/npu-handbook/README.md)**。
+> 🎯 **v0.2.0 数据集已发布**：NPU Student Handbook QA **v2026.21**（479 可答 + 10 不可答；含王淼等辅导员个人 QA、导师名单；检索 100% / 引用 100% / 拒答 100%）；见 **[docs/npu-handbook/release/v2026.21/](docs/npu-handbook/release/v2026.21/)**。
+> ➕ **v2026.21 新增**：王淼、丁嘉欣、贺睿杰、刘昊旻等辅导员个人职务/职责/联系方式；学院导师/招生教师名单；Wiki 无命中时转官网/公众号临时检索。见 **[docs/npu-handbook/README.md](docs/npu-handbook/README.md)**。
 
 ---
 
