@@ -1,9 +1,11 @@
 # NPU 学生手册数据集（v0.2.0）
 
-状态：**M2–M7 完成，v2026.1 已发布**。
+状态：**v2026.1 已发布；v2026.2-draft 已补充 3 篇官方文档 + 16 条 QA 草案**。
 
-- 可答 QA：300
-- 不可答 QA：10
+- 已入库文档：78 篇
+- Wiki 词条：212
+- 来源锚点：250
+- v2026.1：300 可答 + 10 不可答
 - 检索文档召回：100%
 - 引用文档召回：98%
 - 拒答率：100%
@@ -12,7 +14,7 @@
 
 | 文件 | 作用 |
 |---|---|
-| `sources.json` | 75 篇已入库文档 + 27 个待补官方来源 |
+| `sources.json` | 78 篇已入库文档 + 27 个待补官方来源 |
 | `coverage.csv` | 类别覆盖统计 |
 | `INVENTORY.md` | M2 盘点摘要 |
 | `schema.json` | QA 数据格式 |
@@ -21,12 +23,14 @@
 | `qa-pilot.jsonl` | 50 条试点可答 QA |
 | `qa-pilot-negative.jsonl` | 10 条试点不可答 QA |
 | `QA-REVIEW.md` / `QA-REVIEW-RESULT.md` | 试点复核表与结果 |
-| `qa-dataset.jsonl` | 300 条冻结可答 QA |
-| `qa-dataset-negative.jsonl` | 10 条冻结不可答 QA |
+| `qa-dataset.jsonl` | v2026.1：300 条冻结可答 QA |
+| `qa-dataset-negative.jsonl` | v2026.1：10 条冻结不可答 QA |
 | `DATASET.md` / `DATASET-CHECK.md` | 冻结数据集统计与校验 |
 | `M6-REPORT.md` / `M6-REPORT.json` | 检索/引用/拒答评测 |
 | `release/` | v2026.1 发布文件与 dataset card |
 | `OPEN-SOURCE-SOURCES.md` | NWPU 相关开源资料调研（仅覆盖参考） |
+| `qa-supplement.jsonl` | v2026.2-draft：16 条补充 QA |
+| `SUPPLEMENT.md` | 补充说明 |
 
 ## 数据来源
 
@@ -41,7 +45,7 @@
 ## 构建流程
 
 ```text
-75 篇官方来源
+78 篇官方来源
   → 统一 Markdown 语料（来源、sha256、页码）
   → Wiki 词条页面级 QA（每页 2–3 个问法）
   → 答案取词条摘要，quote 取来源片段
@@ -49,6 +53,7 @@
   → 300 可答 + 10 不可答冻结
   → 检索/引用/拒答评测
   → v2026.1 发布
+  → v2026.2-draft：补充 3 篇官方文档 + 16 条 QA
 ```
 
 ## 评测结果（M6）

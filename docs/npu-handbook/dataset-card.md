@@ -62,3 +62,9 @@ pu-handbook-qa-2026.1.jsonl
 -
 pu-handbook-negative-2026.1.jsonl
 - metrics.json
+
+## v2026.2-draft 补充
+
+- 新增 3 篇官方文档：本科生 GPA 计算办法、本科生选课办法、学生体质健康标准测试评分标准；
+- 新增 16 条补充 QA 草案（qa-supplement.jsonl），待人工复核；
+- v2026.1 发布文件保持不变。

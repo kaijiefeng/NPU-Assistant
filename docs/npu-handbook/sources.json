@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T11:20:34+08:00",
+  "generated_at": "2026-10-27T13:02:58+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -774,6 +774,20 @@
       "in_dataset": true
     },
     {
+      "id": "57dc2c5e351d40aa9ce4801cd78946eb",
+      "title": "西北工业大学学生体质健康标准测试评分标准",
+      "filename": "西北工业大学学生体质健康标准测试评分标准.pdf",
+      "file_ext": ".pdf",
+      "source_type": "file",
+      "source_url": "https://tiyu.nwpu.edu.cn/info/1232/5423.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"学生手册补充\"]",
+      "status": "ready",
+      "page_count": 4,
+      "char_count": 3583,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
       "id": "d45631d951334583970c7d8875119cc5",
       "title": "西北工业大学学生公寓管理办法（试行）",
       "filename": "西北工业大学学生公寓管理办法（试行）.md",
@@ -900,6 +914,20 @@
       "in_dataset": true
     },
     {
+      "id": "a1463745565a4e5995217917895c7f64",
+      "title": "西北工业大学本科生GPA计算办法",
+      "filename": "西北工业大学本科生GPA计算办法.pdf",
+      "file_ext": ".pdf",
+      "source_type": "file",
+      "source_url": "https://jsj.nwpu.edu.cn/info/1544/9514.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"学生手册补充\"]",
+      "status": "ready",
+      "page_count": 2,
+      "char_count": 869,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
       "id": "3826112838b74cb3a6f38bf486e6a0e9",
       "title": "西北工业大学本科生助学金实施细则",
       "filename": "xgb-zdgk-13448.md",
@@ -953,6 +981,20 @@
       "page_count": 3,
       "char_count": 3269,
       "category": "奖助与资助",
+      "in_dataset": true
+    },
+    {
+      "id": "157684a14bac4f71a100f76da63d47dc",
+      "title": "西北工业大学本科生选课办法",
+      "filename": "西北工业大学本科生选课办法.pdf",
+      "file_ext": ".pdf",
+      "source_type": "file",
+      "source_url": "https://jsj.nwpu.edu.cn/info/1544/9514.htm#本科生选课办法",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"学生手册补充\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 2748,
+      "category": "教学与考试",
       "in_dataset": true
     },
     {
