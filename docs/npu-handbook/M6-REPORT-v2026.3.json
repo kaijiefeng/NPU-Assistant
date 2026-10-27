@@ -1,0 +1,5345 @@
+{
+  "summary": {
+    "generated_at": "2026-10-27T14:53:40+08:00",
+    "answerable": 408,
+    "search_cases": 408,
+    "search_doc_recall": 1.0,
+    "chat_cases": 50,
+    "chat_doc_recall": 1.0,
+    "negative_cases": 10,
+    "refusal_rate": 1.0,
+    "search_latency_ms_avg": 77.35049019607843,
+    "chat_latency_ms_avg": 2588.9
+  },
+  "search": [
+    {
+      "id": "npu-handbook-0001",
+      "category": "医疗与医保",
+      "status": 200,
+      "latency_ms": 435,
+      "hit": true,
+      "selected_pages": [
+        "2026年大学生住院医保报销"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0002",
+      "category": "医疗与医保",
+      "status": 200,
+      "latency_ms": 72,
+      "hit": true,
+      "selected_pages": [
+        "2026年大学生住院医保报销"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0003",
+      "category": "医疗与医保",
+      "status": 200,
+      "latency_ms": 91,
+      "hit": true,
+      "selected_pages": [
+        "2026年大学生住院医保报销"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0004",
+      "category": "医疗与医保",
+      "status": 200,
+      "latency_ms": 70,
+      "hit": true,
+      "selected_pages": [
+        "2026年大学生门诊医保报销"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0005",
+      "category": "医疗与医保",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "2026年大学生门诊医保报销"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0006",
+      "category": "医疗与医保",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "2026年大学生门诊医保报销"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0007",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "2026年陕西省课程思政精品课程校内遴选推荐"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0008",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 87,
+      "hit": true,
+      "selected_pages": [
+        "2026年陕西省课程思政精品课程校内遴选推荐"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0009",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 82,
+      "hit": true,
+      "selected_pages": [
+        "2026年陕西省课程思政精品课程校内遴选推荐"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0010",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "2026级新生心理适应讲座"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0011",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "2026级新生心理适应讲座"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0012",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "2026级新生心理适应讲座"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0013",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "2026级新生校园生活适应访谈"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0014",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "2026级新生校园生活适应访谈"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0015",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "2026级新生校园生活适应访谈"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0016",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 104,
+      "hit": true,
+      "selected_pages": [
+        "2026级新生班级破冰活动安排"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0017",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "2026级新生班级破冰活动安排"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0018",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "2026级新生班级破冰活动安排"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0019",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "2026级新生班级破冰活动朋辈志愿者培训",
+        "2026级新生班级破冰活动安排"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0020",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "2026级新生班级破冰活动朋辈志愿者培训",
+        "2026级新生班级破冰活动安排"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0021",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "2026级新生班级破冰活动朋辈志愿者培训",
+        "2026级新生班级破冰活动安排"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0022",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 76,
+      "hit": true,
+      "selected_pages": [
+        "休学与复学"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0023",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "休学与复学"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0024",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "休学与复学"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0025",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "体育场馆个人预约平台"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0026",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "体育场馆个人预约平台"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0027",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 73,
+      "hit": true,
+      "selected_pages": [
+        "体育场馆个人预约平台"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0028",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "体育场馆预约规则与爽约管理",
+        "体育场馆个人预约平台"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0029",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "体育场馆预约规则与爽约管理",
+        "体育场馆个人预约平台"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0030",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 67,
+      "hit": true,
+      "selected_pages": [
+        "体育场馆预约规则与爽约管理",
+        "体育场馆个人预约平台"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0031",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 87,
+      "hit": true,
+      "selected_pages": [
+        "信息主动公开渠道"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0032",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "信息主动公开渠道"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0033",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "信息主动公开渠道"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0034",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 67,
+      "hit": true,
+      "selected_pages": [
+        "信息公开工作体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0035",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "信息公开工作体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0036",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "信息公开工作体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0037",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "信息公开工作年度报告"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0038",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "信息公开工作年度报告"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0039",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 84,
+      "hit": true,
+      "selected_pages": [
+        "信息公开工作年度报告"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0040",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 76,
+      "hit": true,
+      "selected_pages": [
+        "信息公开申请与联系方式",
+        "集成电路学院联系方式",
+        "集体户口登记卡保管与户籍室联系方式"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0041",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "信息公开申请与联系方式"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0042",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "信息公开申请与联系方式"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0043",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "入学与注册"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0044",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "入学与注册"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0045",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "入学与注册"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0046",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "助学贷款办理咨询联系方式"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0047",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "助学贷款办理咨询联系方式"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0048",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 75,
+      "hit": true,
+      "selected_pages": [
+        "助学贷款办理咨询联系方式"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0049",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 70,
+      "hit": true,
+      "selected_pages": [
+        "助研岗位考核与津贴发放监管"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0050",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "助研岗位考核与津贴发放监管"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0051",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "助研岗位考核与津贴发放监管"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0052",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 84,
+      "hit": true,
+      "selected_pages": [
+        "助研岗位设置与导师职责"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0053",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "助研岗位设置与导师职责"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0054",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "助研岗位设置与导师职责"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0055",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "友谊校区图书馆开馆时间"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0056",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 76,
+      "hit": true,
+      "selected_pages": [
+        "友谊校区图书馆开馆时间"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0057",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 84,
+      "hit": true,
+      "selected_pages": [
+        "友谊校区图书馆开馆时间"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0058",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 61,
+      "hit": true,
+      "selected_pages": [
+        "友谊校区餐厅分布"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0059",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 60,
+      "hit": true,
+      "selected_pages": [
+        "友谊校区餐厅分布"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0060",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "友谊校区餐厅分布"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0061",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 89,
+      "hit": true,
+      "selected_pages": [
+        "国家奖助学金申请条件",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0062",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "国家奖助学金申请条件",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0063",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "国家奖助学金申请条件",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0064",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "国家奖助学金申请条件与评审流程",
+        "国家奖助学金申请条件",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0065",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 67,
+      "hit": true,
+      "selected_pages": [
+        "国家奖助学金申请条件与评审流程",
+        "国家奖助学金申请条件",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0066",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "国家奖助学金申请条件与评审流程",
+        "国家奖助学金申请条件",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0067",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 90,
+      "hit": true,
+      "selected_pages": [
+        "国家奖助学金组织机构",
+        "国家奖助学金申请条件与评审流程",
+        "研究生奖学金体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0068",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "国家奖助学金组织机构",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0069",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "国家奖助学金组织机构",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0070",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 70,
+      "hit": true,
+      "selected_pages": [
+        "国家奖助学金评审办法总则",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0071",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 84,
+      "hit": true,
+      "selected_pages": [
+        "国家奖助学金评审办法总则",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0072",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 90,
+      "hit": true,
+      "selected_pages": [
+        "国家奖助学金评审办法总则",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0073",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 84,
+      "hit": true,
+      "selected_pages": [
+        "图书馆概况与馆藏规模"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0074",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "图书馆概况与馆藏规模"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0075",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "图书馆概况与馆藏规模"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0076",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "奖助学金评审信息公开",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0077",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "奖助学金评审信息公开",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0078",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "奖助学金评审信息公开",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0079",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "学生临时困难补助发放标准",
+        "学生临时困难补助申请条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0080",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 67,
+      "hit": true,
+      "selected_pages": [
+        "学生临时困难补助发放标准",
+        "学生临时困难补助申请条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0081",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "学生临时困难补助发放标准",
+        "学生临时困难补助申请条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0082",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "学生临时困难补助申请审批程序",
+        "学生临时困难补助申请条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0083",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "学生临时困难补助申请审批程序",
+        "学生临时困难补助申请条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0084",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 114,
+      "hit": true,
+      "selected_pages": [
+        "学生临时困难补助申请审批程序",
+        "学生临时困难补助申请条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0085",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 91,
+      "hit": true,
+      "selected_pages": [
+        "学生临时困难补助申请条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0086",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 82,
+      "hit": true,
+      "selected_pages": [
+        "学生临时困难补助申请条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0087",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "学生临时困难补助申请条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0088",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓传染病报告制度"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0089",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓传染病报告制度"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0090",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 94,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓传染病报告制度"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0091",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓住宿安全管理",
+        "学生公寓安全与钥匙管理规定",
+        "学生公寓传染病报告制度"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0092",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓住宿安全管理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0093",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓住宿安全管理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0094",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 67,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓入住与分配",
+        "学生公寓住宿安全管理",
+        "学生公寓安全与钥匙管理规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0095",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓入住与分配"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0096",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 70,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓入住与分配"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0097",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓安全与钥匙管理规定",
+        "学生公寓住宿安全管理",
+        "学生公寓探访时间与登记规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0098",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 72,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓安全与钥匙管理规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0099",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 74,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓安全与钥匙管理规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0100",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓探访时间与登记规定",
+        "学生公寓住宿安全管理",
+        "学生公寓安全与钥匙管理规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0101",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 67,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓探访时间与登记规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0102",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 90,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓探访时间与登记规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0103",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "学生处分决定书与送达"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0104",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "学生处分决定书与送达"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0105",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "学生处分决定书与送达"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0106",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "学生安全教育与管理协议书签订"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0107",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "学生安全教育与管理协议书签订"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0108",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "学生安全教育与管理协议书签订"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0109",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "学生安全管理体系与部门职责",
+        "学生公寓住宿安全管理",
+        "学生公寓安全与钥匙管理规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0110",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "学生安全管理体系与部门职责"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0111",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 72,
+      "hit": true,
+      "selected_pages": [
+        "学生安全管理体系与部门职责"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0112",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 75,
+      "hit": true,
+      "selected_pages": [
+        "学生安全管理办法总则与适用范围",
+        "学生管理规定总则与适用范围",
+        "本科生综合测评办法总则与适用范围"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0113",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "学生安全管理办法总则与适用范围"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0114",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "学生安全管理办法总则与适用范围"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0115",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "学生心理委员遴选与基本要求"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0116",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "学生心理委员遴选与基本要求"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0117",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "学生心理委员遴选与基本要求"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0118",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "学生突发事件应急处置"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0119",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 74,
+      "hit": true,
+      "selected_pages": [
+        "学生突发事件应急处置"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0120",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "学生突发事件应急处置"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0121",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "学生安全管理办法总则与适用范围",
+        "学生管理规定总则与适用范围",
+        "本科生综合测评办法总则与适用范围"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0122",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "学生管理规定总则与适用范围"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0123",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "学生管理规定总则与适用范围"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0124",
+      "category": "纪律与申诉",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "学生违纪处分种类"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0125",
+      "category": "纪律与申诉",
+      "status": 200,
+      "latency_ms": 90,
+      "hit": true,
+      "selected_pages": [
+        "学生违纪处分种类"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0126",
+      "category": "纪律与申诉",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "学生违纪处分种类"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0127",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "学院提交与公寓管理中心审核"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0128",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "学院提交与公寓管理中心审核"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0129",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "学院提交与公寓管理中心审核"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0130",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 87,
+      "hit": true,
+      "selected_pages": [
+        "实习实践与实验安全管理",
+        "学生公寓住宿安全管理",
+        "学生公寓安全与钥匙管理规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0131",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "实习实践与实验安全管理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0132",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 82,
+      "hit": true,
+      "selected_pages": [
+        "实习实践与实验安全管理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0133",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生认定办法总则"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0134",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生认定办法总则"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0135",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 82,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生认定办法总则"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0136",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生认定办法施行与解释"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0137",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生认定办法施行与解释"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0138",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生认定办法施行与解释"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0139",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生认定工作程序"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0140",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生认定工作程序"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0141",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 82,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生认定工作程序"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0142",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生认定监督与信息安全管理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0143",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生认定监督与信息安全管理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0144",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生认定监督与信息安全管理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0145",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 76,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生资格复查"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0146",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生资格复查"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0147",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "家庭经济困难学生资格复查"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0148",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "家长心理讲座回放观看",
+        "家长心理讲座：父母的自我关照"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0149",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 67,
+      "hit": true,
+      "selected_pages": [
+        "家长心理讲座回放观看",
+        "家长心理讲座：父母的自我关照"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0150",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "家长心理讲座回放观看",
+        "家长心理讲座：父母的自我关照"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0151",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "家长心理讲座：父母的自我关照"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0152",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 89,
+      "hit": true,
+      "selected_pages": [
+        "家长心理讲座：父母的自我关照"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0153",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "家长心理讲座：父母的自我关照"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0154",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "学生公寓安全与钥匙管理规定",
+        "学生公寓住宿安全管理",
+        "宿舍住宿与钥匙管理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0155",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "宿舍住宿与钥匙管理",
+        "学生公寓安全与钥匙管理规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0156",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "宿舍住宿与钥匙管理",
+        "学生公寓安全与钥匙管理规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0157",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "宿舍水电与设施报修"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0158",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 76,
+      "hit": true,
+      "selected_pages": [
+        "宿舍水电与设施报修"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0159",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "宿舍水电与设施报修"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0160",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "宿舍洗浴与热水供应"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0161",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "宿舍洗浴与热水供应"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0162",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "宿舍洗浴与热水供应"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0163",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "宿舍洗衣房使用"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0164",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "宿舍洗衣房使用"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0165",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "宿舍洗衣房使用"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0166",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "宿舍门禁与供电时间"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0167",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 84,
+      "hit": true,
+      "selected_pages": [
+        "宿舍门禁与供电时间"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0168",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "宿舍门禁与供电时间"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0169",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "对外交流与合作信息公开",
+        "招生信息公开"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0170",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "对外交流与合作信息公开"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0171",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "对外交流与合作信息公开"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0172",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "心理咨询师工作职责与纪律",
+        "心理咨询师管理与考核",
+        "心理咨询预约方式"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0173",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "心理咨询师工作职责与纪律"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0174",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "心理咨询师工作职责与纪律"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0175",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "心理咨询师管理与考核",
+        "心理咨询师工作职责与纪律",
+        "心理咨询预约方式"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0176",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "心理咨询师管理与考核"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0177",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "心理咨询师管理与考核"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0178",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "心理咨询师聘任与资格认定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0179",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "心理咨询师聘任与资格认定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0180",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "心理咨询师聘任与资格认定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0181",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "心理委员培训"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0182",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "心理委员培训"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0183",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "心理委员培训"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0184",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "心理委员工作职责与工作制度"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0185",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "心理委员工作职责与工作制度"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0186",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "心理委员工作职责与工作制度"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0187",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 90,
+      "hit": true,
+      "selected_pages": [
+        "招生信息公开",
+        "对外交流与合作信息公开",
+        "信息主动公开渠道"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0188",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "招生信息公开"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0189",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 61,
+      "hit": true,
+      "selected_pages": [
+        "招生信息公开"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0190",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "提前入住缴费与办理入住",
+        "特殊情形临时入住申请"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0191",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "提前入住缴费与办理入住",
+        "特殊情形临时入住申请"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0192",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 93,
+      "hit": true,
+      "selected_pages": [
+        "提前入住缴费与办理入住",
+        "特殊情形临时入住申请"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0193",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "新版就业网启用"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0194",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 96,
+      "hit": true,
+      "selected_pages": [
+        "新版就业网启用"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0195",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 70,
+      "hit": true,
+      "selected_pages": [
+        "新版就业网启用"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0196",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "新版就业网用人单位账号注册"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0197",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "新版就业网用人单位账号注册"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0198",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "新版就业网用人单位账号注册"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0199",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "新生入学绿色通道",
+        "绿色通道申请流程",
+        "绿色通道小额借款"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0200",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "新生入学绿色通道"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0201",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 92,
+      "hit": true,
+      "selected_pages": [
+        "新生入学绿色通道"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0202",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 72,
+      "hit": true,
+      "selected_pages": [
+        "新生心理测评"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0203",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "新生心理测评"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0204",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "新生心理测评"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0205",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 84,
+      "hit": true,
+      "selected_pages": [
+        "新生户口迁入所需材料",
+        "新生户口迁入办理流程"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0206",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "新生户口迁入所需材料",
+        "新生户口迁入办理流程"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0207",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 76,
+      "hit": true,
+      "selected_pages": [
+        "新生户口迁入所需材料",
+        "新生户口迁入办理流程"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0208",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "新生适应访谈说明会",
+        "2026级新生校园生活适应访谈"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0209",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 90,
+      "hit": true,
+      "selected_pages": [
+        "新生适应访谈说明会",
+        "2026级新生校园生活适应访谈"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0210",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "新生适应访谈说明会",
+        "2026级新生校园生活适应访谈"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0211",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "无线网无感知认证"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0212",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "无线网无感知认证"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0213",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 70,
+      "hit": true,
+      "selected_pages": [
+        "无线网无感知认证"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0214",
+      "category": "纪律与申诉",
+      "status": 200,
+      "latency_ms": 73,
+      "hit": true,
+      "selected_pages": [
+        "旷课处分规定",
+        "学生公寓住宿安全管理",
+        "学生公寓安全与钥匙管理规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0215",
+      "category": "纪律与申诉",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "旷课处分规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0216",
+      "category": "纪律与申诉",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "旷课处分规定"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0217",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 116,
+      "hit": true,
+      "selected_pages": [
+        "星天苑宿舍区"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0218",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "星天苑宿舍区"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0219",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 82,
+      "hit": true,
+      "selected_pages": [
+        "星天苑宿舍区"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0220",
+      "category": "校历与出行",
+      "status": 200,
+      "latency_ms": 92,
+      "hit": true,
+      "selected_pages": [
+        "暑假学生返校校车安排"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0221",
+      "category": "校历与出行",
+      "status": 200,
+      "latency_ms": 121,
+      "hit": true,
+      "selected_pages": [
+        "暑假学生返校校车安排"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0222",
+      "category": "校历与出行",
+      "status": 200,
+      "latency_ms": 87,
+      "hit": true,
+      "selected_pages": [
+        "暑假学生返校校车安排"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0223",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 74,
+      "hit": true,
+      "selected_pages": [
+        "本科生助学金发放与监督",
+        "西北工业大学本科生助学金申请条件",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0224",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "本科生助学金发放与监督",
+        "西北工业大学本科生助学金申请条件",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0225",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "本科生助学金发放与监督",
+        "西北工业大学本科生助学金申请条件",
+        "研究生基本助学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0226",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "本科生助学金评审流程",
+        "西北工业大学本科生助学金申请条件",
+        "国家奖助学金申请条件与评审流程"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0227",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 76,
+      "hit": true,
+      "selected_pages": [
+        "本科生助学金评审流程",
+        "西北工业大学本科生助学金申请条件",
+        "国家奖助学金申请条件与评审流程"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0228",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "本科生助学金评审流程",
+        "西北工业大学本科生助学金申请条件",
+        "国家奖助学金申请条件与评审流程"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0229",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "本科生在读证明线上办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0230",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 75,
+      "hit": true,
+      "selected_pages": [
+        "本科生在读证明线上办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0231",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 106,
+      "hit": true,
+      "selected_pages": [
+        "本科生在读证明线上办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0232",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "本科生奖励办法总则"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0233",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "本科生奖励办法总则"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0234",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "本科生奖励办法总则"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0235",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 71,
+      "hit": true,
+      "selected_pages": [
+        "本科生奖学金细则适用范围与解释",
+        "本科生奖学金评选细则制定与备案",
+        "研究生奖学金体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0236",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "本科生奖学金细则适用范围与解释",
+        "本科生奖学金评选细则制定与备案",
+        "研究生奖学金体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0237",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 72,
+      "hit": true,
+      "selected_pages": [
+        "本科生奖学金细则适用范围与解释",
+        "本科生奖学金评选细则制定与备案",
+        "研究生奖学金体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0238",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "本科生奖学金评审与公示流程",
+        "奖助学金评审信息公开",
+        "研究生奖学金体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0239",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 74,
+      "hit": true,
+      "selected_pages": [
+        "本科生奖学金评审与公示流程",
+        "奖助学金评审信息公开",
+        "研究生奖学金体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0240",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 91,
+      "hit": true,
+      "selected_pages": [
+        "本科生奖学金评审与公示流程",
+        "奖助学金评审信息公开",
+        "研究生奖学金体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0241",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "本科生奖学金评选细则制定与备案",
+        "研究生奖学金体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0242",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 87,
+      "hit": true,
+      "selected_pages": [
+        "本科生奖学金评选细则制定与备案",
+        "研究生奖学金体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0243",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "本科生奖学金评选细则制定与备案",
+        "研究生奖学金体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0244",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 75,
+      "hit": true,
+      "selected_pages": [
+        "本科生综合测评办法总则与适用范围",
+        "研究生综合测评内容与方式"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0245",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "本科生综合测评办法总则与适用范围",
+        "研究生综合测评内容与方式"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0246",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 94,
+      "hit": true,
+      "selected_pages": [
+        "本科生综合测评办法总则与适用范围",
+        "研究生综合测评内容与方式"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0247",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 91,
+      "hit": true,
+      "selected_pages": [
+        "本科生荣誉称号体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0248",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 99,
+      "hit": true,
+      "selected_pages": [
+        "本科生荣誉称号体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0249",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "本科生荣誉称号体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0250",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "本科生请假办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0251",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "本科生请假办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0252",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "本科生请假办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0253",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "本科生销假办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0254",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 76,
+      "hit": true,
+      "selected_pages": [
+        "本科生销假办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0255",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 90,
+      "hit": true,
+      "selected_pages": [
+        "本科生销假办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0256",
+      "category": "网络与校园卡",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "校园卡与电费网费线上充值"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0257",
+      "category": "网络与校园卡",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "校园卡与电费网费线上充值"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0258",
+      "category": "网络与校园卡",
+      "status": 200,
+      "latency_ms": 93,
+      "hit": true,
+      "selected_pages": [
+        "校园卡与电费网费线上充值"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0259",
+      "category": "网络与校园卡",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "校园卡挂失与补办",
+        "校园卡使用规范与有效期",
+        "校园卡挂失"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0260",
+      "category": "网络与校园卡",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "校园卡挂失"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0261",
+      "category": "网络与校园卡",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "校园卡挂失"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0262",
+      "category": "网络与校园卡",
+      "status": 200,
+      "latency_ms": 95,
+      "hit": true,
+      "selected_pages": [
+        "校园卡挂失与补办",
+        "校园卡使用规范与有效期",
+        "校园卡挂失"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0263",
+      "category": "网络与校园卡",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "校园卡挂失与补办",
+        "校园卡挂失"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0264",
+      "category": "网络与校园卡",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "校园卡挂失与补办",
+        "校园卡挂失"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0265",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "校园地助学贷款办理流程"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0266",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "校园地助学贷款办理流程"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0267",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "校园地助学贷款办理流程"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0268",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "校园心理育人资源"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0269",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "校园心理育人资源"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0270",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "校园心理育人资源"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0271",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 75,
+      "hit": true,
+      "selected_pages": [
+        "校设奖学金参评条件与金额",
+        "研究生奖学金体系",
+        "本科生荣誉称号参评基本条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0272",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "校设奖学金参评条件与金额",
+        "研究生奖学金体系",
+        "本科生荣誉称号参评基本条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0273",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 91,
+      "hit": true,
+      "selected_pages": [
+        "校设奖学金参评条件与金额",
+        "研究生奖学金体系",
+        "本科生荣誉称号参评基本条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0274",
+      "category": "校历与出行",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "校车时刻表（友谊校区—长安校区）"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0275",
+      "category": "校历与出行",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "校车时刻表（友谊校区—长安校区）"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0276",
+      "category": "校历与出行",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "校车时刻表（友谊校区—长安校区）"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0277",
+      "category": "校历与出行",
+      "status": 200,
+      "latency_ms": 74,
+      "hit": true,
+      "selected_pages": [
+        "校车预约与乘车须知"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0278",
+      "category": "校历与出行",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "校车预约与乘车须知"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0279",
+      "category": "校历与出行",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "校车预约与乘车须知"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0280",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 67,
+      "hit": true,
+      "selected_pages": [
+        "模范班级评选",
+        "本科生荣誉称号体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0281",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "模范班级评选",
+        "本科生荣誉称号体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0282",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "模范班级评选",
+        "本科生荣誉称号体系"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0283",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 98,
+      "hit": true,
+      "selected_pages": [
+        "毕业派遣与报到证办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0284",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 98,
+      "hit": true,
+      "selected_pages": [
+        "毕业派遣与报到证办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0285",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "毕业派遣与报到证办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0286",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "毕业生就业签约流程",
+        "毕业生就业三方协议签约流程"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0287",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "毕业生就业签约流程",
+        "毕业生就业三方协议签约流程"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0288",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "毕业生就业签约流程",
+        "毕业生就业三方协议签约流程"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0289",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 91,
+      "hit": true,
+      "selected_pages": [
+        "毕业生户口迁出办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0290",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 72,
+      "hit": true,
+      "selected_pages": [
+        "毕业生户口迁出办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0291",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "毕业生户口迁出办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0292",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 72,
+      "hit": true,
+      "selected_pages": [
+        "毕业生档案归档与改派",
+        "毕业生档案转递与保留"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0293",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 61,
+      "hit": true,
+      "selected_pages": [
+        "毕业生档案归档与改派",
+        "毕业生档案转递与保留"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0294",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 84,
+      "hit": true,
+      "selected_pages": [
+        "毕业生档案归档与改派",
+        "毕业生档案转递与保留"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0295",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "毕业生档案转递与保留"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0296",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 91,
+      "hit": true,
+      "selected_pages": [
+        "毕业生档案转递与保留"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0297",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 95,
+      "hit": true,
+      "selected_pages": [
+        "毕业生档案转递与保留"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0298",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "海天苑电动自行车充电桩"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0299",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "海天苑电动自行车充电桩"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0300",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "海天苑电动自行车充电桩"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0301",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "50米跑单项评分标准"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0302",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 91,
+      "hit": true,
+      "selected_pages": [
+        "50米跑单项评分标准"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0303",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 67,
+      "hit": true,
+      "selected_pages": [
+        "GPA成绩等级与绩点换算"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0304",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 84,
+      "hit": true,
+      "selected_pages": [
+        "GPA成绩等级与绩点换算"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0305",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "GPA计算办法与不计入范围"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0306",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "GPA计算办法与不计入范围"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0307",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "体重指数（BMI）单项评分标准"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0308",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "体重指数（BMI）单项评分标准"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0309",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "意愿值选课与直选选课"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0310",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 94,
+      "hit": true,
+      "selected_pages": [
+        "意愿值选课与直选选课"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0311",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "本科生选课办法总则与选课原则"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0312",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "本科生选课办法总则与选课原则"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0313",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "肺活量单项评分标准"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0314",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "肺活量单项评分标准"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0315",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 84,
+      "hit": true,
+      "selected_pages": [
+        "选课流程与补选"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0316",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "选课流程与补选"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0317",
+      "category": "鸿蒙/手机系统",
+      "status": 200,
+      "latency_ms": 83,
+      "hit": true,
+      "selected_pages": [
+        "华为—西工大鸿蒙PC实验局"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0318",
+      "category": "鸿蒙/手机系统",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "华为—西工大鸿蒙PC实验局"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0319",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 92,
+      "hit": true,
+      "selected_pages": [
+        "暑期校园开放日申请与审核流程",
+        "集成电路学院2026年暑期校园开放日报名"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0320",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "暑期校园开放日申请与审核流程",
+        "集成电路学院2026年暑期校园开放日报名"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0321",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "暑期校园开放日申请条件",
+        "集成电路学院2026年暑期校园开放日报名"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0322",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "暑期校园开放日申请条件",
+        "集成电路学院2026年暑期校园开放日报名"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0323",
+      "category": "鸿蒙/手机系统",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "西工大-华为鸿蒙OS菁英班"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0324",
+      "category": "鸿蒙/手机系统",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "西工大-华为鸿蒙OS菁英班"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0325",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院2026年暑期校园开放日报名",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0326",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院2026年暑期校园开放日报名",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0327",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院学科与专业设置",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0328",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 67,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院学科与专业设置",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0329",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院深造与就业",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0330",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院深造与就业",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0331",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院联系方式",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0332",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0333",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 84,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0334",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "集成电路设计与集成系统专业"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0335",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "集成电路设计与集成系统专业"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0336",
+      "category": "鸿蒙/手机系统",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "鸿蒙PC产学研合作方向"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0337",
+      "category": "鸿蒙/手机系统",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "鸿蒙PC产学研合作方向"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0338",
+      "category": "鸿蒙/手机系统",
+      "status": 200,
+      "latency_ms": 71,
+      "hit": true,
+      "selected_pages": [
+        "鸿蒙人才培养与课程共建"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0339",
+      "category": "鸿蒙/手机系统",
+      "status": 200,
+      "latency_ms": 74,
+      "hit": true,
+      "selected_pages": [
+        "鸿蒙人才培养与课程共建"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0340",
+      "category": "鸿蒙/手机系统",
+      "status": 200,
+      "latency_ms": 68,
+      "hit": true,
+      "selected_pages": [
+        "HarmonyOS菁英班招募宣讲会",
+        "西工大-华为鸿蒙OS菁英班"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0341",
+      "category": "鸿蒙/手机系统",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "HarmonyOS菁英班招募宣讲会",
+        "西工大-华为鸿蒙OS菁英班"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0342",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 66,
+      "hit": true,
+      "selected_pages": [
+        "先进集成与可靠性团队概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0343",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "先进集成与可靠性团队概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0344",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "团队主要研究方向"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0345",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "团队主要研究方向"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0346",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "团队负责人王少熙"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0347",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "团队负责人王少熙"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0348",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "电子科学与技术一级学科"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0349",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 82,
+      "hit": true,
+      "selected_pages": [
+        "电子科学与技术一级学科"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0350",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院承担科研项目与重大工程",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0351",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 82,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院承担科研项目与重大工程",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0352",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院研究生培养理念",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0353",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院研究生培养理念",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0354",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 62,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院科研方向与特色",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0355",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 94,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院科研方向与特色",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0356",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 95,
+      "hit": true,
+      "selected_pages": [
+        "集成电路科学与工程一级学科"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0357",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "集成电路科学与工程一级学科"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0358",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "三航杯创新大赛答辩演练会"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0359",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "三航杯创新大赛答辩演练会"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0360",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "全国大学生集成电路创新创业大赛西北分赛区决赛"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0361",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 91,
+      "hit": true,
+      "selected_pages": [
+        "全国大学生集成电路创新创业大赛西北分赛区决赛"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0362",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "研究生优秀毕业生评选"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0363",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "研究生奖学金体系",
+        "研究生奖学金类别",
+        "研究生国家奖学金"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0364",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 88,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院2026届研究生优秀毕业生风采录",
+        "研究生优秀毕业生评选",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0365",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "导师招生学科标注说明"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0366",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "导师招生学科标注说明"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0367",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "混合信号ASIC设计团队概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0368",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "混合信号ASIC设计团队概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0369",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "跨转学科导师招生学科信息",
+        "转学申请与限制条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0370",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "跨转学科导师招生学科信息",
+        "转学申请与限制条件"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0371",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 72,
+      "hit": true,
+      "selected_pages": [
+        "陈楠副研究员简介"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0372",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 73,
+      "hit": true,
+      "selected_pages": [
+        "陈楠副研究员简介"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0373",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 71,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院导师招生学科信息",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0374",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院导师招生学科信息",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0375",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院科研平台",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0376",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 67,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院科研平台",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0377",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 81,
+      "hit": true,
+      "selected_pages": [
+        "魏廷存教授简介"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0378",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 74,
+      "hit": true,
+      "selected_pages": [
+        "魏廷存教授简介"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0379",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "AI+射频研究方向"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0380",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "AI+射频研究方向"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0381",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 70,
+      "hit": true,
+      "selected_pages": [
+        "中兴通讯蓝剑计划人才项目"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0382",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 67,
+      "hit": true,
+      "selected_pages": [
+        "中兴通讯蓝剑计划人才项目"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0383",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 84,
+      "hit": true,
+      "selected_pages": [
+        "中兴通讯蓝剑计划座谈会",
+        "中兴通讯蓝剑计划人才项目"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0384",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 78,
+      "hit": true,
+      "selected_pages": [
+        "中兴通讯蓝剑计划座谈会",
+        "中兴通讯蓝剑计划人才项目"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0385",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "报到证丢失补办",
+        "毕业派遣与报到证办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0386",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 69,
+      "hit": true,
+      "selected_pages": [
+        "报到证丢失补办",
+        "毕业派遣与报到证办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0387",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "李昊东科研成果"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0388",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "毕业派遣与报到证办理"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0389",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "毕业生档案归档与改派",
+        "毕业生档案转递与保留"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0390",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 82,
+      "hit": true,
+      "selected_pages": [
+        "古文化协会"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0391",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 74,
+      "hit": true,
+      "selected_pages": [
+        "古文化协会"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0392",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 93,
+      "hit": true,
+      "selected_pages": [
+        "学生会会员权利与义务"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0393",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 89,
+      "hit": true,
+      "selected_pages": [
+        "学生会会员权利与义务"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0394",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "学生会活动加分标准"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0395",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "学生会活动加分标准"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0396",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 86,
+      "hit": true,
+      "selected_pages": [
+        "学生会组织机构与主席团"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0397",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 90,
+      "hit": true,
+      "selected_pages": [
+        "学生会组织机构与主席团"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0398",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "学生会考勤与全勤加分"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0399",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 77,
+      "hit": true,
+      "selected_pages": [
+        "学生会考勤与全勤加分"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0400",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 65,
+      "hit": true,
+      "selected_pages": [
+        "学生会考核等级与标准"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0401",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 64,
+      "hit": true,
+      "selected_pages": [
+        "学生会考核等级与标准"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0402",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 63,
+      "hit": true,
+      "selected_pages": [
+        "微愿爱心社"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0403",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 87,
+      "hit": true,
+      "selected_pages": [
+        "微电子学院学生会性质与宗旨",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0404",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 79,
+      "hit": true,
+      "selected_pages": [
+        "微电子学院学生会性质与宗旨",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0405",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 85,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院学生社团总览",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0406",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 82,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院学生社团总览",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0407",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 80,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院铸剑8班第二期招生",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0408",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 76,
+      "hit": true,
+      "selected_pages": [
+        "集成电路学院铸剑8班第二期招生",
+        "集成电路学院（微电子学院）概况"
+      ],
+      "error": null
+    }
+  ],
+  "chat": [
+    {
+      "id": "npu-handbook-0001",
+      "category": "医疗与医保",
+      "status": 200,
+      "latency_ms": 1947,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于2026年大学生住院医保报销，学校的规定主要有以下两点：\n\n1. **直接结算（推荐方式）**：正常参保学生持医保电子凭证，在我市医保定点医院办理医保入院手续，出院结算时可直接医保报销 [1]。\n\n2. **未使用医保报销的住院费用**：在待遇期内未使用医保报销的住院费用，可将报销资料提交至校医院医保办，按医保中心相关规定审核报销 [1]。资料查看方式：关注“西北工业大学医院”微信公众号，输入关键词“未使用医保住院”查看 [1]。\n\n**温馨提示**：请提前在支付宝、微信",
+      "conversation_id": "5158574b398c4c749b62b28eb979c03f",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0009",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 3968,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于“2026年陕西省课程思政精品课程校内遴选推荐”，Wiki 词条中收录的内容主要包括以下几部分 [1]：\n\n**一、概述**\n根据陕西省教育厅办公室相关通知要求，学校组织开展2026年陕西省课程思政精品课程和教学团队（本科）的校内遴选推荐工作 [1]。\n\n**二、申报条件（共9条要点）**\n- 课程须已纳入本科人才培养方案、实施学分管理，并至少经过两个学期或两个教学周期的建设完善；校级课程思政示范课程、校级及以上“课程思政大练兵”获奖课程和各类课程思政优秀案例获奖课程优先",
+      "conversation_id": "70202400438441bbb8611c3d2e7a3386",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0017",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 1798,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据《2026级新生班级破冰活动安排》，活动注意事项如下：\n\n- 遵循**自愿参与**原则\n- 遵循**保密尊重**原则\n- 遵循**身心安全**原则\n- 确保活动在**温馨、安全、包容**的氛围中进行 [1]\n\n另外补充一点背景：该活动由经过专题培训的朋辈志愿者带领，培训于9月10日至11日完成，共三场，49名同学参与 [1]。如果你想了解本班具体的活动时间或报名方式，建议咨询辅导员或学院学工办。",
+      "conversation_id": "57a4b63b940c4ac8bd3a881236ad2823",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0025",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 2335,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于体育场馆个人预约平台，学校的主要规定如下：\n\n**平台性质与时间**\n体育场馆个人预约平台于2023年4月10日开始试运行，目的是提升体育场地使用效率、方便师生实时了解场地使用情况 [1]。\n\n**可预约场地（试运行期间仅限羽毛球、乒乓球、网球）** [1]\n- 友谊校区·翱翔训练馆：乒乓球、羽毛球\n- 友谊校区·综合训练馆：网球、羽毛球\n- 友谊校区·西苑体育馆：乒乓球、羽毛球\n- 长安校区·翱翔体育馆：羽毛球\n- 长安校区·综合训练馆：乒乓球\n\n**可使用人员**\n可",
+      "conversation_id": "acb941ea3bb041b5b6a1cfda26f04240",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0033",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 3090,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据校园 Wiki 收录的《信息主动公开渠道》词条，学校主要通过以下渠道主动公开信息 [1]：\n\n**一、网络平台**\n- 学校官网（http://www.nwpu.edu.cn）、信息公开平台、翱翔办公（OA）系统、翱翔门户网站、校园公告平台、学校新闻网等 [1]\n- 2024-2025学年，学校主页网站公开信息 1021 条，校内门户网站 3458 条，新闻网 1302 条，校园公告平台 66 条，专题网 106 条 [1]\n- 英文主页发布信息 127 条 [1]\n- ",
+      "conversation_id": "0924177da7bd471d9fa71d38543e23bb",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0041",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 2451,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于信息公开申请与联系方式，Wiki 词条里主要有以下几点：\n\n**1. 申请渠道**\n学校设有信息公开办公室，信息公开网站（http://xxgk.nwpu.edu.cn/）专门注明了信息公开的内容范围、申请方式和处理程序，建议先到网站查看具体要求再提交申请 [1]。\n\n**2. 依申请公开情况**\n2024-2025 学年，学校共收到师生和公众的信息公开申请 0 项 [1]。\n\n**3. 评议与监督**\n- 师生员工及社会公众对学校信息公开工作整体满意；\n- 2024-2",
+      "conversation_id": "f7cfe9522ef14c1ba81aa1cda1d8b304",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0049",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 2496,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于助研岗位考核与津贴发放监管，学校的主要规定如下：\n\n**一、考核安排**\n- 每学年末，导师根据研究生助研工作表现、科研成果等，对本学年助研岗位进行考核 [1]。\n- 考核结果分为“优秀”“合格”“不合格”三档 [1]。\n\n**二、津贴发放监管**\n- 导师无故累计三个月未按时足额发放助研岗位津贴的，党委学生工作部会警示一次，导师应在一个月内足额补发 [1]。\n- 经警示仍未足额补发的，研究生院暂停该导师次年招生资格 [1]。\n\n**三、管理机制**\n- 研究生院、党委学",
+      "conversation_id": "7420207d49344f95b150c752f1424516",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0057",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 2989,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据校园 Wiki 的《友谊校区图书馆开馆时间》词条，主要内容如下 [1]：\n\n**一、总体安排**\n友谊校区图书馆开放时间分两套：冬春季（10月1日～4月30日）和夏秋季（5月1日～9月30日）[1]。\n\n**二、西馆**\n- 西馆总服务台（西馆二层大厅）：周一至周四 8:00～19:00；周五 8:00～17:30（冬春季）/ 8:00～18:00（夏秋季）；周六至周日 8:30～19:00 [1]\n- 西馆各层书库（2-6层）：同上 [1]\n\n**三、东馆**\n- 东馆",
+      "conversation_id": "9ee900409f5a4015a5aabb6f458e2631",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0065",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 4836,
+      "citation_count": 2,
+      "hit": true,
+      "reply": "国家奖助学金申请与评审的注意事项，按“能不能申—怎么评—钱怎么发—有异议怎么办”四块给你梳理：\n\n**一、先看自己是否符合条件**\n- 所有类别都要满足基本条件：中国国籍、有西工大学籍、热爱祖国拥护党的领导、遵纪守法、诚实守信品德优良 [1][2]。\n- 本科生国家奖学金：二年级以上（含二年级），学习成绩排名和综合考评排名均须位于前10%（含）；未进前10%但达到前30%（含）的，若在道德风尚、学术研究、学科竞赛、创新发明、社会实践、社会工作、体育竞赛、艺术展演等某方面特别优",
+      "conversation_id": "7e7cad96722445119fc23d82cc0f7ac6",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0073",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 2555,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据 Wiki 词条，西北工业大学图书馆是藏、借、阅、研四位一体的综合性研究型现代大学图书馆 [1]。\n\n**馆舍面积**\n- 馆舍总面积约 4.6 万平方米 [1]\n- 友谊校区东、西两馆合计 1.4 万平方米 [1]\n- 长安校区图书馆合计 3.2 万平方米 [1]\n\n**馆藏规模（截至 2018 年 12 月底）**\n- 累计纸质馆藏量达 365 万册 [1]\n- 特藏姜长英航空史料约 5000 册 [1]\n- 历届学位论文约 3.9 万册 [1]\n\n**数据库资源（2",
+      "conversation_id": "c0771668468141c49a33fd22bab4ac4c",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0081",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 2865,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据校园 Wiki 收录的《学生临时困难补助发放标准》，临时困难补助按困难情形分档确定，具体如下 [1]：\n\n- **学生本人罹患重大疾病、遭受严重意外伤害等**：补助最高 **20000 元**。重点考虑治疗期间的生活费用、医疗费用中学生个人承担部分，以及后期身体恢复所需的一定治疗费用等因素 [1]。\n- **学生家庭遭受重大变故、家庭所在地遭遇严重自然灾害等导致经济特别困难**：补助最高 **5000 元**。重点考虑家庭具体情况，满足学生一段时期内在校基本学习生活的经济",
+      "conversation_id": "4f5e42c6845e40c18a9544d30c8440ea",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0089",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 2124,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据《学生公寓传染病报告制度》，主要注意事项如下：\n\n**一、报告义务**\n- 学生本人疑似或确诊患有传染病的，须及时报告学院和公寓管理人员 [1]。\n- 发现公寓内有传染病病人或疑似患者的，也须及时报告学院和公寓管理人员 [1]。\n\n**二、配合要求**\n- 传染病病人和疑似患者在治愈前、或排除传染病疑似前，须服从医院的医疗指导意见，配合相应的住宿调整或隔离 [1]。\n\n简单说就是两点：**及时报告**（本人或发现他人情况都要报）、**服从医疗安排**（配合隔离或住宿调整）",
+      "conversation_id": "c189a4d15b914981881495ef8fb01c0f",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0097",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 2186,
+      "citation_count": 2,
+      "hit": true,
+      "reply": "关于学生公寓安全与钥匙管理，学校的主要规定如下：\n\n**人员进出**\n- 不得协助陌生人进入公寓；对尾随跟入的陌生人有义务劝止 [1]。\n\n**钥匙与门锁**\n- 不得将宿舍钥匙转借他人 [1]。\n- 不得私自换锁或者另加门锁 [1]。\n\n**离舍要求**\n- 离开宿舍时应锁好门窗、切断电器电源，并妥善保管现金及贵重物品 [1]。\n\n**住宿安排**\n- 应严格遵守住宿安排；未办理退宿手续擅自到公寓外住宿的，自行承担由此产生的一切后果 [1]。\n- 应自觉遵守《西北工业大学文",
+      "conversation_id": "cf67f35f231d44bb8c0689448ec7f482",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0105",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 2405,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据校园 Wiki 的《学生处分决定书与送达》词条，这部分主要包含以下内容：\n\n**一、处分决定书应载明的内容**\n1. 学生的基本信息；\n2. 作出处分的事实和证据；\n3. 处分的种类、依据、期限；\n4. 申诉的途径和期限；\n5. 其他必要内容。[1]\n\n**二、作出处分前的程序**\n- 在作出处分或其他不利决定之前，学校会告知学生决定的事实、理由及依据，并告知学生享有陈述和申辩的权利，听取学生的陈述和申辩；\n- 给予处分坚持教育与惩戒相结合，与违纪行为的性质和过错严重程度",
+      "conversation_id": "1fdeb1dc08fc4db98023d9ba0b104336",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0113",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 3102,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于《学生安全管理办法》的总则与适用范围，主要有以下几点需要注意：\n\n**1. 文件基本信息**\n该办法全称为《西北工业大学学生安全管理办法》（校学字〔2021〕51号），于2021年3月5日发布，目的是规范和加强学生安全管理，维护正常教学和生活秩序，保障学生人身和财产安全，促进学生身心健康发展 [1]。\n\n**2. 适用范围（重点注意）**\n- 适用于**除留学生以外**的西北工业大学**全体注册在籍学生** [1]。\n- **留学生另行规定**，其他类别学生参照本办法执行",
+      "conversation_id": "08997969e97445bb8775419c49936646",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0121",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 2398,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据《西北工业大学学生管理规定》（校学字〔2017〕314号），主要规定如下：\n\n**制定依据**\n依据《中华人民共和国教育法》《中华人民共和国高等教育法》《普通高等学校学生管理规定》（教育部令第41号）及有关法律法规和《西北工业大学章程》修订 [2]。\n\n**适用范围**\n适用于学校对接受普通高等学历教育的研究生、本科生（统称学生）的管理 [2]。\n\n**管理理念**\n- 坚持社会主义办学方向，坚持马克思主义的指导地位，全面贯彻国家教育方针；\n- 以立德树人为根本，以理想信",
+      "conversation_id": "c4b61f01ea2c4d9a8d69bf04a9ab7f9b",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0129",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 2276,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据 Wiki 词条 [1]，这一环节是**提前入住申请中由学院汇总材料、公寓管理中心审核排宿**的流程，具体包含：\n\n1. **学院核实并汇总**：学院核实学生提交的提前入住材料，填写汇总表（附件5，一式两份、加盖公章）。\n2. **集中提交纸质材料**：以学院为单位，将汇总表和学生申请资料集中提交到学生公寓管理中心（长安校区启真楼301）。\n3. **发送电子版**：使用学院邮箱将汇总表电子版（附件5）发送至公寓管理中心邮箱 gyglzx@nwpu.edu.cn。\n4. ",
+      "conversation_id": "c06649fec2f2450cb8d4fb57b24c3c9b",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0137",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 1942,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于《家庭经济困难学生认定办法》的施行与解释，主要有以下几点需要注意：\n\n1. **解释与施行主体**：本办法由党委学生工作部（学生处）负责解释，自印发之日起施行 [1]。\n2. **原文件废止**：原《西北工业大学家庭经济困难学生认定办法》（办转字〔2020〕98号）同时废止，自本办法施行起不再适用 [1]。\n3. **印发信息**：本办法由西北工业大学党政办公室于2026年1月30日印发 [1]。\n\n简单说：新办法从印发之日（2026年1月30日）起生效，旧办法同步废止，",
+      "conversation_id": "4e8637ad8e3d4930ab492f6fd5829625",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0145",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 2613,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据校园 Wiki 收录的《家庭经济困难学生资格复查》词条，学校的规定要点如下：\n\n**1. 复查频次与组织方**\n党委学生工作部（学生处）和培养单位认定工作组每学年对全部家庭经济困难学生进行一次资格复查，并不定期随机抽选一定比例的学生进行核实 [1]。\n\n**2. 核实方式**\n主要通过信件、电话、实地走访等方式进行 [1]。\n\n**3. 弄虚作假的处理**\n如发现并核实弄虚作假现象，将：\n1. 收回资助资金；\n2. 取消在校期间申请资助的资格；\n3. 情节严重的，除批评教",
+      "conversation_id": "f3d8aae51c3c40018d19535d78a10733",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0153",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 3112,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据校园 Wiki 收录的《家长心理讲座：父母的自我关照》词条，这场讲座由学生心理健康教育中心于 5 月 25 日晚 19:00 面向全体学生家长线上举办，主讲人为上海交通大学张洪英副教授，我校学生心理健康教育中心主任刘欣主持 [1]。主要内容包括：\n\n**1. 讲座三大主题**\n- **看见孩子**：结合大学生心理发展规律与脑科学研究，分析成年早期阶段的核心发展任务，帮助家长理解孩子“情绪丰富而理性控制力尚在发展”的特点；指出人际关系、家庭关系与学业压力是学生心理困扰的主要",
+      "conversation_id": "7e8c1e3c34ab49e78a00892e444f9d6c",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0161",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 2368,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于宿舍洗浴和热水供应，主要有以下几点注意事项：\n\n**1. 热水供应时间**\n- 宿舍楼热水供应时间为 **19:00-00:30**，部分节假日会根据情况调整，建议留意通知 [1]。\n\n**2. 洗浴扣费方式**\n- 洗浴时把校园卡（一卡通）插入浴室读卡器，再打开热水开关即可开始洗浴 [1]。\n- 注意：**每次插入一卡通默认扣掉两分钱**，插入后无论是否开启花洒都会扣钱，所以不用时记得及时拔卡 [1]。\n\n**3. 改装浴室需用“云达人”app**\n- 部分宿舍楼改装升",
+      "conversation_id": "6bbaaac54757453cac8465d299be5322",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0169",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 2270,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于对外交流与合作信息的公开，学校主要通过多种渠道及时、准确地向师生和社会公开相关信息，具体规定如下：\n\n**公开渠道**\n学校通过 OA 系统、国际合作处网站、国际教育学院网站、微信公众号以及学校新闻网等平台进行信息公开 [1]。\n\n**公开内容**\n- 学校国际交流合作相关制度，会第一时间向师生公开、宣传最新规章制度 [1]；\n- 校级领导干部因公出国（境）情况，通过国际合作处网站向社会公开，接受社会监督 [1]；\n- 中外合作办学情况，通过学校新闻网、国际合作处网站、微",
+      "conversation_id": "48d98ef97daa43e68c18eaa860a42fc8",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0177",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 3126,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据校园 Wiki 中《心理咨询师管理与考核》词条，这份文件主要规定了心理中心对专兼职心理咨询师的日常管理、督导培训、学年考核和劳务费发放等内容 [1]。具体包括：\n\n**1. 培养要求**\n- 咨询师须参加心理中心组织的定期督导和案例研讨活动 [1]\n- 每学期至少按要求完成一次个案报告 [1]\n- 积极参加心理中心举办的各项培训活动 [1]\n\n**2. 考核评价**\n- 每学年由心理中心从咨询服务质量、案例研讨与团体督导参与情况、各项专业培训参与情况等方面进行综合考核评价",
+      "conversation_id": "47d8390fb5b148d3a4448b2780c0ad51",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0185",
+      "category": "心理健康",
+      "status": 200,
+      "latency_ms": 3085,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于心理委员的工作职责与注意事项，Wiki 词条主要从**工作职责**和**工作制度**两方面作了说明，要点如下：\n\n**一、工作职责（4 项）**\n1. 积极宣传心理健康知识，及时发布校内外相关心理健康教育信息；\n2. 负责本班级心理健康教育活动的规划、组织和协调；\n3. 敏锐观察班级同学的心理动态，及时通过辅导员、班主任上报心理危机情况；\n4. 主动关心他人，为有需要的同学开展朋辈辅导，提供情感支持和心理疏导。[1]\n\n**二、工作制度（需特别注意的 5 条）**\n- *",
+      "conversation_id": "a798cd05c52f46e09294cb1a933bc754",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0193",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 2017,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据校园 Wiki 的记载，学校于 **2025 年 9 月 1 日**启用新版就业网，主要规定如下：\n\n- **网址**：新版就业网为 job.nwpu.edu.cn [1]\n- **账号注册**：由于新版网站与原就业网的账号注册规则不同，各用人单位需按新版就业网的要求**重新注册**新的用户信息 [1]\n- **问题反馈**：网站上线初期难免存在问题，使用中遇到的情况可发送至 job@nwpu.edu.cn，学校会及时优化 [1]\n\n需要说明的是，这条词条主要面向用人单位",
+      "conversation_id": "1772ea684ef64133b44dc8e7dd0bea32",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0201",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 2146,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "“新生入学绿色通道”是学校在每年新生入学报到时，针对家庭经济困难学生优先办理入学手续的资助政策，主要包含以下内容：\n\n1. **缓交学费、住宿费**（统称“缓交学费”）\n2. **发放小额借款**\n\n也就是说，家庭经济困难的新生可以通过绿色通道先办理入学手续，不用因学费、住宿费问题而耽误报到 [1]。\n\n另外补充两点注意事项：\n- 缓交学费的具体期限按照计划财务部的有关要求执行 [1]。\n- 该办法由党委学生工作部（学生处）负责解释 [1]。\n\n如果你需要了解申请条件或具体办",
+      "conversation_id": "809c5578f717474b8b3dc14e1d8f77b2",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0209",
+      "category": "其他",
+      "status": 200,
+      "latency_ms": 2691,
+      "citation_count": 2,
+      "hit": true,
+      "reply": "关于新生适应访谈说明会，Wiki 词条里能确认的信息如下：\n\n**说明会基本情况**\n- 10月8日下午14:00，心理中心面向各培养单位开展线上新生校园生活适应访谈说明会 [1]。\n- 参会对象为各培养单位新生辅导员；会上心理中心专职教师胡纯逐项说明了访谈工作实施细则，并解答了辅导员疑问 [1]。\n\n**会议提出的注意事项（要求）**\n- 强调新生适应访谈是精准把握新生心理状态、提供个性化成长支持的重要举措，呼吁新生辅导员高度重视、主动配合、认真落实 [1][2]。\n- 要",
+      "conversation_id": "ed52dbdd15e543148ab5d98a1f148405",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0217",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 2793,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于星天苑宿舍区，Wiki 词条里的信息如下：\n\n**总体配置**\n星天苑宿舍区包括 C、D、E、F、G 五座男生公寓，以及 A、B 座和 H 座。各楼均配有地热水、暖气、校园无线 WIFI 覆盖；**空调需学生自行租赁** [1]。\n\n**房型结构**\n- **C、D、E、F、G 座（男生公寓）**：每幢楼由南北楼和中间连接单元三部分组成，宿舍为大走廊结构；一层设公共洗衣房，每层各单元均设有各自的卫生间、盥洗室和淋浴间，并有公共活动室；南、北楼分别采用错层设计，分为长短两个",
+      "conversation_id": "047b1b9c8c1f4c8099a6f9f372ada8f7",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0225",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 2921,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据校园 Wiki 中《本科生助学金发放与监督》词条，主要内容分为三部分 [1]：\n\n**一、资助标准与发放**\n- 学校助学金资助标准与国家助学金二等资助标准持平，每年分 10 个月发放 [1]。\n- 国家助学金具体资助标准，根据国家当年通知文件和我校家庭经济困难学生人数确定 [1]。\n- 党委学生工作部（学生处）负责将受资助学生名单及发放额度报计划财务部，由计划财务部统一发放 [1]。\n\n**二、监督与处理**\n- 受资助学生应接受所在培养单位、班级、同学以及家长的监督，",
+      "conversation_id": "f4750763b9f24999b9cf92459f89ccb6",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0233",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 2797,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据《本科生奖励办法总则》词条，主要注意事项如下：\n\n**1. 适用对象要看清**\n本办法适用于 **2019 级及以后入学**的全日制在校普通本科生、预科生；奖励对象为具有西北工业大学学籍的全日制在校普通本科生及其所在班级、集体、团队 [1]。\n\n**2. 奖励形式分两类**\n- 精神奖励：授予荣誉称号；\n- 物质奖励：给予奖学金 [1]。\n\n**3. 基本原则**\n- 公平、公正、公开；\n- 学校统筹、培养单位为主；\n- 以德为先，强化价值引领，体现个性化发展与全面发展的",
+      "conversation_id": "b6b58944cc944434a0be7ca5b34df21d",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0241",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 1789,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据校园 Wiki 的收录，本科生奖学金评选细则的制定与备案规定如下：\n\n**结论：** 各培养单位需依据学校本科生奖励办法制定本单位的具体评选细则，报党委学生工作部（学生处）备案，并在组织实施前公布 [1]。\n\n**要点：**\n- **制定主体**：各培养单位 [1]\n- **备案部门**：党委学生工作部（学生处）[1]\n- **公布时间**：相关细则应在组织实施前予以公布 [1]\n- **注意事项**：细则须报送党委学生工作部（学生处）备案后方可组织实施 [1]\n\n如果你",
+      "conversation_id": "0e95eb07e93044e78632798f91157d29",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0249",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 3372,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据校园 Wiki 的《本科生荣誉称号体系》词条，本科生荣誉称号分为**集体荣誉称号**和**个人荣誉称号**两类 [1]。\n\n**一、集体荣誉称号（4 项）** [1]\n- 先进班级：每年评选不超过 60 个\n- 模范班级：每年评选不超过 10 个\n- 先进学生团队：在学风引领、创新创业、体育文艺、社会公益四方面表现优秀，每年评选不超过 60 个\n- 模范学生团队：为学校赢得重大声誉，每年评选不超过 10 个\n\n**二、个人荣誉称号** [1]\n分为单项荣誉和综合荣誉两类。",
+      "conversation_id": "75feca05df88470f8e95282acc22dc51",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0257",
+      "category": "网络与校园卡",
+      "status": 200,
+      "latency_ms": 1820,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于“校园卡与电费网费线上充值”，词条中给出的注意事项主要有两点：\n\n1. **网费套餐**：网费套餐会在缴费页面清楚注明，大家可以根据自己的需要自行选择 [1]。\n2. **线上充值前提**：线上充值需要先下载并登录“西北工业大学”APP [1]。\n\n另外补充一点相关操作信息：电费、网费与校园卡充值都可以通过“西北工业大学”APP 线上完成；校园卡还可以通过校园卡服务窗口、自助设备线下充值 [1]。\n\n如果你在具体操作中遇到问题，建议咨询辅导员或校园卡服务窗口。",
+      "conversation_id": "9773f1e8e5b847e5a8cbe60aee9c1053",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0265",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 2507,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于校园地助学贷款的办理流程，根据学校 Wiki 的规定，主要如下：\n\n**承办银行与申请方式**\n校园地助学贷款由中国银行承办，学生需通过中国银行手机银行申请当年的国家助学贷款，并签订电子贷款合同 [1]。\n\n**办理流程**\n1. 学生通过中国银行手机银行申请当年国家助学贷款并签订电子贷款合同 [1]。\n2. 学杂费金额于当年 10—12 月由银行分批次转入学校国家助学贷款专用账户，生活费发放到学生的中国银行卡里 [1]。\n3. 学校学生资助服务中心收到银行发放名单汇总后",
+      "conversation_id": "97ee19bdbd48468ba9c670909a9b36c2",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0273",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 2329,
+      "citation_count": 2,
+      "hit": true,
+      "reply": "根据校园 Wiki 收录的《校设奖学金参评条件与金额》，主要内容如下 [1]：\n\n**一、总体说明**\n研究生校设奖学金分为「校设特等奖学金」和「校设普通奖学金」两类，且校设奖学金之间不能互相兼得 [1]。\n\n**二、校设特等奖学金**\n- 获得者原则上须获得优秀研究生标兵荣誉称号；\n- 每年评选不超过 10 人；\n- 每人奖励 30000 元 [1]。\n\n**三、校设普通奖学金**\n参评条件（满足其一即可）：\n- 研究生综合测评成绩需为同年级所在专业前 40% 以内；\n- ",
+      "conversation_id": "71a97ca6a50748a99e8d1709c0797e21",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0281",
+      "category": "奖助与资助",
+      "status": 200,
+      "latency_ms": 2454,
+      "citation_count": 2,
+      "hit": true,
+      "reply": "关于模范班级评选，Wiki 词条里能确认的要点如下：\n\n**1. 评选定位**\n模范班级是在“先进班级”条件基础上评选的，要求建设成效特别突出、影响积极广泛，能在校内外发挥示范标杆作用 [1]。\n\n**2. 名额与奖励**\n- 每年评选总数不超过 10 个 [1][2]；\n- 获评班级可获得 10000 元班级建设经费 [1]。\n\n**3. 评选方式**\n- 各培养单位可推荐 1 个班级参评 [1]；\n- 流程为：培养单位初评推荐 → 学校组织答辩评审 → 全校统一评选 → ",
+      "conversation_id": "8828a30b0a934b1fa6dfde431150740c",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0289",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 2415,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "毕业生户口迁出按学历层次区分办理单位和流程，主要规定如下：\n\n**本科和硕士毕业生**\n- 负责单位：保卫处户籍室、太白路派出所、东大派出所\n- 具体要求参见本科和硕士毕业生户口迁移须知 [1]\n\n**博士毕业生**\n- 负责单位：太白路派出所\n- 迁移至省内：持集体户口登记卡到接收方办理落户手续\n- 迁移至省外：持集体户口登记卡、报到证或其他接收材料到太白路派出所办理户口迁移证 [1]\n\n**户口属地管理说明**\n自2020年秋季学期开始，新入学的本科、硕士生户口按属地管理",
+      "conversation_id": "51404d8caae640fbb3b5ae5a3b78d6ee",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0297",
+      "category": "就业与档案",
+      "status": 200,
+      "latency_ms": 2299,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据校园 Wiki 的《毕业生档案转递与保留》词条，主要内容如下：\n\n**1. 档案包含的材料**\n毕业生档案包含学籍卡、成绩单、评语、获奖证明、党团材料等原始材料 [1]。\n\n**2. 档案去向**\n- 毕业未就业学生的档案，一般可转至生源地人事部门 [1]；\n- 或按规定在学校保留两年 [1]。\n\n**3. 注意事项（改派相关）**\n改派后凭新报到证和就业通知书（白联）办理户口与档案；档案仍在学校的，将白联交学校档案馆，由档案馆发出档案 [1]。\n\n以上就是该词条收录的全",
+      "conversation_id": "1f41999ba714470f82055aa75da249ac",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0305",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 2151,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于 GPA 计算办法与不计入范围，学校的规定如下：\n\n**一、绩点怎么算**\n- 学分绩点 = 课程绩点 × 课程学分\n- GPA（平均学分绩点）= 学分绩点总和 ÷ 课程学分总和 [1]\n\n**二、哪些不计入 GPA**\n- 以两级制（P 和 NP）计分的课程\n- 中期退课的课程\n- 免修课程 [1]\n\n**三、重修与补考**\n- 重修和补考课程考核合格后，课程绩点均按 1.0 进行 GPA 计算 [1]\n\n**四、哪些模块计入 GPA**\n- 培养方案中个性发展（含辅修",
+      "conversation_id": "825b1f55464349c3b8f4f76df0c3d73e",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0313",
+      "category": "教学与考试",
+      "status": 200,
+      "latency_ms": 3660,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于肺活量单项评分标准，学校按**性别**和**年级（大一大二 / 大三大四）**分别划线，单位为毫升，分优秀、良好、及格、不及格四档 [1]。\n\n**男生标准（毫升，每档依次为大一大二 / 大三大四）** [1]\n- 优秀：100 分 5040/5140；95 分 4920/5020；90 分 4800/4900\n- 良好：85 分 4550/4650；80 分 4300/4400\n- 及格：78 分 4180/4280；76 分 4060/4160；74 分 3940/4",
+      "conversation_id": "c47ade4f8fd443e593d5c567bb905473",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0321",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 2596,
+      "citation_count": 2,
+      "hit": true,
+      "reply": "关于集成电路学院（微电子学院）2026年暑期校园开放日的申请条件，主要规定如下 [1]：\n\n1. **基本要求**：拥护中国共产党的领导，品德良好，遵纪守法，身心健康 [1]。\n2. **学术志向**：有志于从事学术研究，有较强的科研能力，并且有意愿到该院继续深造 [1]。\n3. **院校/专业背景**：须为“双一流”院校或所学专业在全国学科评估中排名 A 类的三年级在校本科生 [1]。\n4. **成绩要求**：学习成绩优秀，专业排名在 40% 以前的综合表现优异者（如在校期",
+      "conversation_id": "d61b912ad5cb4e96a05fa4f25a708525",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0329",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 2342,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于集成电路学院的深造与就业情况，Wiki 词条中的相关信息如下：\n\n**深造情况**\n- 本科毕业生可继续攻读相关学科硕士研究生，本科毕业生深造率保持在 **71% 以上**，研究生就业率 **100%** [1]。\n\n**就业渠道**\n- 主要为科研院所、高校、知名微电子与集成电路企业等，例如：中国航天科技集团公司第九研究院第771、772研究所，中国航空工业第618、631研究所，中国电子科技集团公司第58研究所，海思半导体有限公司，中兴通讯股份有限公司等 [1]。\n\n",
+      "conversation_id": "e0dc05e23ecd4c5bbbb90e59233a7bce",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0337",
+      "category": "鸿蒙/手机系统",
+      "status": 200,
+      "latency_ms": 3102,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据校园 Wiki 收录的《鸿蒙PC产学研合作方向》词条，这是西北工业大学与华为在 2026 春季交流座谈会上明确的合作方向，主要信息如下 [1]：\n\n**一、西工大提出的三项建议**\n1. 申请成立**工业软件虚拟教研室**，联合国内高校打造工业软件产学研共同体，对接国产化工业软件研发需求 [1]。\n2. **细化鸿蒙班人才培养方案**，联合华为开发专属教材与课程体系，打造拔尖鸿蒙人才培养阵地 [1]。\n3. **拓展鸿蒙PC应用场景**，从高校教学延伸至航空、自动化等行业",
+      "conversation_id": "5e5e77633f104d7688bb87e011f48e45",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0345",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 2227,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据 Wiki 词条，先进集成与可靠性团队设有三个主要研究方向 [1]：\n\n1. **先进集成微系统**：面向高性能、高集成、低功耗电子系统需求，围绕专用集成电路芯片、射频微系统集成、先进封装等关键技术开展研究，涉及航空航天、电子信息装备等应用场景 [1]。\n2. **芯片与微系统可靠性**：面向复杂工况和高可靠应用场景，重点研究芯片与微系统散热、失效分析、电子元器件与制造工艺可靠性评价等 [1]。\n3. **生物微电子**：面向智能医疗与新型电子器件交叉前沿，围绕新一代心电",
+      "conversation_id": "90173b032971438c9c588a83f3c37ded",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0353",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 1843,
+      "citation_count": 2,
+      "hit": true,
+      "reply": "根据 Wiki 词条，集成电路学院（微电子学院）的研究生培养理念要点如下：\n\n**总体理念**\n- 秉承学校“低调务实、兼收并蓄，厚积薄发、为国铸剑”的总师型人才培养理念，以“立德树人”为根本 [1]。\n\n**培养定位**\n- 聚焦集成电路领域国际学术前沿与国家重大战略需求 [1]；\n- 紧扣“卡脖子”技术突破与产业高质量发展需求 [1]；\n- 构建“基础扎实、专业精深、系统协同、实践导向”的拔尖创新人才培养体系 [1]。\n\n另外补充一条学院背景信息：学院 2015 年获批建",
+      "conversation_id": "0cb5e0f735d4413eb1a1b6fcf7e3cf67",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0361",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 3023,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于全国大学生集成电路创新创业大赛西北分赛区决赛，Wiki 词条收录的主要是第九届赛事的情况，要点如下：\n\n**赛事定位**\n- 该赛事是全国集成电路领域最大规模、最高档次的高校赛事，由工业和信息化部人才交流中心主办 [1]。\n\n**第九届西北分赛区基本情况**\n- 时间地点：7月18—20日在西北工业大学友谊校区举办；本届西北分赛区由我校继第七届后第二次承办，微电子学院协办 [1]。\n- 赛制规模：西北分赛区共设置23个杯赛，吸引陕西、山西、宁夏、青海、甘肃、新疆、内蒙古等",
+      "conversation_id": "938e04c16ac049d39df9c45b20e51cdc",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0369",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 2523,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于跨转学科导师的招生学科，根据集成电路学院（微电子学院）的相关信息，规定如下：\n\n**招生学科范围**：跨转学科导师的招生学科均为以下四类 [1]：\n- 集成电路科学与工程\n- 新一代电子信息技术（含量子技术等）\n- 集成电路工程\n- 人工智能\n\n**涉及导师所在学院**：目前列出的跨转学科导师来自材料学院、机电学院、计算机学院三个学院 [1]。\n\n**各学院导师名单**：\n- **材料学院**：高峰、查钢强、傅茂森、王洪强、徐飞、徐亚东（均为教授、博硕导）[1]\n- **",
+      "conversation_id": "ca55eb4282f844cfb46954716cc4e214",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0377",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 2690,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "关于魏廷存教授，Wiki 词条里收录的是他的个人简介信息，不是一项“规定”，我按词条内容为你梳理如下：\n\n- **身份**：西北工业大学集成电路学院教授、博士生导师，（日本）東北大学工学博士，在日本留学和工作近十年 [1]。\n- **人才计划**：入选西安市“5211”人才引进计划 [1]。\n- **研究方向**：主要从事模拟与混合信号专用集成电路设计方面的研究与人才培养 [1]。\n- **科研业绩**：主持研发成功国内首款 TFT-LCD 驱动控制芯片以及数字电源 SoC ",
+      "conversation_id": "97dae381a5384d5cb43a603e74308466",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0385",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 1996,
+      "citation_count": 2,
+      "hit": true,
+      "reply": "关于报到证丢失补办，学校的规定如下：\n\n**补办条件**\n毕业生毕业后两年内《报到证》丢失可以补办；毕业两年后遗失的不予补发，就业中心可开具《报到证遗失证明》[1]。\n\n**所需材料**\n- 毕业证复印件\n- 身份证复印件\n- 《就业通知书》（《报到证》下半联，简称“白联”，存在学生档案中）的复印件\n- 本人提交的书面报到证丢失补办申请 [1]\n\n**办理流程**\n到就业中心领取《西北工业大学毕业生报到证丢失补办申请表》，填写后到相关部门盖章，经陕西省教育厅批准后进行补办 [",
+      "conversation_id": "20254f02fedf48c7975f2727bddceff9",
+      "error": null
+    },
+    {
+      "id": "npu-handbook-0393",
+      "category": "集成电路学院",
+      "status": 200,
+      "latency_ms": 2605,
+      "citation_count": 1,
+      "hit": true,
+      "reply": "根据《学生会会员权利与义务》词条，主要信息如下 [1]：\n\n**一、会员资格**\n凡取得西北工业大学学籍的微电子学院在读本科生，不分种族、民族、性别及宗教信仰，均为本会会员 [1]。\n\n**二、基本权利**\n- 在本会内享有平等的选举权、被选举权和表决权 [1]；\n- 在符合本会章程规定的民主程序下，讨论和决定本会重大事务，参加本会组织的各种活动 [1]；\n- 有权通过正当途径和方式，对本会各级组织和干部及其工作进行监督、批评和提出建议 [1]；\n- 本院学生受到不正当待遇时",
+      "conversation_id": "8fdb962b627649188bebdbfa00bb80a7",
+      "error": null
+    }
+  ],
+  "negative": [
+    {
+      "id": "npu-handbook-neg-001",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 4873,
+      "citation_count": 0,
+      "hit": false,
+      "reply": "关于食堂退款的问题，Wiki 词条暂未收录相关规定，我无法给出确切答复，也不便猜测具体流程。\n\n建议你通过以下渠道确认：\n- 直接咨询就餐餐厅的现场工作人员或餐厅管理方；\n- 联系饮食服务部门，长安校区饮食服务电话为 88430306 ；\n- 或向你的辅导员、学院学工办咨询，由他们协助对接后勤部门。\n\n另外提醒：各餐厅营业安排等具体事项均以学校最新官方通知和现场公告为准 。",
+      "conversation_id": "1e6d8a5c499944b6a88c549d238cfb0c",
+      "error": null,
+      "refused": true
+    },
+    {
+      "id": "npu-handbook-neg-002",
+      "category": "学位与论文",
+      "status": 200,
+      "latency_ms": 1290,
+      "citation_count": 0,
+      "hit": false,
+      "reply": "抱歉，校园 Wiki 暂未收录与这个问题直接相关的词条，我暂时无法给出可靠答复，也不想给你编造政策细节。\n\n你可以试试：\n1. 换一种说法再问我一次，补充更具体的关键词（如事项类型、时间、学院）；\n2. 通过以下咨询渠道确认：辅导员本人、学院学工办或学校相关职能部门；\n3. 查看学校官网或学生手册上的最新通知。\n\n我是辅导员数字分身「小南」。如果涉及心理危机、人身安全等紧急情况，请立即联系辅导员本人，或拨打学校保卫处、心理中心电话（紧急医疗请拨打 120）。",
+      "conversation_id": "68f3c9d8fec54a5693711bb1923fcb1b",
+      "error": null,
+      "refused": true
+    },
+    {
+      "id": "npu-handbook-neg-003",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 1787,
+      "citation_count": 0,
+      "hit": false,
+      "reply": "抱歉，校园 Wiki 暂未收录与这个问题直接相关的词条，我暂时无法给出可靠答复，也不想给你编造政策细节。\n\n你可以试试：\n1. 换一种说法再问我一次，补充更具体的关键词（如事项类型、时间、学院）；\n2. 通过以下咨询渠道确认：辅导员本人、学院学工办或学校相关职能部门；\n3. 查看学校官网或学生手册上的最新通知。\n\n我是辅导员数字分身「小南」。如果涉及心理危机、人身安全等紧急情况，请立即联系辅导员本人，或拨打学校保卫处、心理中心电话（紧急医疗请拨打 120）。",
+      "conversation_id": "7f89ff560bb64ab4ba09da8ac3101e74",
+      "error": null,
+      "refused": true
+    },
+    {
+      "id": "npu-handbook-neg-004",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 1862,
+      "citation_count": 0,
+      "hit": false,
+      "reply": "关于校园停车收费的具体标准，**Wiki 暂未收录**，我无法给出准确金额或计费规则，也不便猜测。\n\n建议你通过以下渠道确认：\n- 咨询你的辅导员本人或学院学工办；\n- 联系学校保卫处（校园交通与车辆管理通常由其负责）；\n- 查看财务处网站或 OA 系统发布的收费项目公示信息——学校会面向社会公开收费项目、收费依据与标准 。\n\n最终以学校官方通知为准。",
+      "conversation_id": "fb97438c0abd451182af38d1ad4e2839",
+      "error": null,
+      "refused": true
+    },
+    {
+      "id": "npu-handbook-neg-005",
+      "category": "图书馆与文体",
+      "status": 200,
+      "latency_ms": 2257,
+      "citation_count": 0,
+      "hit": false,
+      "reply": "关于体育馆的具体收费标准，**Wiki 暂未收录**，我无法给出准确的收费项目和金额，也不便猜测。\n\n建议你通过以下渠道确认：\n- 咨询辅导员本人或所在学院学工办；\n- 直接联系体育场馆管理部门（如体育部/场馆管理中心）查询最新收费公示。\n\n另外，学校严格落实教育收费公示制度，收费项目、依据与标准会面向社会公开，你也可以留意财务处网站、微信公众号等官方渠道发布的收费公示信息 。最终以学校官方通知为准。",
+      "conversation_id": "58a63c641d734f89aa7bfd614215979e",
+      "error": null,
+      "refused": true
+    },
+    {
+      "id": "npu-handbook-neg-006",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 2166,
+      "citation_count": 0,
+      "hit": false,
+      "reply": "关于在宿舍养宠物的问题，**Wiki 词条暂未收录**明确规定，我不能凭猜测给你答复。\n\n从词条能确认的相关信息是：学生在公寓住宿须严格遵守国家和学校关于学生公寓管理的相关规章制度，违反或不服从管理规定造成安全危害的，将给予批评教育或处分 。但“养宠物”是否属于被禁止或需审批的情形，词条中没有写明。\n\n建议你通过以下渠道确认：\n- 直接咨询你的辅导员本人；\n- 联系学院学工办；\n- 咨询学生公寓管理中心（住宿管理相关事宜）。\n\n请以学校官方通知和公寓管理规定的最新版本为准。",
+      "conversation_id": "3535bf43915d43a881e772a4860876ca",
+      "error": null,
+      "refused": true
+    },
+    {
+      "id": "npu-handbook-neg-007",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 2303,
+      "citation_count": 0,
+      "hit": false,
+      "reply": "抱歉，校园 Wiki 暂未收录与这个问题直接相关的词条，我暂时无法给出可靠答复，也不想给你编造政策细节。\n\n你可以试试：\n1. 换一种说法再问我一次，补充更具体的关键词（如事项类型、时间、学院）；\n2. 通过以下咨询渠道确认：辅导员本人、学院学工办或学校相关职能部门；\n3. 查看学校官网或学生手册上的最新通知。\n\n我是辅导员数字分身「小南」。如果涉及心理危机、人身安全等紧急情况，请立即联系辅导员本人，或拨打学校保卫处、心理中心电话（紧急医疗请拨打 120）。",
+      "conversation_id": "903016a3957c439299b75a8a5c76a345",
+      "error": null,
+      "refused": true
+    },
+    {
+      "id": "npu-handbook-neg-008",
+      "category": "宿舍与生活",
+      "status": 200,
+      "latency_ms": 1837,
+      "citation_count": 0,
+      "hit": false,
+      "reply": "关于校园内共享单车的数量，**Wiki 词条暂未收录**，我无法给出准确数字。\n\n本次可查到的词条只涉及长安校区海天苑电动自行车充电桩的相关信息（位置、插口数量、启用时间等），其中没有共享单车投放量的内容。\n\n如需了解共享单车相关情况，建议你：\n- 咨询辅导员本人或所在学院学工办；\n- 联系学校后勤产业集团等职能部门获取官方数据。\n\n请以学校官方通知为准。",
+      "conversation_id": "add99ec7dd744244b88f4e4a1234820a",
+      "error": null,
+      "refused": true
+    },
+    {
+      "id": "npu-handbook-neg-009",
+      "category": "安全与户籍",
+      "status": 200,
+      "latency_ms": 2828,
+      "citation_count": 0,
+      "hit": false,
+      "reply": "抱歉，这个我无法提供。校长个人手机号属于个人隐私，不在校园 Wiki 词条收录范围内，我不能编造或透露。\n\n如果你有需要联系学校的事项，建议通过以下正规渠道：\n- 联系你的辅导员本人或学院学工办，由他们协助转达或对接；\n- 通过学校官网公布的校长信箱、校务服务热线等官方渠道反映问题。\n\n具体联系方式请以学校官方通知和官网公布的信息为准。",
+      "conversation_id": "0c914b03917f4888a866e257286b95cd",
+      "error": null,
+      "refused": true
+    },
+    {
+      "id": "npu-handbook-neg-010",
+      "category": "学籍管理",
+      "status": 200,
+      "latency_ms": 3268,
+      "citation_count": 0,
+      "hit": false,
+      "reply": "你的具体成绩排名我这边查不到——Wiki 词条里只有测评规则，没有个人成绩数据。\n\n关于排名，有两点可以确认：\n\n- 综合测评中的**学业成绩测评**以学生参评学年的学业成绩为主要指标，以**教务部门提供的学业成绩**为主要依据，由各培养单位制定细则并组织审核认定 。\n- 国家奖学金要求学习成绩排名与综合考评成绩排名均位于前 10%（含），特殊情况可放宽至前 30%（含）。\n\n想查自己的排名，建议你：\n1. 登录教务系统查看学业成绩与排名；\n2. 向学院学工办或辅导员本人确认",
+      "conversation_id": "cddd55f62f5f450e9088a4e45297d347",
+      "error": null,
+      "refused": true
+    }
+  ]
+}

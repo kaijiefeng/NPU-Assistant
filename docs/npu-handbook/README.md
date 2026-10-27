@@ -1,24 +1,19 @@
 # NPU 学生手册数据集（v0.2.0）
 
-状态：**v2026.1 已发布；v2026.2 已构建 389 可答 + 10 不可答；新增 3 篇 IC 学生组织文档与 20 条 QA 待并入 v2026.3**。
+状态：**v2026.3 已发布：408 可答 + 10 不可答；检索 100% / 引用 100% / 拒答 100%**。
+
+## 当前规模
 
 - 已入库文档：101 篇
 - Wiki 词条：262
 - 来源锚点：307
-- v2026.1：300 可答 + 10 不可答
-- v2026.2-draft：389 可答 + 10 不可答
-- 检索文档召回：100%
-- 引用文档召回：98%
-- 拒答率：100%
-- v2026.2 检索文档召回：100%
-- v2026.2 引用文档召回：94%
-- v2026.2 拒答率：100%
+- v2026.3：408 可答 + 10 不可答
 
 ## 文件
 
 | 文件 | 作用 |
 |---|---|
-| `sources.json` | 84 篇已入库文档 + 27 个待补官方来源 |
+| `sources.json` | 101 篇已入库文档 + 27 个待补官方来源 |
 | `coverage.csv` | 类别覆盖统计 |
 | `INVENTORY.md` | M2 盘点摘要 |
 | `schema.json` | QA 数据格式 |
@@ -29,13 +24,20 @@
 | `QA-REVIEW.md` / `QA-REVIEW-RESULT.md` | 试点复核表与结果 |
 | `qa-dataset.jsonl` | v2026.1：300 条冻结可答 QA |
 | `qa-dataset-negative.jsonl` | v2026.1：10 条冻结不可答 QA |
-| `DATASET.md` / `DATASET-CHECK.md` | 冻结数据集统计与校验 |
-| `M6-REPORT.md` / `M6-REPORT.json` | 检索/引用/拒答评测 |
-| `release/` | v2026.1 发布文件与 dataset card |
+| `DATASET.md` / `DATASET-CHECK.md` | v2026.1 统计与校验 |
+| `M6-REPORT.md` / `M6-REPORT.json` | v2026.1 评测 |
+| `qa-dataset-v2026.2.jsonl` | v2026.2：389 条可答 |
+| `qa-dataset-negative-v2026.2.jsonl` | v2026.2：10 条不可答 |
+| `DATASET-V2026.2.md` | v2026.2 统计 |
+| `M6-REPORT-v2026.2.md` / `.json` | v2026.2 评测 |
+| `qa-dataset-v2026.3.jsonl` | v2026.3：408 条可答 |
+| `qa-dataset-negative-v2026.3.jsonl` | v2026.3：10 条不可答 |
+| `DATASET-V2026.3.md` | v2026.3 统计 |
+| `M6-REPORT-v2026.3.md` / `.json` | v2026.3 评测 |
+| `release/` | v2026.1 / v2026.3 发布文件与 dataset card |
 | `OPEN-SOURCE-SOURCES.md` | NWPU 相关开源资料调研（仅覆盖参考） |
-| `qa-supplement.jsonl` | v2026.2-draft：GPA/选课/体测 16 条补充 QA |
-| `qa-supplement-ic.jsonl` | v2026.2-draft：集成电路/鸿蒙 26 条补充 QA |
-| `SUPPLEMENT.md` / `SUPPLEMENT-IC.md` | 补充说明 |
+| `qa-supplement*.jsonl` | 补充 QA 草案与已复核记录 |
+| `SUPPLEMENT*.md` | 补充说明 |
 
 ## 数据来源
 
@@ -45,36 +47,39 @@
 - 西工大校内官方公众号；
 - 官网附件/学院公开 PDF、DOC、DOCX。
 
-参考的开源数据集/项目（HUST-Student-Handbook2、CampusIQ、Campus-AI-RAG、university-information）只用于分类法、评测方法和字段设计，**未导入任何外校内容**。
+重点补充：
+
+- 集成电路学院（微电子学院）：学院简介、本科专业、学科、科研平台、科研团队、导师、竞赛、就业、铸剑班、学生会、社团；
+- 鸿蒙/手机系统：鸿蒙 OS 菁英班、鸿蒙 PC 实验局、软件学院鸿蒙宣讲；
+- 本科生制度：GPA、选课、体测评分标准。
+
+参考的开源项目只用于分类法、评测方法和字段设计，**未导入任何外校内容**。
 
 ## 构建流程
 
 ```text
-98 篇官方来源
+101 篇官方来源
   → 统一 Markdown 语料（来源、sha256、页码）
-  → Wiki 词条页面级 QA（每页 2–3 个问法）
-  → 答案取词条摘要，quote 取来源片段
-  → 自动校验 + 页面级筛选
-  → 300 可答 + 10 不可答冻结
+  → Wiki 词条页面级 QA
+  → 自动校验 + 引用命中复核
+  → v2026.3：408 可答 + 10 不可答
   → 检索/引用/拒答评测
-  → v2026.1 发布
-  → v2026.2-draft：补充 23 篇官方文档 + 100 条 QA
 ```
 
-## 评测结果（M6）
+## 评测结果（v2026.3）
 
 | 指标 | 结果 |
 |---|---:|
-| 检索文档召回 | **100%**（300/300） |
-| 端到端引用文档召回 | **98%**（49/50 抽样） |
+| 检索文档召回 | **100%**（408/408） |
+| 端到端引用文档召回 | **100%**（50/50 抽样） |
 | 不可答拒答率 | **100%**（10/10） |
-| 检索平均耗时 | 82 ms |
-| 回答平均耗时 | 2326 ms |
+| 检索平均耗时 | 77 ms |
+| 回答平均耗时 | 2589 ms |
 
 ## 已知局限
 
 - 答案来自 Wiki 摘要，不是逐字法条；
-- 问题围绕 Wiki 词条，细粒度条款问答覆盖仍有限；
+- 引用召回为 50 条抽样，不是 408 条全量；
 - 完整本科生/研究生学生手册未在公开网页找到；
 - 发布前建议人工抽查 10%。
 
@@ -83,9 +88,7 @@
 ```powershell
 .\.venv\Scripts\python.exe scripts\handbook_inventory.py
 .\.venv\Scripts\python.exe scripts\handbook_extract.py
-.\.venv\Scripts\python.exe scripts\handbook_qa_pilot.py
-.\.venv\Scripts\python.exe scripts\handbook_qa_check.py
 .\.venv\Scripts\python.exe scripts\handbook_page_dataset.py
 .\.venv\Scripts\python.exe scripts\handbook_dataset_check.py
-.\.venv\Scripts\python.exe scripts\eval_handbook_dataset.py --chat-limit 50
+.\.venv\Scripts\python.exe scripts\eval_handbook_v2026_3.py --chat-limit 50
 ```

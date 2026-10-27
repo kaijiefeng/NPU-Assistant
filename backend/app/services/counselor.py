@@ -448,6 +448,7 @@ def _clean_refusal_citations(reply: str, citations: list[dict]) -> tuple[str, li
     if not any(marker in reply[:260] for marker in markers):
         return reply, citations
     cleaned = re.sub(r"\n+参考词条：.*$", "", reply, flags=re.S).rstrip()
+    cleaned = re.sub(r"\[\d+\]", "", cleaned).rstrip()
     return cleaned, []
 
 
