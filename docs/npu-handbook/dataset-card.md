@@ -49,3 +49,8 @@ pu-handbook-qa-2026.10.jsonl
 -
 pu-handbook-negative-2026.10.jsonl
 - metrics.json
+
+## v2026.11-draft 待补 QA
+
+- 新增 2 篇官方文档：微电子科学与工程专业教学计划、学科概况；
+- 两篇文档暂未生成可复核 QA，后续补问法。
