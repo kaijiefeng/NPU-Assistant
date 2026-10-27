@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T14:12:28+08:00",
+  "generated_at": "2026-10-27T14:16:16+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -690,6 +690,20 @@
       "in_dataset": true
     },
     {
+      "id": "0581b2eb25fa4cb991aa297807ee8b5a",
+      "title": "第九届全国大学生集成电路创新创业大赛西北分赛区决赛",
+      "filename": "第九届全国大学生集成电路创新创业大赛西北分赛区决赛.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/1137/6374.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"学科竞赛\"]",
+      "status": "ready",
+      "page_count": 2,
+      "char_count": 961,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
       "id": "f1085788e7a84099ae8e661a97ed3dbe",
       "title": "西北工业大学2024-2025学年信息公开工作年度报告",
       "filename": "99636A5BCE1773BD7430977A235_A60C1D8B_48658.pdf",
@@ -1222,6 +1236,20 @@
       "in_dataset": true
     },
     {
+      "id": "b40dd04d52f847dfa7a3bf3366ca7509",
+      "title": "软件学院华为HarmonyOS菁英班招募宣讲会",
+      "filename": "软件学院华为HarmonyOS菁英班招募宣讲会.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://ruanjian.nwpu.edu.cn/info/1010/4431.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"鸿蒙\", \"手机系统\", \"校企合作\"]",
+      "status": "ready",
+      "page_count": 1,
+      "char_count": 550,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
       "id": "992d334c8aa043989d9c77f76ee0c922",
       "title": "迎新：校园日常攻略（住宿、洗浴、洗衣、自习、网络）",
       "filename": "迎新：校园日常攻略（住宿、洗浴、洗衣、自习、网络）.md",
@@ -1233,6 +1261,34 @@
       "page_count": 3,
       "char_count": 2256,
       "category": "宿舍与生活",
+      "in_dataset": true
+    },
+    {
+      "id": "2dc43ef11fc248f58b85a2e1507a1ac8",
+      "title": "集成电路学院2026届研究生优秀毕业生风采录",
+      "filename": "集成电路学院2026届研究生优秀毕业生风采录.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/1137/16753.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"就业深造\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 2280,
+      "category": "就业与档案",
+      "in_dataset": true
+    },
+    {
+      "id": "2beca9b4b460441483c4517f5995d9de",
+      "title": "集成电路学院三航杯创新大赛答辩演练会",
+      "filename": "集成电路学院三航杯创新大赛答辩演练会.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/info/1137/16763.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"学科竞赛\"]",
+      "status": "ready",
+      "page_count": 1,
+      "char_count": 695,
+      "category": "学位与论文",
       "in_dataset": true
     }
   ],

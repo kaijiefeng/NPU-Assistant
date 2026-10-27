@@ -10,8 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "backend/data/app.db"
 CORPUS = ROOT / "docs/npu-handbook/corpus"
-OUT = ROOT / "docs/npu-handbook/qa-supplement-ic2.jsonl"
-REPORT = ROOT / "docs/npu-handbook/SUPPLEMENT-IC2.md"
+OUT = ROOT / "docs/npu-handbook/qa-supplement-ic3.jsonl"
+REPORT = ROOT / "docs/npu-handbook/SUPPLEMENT-IC3.md"
 
 
 def norm(text: str) -> str:
@@ -36,11 +36,11 @@ def main() -> int:
     con.close()
     records = []
     seen = set()
-    existing = ROOT / "docs/npu-handbook/qa-supplement-ic.jsonl"
-    if existing.exists():
-        for line in existing.read_text(encoding="utf-8").splitlines():
-            if line.strip():
-                seen.add(json.loads(line)["question"])
+    for existing in (ROOT / "docs/npu-handbook/qa-supplement-ic.jsonl", ROOT / "docs/npu-handbook/qa-supplement-ic2.jsonl"):
+        if existing.exists():
+            for line in existing.read_text(encoding="utf-8").splitlines():
+                if line.strip():
+                    seen.add(json.loads(line)["question"])
     for title, summary, doc_title, url, quote, section in rows:
         if not summary or norm(quote) not in corpus:
             continue
