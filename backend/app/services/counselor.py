@@ -23,7 +23,7 @@ import time
 from typing import Any
 
 from .. import config, db
-from . import llm, text_utils, wiki_nav
+from . import llm, remote_search, text_utils, wiki_nav
 
 logger = logging.getLogger("npu-assistant")
 
@@ -508,6 +508,94 @@ def _no_hit_reply(settings: dict[str, Any]) -> str:
     )
 
 
+def _remote_results(question: str) -> list[dict]:
+    """只在 Wiki 无命中时调用：检索学院官网/官方公众号，不写入知识库。"""
+    if not getattr(config, "REMOTE_FALLBACK_ENABLED", True):
+        return []
+    try:
+        payload = remote_search.search_all(
+            question,
+            source_ids=["nwpu-ic", "nwpu-www", "wechat-ic"],
+            limit=3,
+        )
+    except Exception:  # pragma: no cover - 网络/反爬异常不应影响回答
+        logger.exception("联网补充检索失败")
+        return []
+    results: list[dict] = []
+    seen: set[str] = set()
+    for row in payload.get("results") or []:
+        if row.get("error") or not row.get("url"):
+            continue
+        key = str(row.get("url") or row.get("title") or "")
+        if not key or key in seen:
+            continue
+        snippet = _shorten(row.get("snippet") or row.get("content"), 240)
+        if not snippet:
+            continue
+        seen.add(key)
+        results.append({**row, "snippet": snippet})
+        if len(results) >= 3:
+            break
+    return results
+
+
+def _needs_remote_fallback(reply: str, citations: list[dict]) -> bool:
+    """有词条但回答明确说未收录、且没有引用时，允许再查一次官网/公众号。"""
+    if citations:
+        return False
+    head = str(reply or "")[:160]
+    return any(
+        marker in head
+        for marker in ("暂未收录", "没有收录", "无法提供", "无法给出", "查不到")
+    )
+
+
+def _remote_reply(question: str) -> tuple[str, list[dict]]:
+    """把官网/公众号检索结果整理为带来源的回答；不调用模型、不编造细节。"""
+    results = _remote_results(question)
+    if not results:
+        return "", []
+    lines = [
+        "校园 Wiki 暂未收录与这个问题直接相关的词条；我临时联网检索了学院官网/官方公众号，"
+        "找到以下公开信息，供你核对：",
+        "",
+    ]
+    citations: list[dict] = []
+    for index, row in enumerate(results, start=1):
+        title = str(row.get("title") or "未命名来源").strip()
+        source_name = str(row.get("account") or row.get("source") or "西工大官方来源").strip()
+        date = str(row.get("date") or "").strip()
+        meta = " · ".join(part for part in (source_name, date) if part)
+        lines.append(f"[{index}] 《{title}》" + (f"（{meta}）" if meta else ""))
+        lines.append(f"    {row['snippet']}")
+        citations.append(
+            {
+                "index": index,
+                "page_id": "",
+                "page_title": title,
+                "summary": row["snippet"],
+                "snippet": row["snippet"],
+                "sources": [
+                    {
+                        "document_id": "",
+                        "document_title": title,
+                        "source_file": str(row.get("url") or ""),
+                        "section": meta,
+                        "quote": row["snippet"],
+                    }
+                ],
+            }
+        )
+    lines.extend(
+        [
+            "",
+            "以上为公开网页/公众号的检索摘要，具体以原文和学院最新通知为准；"
+            "如果信息不一致，请优先联系辅导员或学院学工办确认。",
+        ]
+    )
+    return "\n".join(lines), citations
+
+
 # ---------------------------------------------------------------------------
 # 主入口（跨模块契约，见 docs/CONTRACT.md §6；签名保持不变）
 # ---------------------------------------------------------------------------
@@ -591,16 +679,35 @@ def answer(
                     model_label = answer_model
                 if answer_provider:
                     provider_type = answer_provider
+                if _needs_remote_fallback(reply, citations):
+                    remote_reply, remote_citations = _remote_reply(text)
+                    if remote_citations:
+                        reply = remote_reply
+                        citations = remote_citations
+                        navigation = {"method": "remote", "pages": []}
+                        fallback_used = True
+                        logger.info(
+                            "词条回答未覆盖问题，已转官网/公众号检索：%s 条",
+                            len(remote_citations),
+                        )
             elif non_campus:
                 reply = _scope_reply(settings)
                 citations = []
                 fallback_used = True
                 logger.info("识别为非校园话题，返回服务范围说明")
             else:
-                # 校园问题无命中：礼貌说明 + 咨询渠道，不调用回答模型，避免编造
-                reply = _no_hit_reply(settings)
-                citations = []
-                fallback_used = True
+                # 校园问题无命中：先尝试官网/公众号临时检索；仍无结果再礼貌说明
+                remote_reply, remote_citations = _remote_reply(text)
+                if remote_citations:
+                    reply = remote_reply
+                    citations = remote_citations
+                    navigation = {"method": "remote", "pages": []}
+                    fallback_used = True
+                    logger.info("Wiki 无命中，已转官网/公众号检索：%s 条", len(remote_citations))
+                else:
+                    reply = _no_hit_reply(settings)
+                    citations = []
+                    fallback_used = True
     except Exception:
         logger.exception("问答编排发生未预期错误，返回兜底回复")
         reply = (

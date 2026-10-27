@@ -1,6 +1,6 @@
 {
   "version": "2026.1-draft",
-  "generated_at": "2026-10-27T17:37:49+08:00",
+  "generated_at": "2026-10-27T17:56:44+08:00",
   "note": "M2 来源盘点：documents 为当前已入库；targets 为 v0.2.0 待补官方来源。",
   "documents": [
     {
@@ -1568,6 +1568,20 @@
       "status": "ready",
       "page_count": 2,
       "char_count": 1199,
+      "category": "其他",
+      "in_dataset": true
+    },
+    {
+      "id": "3e79d7e77f604c728ba7ecf33accf00e",
+      "title": "集成电路学院联系我们（行政/教务/学工人员）",
+      "filename": "集成电路学院联系我们（行政-教务-学工人员）.md",
+      "file_ext": ".md",
+      "source_type": "url",
+      "source_url": "https://weidianzi.nwpu.edu.cn/xygk/lxwm.htm",
+      "tags": "[\"真实数据\", \"校园公开资料\", \"集成电路学院\", \"教师与辅导员\", \"行政人员\"]",
+      "status": "ready",
+      "page_count": 3,
+      "char_count": 1558,
       "category": "其他",
       "in_dataset": true
     },

@@ -95,6 +95,44 @@ def test_chat_no_hit_returns_polite_fallback(client, seeded_wiki, fake_llm, real
     assert "咨询" in data["reply"]
 
 
+def test_chat_no_hit_routes_to_official_remote(
+    client, seeded_wiki, fake_llm, real_model, monkeypatch
+):
+    from app import config
+    from app.services import counselor
+
+    monkeypatch.setattr(config, "REMOTE_FALLBACK_ENABLED", True)
+
+    def fake_search_all(query, **kwargs):
+        return {
+            "query": query,
+            "results": [
+                {
+                    "source": "西北工业大学集成电路学院",
+                    "title": "集成电路学院某通知",
+                    "url": "https://weidianzi.nwpu.edu.cn/info/1/2.htm",
+                    "snippet": "这是学院官网公开通知的摘要。",
+                    "date": "2026-10-01",
+                    "account": "",
+                    "origin": "remote",
+                }
+            ],
+            "errors": [],
+        }
+
+    monkeypatch.setattr(counselor.remote_search, "search_all", fake_search_all)
+    data = _chat(client, "集成电路学院某个没有收录的问题").json()
+
+    assert data["navigation"]["method"] == "remote"
+    assert data["citations"]
+    assert data["citations"][0]["page_title"] == "集成电路学院某通知"
+    assert data["citations"][0]["sources"][0]["source_file"].startswith(
+        "https://weidianzi.nwpu.edu.cn/"
+    )
+    assert "联网检索" in data["reply"]
+    assert "以原文" in data["reply"]
+
+
 def test_chat_multiturn_and_history_structure(client, seeded_wiki, fake_llm, real_model):
     first = _chat(client, QUESTION).json()
     conversation_id = first["conversation_id"]
