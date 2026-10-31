@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from .. import config, db
+from ..security import ADMIN_TOKEN_HEADER, verify_admin_token
 
 router = APIRouter(tags=["system"])
 
@@ -79,19 +80,31 @@ def health() -> dict:
 
 @router.post("/system/admin-token/init")
 def init_admin_token(payload: AdminTokenInit, request: Request) -> dict:
-    """First-run setup: enable the server-side admin token from the local UI.
+    """首次启用或轮换服务端管理令牌。
 
-    Only allowed when no token is configured yet, and only from loopback. The
-    token is persisted to ``backend/data/admin_token.txt`` (gitignored) so it
-    survives restarts; an explicit ``NPU_ADMIN_TOKEN`` env var always wins.
+    * 未启用时：仅允许本机请求初始化；
+    * 已启用时：允许本机请求，或携带「当前」``X-Admin-Token`` 的请求轮换
+      （避免只能在浏览器保存新令牌、服务端仍校验旧令牌）；
+    * 令牌持久化到 ``backend/data/admin_token.txt``（gitignored）以便重启后生效；
+      显式设置 ``NPU_ADMIN_TOKEN`` 环境变量时始终以环境变量为准，不允许在 UI 轮换。
     """
-    if config.ADMIN_TOKEN:
-        raise HTTPException(status_code=409, detail="服务端已启用管理令牌，不能重复初始化")
-    if not _is_loopback_client(request):
-        raise HTTPException(status_code=403, detail="只能在本机初始化管理令牌")
+    if os.environ.get("NPU_ADMIN_TOKEN", "").strip():
+        raise HTTPException(
+            status_code=409,
+            detail="管理令牌由环境变量 NPU_ADMIN_TOKEN 控制，请在部署配置中修改并重启服务",
+        )
     token = (payload.token or "").strip()
     if len(token) < 16:
         raise HTTPException(status_code=400, detail="管理令牌至少 16 位，建议 24 位以上随机串")
+
+    loopback = _is_loopback_client(request)
+    rotated = bool(config.ADMIN_TOKEN)
+    if rotated and not loopback:
+        # 已启用时，远程轮换必须证明自己知道当前令牌
+        verify_admin_token(request.headers.get(ADMIN_TOKEN_HEADER))
+    elif not rotated and not loopback:
+        raise HTTPException(status_code=403, detail="只能在本机初始化管理令牌")
+
     config.ADMIN_TOKEN = token
     path = config.DATA_DIR / "admin_token.txt"
     try:
@@ -103,7 +116,12 @@ def init_admin_token(payload: AdminTokenInit, request: Request) -> dict:
             pass
     except OSError as exc:
         raise HTTPException(status_code=500, detail=f"令牌已生效，但写入本地文件失败：{exc}") from exc
-    return {"ok": True, "admin_token_required": True, "persisted": str(path.name)}
+    return {
+        "ok": True,
+        "admin_token_required": True,
+        "rotated": rotated,
+        "persisted": str(path.name),
+    }
 
 
 @router.get("/system/info")

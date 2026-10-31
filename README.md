@@ -10,7 +10,7 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 >
 > 📘 **普通用户（学生 / 辅导员）请直接看 [图文使用手册](frontend/manual/index.html)**：包含手机截图、短动图和常见问题；运行服务后也可访问 <http://127.0.0.1:8000/manual/index.html>。
 >
-> 🚀 **当前发布版本：v0.1.5**（2026-10-27）· 对应分支 `release`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
+> 🚀 **当前开发版本：v0.1.6**（2026-10-31）· 分支 `feat/v0.1.6-qq-official-ws`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
 > 🎯 **v0.2.0 数据集已发布**：NPU Student Handbook QA **v2026.21**（479 可答 + 10 不可答；含王淼等辅导员个人 QA、导师名单；检索 100% / 引用 100% / 拒答 100%）；见 **[docs/npu-handbook/release/v2026.21/](docs/npu-handbook/release/v2026.21/)**。
 > ➕ **v2026.21 新增**：王淼、丁嘉欣、贺睿杰、刘昊旻等辅导员个人职务/职责/联系方式；学院导师/招生教师名单；Wiki 无命中时转官网/公众号临时检索。见 **[docs/npu-handbook/README.md](docs/npu-handbook/README.md)**。
 
@@ -266,7 +266,7 @@ Wiki 编译与高质量回答都依赖真实 LLM；默认的 mock 模型只用�
 | `NPU_WIKI_SEED_PATH` | `backend/data/wiki_seed.json` | 预编译 Wiki 快照路径 |
 | `NPU_MAX_UPLOAD_MB` | `20` | 单文件上传上限 |
 | `NPU_AUTO_SEED` | `1` | 首启是否自动导入 Wiki 快照 |
-| `NPU_ADMIN_TOKEN` | 空 | 设置后管理类写操作与历史会话接口需 `X-Admin-Token` 请求头（学生问答 `POST /api/chat`、GET、机器人 webhook 不受影响） |
+| `NPU_ADMIN_TOKEN` | 空 | 设置后管理类写操作与历史会话接口需 `X-Admin-Token` 请求头（学生问答 `POST /api/chat`、GET、机器人 webhook 不受影响）；也可在设置页首次启用/替换（环境变量优先，环境变量存在时 UI 轮换返回 409） |
 | `NPU_CORS_ORIGINS` | 空 | CORS 白名单（逗号分隔）；默认关闭，同源 SPA 不需要 |
 | `NPU_ALLOW_INSECURE_LAN` | `0` | 对外监听且未设管理令牌时，服务默认拒绝启动；仅可信内网临时演示可设 `1` |
 | `NPU_BOT_ALLOW_INSECURE` | `0` | 机器人 webhook 空 token 逃生开关，仅限本机调试 |
@@ -292,7 +292,7 @@ $env:NPU_SEED_MODEL="deepseek-chat"                    # 可选
 
 ## 九、QQ 官方 / QQ / 微信机器人接入
 
-- **QQ 官方开放平台机器人（v0.2.0，推荐）**：在 QQ 开放平台创建机器人后，把 **AppID / AppSecret** 填入 `qq_official` 通道即可；服务启动后主动连接腾讯 WebSocket 网关，**不需要公网 IP、域名或 Webhook**，私聊与群内 @ 消息通过开放平台 HTTP API 被动回复（带 `msg_id`）。调试期可勾选「沙箱环境」。详见 [docs/BOT-INTEGRATION.md](docs/BOT-INTEGRATION.md) 第 3 节。
+- **QQ 官方开放平台机器人（v0.1.6，推荐）**：在 QQ 开放平台创建机器人后，把 **AppID / AppSecret** 填入 `qq_official` 通道即可；服务启动后主动连接腾讯 WebSocket 网关，**不需要公网 IP、域名或 Webhook**，私聊与群内 @ 消息通过开放平台 HTTP API 被动回复（带 `msg_id`）。调试期可勾选「沙箱环境」。详见 [docs/BOT-INTEGRATION.md](docs/BOT-INTEGRATION.md) 第 3 节。
 - **QQ（NapCat / OneBot 11）**：NapCat 侧配置「HTTP 服务器」（默认 `127.0.0.1:3000`，Token 与通道 `access_token` 一致，供后端发送回复）与「WebSocket 客户端」（反向 WS，URL 为 `ws://127.0.0.1:8000/api/bots/onebot/{通道ID}/ws`，Token 字段填通道 `access_token`）；也可选用「HTTP 客户端」做反向 HTTP 事件。群聊默认仅 @ 机器人时回复。通道创建时留空 `access_token` 会自动生成随机值（API 只回显脱敏值），空 Token 的 webhook 一律 403。
 - **微信公众号（明文模式）**：需要公网可达的 URL（可用 ngrok / cpolar 内网穿透），在公众号后台「开发 → 基本配置」填写回调 URL `https://<公网域名>/api/bots/wechat/{通道ID}` 与自选强随机 Token（与通道 config 一致，**不能为空或使用公开默认值 `npu-assistant`**），完成签名校验（含 ±300 秒时间窗）后即可收发 XML 文本消息。
 - **控制台调试通道**：无需任何外部账号，在「机器人」页直接模拟学生消息，走完整 `counselor → Wiki 导航 → 词条回答` 链路。

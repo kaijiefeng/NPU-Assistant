@@ -314,7 +314,7 @@ function updateTokenServerUi() {
   if (hint) {
     hint.innerHTML = serverOff
       ? `${icon('info')}<span>服务端当前未启用管理令牌。若要开启<b>公网访问</b>或防止他人修改知识库，请在上方输入 ≥16 位随机令牌并点击「启用服务端令牌」；启用后所有管理操作都需要此令牌（会保存到本机，重启后仍有效）。</span>`
-      : `${icon('info')}<span>保存后所有 API 请求自动携带 <code>X-Admin-Token</code> 请求头；令牌缺失或不正确时，写操作会返回 401 并提示。手机上可先在此登录一次，之后直接使用快速收录与编辑功能。</span>`;
+      : `${icon('info')}<span>「替换令牌」会同时更新<b>服务端与本机</b>（服务端校验当前令牌，旧令牌立即失效）；新设备只需在上方保存同一令牌。所有 API 请求自动携带 <code>X-Admin-Token</code>。</span>`;
   }
 }
 
@@ -498,7 +498,7 @@ function bindActions() {
     openMobileAccessModal();
   });
 
-  /* 管理令牌：保存 / 清除 / 测试 / 显示隐藏 */
+  /* 管理令牌：保存 / 替换 / 清除 / 测试 / 显示隐藏 */
   document.querySelector('[data-action="save-token"]')?.addEventListener('click', async (event) => {
     const input = document.getElementById('adminTokenInput');
     const value = String(input?.value || '').trim();
@@ -507,13 +507,16 @@ function bindActions() {
       input?.focus();
       return;
     }
+    if (state.serverTokenRequired === null) await refreshTokenServerState();
+    const button = event.currentTarget;
+
+    // 服务端未启用：保存即同时启用服务端校验
     if (state.serverTokenRequired === false) {
       if (value.length < 16) {
         toast('启用服务端令牌需要至少 16 位字符，建议 24 位以上随机串', 'warning');
         input?.focus();
         return;
       }
-      const button = event.currentTarget;
       setButtonBusy(button, true, '启用中…');
       try {
         await initAdminToken(value);
@@ -531,13 +534,44 @@ function bindActions() {
       }
       return;
     }
-    if (value.length < 8) {
-      toast('令牌长度偏短，建议使用服务端配置的完整随机串', 'warning');
+
+    const hadLocalToken = Boolean(getAdminToken());
+    if (!hadLocalToken) {
+      // 新设备接入已有服务端令牌：只保存到本机，不改动服务端
+      if (value.length < 8) {
+        toast('令牌长度偏短，建议使用服务端配置的完整随机串', 'warning');
+      }
+      setAdminToken(value);
+      updateTokenInputState();
+      renderTokenStatus();
+      toast('管理令牌已保存到本机，后续请求将自动携带 X-Admin-Token', 'success', {
+        title: '已保存',
+      });
+      return;
     }
-    setAdminToken(value);
-    updateTokenInputState();
-    renderTokenStatus();
-    toast('管理令牌已保存，后续请求将自动携带 X-Admin-Token', 'success', { title: '已保存' });
+
+    // 本机已有令牌 → 替换：同时更新服务端与本机（服务端用当前令牌鉴权）
+    setButtonBusy(button, true, '替换中…');
+    try {
+      const result = await initAdminToken(value);
+      setAdminToken(value);
+      await refreshTokenServerState();
+      updateTokenInputState();
+      renderTokenStatus(
+        result?.rotated ? '服务端与本机令牌已替换，旧令牌已失效' : '',
+      );
+      toast(
+        result?.rotated
+          ? '服务端令牌已替换；其他设备需重新填写新令牌'
+          : '管理令牌已保存到本机',
+        'success',
+        { title: result?.rotated ? '已替换' : '已保存' },
+      );
+    } catch (err) {
+      toast(err?.message || '替换服务端令牌失败，本机令牌保持不变', 'error');
+    } finally {
+      setButtonBusy(button, false);
+    }
   });
 
   document.querySelector('[data-action="enable-server-token"]')?.addEventListener('click', async (event) => {

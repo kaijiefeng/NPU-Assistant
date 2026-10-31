@@ -143,6 +143,30 @@ def test_channel_partial_update_keeps_config(client):
     assert data["config"]["self_id"] == "10001"
 
 
+def test_channel_token_update_takes_effect(client, seeded_wiki, fake_llm, real_model):
+    """回归：通道设置 Token 后再修改，新 Token 必须立即生效、旧 Token 失效。"""
+    onebot = _create_onebot(client, access_token="first-token-aaa")
+    updated = client.put(
+        f"/api/bots/channels/{onebot['id']}",
+        json={
+            "config": {
+                "api_base": "http://127.0.0.1:9",
+                "access_token": "second-token-bbb",
+            }
+        },
+    )
+    assert updated.status_code == 200, updated.text
+    data = updated.json()
+    assert data["config"]["access_token"] == "****-bbb"
+    assert data["has_access_token"] is True
+
+    url = f"/api/bots/onebot/{onebot['id']}/event"
+    accepted = client.post(url, params={"access_token": "second-token-bbb"}, json=PRIVATE_EVENT)
+    assert accepted.status_code == 200
+    rejected = client.post(url, params={"access_token": "first-token-aaa"}, json=PRIVATE_EVENT)
+    assert rejected.status_code == 403
+
+
 # ---------------------------------------------------------------------------
 # 控制台通道：复用 counselor，返回双层引用
 # ---------------------------------------------------------------------------

@@ -46,7 +46,7 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 
 ## 3. QQ 开放平台官方机器人（WebSocket）
 
-v0.2.0 新增 `qq_official` 通道，直接对接 [QQ 开放平台](https://q.qq.com/) 的官方机器人能力，适合已注册开放平台、希望**不暴露公网回调地址**的场景：
+v0.1.6 新增 `qq_official` 通道，直接对接 [QQ 开放平台](https://q.qq.com/) 的官方机器人能力，适合已注册开放平台、希望**不暴露公网回调地址**的场景：
 
 ```text
 QQ 用户 ──消息──> 腾讯 QQ WebSocket 网关 ──主动连接（出站 WSS）──> NPU-Assistant

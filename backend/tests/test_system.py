@@ -186,3 +186,87 @@ def test_admin_token_init_rejects_short_token(client, monkeypatch, tmp_path):
     response = client.post("/api/system/admin-token/init", json={"token": "short"})
     assert response.status_code == 400
     assert "16" in response.json()["detail"]
+
+
+def test_admin_token_can_be_rotated_with_current_token(
+    client, monkeypatch, tmp_path
+):
+    """已启用后修改令牌：新令牌立即生效，旧令牌失效（此前只能改浏览器本地副本）。"""
+    old_token = "old-admin-token-1234567890"
+    new_token = "new-admin-token-abcdefghij"
+    monkeypatch.setattr(config, "ADMIN_TOKEN", old_token)
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+
+    response = client.post(
+        "/api/system/admin-token/init",
+        json={"token": new_token},
+        headers={"X-Admin-Token": old_token},
+    )
+    assert response.status_code == 200
+    assert response.json()["rotated"] is True
+    assert config.ADMIN_TOKEN == new_token
+    assert (tmp_path / "admin_token.txt").read_text(encoding="utf-8").strip() == new_token
+
+    # 旧令牌立即失效，新令牌可执行受保护写操作
+    assert (
+        client.post(
+            "/api/knowledge/import/text",
+            json={"title": "x", "text": "y" * 60},
+            headers={"X-Admin-Token": old_token},
+        ).status_code
+        == 401
+    )
+    assert client.post(
+        "/api/knowledge/import/text",
+        json={"title": "x", "text": "y" * 60},
+        headers={"X-Admin-Token": new_token},
+    ).status_code in {200, 201}
+
+
+def test_admin_token_rotation_from_remote_requires_current_token(
+    client, monkeypatch, tmp_path
+):
+    """非本机请求轮换令牌时必须携带当前令牌，避免仅凭新值覆盖服务端。"""
+    from app.routers import system as system_router
+
+    old_token = "old-admin-token-1234567890"
+    new_token = "new-admin-token-abcdefghij"
+    monkeypatch.setattr(config, "ADMIN_TOKEN", old_token)
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(system_router, "_is_loopback_client", lambda request: False)
+
+    denied = client.post("/api/system/admin-token/init", json={"token": new_token})
+    assert denied.status_code == 401
+    assert config.ADMIN_TOKEN == old_token
+
+    wrong = client.post(
+        "/api/system/admin-token/init",
+        json={"token": new_token},
+        headers={"X-Admin-Token": "wrong-token"},
+    )
+    assert wrong.status_code == 401
+
+    allowed = client.post(
+        "/api/system/admin-token/init",
+        json={"token": new_token},
+        headers={"X-Admin-Token": old_token},
+    )
+    assert allowed.status_code == 200
+    assert config.ADMIN_TOKEN == new_token
+
+
+def test_admin_token_rotation_rejected_when_env_configured(
+    client, monkeypatch, tmp_path
+):
+    """环境变量优先：UI 轮换会重启后失效，因此直接拒绝并提示改部署配置。"""
+    monkeypatch.setenv("NPU_ADMIN_TOKEN", "env-admin-token-1234567890")
+    monkeypatch.setattr(config, "ADMIN_TOKEN", "env-admin-token-1234567890")
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+
+    response = client.post(
+        "/api/system/admin-token/init",
+        json={"token": "new-admin-token-abcdefghij"},
+        headers={"X-Admin-Token": "env-admin-token-1234567890"},
+    )
+    assert response.status_code == 409
+    assert "环境变量" in response.json()["detail"]
