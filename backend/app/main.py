@@ -27,6 +27,7 @@ from starlette.requests import Request
 from . import config, db
 from .routers import bots, chat, knowledge, mobile, models, system, wiki
 from .security import verify_admin_token
+from .services import qq_gateway
 
 logger = logging.getLogger("npu-assistant")
 
@@ -122,7 +123,12 @@ async def lifespan(_: FastAPI):
         except Exception:  # pragma: no cover - optional convenience
             logger.exception("预编译 Wiki 快照导入失败（已忽略，可在知识库页手动导入）")
     logger.info("NPU-Assistant 已启动 | data=%s", config.DATA_DIR)
-    yield
+    # QQ 开放平台官方机器人：主动建立 WebSocket 网关连接（无需公网回调）。
+    await qq_gateway.gateway.startup()
+    try:
+        yield
+    finally:
+        await qq_gateway.gateway.shutdown()
 
 
 def create_app() -> FastAPI:

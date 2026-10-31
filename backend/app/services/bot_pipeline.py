@@ -29,10 +29,11 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from .. import config, db
-from ..adapters import onebot, wechat_mp
+from ..adapters import onebot, qq_official, wechat_mp
 from ..adapters.base import (
     CHANNEL_CONSOLE,
     CHANNEL_ONEBOT,
+    CHANNEL_QQ_OFFICIAL,
     CHANNEL_WECHAT,
     CHAT_PRIVATE,
     IncomingMessage,
@@ -106,6 +107,15 @@ def incoming_for_channel(channel: dict, text: str, *, user_id: str = "",
             chat_type=CHAT_PRIVATE,
             self_id=self_id,
         )
+    if channel_type == CHANNEL_QQ_OFFICIAL:
+        return IncomingMessage(
+            channel=CHANNEL_QQ_OFFICIAL,
+            channel_id=channel_id,
+            text=clean,
+            user_id=user_id or "test-openid",
+            user_name=user_name or "QQ官方测试同学",
+            chat_type=CHAT_PRIVATE,
+        )
     if channel_type == CHANNEL_WECHAT:
         return IncomingMessage(
             channel=CHANNEL_WECHAT,
@@ -173,6 +183,16 @@ def _build_outbound(message: IncomingMessage, reply: str, channel_config: dict |
                 user_id=message.user_id,
                 group_id=message.group_id,
                 text=reply,
+            )
+        if message.channel == CHANNEL_QQ_OFFICIAL:
+            raw = message.raw if isinstance(message.raw, dict) else {}
+            return qq_official.build_outbound(
+                config_data,
+                chat_type=message.chat_type,
+                user_id=message.user_id,
+                group_id=message.group_id,
+                text=reply,
+                msg_id=message.message_id or str(raw.get("id") or ""),
             )
         if message.channel == CHANNEL_WECHAT:
             raw = message.raw if isinstance(message.raw, dict) else {}
@@ -284,6 +304,8 @@ def _is_admin(config_data: dict, user_id: str) -> bool:
 
 def _channel_tags(message: IncomingMessage) -> list[str]:
     if message.channel == CHANNEL_ONEBOT:
+        return ["bot", "QQ"]
+    if message.channel == CHANNEL_QQ_OFFICIAL:
         return ["bot", "QQ"]
     if message.channel == CHANNEL_WECHAT:
         return ["bot", "微信"]

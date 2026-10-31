@@ -6,6 +6,8 @@
 - web：``web:{conversation_id 或 anonymous}``（由 chat 路由维护，不经过本管线）
 - QQ 私聊：``onebot11:{self_id}:private:{user_id}``
 - QQ 群聊：``onebot11:{self_id}:group:{group_id}:{user_id}``
+- QQ 官方机器人私聊：``qq_official:{channel_id}:private:{openid}``
+- QQ 官方机器人群聊：``qq_official:{channel_id}:group:{group_openid}:{member_openid}``
 - 微信：``wechat_mp:{channel_id}:{FromUserName}``
 - 控制台：``console:{channel_id}:{user_id}``（调试用，契约未规定，按渠道隔离）
 """
@@ -17,14 +19,21 @@ from typing import Any
 
 CHANNEL_ONEBOT = "onebot11"
 CHANNEL_WECHAT = "wechat_mp"
+CHANNEL_QQ_OFFICIAL = "qq_official"
 CHANNEL_CONSOLE = "console"
 
-SUPPORTED_CHANNEL_TYPES = (CHANNEL_ONEBOT, CHANNEL_WECHAT, CHANNEL_CONSOLE)
+SUPPORTED_CHANNEL_TYPES = (
+    CHANNEL_QQ_OFFICIAL,
+    CHANNEL_ONEBOT,
+    CHANNEL_WECHAT,
+    CHANNEL_CONSOLE,
+)
 
 CHAT_PRIVATE = "private"
 CHAT_GROUP = "group"
 
 CHANNEL_TYPE_LABELS = {
+    CHANNEL_QQ_OFFICIAL: "QQ 官方机器人",
     CHANNEL_ONEBOT: "QQ（OneBot 11）",
     CHANNEL_WECHAT: "微信公众号",
     CHANNEL_CONSOLE: "控制台调试",
@@ -32,6 +41,16 @@ CHANNEL_TYPE_LABELS = {
 
 # 各渠道 config 的默认字段（写入 bot_channels.config 前统一补齐）
 DEFAULT_CHANNEL_CONFIGS: dict[str, dict[str, str]] = {
+    CHANNEL_QQ_OFFICIAL: {
+        # QQ 开放平台「机器人」页面的 AppID / AppSecret
+        "app_id": "",
+        "app_secret": "",
+        # 沙箱环境使用 sandbox.api.sgroup.qq.com（正式环境保持 false）
+        "sandbox": "false",
+        # 管理员 openid 逗号分隔（可发送 #帮助 查看自己的 openid）
+        "admin_user_ids": "",
+        "import_enabled": "true",
+    },
     CHANNEL_ONEBOT: {
         "api_base": "",
         "access_token": "",
@@ -91,7 +110,7 @@ def normalize_channel_type(value: Any) -> str:
     channel_type = str(value or "").strip().lower()
     if channel_type not in SUPPORTED_CHANNEL_TYPES:
         raise ValueError(
-            "不支持的通道类型，仅支持 onebot11 / wechat_mp / console，收到："
+            "不支持的通道类型，仅支持 qq_official / onebot11 / wechat_mp / console，收到："
             f"{value!r}"
         )
     return channel_type
@@ -170,6 +189,13 @@ class IncomingMessage:
             if self.is_group:
                 return f"{CHANNEL_ONEBOT}:{self_id}:group:{self.group_id}:{self.user_id}"
             return f"{CHANNEL_ONEBOT}:{self_id}:private:{self.user_id}"
+        if self.channel == CHANNEL_QQ_OFFICIAL:
+            if self.is_group:
+                return (
+                    f"{CHANNEL_QQ_OFFICIAL}:{self.channel_id}:group:"
+                    f"{self.group_id}:{self.user_id}"
+                )
+            return f"{CHANNEL_QQ_OFFICIAL}:{self.channel_id}:private:{self.user_id}"
         if self.channel == CHANNEL_WECHAT:
             return f"{CHANNEL_WECHAT}:{self.channel_id}:{self.user_id}"
         if self.channel == CHANNEL_CONSOLE:
@@ -189,6 +215,11 @@ class IncomingMessage:
             return base
         if self.channel == CHANNEL_WECHAT:
             return name or (f"微信用户{identifier}" if identifier else "微信用户")
+        if self.channel == CHANNEL_QQ_OFFICIAL:
+            base = name or (f"QQ用户{identifier}" if identifier else "QQ用户")
+            if self.is_group and self.group_id:
+                return f"{base}（群{self.group_id}）"
+            return base
         if self.channel == CHANNEL_CONSOLE:
             return name or "控制台访客"
         return name or identifier or "匿名用户"

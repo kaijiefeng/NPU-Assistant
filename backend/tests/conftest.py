@@ -44,6 +44,8 @@ os.environ["NPU_ADMIN_TOKEN"] = ""
 os.environ["NPU_REMOTE_FALLBACK"] = "0"
 os.environ["NPU_LLM_JUDGE"] = "0"
 os.environ["NPU_MAX_UPLOAD_MB"] = "20"
+# QQ 官方机器人默认会在启动时主动连接腾讯网关；测试不访问真实网络。
+os.environ["NPU_QQ_OFFICIAL_AUTOSTART"] = "0"
 # 预编译快照指向临时目录，保证测试不受仓库 wiki_seed.json 是否存在影响
 os.environ["NPU_WIKI_SEED_PATH"] = str(_TMP_ROOT / "wiki_seed.json")
 # URL 收录测试使用本地 127.0.0.1 http.server，需要在 import app 前允许私网地址；

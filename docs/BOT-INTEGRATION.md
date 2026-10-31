@@ -1,13 +1,13 @@
 # 机器人接入指南（QQ / 微信公众号 / 控制台）
 
-本文说明如何把 NPU-Assistant 接到 QQ（NapCat + OneBot 11）和微信公众号（明文模式），以及如何用控制台通道在无任何外部账号时完成调试。接口细节见 [CONTRACT.md](CONTRACT.md) §5.5。
+本文说明如何把 NPU-Assistant 接到 QQ 官方开放平台机器人（WebSocket）、QQ（NapCat + OneBot 11）和微信公众号（明文模式），以及如何用控制台通道在无任何外部账号时完成调试。接口细节见 [CONTRACT.md](CONTRACT.md) §5.5。
 
 ## 0. 快速添加（v0.1.1 推荐）
 
 不用先读完整文档，按下面三步即可：
 
-1. 打开「机器人」页 → 顶部「快速添加」选择 **QQ 机器人** / **微信公众号** / **控制台调试**；
-2. 表单已预填推荐默认值：QQ 默认 `api_base=http://127.0.0.1:3000`，Token 留空会自动生成；微信填写公众号后台一致的 Token 与管理员 openid；保存后复制卡片上的 **Webhook 地址**；
+1. 打开「机器人」页 → 顶部「快速添加」选择 **QQ 官方机器人** / **QQ 机器人（OneBot 11）** / **微信公众号** / **控制台调试**；
+2. 表单已预填推荐默认值：QQ 官方机器人填写开放平台的 AppID / AppSecret 即可（无需 Webhook）；OneBot 11 默认 `api_base=http://127.0.0.1:3000`，Token 留空会自动生成；微信填写公众号后台一致的 Token 与管理员 openid；保存后复制卡片上的 **Webhook 地址**（QQ 官方机器人无此步骤）；
 3. 把 Webhook 填到 NapCat / 公众号后台，用管理员账号转发一条链接测试；成功后会回复「已收录」。
 
 没有外部账号时先用「控制台调试」通道模拟对话，验证问答与引用格式，再接入真实平台。
@@ -15,6 +15,10 @@
 ## 1. 整体链路
 
 ```text
+QQ 用户 ──消息──> 腾讯 QQ WebSocket 网关 ──主动连接（出站 WSS）──> NPU-Assistant
+                                                                   │
+                       QQ 用户 <──被动回复（HTTP API，带 msg_id）───┘
+
 QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事件──> NPU-Assistant
                                                                   │
                     QQ 用户 <── send_private_msg / send_group_msg ──┘（HTTP API）
@@ -22,9 +26,9 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 公众号用户 ──XML 回调──> NPU-Assistant（签名校验 + 明文回复）──> 公众号用户
 ```
 
-- **入站**：NapCat 把 QQ 消息事件推给我们（反向 WebSocket 或反向 HTTP）。
+- **入站**：QQ 官方机器人由服务主动连接腾讯网关接收事件；NapCat 把 QQ 消息事件推给我们（反向 WebSocket 或反向 HTTP）；公众号走 HTTP 回调。
 - **处理**：`bot_pipeline` 归一化消息 → 调用 `counselor.answer()`（Wiki 导航选词条 + LLM 生成 + 落库）→ 得到回复与「词条 + 来源锚点」双层引用；机器人侧只使用回复文本发送。
-- **出站**：QQ 侧通过 NapCat 的 HTTP API 发送；公众号侧直接返回明文 XML。
+- **出站**：QQ 官方机器人通过开放平台 HTTP API 被动回复（带 `msg_id`）；OneBot 11 通过 NapCat 的 HTTP API 发送；公众号侧直接返回明文 XML。
 - **会话**：不同渠道使用不同 `session_key`，同一 QQ 私聊 / 群成员会延续同一会话上下文。
 
 ## 2. 准备工作
@@ -32,16 +36,88 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 | 项目 | 要求 |
 |------|------|
 | NPU-Assistant | 已启动，`GET http://127.0.0.1:8000/api/health` 返回 `status=ok` |
+| QQ 开放平台 | 已注册并创建机器人，拿到 **AppID / AppSecret**；正式使用前需发布机器人（详见第 3 节） |
 | QQ 账号 | 建议使用**机器人小号**，遵守腾讯平台规则；主号被封风险自担 |
 | NapCat | 支持 OneBot 11 协议的 QQ 机器人框架（NapCat / LLOneBot 等），本文以 NapCat 为例 |
-| 网络 | NapCat 与 NPU-Assistant 在同一台机器或可互通的内网；本机默认 `127.0.0.1` |
+| 网络 | NapCat 与 NPU-Assistant 在同一台机器或可互通的内网；本机默认 `127.0.0.1`；QQ 官方机器人只需服务能出网访问腾讯网关 |
 | 公众号 | 已注册且具备开发权限的公众号（订阅号 / 服务号），能配置服务器 URL |
 
-先在「机器人」页（`#/bots`）确认三个通道卡片存在，并记下 QQ 通道 / 微信通道的 **channel_id**（也可 `GET /api/bots/channels` 获取）。通道卡片上的「复制」按钮会给出完整的 Webhook 地址。
+先在「机器人」页（`#/bots`）确认四个通道卡片存在（QQ 官方机器人 / QQ OneBot 11 / 微信公众号 / 控制台调试），并记下对应通道的 **channel_id**（也可 `GET /api/bots/channels` 获取）。通道卡片上的「复制」按钮会给出完整的 Webhook 地址（QQ 官方机器人无需 Webhook）。
 
-## 3. QQ（NapCat + OneBot 11）
+## 3. QQ 开放平台官方机器人（WebSocket）
 
-### 3.1 在 NPU-Assistant 创建 QQ 通道
+v0.2.0 新增 `qq_official` 通道，直接对接 [QQ 开放平台](https://q.qq.com/) 的官方机器人能力，适合已注册开放平台、希望**不暴露公网回调地址**的场景：
+
+```text
+QQ 用户 ──消息──> 腾讯 QQ WebSocket 网关 ──主动连接（出站 WSS）──> NPU-Assistant
+                                                                   │
+                       QQ 用户 <──被动回复（HTTP API，带 msg_id）───┘
+```
+
+与 NapCat（OneBot 11）相比：
+
+- **无需公网 IP / 域名 / 反向代理**：服务启动后主动连接 `wss://api.sgroup.qq.com/websocket`，因此不需要填写任何 Webhook 地址；
+- **无需额外客户端**：只要开放平台的 `AppID` 与 `AppSecret`；
+- **只支持官方开放的事件**：私聊 `C2C_MESSAGE_CREATE` 与群聊 @ 机器人 `GROUP_AT_MESSAGE_CREATE`（群内未 @ 的消息不会推送）。
+
+### 3.1 在开放平台准备机器人
+
+1. 登录 QQ 开放平台 → 创建机器人应用，记录 **AppID / AppSecret**；
+2. 在「开发设置 → 事件订阅」中勾选 **私聊消息** 与 **群聊 @ 机器人消息**（对应 intent `GROUP_AND_C2C_EVENT`，本服务已按此订阅）；
+3. 调试期可先把机器人加入测试群，并在开放平台使用 **沙箱环境**；正式上线前再切换为正式环境。
+
+### 3.2 创建 `qq_official` 通道
+
+「机器人」页 → 快速添加 **QQ 官方机器人**，或新建通道选择类型 `qq_official`：
+
+```json
+{
+  "app_id": "102000001",
+  "app_secret": "开放平台生成的 AppSecret",
+  "sandbox": "false",
+  "admin_user_ids": "",
+  "import_enabled": "true"
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `app_id` / `app_secret` | 开放平台机器人凭据，用于换取 `access_token` 并连接 WebSocket 网关；`app_secret` 只显示脱敏值，PUT 空串/脱敏占位表示不修改 |
+| `sandbox` | `"true"` 时使用 `sandbox.api.sgroup.qq.com`，正式环境保持 `"false"` |
+| `admin_user_ids` | 允许「转发链接即入库」的管理员 openid，逗号分隔；可先在 QQ 里发送 `#帮助` 查看自己的 openid |
+| `import_enabled` | 是否启用机器人入库，默认 `"true"` |
+
+保存并启用后，服务会立即建立连接；在通道卡片上可以看到状态：
+
+- `online`：WebSocket 已连接（日志出现「QQ 官方机器人 WebSocket 已连接」）；
+- `error`：凭据错误或网络异常，服务按指数退避自动重试（最长 60 秒）；
+- `offline`：通道停用或被删除。
+
+修改 `app_id` / `app_secret` / `sandbox` 或启停通道后，连接会按新配置自动重建，无需重启服务。
+
+### 3.3 测试
+
+1. 用测试 QQ 私聊机器人发送「国家奖学金怎么申请？」；
+2. 机器人在数秒内以**被动回复**返回回答（带 Wiki 引用文本，具体引用结构在 Web 端展示）；
+3. 把机器人拉进测试群，@ 机器人提问；群内未 @ 的消息不会触发回复；
+4. 「机器人」页「消息日志」中渠道为 `qq_official`，会话按 openid 隔离并支持多轮上下文。
+
+> 官方限制：被动回复必须在收到消息后 **5 分钟内**发送，且同一条消息最多回复 **5 次**。本服务在收到消息后立即处理并回复一次，超长回答会截断到约 1800 字。
+>
+> `session_key` 规则：私聊 `qq_official:{channel_id}:private:{openid}`；群聊 `qq_official:{channel_id}:group:{group_openid}:{member_openid}`。
+
+### 3.4 排查
+
+| 现象 | 可能原因 | 处理 |
+|------|----------|------|
+| 状态一直 `error`/`offline` | AppID / AppSecret 错误、机器人未发布、沙箱/正式环境选错 | 查看后端日志中的「获取 access_token 失败」或「连接异常」；核对凭据与 `sandbox` |
+| 连接成功但收不到消息 | 事件订阅未勾选私聊 / 群 @ 消息；机器人不在测试群 | 在开放平台检查事件订阅与测试群配置 |
+| 收不到回复 | 机器人未通过沙箱/发布审核，或发送被限流 | 查看日志中的「发送失败 status/body」；确认机器人已发布到对应环境 |
+| 群聊完全没反应 | 群消息未 @ 机器人 | 官方群聊仅推送 @ 机器人的消息，请 @ 后再提问 |
+
+## 4. QQ（NapCat + OneBot 11）
+
+### 4.1 在 NPU-Assistant 创建 QQ 通道
 
 「机器人」页 → 新建通道 → 类型选择 `onebot11`，配置项：
 
@@ -72,7 +148,7 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 - 反向 WebSocket：`ws://127.0.0.1:8000/api/bots/onebot/{id}/ws`（URL **不必**拼 `access_token`，NapCat 配置的 Token 字段会以 `Authorization: Bearer` 发送；若客户端只能拼 URL，也可用 `...?access_token=<token>`，后端两种都支持）
 - 反向 HTTP 事件：`http://127.0.0.1:8000/api/bots/onebot/{id}/event`（通道必须已配置 `access_token`；NapCat「HTTP 客户端」Token 可留空并改用 query `?access_token=<token>`，或填写后由后端校验请求正文的 HMAC-SHA1，见下文）
 
-### 3.2 配置 NapCat
+### 4.2 配置 NapCat
 
 在 NapCat WebUI 的「网络配置」中新建以下配置：
 
@@ -113,7 +189,7 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 
 配置保存并启用后，NPU-Assistant 日志应出现 OneBot 连接 / 事件记录，机器人页通道状态变为在线。
 
-### 3.3 测试
+### 4.3 测试
 
 1. 用另一个 QQ 号私聊机器人发送「国家奖学金怎么申请？」；
 2. 预期机器人在数秒内回复带 `[1][2]` 引用的回答（内容来自校园 Wiki 词条；机器人只发送文本，引用结构由 Web 端展示）；
@@ -122,7 +198,7 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 5. **日志接口鉴权**：设置 `NPU_ADMIN_TOKEN` 后，`GET /api/bots/logs`（含学生消息内容）需要 `X-Admin-Token`，未带/错误 → 401；未设置令牌时本地演示可直接访问。webhook 仍使用通道自身 token/签名，不受影响。
 6. **webhook 体积上限**：OneBot 事件与微信回调的请求体超过 **2MB** 一律返回 413（读取前校验 `Content-Length` + 实读长度兜底）。
 
-### 3.4 客户端侧行为说明
+### 4.4 客户端侧行为说明
 
 - 入站只处理 `post_type=message` 的文本消息段，图片 / 表情 / 语音等非文本内容会被忽略或走引导语；
 - 忽略 `user_id == self_id` 的自身消息（含 `post_type=message_sent` 回显），避免自问自答循环；
@@ -130,7 +206,7 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 - 发送失败（NapCat 未启动、端口错误、Token 不匹配）**只记录日志**，不影响 webhook 的 HTTP 响应；通道状态可能显示为 `error`；HTTP 客户端已设置 `trust_env=False`、`follow_redirects=False`（`api_base` 为管理员配置，302 不跟随），且 `api_base` 仅允许 `http/https` 绝对地址；失败日志中的 URL 会去除 userinfo/query；
 - OneBot HTTP API 请求规则：私聊 `POST {api_base}/send_private_msg`，群聊 `POST {api_base}/send_group_msg`，Body `{user_id|group_id, message}`，有 Token 时带 `Authorization: Bearer <token>`。
 
-### 3.5 管理员「转发即入库」
+### 4.5 管理员「转发即入库」
 
 在通道配置中把本人/值班老师的 QQ 号填入 `admin_user_ids` 后，管理员可以直接在 QQ 里把网页 / 公众号文章链接转发给机器人，自动抓取正文并编译成 Wiki 词条（详见 [MOBILE-OPS.md](MOBILE-OPS.md) §2.2）：
 
@@ -156,11 +232,11 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 - 入库文档 `tags` 自动追加 `bot`/`QQ`（微信为 `bot`/`微信`），`source_type="url"`；
 - 重复链接回复「该链接已收录过」，不会重复编译。
 
-## 4. 微信公众号（明文模式）
+## 5. 微信公众号（明文模式）
 
 > MVP 只实现**明文模式**，用于内网演示与流程验证。生产环境请改用安全模式（加密模式）并做消息验签加固。
 
-### 4.1 创建微信通道
+### 5.1 创建微信通道
 
 「机器人」页 → 新建通道 → 类型 `wechat_mp`，配置项：
 
@@ -188,7 +264,7 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 
 保存后得到回调地址：`/api/bots/wechat/{id}`。
 
-### 4.2 准备公网可访问地址
+### 5.2 准备公网可访问地址
 
 微信服务器必须能访问你的回调 URL，因此本机服务需要公网映射（示例任选其一）：
 
@@ -209,7 +285,7 @@ https://<公网域名>/api/bots/wechat/{通道ID}
 
 > 注意：回调端口必须是 80 或 443（微信限制）。若公网映射端口不是 80/443，请用反向代理转发。`run.ps1` 默认只监听 `127.0.0.1`，映射工具通常能访问本机回环地址；若使用局域网转发，可用 `.\scripts\run.ps1 -BindHost 0.0.0.0`。
 
-### 4.3 公众号后台配置
+### 5.3 公众号后台配置
 
 公众号后台 →「设置与开发」→「基本配置」→「服务器配置」：
 
@@ -227,14 +303,14 @@ https://<公网域名>/api/bots/wechat/{通道ID}
 GET /api/bots/wechat/{id}?signature=...&timestamp=...&nonce=...&echostr=...
 ```
 
-服务端用 `sha1(sort(token, timestamp, nonce))` 与 `signature` 比对，一致则原样返回 `echostr`，校验通过后「启用」。若提示「token验证失败」，按第 6 节排查。
+服务端用 `sha1(sort(token, timestamp, nonce))` 与 `signature` 比对，一致则原样返回 `echostr`，校验通过后「启用」。若提示「token验证失败」，按第 7 节排查。
 
 > 微信回调安全校验（GET 接入校验与 POST 消息一致）：
 > 1. **时间窗 ±300 秒**：`timestamp` 与服务器时间偏差过大直接 403，请保持服务器 NTP 同步；
 > 2. **nonce 防重放**：同一通道的同一 `nonce` 首次请求成功后会登记，TTL 内重复使用 → 403（detail 含 nonce）；签名失败不会消费 nonce；`nonce` 为空不参与重放判定但签名函数要求非空，正常微信请求都会带 nonce；
 > 3. nonce 缓存为**进程内**（TTL 330s、上限 1000 条）；多 worker/多实例部署时各进程独立，跨进程重放需改用共享存储（Redis 等）。
 
-### 4.4 测试
+### 5.4 测试
 
 1. 用微信关注该公众号（测试号可直接扫码关注）；
 2. 发送文本消息「请假流程是什么？病假需要什么证明？」；
@@ -244,7 +320,7 @@ GET /api/bots/wechat/{id}?signature=...&timestamp=...&nonce=...&echostr=...
 
 被动回复的限制：微信要求 5 秒内返回，且文本长度有限（约 2048 字节）。服务端对问答链路设置了约 **4.5 秒**超时：超过阈值会先回复一条兜底提示（「这个问题需要一点时间查询，请稍后再发送一次……」），避免公众号侧报「该公众号暂时无法提供服务」。MVP 未实现客服消息异步推送，用户重发一次即可；也可以换用低延迟模型，或在设置页把 `wiki_max_pages` / `wiki_answer_max_chars` 调小以缩短词条上下文。
 
-## 5. 控制台调试通道
+## 6. 控制台调试通道
 
 无需 QQ / 公众号账号，适合开发与演示：
 
@@ -263,7 +339,7 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/api/bots/channels/<�
 
 > 注意 PowerShell 5.1 的 `ConvertTo-Json` 可能把中文转义为 `\uXXXX`，属正常现象；服务端会正确解析。
 
-## 6. 常见故障排查
+## 7. 常见故障排查
 
 | 现象 | 可能原因 | 处理 |
 |------|----------|------|
@@ -289,10 +365,11 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/api/bots/channels/<�
 
 日志位置：启动服务的控制台输出；生产环境建议将 `logging` 输出定向到文件并轮转。
 
-## 7. 安全建议
+## 8. 安全建议
 
 - **强随机 Token**：`access_token` / 公众号 Token 使用足够长的随机字符串，定期轮换；不要提交到 Git。OneBot 通道创建时留空会自动生成随机 Token；公众号不允许空 Token 或公开默认值 `npu-assistant`。
-- **凭据不回显**：`GET/POST/PUT /api/bots/channels` 的 `config` 中 token 一律脱敏为 `****`+后 4 位，`admin_user_ids` 只显示数量；用 `has_access_token` 判断是否已配置。PUT 空串/脱敏占位表示「不修改」。
+- **凭据不回显**：`GET/POST/PUT /api/bots/channels` 的 `config` 中 token / `app_secret` 一律脱敏为 `****`+后 4 位，`admin_user_ids` 只显示数量；用 `has_access_token` 判断是否已配置。PUT 空串/脱敏占位表示「不修改」。
+- **QQ 官方凭据**：`app_secret` 与 OneBot / 微信 Token 同级保护，只保存在本地数据库并用于换取 `access_token`；日志中不打印密钥明文。`access_token` 按有效期缓存（提前 2 分钟刷新），401 时强制刷新并重试一次。
 - **webhook 防护**：OneBot 空 Token 默认 403；公众号校验签名 + ±300 秒时间窗 + nonce 防重放；`self_id` 与事件不一致的事件直接忽略；webhook 请求体上限 2MB（超限 413）。仅本机调试可设 `NPU_BOT_ALLOW_INSECURE=1` 临时放行（勿用于公网）。
 - **日志与展示**：配置 `NPU_ADMIN_TOKEN` 后 `GET /api/bots/logs` 需管理员令牌；通道 `config.api_base` 与 outbound `url` 均去掉 userinfo/query/fragment 后展示，避免泄露配置凭据；OneBot 发送不跟随重定向、`api_base` 仅允许 http(s)。
 - **nonce 缓存边界**：微信 nonce 防重放缓存为进程内（TTL 330s、上限 1000），多 worker/多实例部署需改用 Redis 等共享存储才能跨进程防重放。
@@ -303,8 +380,9 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/api/bots/channels/<�
 - **平台合规**：使用 QQ 机器人需遵守腾讯平台规则，避免营销、群发与骚扰；公众号被动回复不得包含违法违规内容，违规可能导致封号。
 - **频率限制**：公网部署时在反向代理层对回调接口做限流，防止恶意刷消息消耗 LLM 配额。
 
-## 8. 参考
+## 9. 参考
 
+- QQ 开放平台文档：<https://bot.q.qq.com/wiki/>
 - OneBot 11 协议：<https://github.com/botuniverse/onebot-11>
 - NapCat 文档：<https://napcat.napneko.icu/>
 - 微信公众平台开发文档（接收消息 / 被动回复）：<https://developers.weixin.qq.com/doc/offiaccount/Message_Management/Receiving_standard_messages.html>

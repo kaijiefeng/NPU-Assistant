@@ -23,7 +23,7 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 | 1 | **辅导员数字分身问答** | Web 对话页，基于「Wiki 词条导航」的回答，句末 `[n]` 对应引用卡片；每张引用卡片同时给出**词条**与**来源文件 · 章节 · 原文摘录**双层信息；支持多轮会话与历史会话 |
 | 2 | **LLM Wiki 知识库** | 上传 `md / txt / pdf / docx / doc / xlsx / csv / json / html` → 解析 → LLM 编译为结构化词条（概述 / 流程 / 材料 / 时间 / 注意事项，带来源锚点）→ 浏览目录、标签筛选、关键词导航搜索、手工编辑、重建；支持导入**预编译快照**离线使用 |
 | 3 | **LLM 接入与模型管理** | OpenAI 兼容（当前实测 **DeepSeek**）、Ollama 本地模型、内置 mock 模型；Provider / 模型 CRUD、设默认、启停、连通性测试；API Key 服务端脱敏。**编译与高质量回答需要真实 LLM** |
-| 4 | **微信 / QQ 机器人** | QQ 走 NapCat / OneBot 11（反向 WS + 反向 HTTP + HTTP API 回复）；微信公众号明文模式 XML 回调；控制台调试通道。四个入口复用同一套 `counselor.answer()` Wiki 问答链路 |
+| 4 | **QQ / 微信机器人** | QQ 官方开放平台机器人走 WebSocket 主动连接（无需公网回调）；QQ 也可走 NapCat / OneBot 11（反向 WS + 反向 HTTP + HTTP API 回复）；微信公众号明文模式 XML 回调；控制台调试通道。各入口复用同一套 `counselor.answer()` Wiki 问答链路 |
 
 **非目标（MVP 明确不做）**：多租户与权限体系、流式输出、**embedding / 向量数据库 / rerank / chunk 检索**、语音、复杂插件系统、公众号加密模式。
 
@@ -64,7 +64,7 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 
 ![模型管理](docs/screenshots/models.png)
 
-**机器人**：通道 / 调试 / 日志三个 Tab；QQ / 微信 / 控制台三通道配置、Webhook 地址、控制台模拟对话与消息日志。
+**机器人**：通道 / 调试 / 日志三个 Tab；QQ 官方机器人 / QQ OneBot 11 / 微信 / 控制台四类通道配置、Webhook 地址（QQ 官方面板显示连接状态且无需 Webhook）、控制台模拟对话与消息日志。
 
 ![机器人](docs/screenshots/bots.png)
 
@@ -152,7 +152,7 @@ $env:NPU_PUBLIC_URL = "https://npu.example.edu.cn"
 | 4 | 知识库 → 源文件 Tab → 上传一篇新的 `.md` | 显示「编译中」→ `status=ready`、`page_count>0`，自动生成新词条与来源锚点 |
 | 5 | 打开新词条 → 编辑正文/摘要 → 保存；源文件 Tab 点「重新编译」 | 词条 `version+1`；重建不产生重复词条 |
 | 6 | 机器人页 → 控制台通道「模拟对话」 | 返回与 Web 一致的回答与双层引用，消息日志出现记录 |
-| 7 | （可选）配置 QQ / 微信通道 | 复制 Webhook 地址，按 [docs/BOT-INTEGRATION.md](docs/BOT-INTEGRATION.md) 接入 NapCat 或公众号 |
+| 7 | （可选）配置 QQ 官方 / QQ / 微信通道 | QQ 官方填 AppID / AppSecret 即自动连接（无需 Webhook）；QQ / 微信复制 Webhook 地址，按 [docs/BOT-INTEGRATION.md](docs/BOT-INTEGRATION.md) 接入 NapCat 或公众号 |
 
 ## 六、目录结构
 
@@ -174,8 +174,9 @@ NPU-Assistant/
 │  │  │  ├─ ingest.py       # 上传落盘、解析入口、reindex、删除级联
 │  │  │  ├─ importer.py     # URL / 文本快速收录（抓取 + 正文提取 + 复用编译）
 │  │  │  ├─ parsing.py      # 多格式解析（pdf/docx/doc/xlsx/csv/json/html/md/txt）
+│  │  │  ├─ qq_gateway.py   # QQ 官方机器人 WebSocket 网关（令牌 / 心跳 / 重连 / 被动回复）
 │  │  │  └─ bot_pipeline.py # 机器人统一入站处理（复用 counselor；管理员入库命令）
-│  │  └─ adapters/          # onebot（QQ）、wechat_mp（公众号）、base
+│  │  └─ adapters/          # qq_official（开放平台）、onebot（QQ）、wechat_mp（公众号）、base
 │  ├─ data/
 │  │  ├─ seed_docs/         # 演示源文件目录（示例已清理，仅保留 .gitkeep）
 │  │  ├─ wiki_seed.json     # 真实 LLM 预编译的 Wiki 快照（冷启动离线可用）
@@ -207,7 +208,7 @@ NPU-Assistant/
 │  ├─ MOBILE-OPS.md         # 移动端运维与快速收录（v0.1.2）
 │  ├─ API.md                # 接口速览与调用示例
 │  ├─ ARCHITECTURE.md       # 架构、请求链路、表结构、部署建议
-│  ├─ BOT-INTEGRATION.md    # NapCat / OneBot 11、公众号、控制台接入与排障
+│  ├─ BOT-INTEGRATION.md    # QQ 官方 WebSocket、NapCat / OneBot 11、公众号、控制台接入与排障
 │  ├─ CAMPUS-SEED.md        # 真实校园数据测试集 / 初始知识库（网页/PDF/DOCX/DOC）
 │  ├─ CAMPUS-CONTENT-PLAN.md # 内容领域清单、合法采集与自动更新方案
 │  ├─ CAMPUS-MANUAL-QUEUE.md # 需人工浏览器下载/复制的条目（P0/P1/P2）
@@ -269,6 +270,7 @@ Wiki 编译与高质量回答都依赖真实 LLM；默认的 mock 模型只用�
 | `NPU_CORS_ORIGINS` | 空 | CORS 白名单（逗号分隔）；默认关闭，同源 SPA 不需要 |
 | `NPU_ALLOW_INSECURE_LAN` | `0` | 对外监听且未设管理令牌时，服务默认拒绝启动；仅可信内网临时演示可设 `1` |
 | `NPU_BOT_ALLOW_INSECURE` | `0` | 机器人 webhook 空 token 逃生开关，仅限本机调试 |
+| `NPU_QQ_OFFICIAL_AUTOSTART` | `1` | 启动时是否自动连接已启用 `qq_official` 通道的 QQ 网关；测试环境设 `0` |
 | `NPU_URL_IMPORT_ALLOW_PRIVATE` | `0` | URL 收录是否允许私网/回环地址（内网资料才临时开启） |
 | `NPU_URL_IMPORT_MAX_BYTES` | `8388608` | URL 抓取响应大小上限（默认 8MB，可调） |
 | `NPU_URL_IMPORT_MAX_URLS` | `5` | 批量收录单次链接上限 |
@@ -288,8 +290,9 @@ $env:NPU_SEED_MODEL="deepseek-chat"                    # 可选
 
 脚本使用临时数据目录编译，不会污染 `backend/data/app.db`。
 
-## 九、微信 / QQ 机器人接入
+## 九、QQ 官方 / QQ / 微信机器人接入
 
+- **QQ 官方开放平台机器人（v0.2.0，推荐）**：在 QQ 开放平台创建机器人后，把 **AppID / AppSecret** 填入 `qq_official` 通道即可；服务启动后主动连接腾讯 WebSocket 网关，**不需要公网 IP、域名或 Webhook**，私聊与群内 @ 消息通过开放平台 HTTP API 被动回复（带 `msg_id`）。调试期可勾选「沙箱环境」。详见 [docs/BOT-INTEGRATION.md](docs/BOT-INTEGRATION.md) 第 3 节。
 - **QQ（NapCat / OneBot 11）**：NapCat 侧配置「HTTP 服务器」（默认 `127.0.0.1:3000`，Token 与通道 `access_token` 一致，供后端发送回复）与「WebSocket 客户端」（反向 WS，URL 为 `ws://127.0.0.1:8000/api/bots/onebot/{通道ID}/ws`，Token 字段填通道 `access_token`）；也可选用「HTTP 客户端」做反向 HTTP 事件。群聊默认仅 @ 机器人时回复。通道创建时留空 `access_token` 会自动生成随机值（API 只回显脱敏值），空 Token 的 webhook 一律 403。
 - **微信公众号（明文模式）**：需要公网可达的 URL（可用 ngrok / cpolar 内网穿透），在公众号后台「开发 → 基本配置」填写回调 URL `https://<公网域名>/api/bots/wechat/{通道ID}` 与自选强随机 Token（与通道 config 一致，**不能为空或使用公开默认值 `npu-assistant`**），完成签名校验（含 ±300 秒时间窗）后即可收发 XML 文本消息。
 - **控制台调试通道**：无需任何外部账号，在「机器人」页直接模拟学生消息，走完整 `counselor → Wiki 导航 → 词条回答` 链路。
@@ -414,7 +417,7 @@ Wiki 编译需要真实 LLM。请到「模型」页检查默认模型是否为 D
 - 涉及心理危机、人身安全、紧急医疗时，请优先联系辅导员、校保卫处、心理中心，或拨打 **110 / 120**；不要依赖 AI 作答。
 - 部署到公网前请务必设置 `NPU_ADMIN_TOKEN`、使用 HTTPS 反向代理、限制上传大小与来源 IP，并遵守《个人信息保护法》与学校数据管理规定；**上传真实文件与调用第三方 LLM 前请完成数据合规评估**。
 - **安全默认**：CORS 默认关闭（按需 `NPU_CORS_ORIGINS` 白名单）；对外监听（非 `127.0.0.1`）未设管理令牌时服务拒绝启动；历史会话、设置、导入、词条写操作在配置令牌后均需 `X-Admin-Token`；默认下发 CSP / `X-Frame-Options: DENY` / `X-Content-Type-Options: nosniff` 等响应头。
-- **机器人安全**：通道接口不返回 token 明文（脱敏 + `has_access_token`），空 token 的 OneBot webhook 与使用公开默认 token `npu-assistant` 的公众号回调一律 403；微信校验签名与 ±300 秒时间窗；`self_id` 不一致事件忽略；`NPU_BOT_ALLOW_INSECURE=1` 仅限本机调试。
+- **机器人安全**：通道接口不返回 token / `app_secret` 明文（脱敏 + `has_access_token`），空 token 的 OneBot webhook 与使用公开默认 token `npu-assistant` 的公众号回调一律 403；微信校验签名与 ±300 秒时间窗；`self_id` 不一致事件忽略；QQ 官方通道仅接受开放平台推送的事件并校验自身凭据；`NPU_BOT_ALLOW_INSECURE=1` 仅限本机调试。
 - **内容安全**：URL 收录默认拒绝私网/回环地址（SSRF 防护）、仅 http(s) 与 HTML/纯文本、响应上限 8MB；Wiki 词条正文渲染前转义并对链接协议白名单清洗，外链带 `rel="noopener noreferrer"`。
 - 接入 QQ / 微信公众号需遵守对应平台协议；公众号仅实现明文模式，生产环境建议改为加密模式并做消息验签加固。
 

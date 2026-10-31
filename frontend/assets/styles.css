@@ -3229,6 +3229,9 @@ textarea.input {
   min-height: 220px;
   justify-content: center;
 }
+.bot-card.type-qq_official {
+  border-top: 3px solid var(--npu-blue-500);
+}
 .bot-card.type-onebot11 {
   border-top: 3px solid var(--npu-blue-500);
 }

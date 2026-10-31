@@ -30,6 +30,36 @@ import {
 } from '../ui.js';
 
 const CHANNEL_TYPES = {
+  qq_official: {
+    label: 'QQ · 开放平台',
+    tone: 'blue',
+    icon: 'qq',
+    desc: 'QQ 开放平台官方机器人：服务主动连接 WebSocket 网关，无需公网回调地址。',
+    configFields: [
+      { key: 'app_id', label: 'AppID', placeholder: 'QQ 开放平台机器人 AppID' },
+      {
+        key: 'app_secret',
+        label: 'AppSecret',
+        type: 'password',
+        sensitive: true,
+        hint: '已配置时留空表示不修改；在 QQ 开放平台「机器人」页面获取',
+      },
+      {
+        key: 'admin_user_ids',
+        label: '管理员账号',
+        type: 'admin',
+        hint: '允许通过机器人收录资料的管理员 openid，逗号分隔；发送 #帮助 可查看自己的 openid',
+      },
+      {
+        key: 'sandbox',
+        label: '沙箱环境',
+        type: 'checkbox',
+        default: 'false',
+        hint: '调试阶段可勾选（sandbox.api.sgroup.qq.com）；正式上线请取消',
+      },
+    ],
+    defaults: { app_id: '', app_secret: '', sandbox: 'false' },
+  },
   onebot11: {
     label: 'QQ · OneBot 11',
     tone: 'blue',
@@ -95,7 +125,7 @@ const CHANNEL_TYPES = {
   },
 };
 
-const CHANNEL_ORDER = ['onebot11', 'wechat_mp', 'console'];
+const CHANNEL_ORDER = ['qq_official', 'onebot11', 'wechat_mp', 'console'];
 
 const STATUS_META = {
   online: { label: '在线', tone: 'green' },
@@ -243,7 +273,9 @@ function channelCardHtml(channel) {
           </div>`,
         )
         .join('')}</div>`
-    : `<div class="bot-note">${icon('info')}<span>控制台通道无需 Webhook 地址，可直接使用下方模拟对话调试。</span></div>`;
+    : channel.type === 'qq_official'
+      ? `<div class="bot-note">${icon('info')}<span>无需 Webhook 地址：保存并启用后，服务会主动连接 QQ 开放平台 WebSocket 网关，连接状态会自动更新。</span></div>`
+      : `<div class="bot-note">${icon('info')}<span>控制台通道无需 Webhook 地址，可直接使用下方模拟对话调试。</span></div>`;
 
   const fields = meta.configFields
     .map((field) => {
@@ -310,7 +342,7 @@ function renderChannels() {
     return;
   }
   if (!state.loaded) {
-    holder.innerHTML = `<div class="bot-grid">${Array.from({ length: 3 })
+    holder.innerHTML = `<div class="bot-grid">${Array.from({ length: 4 })
       .map(
         () =>
           '<article class="bot-card is-skeleton"><span class="skeleton-line w-40"></span><span class="skeleton-line w-90"></span><span class="skeleton-line w-70"></span><span class="skeleton-line w-60"></span></article>',
@@ -554,6 +586,23 @@ function collectConfig(card) {
 
 function validateChannelConfig(channel, card) {
   const config = configOf(channel);
+  if (channel.type === 'qq_official') {
+    const appIdInput = card.querySelector('[data-config="app_id"]');
+    const secretInput = card.querySelector('[data-config="app_secret"]');
+    const appId = String(appIdInput?.value || config.app_id || '').trim();
+    const newSecret = String(secretInput?.value || '').trim();
+    const hasSecret = Boolean(channel.has_access_token) || isMaskedValue(config.app_secret);
+    if (!appId) {
+      toast('请填写 QQ 开放平台机器人的 AppID', 'error');
+      appIdInput?.focus();
+      return false;
+    }
+    if (!newSecret && !hasSecret) {
+      toast('请填写 QQ 开放平台机器人的 AppSecret', 'error');
+      secretInput?.focus();
+      return false;
+    }
+  }
   if (channel.type === 'wechat_mp') {
     const tokenInput = card.querySelector('[data-config="token"]');
     const newToken = tokenInput?.value.trim() || '';
@@ -701,7 +750,7 @@ function openAddChannelModal(preferredType = 'onebot11') {
     body: `<form class="form" id="channelForm" novalidate>
       <ol class="bot-steps">
         <li><strong>选择类型</strong>，填写必要参数（可留空的项已标注）</li>
-        <li>创建后<strong>复制 Webhook</strong>，填到 NapCat / 公众号后台</li>
+        <li>按创建后的提示完成平台配置（QQ 官方机器人无需 Webhook）</li>
         <li>管理员在 QQ / 微信里<strong>转发链接给机器人</strong>即可收录</li>
       </ol>
       <label class="field">
@@ -718,6 +767,16 @@ function openAddChannelModal(preferredType = 'onebot11') {
       <label class="field">
         <span class="field-label">通道名称 <em>*</em></span>
         <input class="input" name="name" maxlength="80" value="${esc(channelTypeMeta(preferredType).label)}" />
+      </label>
+      <label class="field" data-create-field="qq_appid" hidden>
+        <span class="field-label">AppID <em>*</em></span>
+        <input class="input mono" name="qq_app_id" placeholder="QQ 开放平台机器人 AppID" />
+      </label>
+      <label class="field" data-create-field="qq_secret" hidden>
+        <span class="field-label">AppSecret <em>*</em></span>
+        <input class="input mono" name="qq_app_secret" type="password" autocomplete="new-password"
+          placeholder="QQ 开放平台机器人 AppSecret" />
+        <span class="field-help">用于换取 access_token 并连接 WebSocket 网关；保存后只显示脱敏值。</span>
       </label>
       <label class="field" data-create-field="onebot_api">
         <span class="field-label">HTTP API 地址</span>
@@ -741,7 +800,7 @@ function openAddChannelModal(preferredType = 'onebot11') {
         <span class="field-label">AppID <span class="field-tip">（可选）</span></span>
         <input class="input mono" name="wechat_app_id" placeholder="公众号 AppID，可稍后填写" />
       </label>
-      <div class="form-hint">${icon('info')}<span>OneBot 通道留空 Token 会自动生成随机密钥；敏感凭据创建后不会回显明文。</span></div>
+      <div class="form-hint">${icon('info')}<span>OneBot 通道留空 Token 会自动生成随机密钥；QQ 官方机器人使用 AppID / AppSecret；敏感凭据创建后不会回显明文。</span></div>
     </form>`,
     footer: `<button class="btn btn-ghost" type="button" data-modal-cancel>取消</button>
       <button class="btn btn-primary" type="button" data-modal-submit>${icon('plus')}<span>创建通道</span></button>`,
@@ -753,8 +812,12 @@ function openAddChannelModal(preferredType = 'onebot11') {
   const onebotTokenField = form.querySelector('[data-create-field="onebot_token"]');
   const wechatTokenField = form.querySelector('[data-create-field="wechat_token"]');
   const wechatAppIdField = form.querySelector('[data-create-field="wechat_appid"]');
+  const qqAppIdField = form.querySelector('[data-create-field="qq_appid"]');
+  const qqSecretField = form.querySelector('[data-create-field="qq_secret"]');
   const syncCreateFields = () => {
     const type = typeSelect.value;
+    qqAppIdField.hidden = type !== 'qq_official';
+    qqSecretField.hidden = type !== 'qq_official';
     onebotApiField.hidden = type !== 'onebot11';
     onebotTokenField.hidden = type !== 'onebot11';
     wechatTokenField.hidden = type !== 'wechat_mp';
@@ -776,7 +839,22 @@ function openAddChannelModal(preferredType = 'onebot11') {
       return;
     }
     const config = { ...channelTypeMeta(type).defaults };
-    if (type === 'wechat_mp') {
+    if (type === 'qq_official') {
+      const appId = form.querySelector('[name="qq_app_id"]').value.trim();
+      const appSecret = form.querySelector('[name="qq_app_secret"]').value.trim();
+      if (!appId) {
+        toast('请填写 QQ 开放平台机器人的 AppID', 'error');
+        form.querySelector('[name="qq_app_id"]').focus();
+        return;
+      }
+      if (!appSecret) {
+        toast('请填写 QQ 开放平台机器人的 AppSecret', 'error');
+        form.querySelector('[name="qq_app_secret"]').focus();
+        return;
+      }
+      config.app_id = appId;
+      config.app_secret = appSecret;
+    } else if (type === 'wechat_mp') {
       const token = form.querySelector('[name="wechat_token"]').value.trim();
       if (!token) {
         toast('请填写公众号后台一致的自定义 Token（≥16 位随机）', 'error');
@@ -819,11 +897,19 @@ function openAddChannelModal(preferredType = 'onebot11') {
             ? `<div class="inline-error is-warn">${icon('shield')}<span>已自动生成通道密钥（明文不可再次查看）。如需自定义 token（如 NapCat 使用），请到通道详情重新设置。</span></div>`
             : ''
         }
-        <ol class="bot-steps">
-          <li>复制下方 Webhook 地址</li>
-          <li>填到 NapCat / go-cqhttp 或公众号后台「服务器配置」</li>
-          <li>管理员在 QQ / 微信里转发链接给机器人，即可自动收录</li>
-        </ol>
+        ${
+          type === 'qq_official'
+            ? `<ol class="bot-steps">
+                <li>通道已启用：服务会立即用 AppID / AppSecret 连接 QQ 开放平台 WebSocket 网关</li>
+                <li>在 QQ 开放平台把机器人发布到测试群 / 正式环境，并确认事件订阅包含群 @ 与私聊消息</li>
+                <li>回到本页刷新，状态变为「在线」后即可在 QQ 中提问</li>
+              </ol>`
+            : `<ol class="bot-steps">
+                <li>复制下方 Webhook 地址</li>
+                <li>填到 NapCat / go-cqhttp 或公众号后台「服务器配置」</li>
+                <li>管理员在 QQ / 微信里转发链接给机器人，即可自动收录</li>
+              </ol>`
+        }
         ${createWebhookList(created, type)}
         <div class="bot-created-actions">
           <a class="btn btn-ghost btn-sm" href="/manual/index.html" target="_blank" rel="noopener">${icon('external')}<span>查看接入文档</span></a>
@@ -864,6 +950,11 @@ export function mount(root) {
           </div>
         </header>
         <div class="quick-add-grid">
+          <button class="quick-add-card" type="button" data-action="add-channel" data-type="qq_official">
+            <span class="quick-add-icon tone-blue">${icon('qq')}</span>
+            <span class="quick-add-text"><strong>QQ 官方机器人</strong><span>开放平台 · AppID / AppSecret</span></span>
+            <span class="quick-add-go">${icon('chevron-right')}</span>
+          </button>
           <button class="quick-add-card" type="button" data-action="add-channel" data-type="onebot11">
             <span class="quick-add-icon tone-blue">${icon('qq')}</span>
             <span class="quick-add-text"><strong>QQ 机器人</strong><span>OneBot 11 · NapCat / go-cqhttp</span></span>

@@ -44,6 +44,7 @@ from ..adapters import onebot, wechat_mp
 from ..adapters.base import (
     CHANNEL_CONSOLE,
     CHANNEL_ONEBOT,
+    CHANNEL_QQ_OFFICIAL,
     CHANNEL_WECHAT,
     IncomingMessage,
     channel_type_label,
@@ -53,7 +54,7 @@ from ..adapters.base import (
     parse_admin_user_ids,
 )
 from ..security import require_admin_token
-from ..services import bot_pipeline
+from ..services import bot_pipeline, qq_gateway
 
 logger = logging.getLogger("npu-assistant")
 
@@ -63,6 +64,7 @@ router = APIRouter(tags=["bots"])
 API_PREFIX = "/api"
 
 DEFAULT_CHANNEL_NAMES = {
+    CHANNEL_QQ_OFFICIAL: "QQ 机器人（开放平台）",
     CHANNEL_ONEBOT: "QQ 机器人（OneBot 11）",
     CHANNEL_WECHAT: "微信公众号",
     CHANNEL_CONSOLE: "控制台调试通道",
@@ -102,11 +104,13 @@ def _channel_config(row: dict | None) -> dict:
 # 安全：凭据脱敏 / webhook Token 策略
 # ---------------------------------------------------------------------------
 def _credential_field(channel_type: str) -> str | None:
-    """各渠道的凭据字段名（onebot 用 access_token，微信复用 token）。"""
+    """各渠道的凭据字段名（onebot 用 access_token，微信复用 token，QQ 官方用 app_secret）。"""
     if channel_type == CHANNEL_ONEBOT:
         return "access_token"
     if channel_type == CHANNEL_WECHAT:
         return "token"
+    if channel_type == CHANNEL_QQ_OFFICIAL:
+        return "app_secret"
     return None
 
 
@@ -227,6 +231,10 @@ def _has_usable_credential(channel_type: str, config: dict) -> bool:
         return _onebot_token_configured(config)
     if channel_type == CHANNEL_WECHAT:
         return _wechat_token_secure(config)
+    if channel_type == CHANNEL_QQ_OFFICIAL:
+        return bool(str(config.get("app_id") or "").strip()) and bool(
+            str(config.get("app_secret") or "").strip()
+        )
     return False
 
 
@@ -478,6 +486,9 @@ def create_channel(payload: dict) -> dict:
         (channel_id, channel_type, name, db.to_json(config), enabled, status, db.now()),
     )
     logger.info("新增机器人通道：%s (%s)", name, channel_type)
+    if channel_type == CHANNEL_QQ_OFFICIAL:
+        # QQ 官方机器人是主动出站连接：创建后立刻按配置尝试连接
+        qq_gateway.gateway.notify()
     serialized = _serialize_channel(_require_channel(channel_id))
     if token_generated:
         # 提示前端/管理员：随机 Token 只保存脱敏值，需自行填写已知 Token 才能配置 NapCat
@@ -523,6 +534,9 @@ def update_channel(channel_id: str, payload: dict) -> dict:
     if updates:
         params.append(channel_id)
         db.execute(f"UPDATE bot_channels SET {', '.join(updates)} WHERE id = ?", params)
+    if channel_type == CHANNEL_QQ_OFFICIAL:
+        # 配置 / 启用状态变化后重新对齐连接（旧任务会按指纹停止并重建）
+        qq_gateway.gateway.notify()
     return _serialize_channel(_require_channel(channel_id))
 
 
@@ -532,6 +546,8 @@ def delete_channel(channel_id: str) -> dict:
     if row.get("type") == CHANNEL_CONSOLE:
         raise HTTPException(status_code=400, detail="控制台调试通道不可删除")
     db.execute("DELETE FROM bot_channels WHERE id = ?", (channel_id,))
+    if row.get("type") == CHANNEL_QQ_OFFICIAL:
+        qq_gateway.gateway.notify()
     logger.info("删除机器人通道：%s (%s)", row.get("name"), row.get("type"))
     return {"ok": True}
 

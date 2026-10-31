@@ -26,7 +26,7 @@ logger = logging.getLogger("npu-assistant")
 
 router = APIRouter(tags=["chat"])
 
-ALLOWED_CHANNELS = {"web", "onebot11", "wechat_mp", "console"}
+ALLOWED_CHANNELS = {"web", "qq_official", "onebot11", "wechat_mp", "console"}
 MAX_MESSAGE_CHARS = 2000
 ANONYMOUS_TOKEN_BYTES = 4
 
@@ -60,7 +60,7 @@ def chat(payload: dict) -> dict:
     if channel not in ALLOWED_CHANNELS:
         raise HTTPException(
             status_code=400,
-            detail=f"不支持的渠道：{channel}（可选 web/onebot11/wechat_mp/console）",
+            detail=f"不支持的渠道：{channel}（可选 web/qq_official/onebot11/wechat_mp/console）",
         )
 
     conversation_id = payload.get("conversation_id")
