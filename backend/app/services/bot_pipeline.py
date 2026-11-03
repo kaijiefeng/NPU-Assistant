@@ -41,6 +41,7 @@ from ..adapters.base import (
     make_console_message,
     parse_admin_user_ids,
 )
+from . import file_links
 
 logger = logging.getLogger("npu-assistant")
 
@@ -143,6 +144,31 @@ def _append_footer(reply: str) -> str:
     if reply.rstrip().endswith(footer):
         return reply
     return f"{reply}\n\n{footer}"
+
+
+def _append_source_links(reply: str, citations: list, *, max_chars: int = 0) -> str:
+    """在回答末尾追加「相关文件」链接（本地上传文件给下载地址，网页来源给原链接）。
+
+    QQ 等渠道对单条文本有长度上限（``qq_official.MAX_REPLY_CHARS``）；传入
+    ``max_chars`` 时会先裁剪正文，保证链接不会被平台截断而丢失。
+    """
+    try:
+        links = file_links.source_links(citations)
+    except Exception:  # noqa: BLE001 - 链接拼装失败不影响回答
+        logger.warning("生成来源文件链接失败（已忽略）", exc_info=True)
+        return reply
+    links = [link for link in links if link.get("url") and link["url"] not in reply]
+    if not links:
+        return reply
+    lines = ["", "相关文件："]
+    for index, link in enumerate(links, start=1):
+        title = link.get("title") or f"源文件{index}"
+        lines.append(f"{index}. {title}：{link['url']}")
+    block = "\n".join(lines)
+    if max_chars and len(reply) + len(block) > max_chars:
+        keep = max(0, max_chars - len(block) - 2)
+        reply = reply[:keep].rstrip() + "……"
+    return reply.rstrip() + block
 
 
 def _persist_fallback(message: IncomingMessage, question: str, reply: str) -> str | None:
@@ -704,6 +730,9 @@ def handle_incoming(message: IncomingMessage, *, channel_config: dict | None = N
         )
         reply = FALLBACK_REPLY
 
+    # 相关文件链接：本地上传文件给下载地址，网页来源给原链接（QQ 官方限长需预留空间）
+    limit = qq_official.MAX_REPLY_CHARS - 2 if message.channel == CHANNEL_QQ_OFFICIAL else 0
+    reply = _append_source_links(reply, citations, max_chars=limit)
     reply = _append_footer(reply)
 
     # counselor 不可用时也要保证消息日志里有记录

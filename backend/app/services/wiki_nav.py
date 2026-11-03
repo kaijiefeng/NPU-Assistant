@@ -23,7 +23,7 @@ from collections import Counter
 from typing import Any
 
 from .. import config, db
-from . import llm, text_utils
+from . import file_links, llm, text_utils
 
 logger = logging.getLogger("npu-assistant")
 
@@ -727,9 +727,18 @@ def _plain_text(markdown_text: str) -> str:
 
 
 def _citation_sources(page: dict) -> list[dict]:
+    """把词条来源转成引用结构，并补上可下载/可跳转的链接。
+
+    * 本地上传文件 → ``download_url``（相对下载路径）；
+    * 收录自网页的文档 → ``source_url`` 原网页地址（``source_type='url'``）。
+    """
+    raw_sources = [
+        source for source in (page.get("sources") or []) if isinstance(source, dict)
+    ]
+    meta = db.get_documents_meta(str(item.get("document_id") or "") for item in raw_sources)
     sources: list[dict] = []
     seen: set[tuple] = set()
-    for source in page.get("sources") or []:
+    for source in raw_sources:
         key = (
             str(source.get("document_id") or ""),
             str(source.get("section") or ""),
@@ -738,13 +747,20 @@ def _citation_sources(page: dict) -> list[dict]:
         if key in seen:
             continue
         seen.add(key)
+        document_id = str(source.get("document_id") or "")
+        document = meta.get(document_id) or {}
+        source_url = str(document.get("source_url") or "")
         sources.append(
             {
-                "document_id": str(source.get("document_id") or ""),
+                "document_id": document_id,
                 "document_title": str(source.get("document_title") or ""),
                 "source_file": str(source.get("source_file") or ""),
                 "section": str(source.get("section") or ""),
                 "quote": str(source.get("quote") or ""),
+                # 下载/跳转：网页来源优先给原链接，本地文件给下载地址
+                "source_type": str(document.get("source_type") or "file"),
+                "source_url": source_url,
+                "download_url": "" if source_url else file_links.download_path(document_id),
             }
         )
     return sources

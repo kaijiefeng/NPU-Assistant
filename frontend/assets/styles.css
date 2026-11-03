@@ -4945,6 +4945,30 @@ textarea.input {
   color: var(--muted);
   font-size: 10.5px;
 }
+.citation-source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+  padding: 1px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--npu-blue-600, #1b4f9c);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.citation-source-link .i {
+  width: 11px;
+  height: 11px;
+  color: inherit;
+}
+.citation-source-link:hover {
+  border-color: var(--npu-blue-400, #4a83d6);
+  background: #f2f7ff;
+}
 .citation-source-quote {
   margin: 5px 0 0;
   padding: 6px 9px;

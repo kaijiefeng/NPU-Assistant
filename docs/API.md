@@ -25,7 +25,7 @@
 |------|----------|------|
 | 系统 | `GET /health`、`GET /system/info`、`GET /system/stats`、`GET/PUT /settings` | 健康检查（含 `knowledge_mode`、`wiki_pages`）、运行信息、统计、可编辑设置 |
 | 对话 | `POST /chat`、`GET /chat/conversations`、`GET /chat/conversations/{id}/messages`、`DELETE /chat/conversations/{id}` | Wiki 导航问答 + 双层引用 + `navigation` 元信息 |
-| 源文件 | `POST/GET /knowledge/documents`、`GET/DELETE /knowledge/documents/{id}`、`POST .../reindex`、`POST /knowledge/seed`、`GET /knowledge/stats` | 上传并**同步编译**、列表/详情/删除/重建、导入预编译快照、统计 |
+| 源文件 | `POST/GET /knowledge/documents`、`GET/DELETE /knowledge/documents/{id}`、`GET .../download`、`POST .../reindex`、`POST /knowledge/seed`、`GET /knowledge/stats` | 上传并**同步编译**、列表/详情/下载/删除/重建、导入预编译快照、统计 |
 | 快速收录 | `POST /knowledge/import/url`、`POST /knowledge/import/text`、`POST /knowledge/import/batch` | 移动端：URL 抓取正文、粘贴文本、批量链接（≤5）→ 生成源文件并编译词条（见 [MOBILE-OPS.md](MOBILE-OPS.md)） |
 | Wiki | `GET /wiki/tree`、`GET /wiki/pages`、`GET/PUT/DELETE /wiki/pages/{id}`、`POST /wiki/search`、`GET /wiki/stats`、`POST /wiki/rebuild`、`GET /wiki/builds`、`GET /wiki/builds/{id}`、`POST /wiki/seed` | 目录、浏览、搜索、编辑、重建与构建记录 |
 | 模型 | `GET/POST /models/providers`、`PUT/DELETE /models/providers/{id}`、`POST .../test`、`GET/POST /models`、`PUT/DELETE /models/{id}`、`POST /models/{id}/default`、`POST /models/{id}/test` | Provider / 模型 CRUD、默认模型、连通性测试 |
@@ -205,11 +205,14 @@ Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/knowledge/documents -Fo
 - LLM 不可用/编译失败：仍返回 doc，但 `status="failed"` 且 `error` 为中文原因，可重试；
 - 超大/不支持类型：413 / 400。
 
-### 5.2 列表 / 详情 / 删除 / 重建
+### 5.2 列表 / 详情 / 下载 / 删除 / 重建
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8000/api/knowledge/documents        # {items,total}，doc 含 page_count
 Invoke-RestMethod http://127.0.0.1:8000/api/knowledge/documents/<id>   # doc + wiki_pages:[{id,slug,title,status}]
+
+# 下载原始源文件（附件形式，文件名取上传时的原始文件名）
+Invoke-WebRequest http://127.0.0.1:8000/api/knowledge/documents/<id>/download -OutFile 原文.pdf
 
 # 删除：同时删除独占词条、移除共享词条来源、删除物理文件
 Invoke-RestMethod -Method Delete http://127.0.0.1:8000/api/knowledge/documents/<id>
@@ -219,6 +222,10 @@ Invoke-RestMethod -Method Delete http://127.0.0.1:8000/api/knowledge/documents/<
 Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/knowledge/documents/<id>/reindex
 # → {"document":{...},"build":{...}}
 ```
+
+> 对话引用的 `citations[].sources[]` 新增 `source_type`、`source_url`、`download_url`：
+> 收录自网页的文档给原网页地址，本地上传文件给 `/api/knowledge/documents/{id}/download`；
+> 机器人（QQ/微信/控制台）会在回答末尾追加「相关文件」绝对链接。
 
 ### 5.3 预编译快照与统计
 

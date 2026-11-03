@@ -21,7 +21,13 @@ def _valid_ip(value: str) -> bool:
         ip = ipaddress.ip_address(value)
     except ValueError:
         return False
-    return ip.version == 4 and not (
+    if ip.version != 4:
+        return False
+    # 198.18.0.0/15 是网络基准测试保留段，常被代理软件（Clash/Mihomo TUN）用作
+    # fake-IP，手机无法访问，不能当作局域网地址展示。
+    if int(ip) & 0xFFFE0000 == 0xC6120000:  # 198.18.0.0/15
+        return False
+    return not (
         ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_unspecified
     )
 
@@ -54,18 +60,19 @@ def detect_lan_ips() -> list[str]:
             continue
         seen.add(value)
         result.append(value)
-    # Prefer typical home/campus Wi-Fi ranges over WSL/Tailscale/virtual adapters.
+    # Prefer typical home/campus Wi-Fi ranges over virtual adapters
+    # （172.16/12 常被 Hyper-V / Docker / VirtualBox 的虚拟网卡占用，排在最后）。
     def score(item: str) -> tuple[int, str]:
         ip = ipaddress.ip_address(item)
         if int(ip) & 0xFFFF0000 == 0xC0A80000:  # 192.168.0.0/16
             return (0, item)
         if int(ip) & 0xFF000000 == 0x0A000000:  # 10.0.0.0/8
             return (1, item)
+        if int(ip) & 0xFFC00000 == 0x64400000:  # 100.64.0.0/10（校园/运营商 CGNAT）
+            return (2, item)
         if int(ip) & 0xFFF00000 == 0xAC100000:  # 172.16.0.0/12
-            return (3, item)
-        if int(ip) & 0xFFC00000 == 0x64400000:  # 100.64.0.0/10 (Tailscale/CGNAT)
             return (4, item)
-        return (2, item)
+        return (3, item)
 
     result.sort(key=score)
     return result

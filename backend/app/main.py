@@ -105,6 +105,27 @@ def _check_bind_security() -> None:
     )
 
 
+def _warn_bot_links_unreachable() -> None:
+    """机器人回答里的文件链接需要手机可达；本机监听且无公网地址时提示运维处理。"""
+    try:
+        enabled = db.query_one(
+            "SELECT COUNT(*) AS n FROM bot_channels WHERE enabled = 1"
+        )
+        if not enabled or int(enabled.get("n") or 0) == 0:
+            return
+        from .services import file_links
+
+        if file_links.bot_links_reachable():
+            return
+    except Exception:  # pragma: no cover - 提示失败不影响启动
+        return
+    logger.warning(
+        "已启用机器人，但服务仅监听本机且未配置公网地址：机器人回复中的文件下载链接"
+        "在手机上无法打开。请用 scripts/run.ps1 -Lan 启动、设置 NPU_PUBLIC_URL，"
+        "或在「手机扫码」中开启公网隧道。"
+    )
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     _check_bind_security()
@@ -123,6 +144,7 @@ async def lifespan(_: FastAPI):
         except Exception:  # pragma: no cover - optional convenience
             logger.exception("预编译 Wiki 快照导入失败（已忽略，可在知识库页手动导入）")
     logger.info("NPU-Assistant 已启动 | data=%s", config.DATA_DIR)
+    _warn_bot_links_unreachable()
     # QQ 开放平台官方机器人：主动建立 WebSocket 网关连接（无需公网回调）。
     await qq_gateway.gateway.startup()
     try:

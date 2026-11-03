@@ -9,6 +9,7 @@
 * ``POST   /api/knowledge/import/batch``          批量收录链接（≤5 条，逐条返回结果）
 * ``GET    /api/knowledge/documents``             列表（含 page_count、source_type、source_url）
 * ``GET    /api/knowledge/documents/{id}``        详情 + 贡献的 wiki_pages
+* ``GET    /api/knowledge/documents/{id}/download`` 下载原始文件（附件形式）
 * ``DELETE /api/knowledge/documents/{id}``        删除文档 / 独占词条 / 物理文件
 * ``POST   /api/knowledge/documents/{id}/reindex`` 重新解析+编译 → {document, build}
 * ``POST   /api/knowledge/seed``                  导入预编译快照（幂等）
@@ -21,9 +22,11 @@
 from __future__ import annotations
 
 import logging
+import mimetypes
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from .. import config, db
@@ -220,6 +223,27 @@ def get_document(doc_id: str) -> dict:
         for page in pages
     ]
     return payload
+
+
+@router.get("/knowledge/documents/{doc_id}/download")
+def download_document(doc_id: str) -> FileResponse:
+    """下载原始源文件（``Content-Disposition: attachment``）。
+
+    文件已删除或记录指向不存在的位置 → 404；``filename`` 取上传时的原始文件名，
+    保证手机/QQ 端下载后仍是可读名字。
+    """
+    row = require_document(doc_id)
+    stored_path = Path(str(row.get("stored_path") or ""))
+    if not stored_path.is_file():
+        raise HTTPException(status_code=404, detail="原始文件不存在或已被删除")
+    filename = str(row.get("filename") or "").strip() or stored_path.name
+    media_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    return FileResponse(
+        stored_path,
+        media_type=media_type,
+        filename=filename,
+        headers={"Cache-Control": "no-cache"},
+    )
 
 
 @router.delete("/knowledge/documents/{doc_id}")

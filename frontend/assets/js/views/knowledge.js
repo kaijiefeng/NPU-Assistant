@@ -12,6 +12,7 @@
 import {
   deleteDocument,
   deleteWikiPage,
+  documentDownloadUrl,
   getDocument,
   getKnowledgeStats,
   getSystemInfo,
@@ -1019,6 +1020,9 @@ function renderDocs() {
               <button class="icon-btn" type="button" data-action="reindex" data-id="${esc(doc.id)}" title="重新编译" aria-label="重新编译">${icon(
                 'refresh',
               )}</button>
+              <button class="icon-btn" type="button" data-action="doc-download" data-id="${esc(
+                doc.id,
+              )}" title="下载源文件" aria-label="下载源文件">${icon('download')}</button>
               <button class="icon-btn is-danger" type="button" data-action="doc-delete" data-id="${esc(
                 doc.id,
               )}" title="删除源文件" aria-label="删除源文件">${icon('trash')}</button>
@@ -1197,6 +1201,17 @@ async function reindexDoc(id, button) {
   } finally {
     setButtonBusy(button, false);
   }
+}
+
+function downloadDoc(id) {
+  if (!id) return;
+  // 浏览器直接下载（服务端返回 Content-Disposition: attachment）
+  const link = document.createElement('a');
+  link.href = documentDownloadUrl(id);
+  link.rel = 'noopener';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 }
 
 async function removeDoc(id) {
@@ -1900,6 +1915,9 @@ export function mountManage(root, context = {}) {
         break;
       case 'doc-delete':
         removeDoc(trigger.dataset.id);
+        break;
+      case 'doc-download':
+        downloadDoc(trigger.dataset.id, trigger);
         break;
       case 'clear-uploads':
         state.uploads = state.uploads.filter((item) => item.status === 'uploading');

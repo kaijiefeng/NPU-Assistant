@@ -148,10 +148,15 @@ function citationSourcesHtml(sources) {
   return `<div class="citation-sources">${sources
     .map((source) => {
       const title = source.document_title || source.source_file || '来源文件';
+      const link = source.source_url
+        ? `<a class="citation-source-link" href="${esc(source.source_url)}" target="_blank" rel="noopener noreferrer">${icon('external')}<span>查看原文</span></a>`
+        : source.download_url
+          ? `<a class="citation-source-link" href="${esc(source.download_url)}" download>${icon('download')}<span>下载原文件</span></a>`
+          : '';
       return `<div class="citation-source">
         <div class="citation-source-head">${icon('file')}<span>${esc(title)}</span>${
           source.section ? `<span class="citation-source-section">${esc(source.section)}</span>` : ''
-        }</div>
+        }${link}</div>
         ${source.quote ? `<blockquote class="citation-source-quote">${esc(source.quote)}</blockquote>` : ''}
       </div>`;
     })

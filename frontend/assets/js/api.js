@@ -197,6 +197,8 @@ export const getDocument = (id) => get(`/knowledge/documents/${encodeURIComponen
 export const deleteDocument = (id) => del(`/knowledge/documents/${encodeURIComponent(id)}`);
 export const reindexDocument = (id) =>
   post(`/knowledge/documents/${encodeURIComponent(id)}/reindex`);
+export const documentDownloadUrl = (id) =>
+  `${API_BASE}/knowledge/documents/${encodeURIComponent(id)}/download`;
 export const getKnowledgeStats = () => get('/knowledge/stats');
 
 /* ------------------------------------------------------------------ */

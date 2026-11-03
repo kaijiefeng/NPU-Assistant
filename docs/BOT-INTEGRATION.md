@@ -30,6 +30,7 @@ QQ 用户 ──> NapCat（OneBot 11 实现） ──反向 WS / 反向 HTTP 事
 - **处理**：`bot_pipeline` 归一化消息 → 调用 `counselor.answer()`（Wiki 导航选词条 + LLM 生成 + 落库）→ 得到回复与「词条 + 来源锚点」双层引用；机器人侧只使用回复文本发送。
 - **出站**：QQ 官方机器人通过开放平台 HTTP API 被动回复（带 `msg_id`）；OneBot 11 通过 NapCat 的 HTTP API 发送；公众号侧直接返回明文 XML。
 - **会话**：不同渠道使用不同 `session_key`，同一 QQ 私聊 / 群成员会延续同一会话上下文。
+- **来源链接（v0.1.7）**：每轮回答末尾自动追加「相关文件」清单——收录自网页的文档给原网页地址，本地上传的文件给下载地址 `/api/knowledge/documents/{id}/download`。这些链接是**绝对地址**，由服务按 `NPU_PUBLIC_URL` → 临时隧道 → 局域网 IP（首选项为 Wi-Fi/有线网卡）推断；若服务只监听 `127.0.0.1` 且未配置公网地址，手机上打不开，启动日志会给出提示（用 `scripts/run.ps1 -Lan` 或开启隧道即可）。
 
 ## 2. 准备工作
 

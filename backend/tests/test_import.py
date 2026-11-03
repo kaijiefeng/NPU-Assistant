@@ -368,6 +368,27 @@ def test_documents_expose_source_fields(client, compile_ready, article_server):
 
 
 # ---------------------------------------------------------------------------
+# 5.1) 源文件下载（v0.1.7）
+# ---------------------------------------------------------------------------
+def test_document_download_returns_original_file(client, compile_ready):
+    response = client.post(
+        "/api/knowledge/documents",
+        files={"file": ("请假政策速览.md", LONG_TEXT.encode("utf-8"), "text/markdown")},
+    )
+    assert response.status_code == 201, response.text
+    doc = response.json()
+
+    download = client.get(f"/api/knowledge/documents/{doc['id']}/download")
+    assert download.status_code == 200
+    assert download.content.decode("utf-8") == LONG_TEXT
+    # 附件形式下载，文件名保持上传时的原始名称
+    assert "attachment" in download.headers["content-disposition"]
+    assert "filename" in download.headers["content-disposition"]
+
+    assert client.get("/api/knowledge/documents/not-exist/download").status_code == 404
+
+
+# ---------------------------------------------------------------------------
 # 6) 并发去重（进程内锁 + documents.source_url 唯一索引兜底）
 # ---------------------------------------------------------------------------
 def test_import_url_concurrent_requests_do_not_create_duplicates(

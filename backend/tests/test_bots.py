@@ -194,6 +194,10 @@ def test_console_simulated_chat_returns_dual_citations(
     assert isinstance(data["latency_ms"], int)
     assert data["outbound"]["type"] == "console"
     assert data["outbound"]["text"].strip()
+    # 回答末尾附带源文件下载链接（绝对地址，QQ/微信可直接点击）
+    assert "相关文件" in data["reply"]
+    assert "/api/knowledge/documents/" in data["reply"]
+    assert "/download" in data["reply"]
 
     logs = client.get("/api/bots/logs").json()["items"]
     matched = [item for item in logs if item["channel"] == "console"]

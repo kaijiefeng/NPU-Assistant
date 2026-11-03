@@ -343,6 +343,20 @@ def get_document(document_id: str) -> dict | None:
     return query_one("SELECT * FROM documents WHERE id = ?", (document_id,))
 
 
+def get_documents_meta(document_ids: Iterable[str]) -> dict[str, dict]:
+    """批量取源文件来源信息（``id/source_type/source_url/filename``），用于引用补链接。"""
+    ids = [str(item) for item in document_ids if item]
+    ids = list(dict.fromkeys(ids))
+    if not ids:
+        return {}
+    placeholders = ",".join("?" * len(ids))
+    rows = query(
+        f"SELECT id, source_type, source_url, filename FROM documents WHERE id IN ({placeholders})",
+        ids,
+    )
+    return {str(row["id"]): row for row in rows}
+
+
 def get_default_model() -> dict | None:
     """Return default model row joined with its provider."""
     row = query_one(
