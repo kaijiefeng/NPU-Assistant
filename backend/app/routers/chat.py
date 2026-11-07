@@ -13,10 +13,14 @@
 """
 from __future__ import annotations
 
+import json
 import logging
+import queue as queue_module
 import secrets
+import threading
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 
 from .. import db
 from ..security import require_admin_token
@@ -26,7 +30,7 @@ logger = logging.getLogger("npu-assistant")
 
 router = APIRouter(tags=["chat"])
 
-ALLOWED_CHANNELS = {"web", "qq_official", "onebot11", "wechat_mp", "console"}
+ALLOWED_CHANNELS = {"web", "qq_official", "wechat_mp", "console"}
 MAX_MESSAGE_CHARS = 2000
 ANONYMOUS_TOKEN_BYTES = 4
 
@@ -41,9 +45,7 @@ def _new_session_key(channel: str) -> str:
     return f"{channel}:anonymous-{secrets.token_hex(ANONYMOUS_TOKEN_BYTES)}"
 
 
-@router.post("/chat")
-def chat(payload: dict) -> dict:
-    """学生提问：检索知识库 → LLM/降级 → 返回回答与引用。"""
+def _chat_params(payload: dict) -> dict:
     message = payload.get("message")
     if not isinstance(message, str):
         raise HTTPException(status_code=400, detail="message 字段必须为字符串")
@@ -60,7 +62,7 @@ def chat(payload: dict) -> dict:
     if channel not in ALLOWED_CHANNELS:
         raise HTTPException(
             status_code=400,
-            detail=f"不支持的渠道：{channel}（可选 web/qq_official/onebot11/wechat_mp/console）",
+            detail=f"不支持的渠道：{channel}（可选 web/qq_official/wechat_mp/console）",
         )
 
     conversation_id = payload.get("conversation_id")
@@ -77,14 +79,20 @@ def chat(payload: dict) -> dict:
     else:
         # 新建会话：未传 session_key 时生成随机标识，避免匿名用户共用「anonymous」会话串号
         session_key = session_key or _new_session_key(channel)
+    return {
+        "question": message,
+        "channel": channel,
+        "conversation_id": conversation_id,
+        "session_key": session_key,
+    }
 
+
+@router.post("/chat")
+def chat(payload: dict) -> dict:
+    """学生提问：检索知识库 → LLM/降级 → 返回回答与引用。"""
+    params = _chat_params(payload)
     try:
-        return counselor.answer(
-            message,
-            channel=channel,
-            session_key=session_key,
-            conversation_id=conversation_id,
-        )
+        return counselor.answer(**params)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except HTTPException:
@@ -92,6 +100,62 @@ def chat(payload: dict) -> dict:
     except Exception:
         logger.exception("问答编排失败")
         raise HTTPException(status_code=500, detail="问答服务暂时不可用，请稍后重试")
+
+
+@router.post("/chat/stream")
+def chat_stream(payload: dict) -> StreamingResponse:
+    """SSE 流式回答：``meta`` → 若干 ``delta`` → ``done``（含引用与消息 ID）。"""
+    params = _chat_params(payload)
+    queue: queue_module.Queue = queue_module.Queue()
+    stop = threading.Event()
+    holder: dict = {}
+
+    def worker() -> None:
+        try:
+            holder["result"] = counselor.answer(
+                **params,
+                on_delta=lambda text: (
+                    None if stop.is_set() else queue.put(("delta", {"text": text}))
+                ),
+                on_meta=lambda meta: (
+                    None if stop.is_set() else queue.put(("meta", meta))
+                ),
+            )
+        except ValueError as exc:
+            queue.put(("error", {"detail": str(exc)}))
+        except Exception:
+            logger.exception("流式问答编排失败")
+            queue.put(("error", {"detail": "问答服务暂时不可用，请稍后重试"}))
+        finally:
+            queue.put(("end", None))
+
+    def event_stream():
+        threading.Thread(target=worker, name="npu-chat-stream", daemon=True).start()
+        try:
+            while True:
+                try:
+                    kind, data = queue.get(timeout=15)
+                except queue_module.Empty:
+                    yield ": ping\n\n"
+                    continue
+                if kind == "end":
+                    break
+                yield f"event: {kind}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+            result = holder.get("result")
+            if isinstance(result, dict) and result:
+                yield f"event: done\ndata: {json.dumps(result, ensure_ascii=False)}\n\n"
+        finally:
+            stop.set()
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.get("/chat/conversations", dependencies=[Depends(require_admin_token)])

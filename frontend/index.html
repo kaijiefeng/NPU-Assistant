@@ -58,18 +58,10 @@
           </a>
         </div>
         <div class="nav-group">
-          <span class="nav-group-label">运维</span>
-          <a class="nav-item" href="#/manage" data-view="manage">
-            <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-database"></use></svg></span>
-            <span class="nav-label">内容管理</span>
-          </a>
-          <a class="nav-item" href="#/models" data-view="models">
-            <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-cpu"></use></svg></span>
-            <span class="nav-label">模型</span>
-          </a>
-          <a class="nav-item" href="#/bots" data-view="bots">
-            <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-robot"></use></svg></span>
-            <span class="nav-label">机器人</span>
+          <span class="nav-group-label">管理</span>
+          <a class="nav-item" href="#/ops" data-view="ops">
+            <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-sparkles"></use></svg></span>
+            <span class="nav-label">运营</span>
           </a>
           <a class="nav-item" href="#/settings" data-view="settings">
             <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-settings"></use></svg></span>
@@ -79,6 +71,17 @@
       </nav>
 
       <div class="sidebar-footer">
+        <a class="nav-item nav-account" id="navAccount" href="#/settings?tab=account" hidden>
+          <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-user"></use></svg></span>
+          <span class="nav-account-text">
+            <span class="nav-label" data-account-name>账号</span>
+            <span class="nav-account-role" data-account-role></span>
+          </span>
+        </a>
+        <a class="nav-item nav-account" id="navLogin" href="#/login" hidden>
+          <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-shield"></use></svg></span>
+          <span class="nav-label">管理员登录</span>
+        </a>
         <div class="health-line" id="healthCard" title="后端服务状态">
           <span class="health-dot is-pending" id="healthDot"></span>
           <span id="healthTitle">正在连接服务…</span>

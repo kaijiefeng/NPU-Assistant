@@ -113,7 +113,7 @@
 | `#帮助` | 回复命令说明 |
 
 回复策略：
-- **QQ（OneBot）**：同步入库（通常 2–8 秒），直接回复「已收录《标题》：生成 N 个词条：…」或失败原因。
+- **QQ 官方机器人**：同步入库（通常 2–8 秒），直接回复「已收录《标题》：生成 N 个词条：…」或失败原因。
 - **微信公众号**：受 5 秒被动回复限制，**先立即回复**「收到，已开始收录，请稍后到 Wiki 查看」，后台线程完成入库；MVP 不做客服消息异步推送（再次发送链接会提示已收录）。
 - 非管理员发链接：不触发入库，按普通问题回答（避免滥用）。
 - 机器人入库的文档 `source_type="url"`，`tags` 自动追加 `bot`/`QQ`/`微信`。
@@ -171,7 +171,7 @@ cloudflared tunnel --url http://127.0.0.1:8000
 - [ ] CORS 默认关闭（同源 SPA 不需要）；确需跨域时用 `NPU_CORS_ORIGINS` 逗号白名单，禁止 `*`；
 - [ ] 公网只走 HTTPS 隧道/反代；管理接口不直接暴露裸端口；
 - [ ] 机器人 `admin_user_ids` 只填本人/值班老师账号；通道接口只回显脱敏 token + `has_access_token`，PUT 留空/脱敏占位表示不修改；
-- [ ] 机器人 webhook 安全：OneBot 空 token 403（创建时自动生成随机 token）、微信 token 不能为空或公开默认值 `npu-assistant`、回调校验 ±300 秒时间窗（服务器开启 NTP）与 nonce 防重放（重复 403；缓存为进程内，多 worker 需共享存储）、webhook 请求体 ≤2MB；`NPU_BOT_ALLOW_INSECURE=1` 仅本地调试；
+- [ ] 机器人 webhook 安全：微信 token 不能为空或公开默认值 `npu-assistant`、回调校验 ±300 秒时间窗（服务器开启 NTP）与 nonce 防重放（重复 403；缓存为进程内，多 worker 需共享存储）、webhook 请求体 ≤2MB；`NPU_BOT_ALLOW_INSECURE=1` 仅本地调试；
 - [ ] 机器人日志/配置：设置 `NPU_ADMIN_TOKEN` 后 `GET /api/bots/logs` 需 `X-Admin-Token`；通道 `api_base` 与 outbound `url` 回显脱敏（去 userinfo/query），编辑回填脱敏值=不修改；
 - [ ] URL 抓取默认禁私网（`NPU_URL_IMPORT_ALLOW_PRIVATE=0`）、默认上限 8MB；内网资料才临时开启；
 - [ ] Wiki 词条正文链接协议已白名单清洗（`javascript:`/`data:` 等移除）；后端默认下发 CSP、`X-Frame-Options: DENY`、`X-Content-Type-Options: nosniff` 等安全响应头；
@@ -202,7 +202,7 @@ cloudflared tunnel --url http://127.0.0.1:8000
 
 ### 6.1 机器人通道配置示例
 ```jsonc
-// QQ OneBot
+// QQ 官方机器人
 {"api_base":"http://127.0.0.1:3000","access_token":"强随机","self_id":"123456789",
  "group_mention_only":"true","admin_user_ids":"123456789,987654321"}
 // 微信公众号

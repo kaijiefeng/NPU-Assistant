@@ -23,7 +23,7 @@ from collections import Counter
 from typing import Any
 
 from .. import config, db
-from . import file_links, llm, text_utils
+from . import file_links, freshness, llm, text_utils
 
 logger = logging.getLogger("npu-assistant")
 
@@ -94,6 +94,13 @@ def _page_dict(row: dict | None) -> dict | None:
         return None
     aliases = db.from_json(row.get("aliases"), [])
     tags = db.from_json(row.get("tags"), [])
+    fresh = freshness.freshness_for(
+        published_at=row.get("published_at"),
+        effective_at=row.get("effective_at"),
+        expires_at=row.get("expires_at"),
+        verified_at=row.get("verified_at"),
+        academic_year=row.get("academic_year"),
+    )
     return {
         "id": row["id"],
         "slug": row["slug"],
@@ -107,6 +114,13 @@ def _page_dict(row: dict | None) -> dict | None:
         "source_count": int(row.get("source_count") or 0),
         "created_at": row.get("created_at"),
         "updated_at": row.get("updated_at"),
+        "published_at": fresh["published_at"],
+        "effective_at": fresh["effective_at"],
+        "expires_at": fresh["expires_at"],
+        "verified_at": fresh["verified_at"],
+        "academic_year": fresh["academic_year"],
+        "doc_type": row.get("doc_type") or "general",
+        "freshness": fresh,
     }
 
 
@@ -154,6 +168,7 @@ def _exact_candidates(query: str, pages: list[dict]) -> list[tuple[dict, float, 
                 continue
             if normalized_label in normalized_query:
                 score = min(1.0, 0.55 + 0.45 * len(normalized_label) / max(1, len(normalized_query)))
+                score = max(0.0, min(1.0, score + freshness.navigation_boost(page)))
                 if best is None or score > best[0]:
                     best = (round(score, 3), f"标题精确匹配：{label}")
         if best:
@@ -229,7 +244,16 @@ def _keyword_candidates(query: str, pages: list[dict]) -> list[dict]:
         max_weighted = 3.0 * sum(idf.get(token, 1.0) / max_idf for token in query_tokens)
         weighted_ratio = min(1.0, weighted / max_weighted) if max_weighted else 0.0
         coverage = len(matched) / len(query_tokens)
-        score = round(min(1.0, weighted_ratio * 0.6 + coverage * 0.4), 3)
+        score = round(
+            min(
+                1.0,
+                max(
+                    0.0,
+                    weighted_ratio * 0.6 + coverage * 0.4 + freshness.navigation_boost(page),
+                ),
+            ),
+            3,
+        )
         if score <= 0:
             continue
 
@@ -305,6 +329,7 @@ def _candidate_payload(page: dict, score: float, reason: str) -> dict:
         "summary": _one_line(page.get("summary"), 160),
         "score": round(float(score), 4),
         "reason": reason,
+        "freshness": (page.get("freshness") or {}).get("status", "unknown"),
     }
 
 
@@ -526,7 +551,20 @@ def search_pages(query: str, *, limit: int = 5) -> dict:
     max_pages = _max_pages()
     exact = _exact_candidates(query, pages)
     keyword = _keyword_candidates(query, pages)
+
+    # Freshness: only drop expired pages when a *meaningful* non-expired
+    # candidate exists.  Weak keyword noise must not hide the only exact match.
     strong_keyword = [candidate for candidate in keyword if candidate["strong"]]
+    fresh_exact = [item for item in exact if not freshness.should_exclude(item[0])]
+    fresh_strong = [
+        candidate for candidate in strong_keyword if not freshness.should_exclude(candidate["page"])
+    ]
+    if fresh_exact or fresh_strong:
+        exact = fresh_exact
+        keyword = [
+            candidate for candidate in keyword if not freshness.should_exclude(candidate["page"])
+        ]
+        strong_keyword = fresh_strong
     # 只有「强命中」候选才对外展示；弱命中不进 keyword 通道
     display = _merge_candidates(exact, strong_keyword, limit_value)
 
@@ -561,7 +599,8 @@ def search_pages(query: str, *, limit: int = 5) -> dict:
                 )
             ]
         else:
-            llm_selected = _llm_select(query, pages, max_pages) if _llm_available() else []
+            selectable = [page for page in pages if not freshness.should_exclude(page)] or pages
+            llm_selected = _llm_select(query, selectable, max_pages) if _llm_available() else []
             if llm_selected:
                 method = "llm"
                 selected_pages = llm_selected[:max_pages]
@@ -680,6 +719,9 @@ def build_context(pages: list[dict], max_chars: int = 9000) -> str:
     for index, page in enumerate(pages, start=1):
         header = f"【{index}】《{page.get('title') or '未命名词条'}》"
         parts = [header]
+        fresh_line = freshness.describe(page)
+        if fresh_line:
+            parts.append(f"时效：{fresh_line}")
         summary = _one_line(page.get("summary"))
         if summary:
             parts.append(f"摘要：{summary}")
@@ -750,6 +792,13 @@ def _citation_sources(page: dict) -> list[dict]:
         document_id = str(source.get("document_id") or "")
         document = meta.get(document_id) or {}
         source_url = str(document.get("source_url") or "")
+        source_fresh = freshness.freshness_for(
+            published_at=document.get("published_at") or page.get("published_at"),
+            effective_at=document.get("effective_at") or page.get("effective_at"),
+            expires_at=document.get("expires_at") or page.get("expires_at"),
+            verified_at=document.get("verified_at") or page.get("verified_at"),
+            academic_year=document.get("academic_year") or page.get("academic_year"),
+        )
         sources.append(
             {
                 "document_id": document_id,
@@ -761,6 +810,13 @@ def _citation_sources(page: dict) -> list[dict]:
                 "source_type": str(document.get("source_type") or "file"),
                 "source_url": source_url,
                 "download_url": "" if source_url else file_links.download_path(document_id),
+                "published_at": source_fresh["published_at"],
+                "effective_at": source_fresh["effective_at"],
+                "expires_at": source_fresh["expires_at"],
+                "verified_at": source_fresh["verified_at"],
+                "academic_year": source_fresh["academic_year"],
+                "freshness": source_fresh["status"],
+                "freshness_label": source_fresh["label"],
             }
         )
     return sources

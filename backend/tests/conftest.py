@@ -57,6 +57,16 @@ if str(BACKEND_DIR) not in sys.path:
 
 # 删除顺序必须是「子表在前、父表在后」，否则会触发外键约束
 MUTABLE_TABLES = (
+    "audit_log",
+    "admin_sessions",
+    "admin_users",
+    "system_alerts",
+    "jobs",
+    "notification_log",
+    "crisis_events",
+    "handoff_requests",
+    "answer_feedback",
+    "knowledge_gaps",
     "wiki_links",
     "wiki_sources",
     "wiki_builds",
@@ -339,8 +349,13 @@ def clean_state(client):
         for path in config.UPLOAD_DIR.iterdir():
             if path.is_file() and path.name != ".gitkeep":
                 path.unlink(missing_ok=True)
+    if config.JOB_STAGING_DIR.is_dir():
+        for path in config.JOB_STAGING_DIR.iterdir():
+            if path.is_file():
+                path.unlink(missing_ok=True)
 
     db.init_db()
+    client.cookies.clear()
     yield
 
 

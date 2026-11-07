@@ -10,9 +10,18 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 >
 > 📘 **普通用户（学生 / 辅导员）请直接看 [图文使用手册](frontend/manual/index.html)**：包含手机截图、短动图和常见问题；运行服务后也可访问 <http://127.0.0.1:8000/manual/index.html>。
 >
-> 🚀 **当前开发版本：v0.1.7**（2026-11-02）· 分支 `develop`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
+> 🧭 **完整文档导航：[docs/README.md](docs/README.md)**；产品能力总览：[frontend/manual/product.html](frontend/manual/product.html)；管理员/运维手册：[docs/ADMIN-OPS.md](docs/ADMIN-OPS.md)；开发手册：[docs/DEVELOPER.md](docs/DEVELOPER.md)；路线图：[docs/ROADMAP.md](docs/ROADMAP.md)。
+>
+> 🚀 **当前开发版本：v0.2.0 M1-M5**（基于 v0.1.7，2026-11-07）· 分支 `develop`，变更记录见 **[CHANGELOG.md](CHANGELOG.md)**。
 > 🎯 **v0.2.0 数据集已发布**：NPU Student Handbook QA **v2026.21**（479 可答 + 10 不可答；含王淼等辅导员个人 QA、导师名单；检索 100% / 引用 100% / 拒答 100%）；见 **[docs/npu-handbook/release/v2026.21/](docs/npu-handbook/release/v2026.21/)**。
 > ➕ **v2026.21 新增**：王淼、丁嘉欣、贺睿杰、刘昊旻等辅导员个人职务/职责/联系方式；学院导师/招生教师名单；Wiki 无命中时转官网/公众号临时检索。见 **[docs/npu-handbook/README.md](docs/npu-handbook/README.md)**。
+
+## 开源
+
+- **许可证**：[MIT](LICENSE)，可自由使用、修改与分发，请保留版权声明。
+- **参与贡献**：[CONTRIBUTING.md](CONTRIBUTING.md)；安全问题请按 [SECURITY.md](SECURITY.md) 私下报告。
+- **数据说明**：仓库内校园手册、QA 数据集与预编译 Wiki 快照来自学校官网、公众号等公开渠道，版权归原权利人，仅用于教学演示与技术验证；如权利人要求，请联系删除。
+- **非官方项目**：本项目与西北工业大学及其任何部门无隶属或背书关系，实际政策以学校官方发布为准。
 
 ---
 
@@ -23,9 +32,13 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 | 1 | **辅导员数字分身问答** | Web 对话页，基于「Wiki 词条导航」的回答，句末 `[n]` 对应引用卡片；每张引用卡片同时给出**词条**与**来源文件 · 章节 · 原文摘录**双层信息；支持多轮会话与历史会话 |
 | 2 | **LLM Wiki 知识库** | 上传 `md / txt / pdf / docx / doc / xlsx / csv / json / html` → 解析 → LLM 编译为结构化词条（概述 / 流程 / 材料 / 时间 / 注意事项，带来源锚点）→ 浏览目录、标签筛选、关键词导航搜索、手工编辑、重建；支持导入**预编译快照**离线使用 |
 | 3 | **LLM 接入与模型管理** | OpenAI 兼容（当前实测 **DeepSeek**）、Ollama 本地模型、内置 mock 模型；Provider / 模型 CRUD、设默认、启停、连通性测试；API Key 服务端脱敏。**编译与高质量回答需要真实 LLM** |
-| 4 | **QQ / 微信机器人** | QQ 官方开放平台机器人走 WebSocket 主动连接（无需公网回调）；QQ 也可走 NapCat / OneBot 11（反向 WS + 反向 HTTP + HTTP API 回复）；微信公众号明文模式 XML 回调；控制台调试通道。各入口复用同一套 `counselor.answer()` Wiki 问答链路 |
+| 4 | **QQ / 微信机器人** | QQ 官方开放平台机器人走 WebSocket 主动连接（无需公网回调）；微信公众号明文模式 XML 回调；控制台调试通道。各入口复用同一套 `counselor.answer()` Wiki 问答链路 || 5 | **反馈驱动改进（RSI）** | 回答下方「有帮助 / 没帮助 + 原因」→ 自动聚合成知识缺口 → 服务台按频次排序 → 补资料/关联词条/关闭，形成闭环 |
+| 6 | **转人工与危机升级** | 对话页随时「联系辅导员」，生成可查询工单与 SLA；自杀/暴力/性侵/诈骗/急症等规则在调用模型前拦截，先给安全卡片、紧急工单和可选 Webhook 通知 |
+| 7 | **账号、角色与审计** | 超级管理员/管理员/辅导员/只读四级角色；PBKDF2 密码、HttpOnly 会话、CSRF；成员管理与全量管理操作审计；兼容旧 `X-Admin-Token` |
+| 8 | **时效性治理** | 词条带发布/生效/失效/核对日期与学年；提示词注入当前日期；过期内容默认不参与问答，无替代时才带警告回答 |
+| 9 | **异步编译与流式回答** | 大文件上传返回 202 + `job_id`，后台解析/编译、进度/重试/取消；Web 回答 SSE 逐字输出，可随时停止；LLM 瞬时故障自动重试，连续失败熔断并告警 |
 
-**非目标（MVP 明确不做）**：多租户与权限体系、流式输出、**embedding / 向量数据库 / rerank / chunk 检索**、语音、复杂插件系统、公众号加密模式。
+**非目标（MVP 明确不做）**：复杂多租户与 SSO、**embedding / 向量数据库 / rerank / chunk 检索**、语音、复杂插件系统、公众号加密模式。
 
 ## 二、核心链路
 
@@ -52,23 +65,17 @@ NPU-Assistant 是一个**可离线演示、可接入真实大模型**的校园�
 
 ![辅导员对话](docs/screenshots/chat.png)
 
-**知识库（只读浏览）**：搜索、分类筛选、词条卡片；点开即可看正文与来源锚点，不混入运维操作。
+**知识库（浏览 + 内容管理）**：默认展示学生浏览视图（搜索、分类筛选、词条卡片）；有内容权限的账号右上角进入「内容管理」，使用收录资料 / 源文件 / 词条维护三个 Tab。
 
 ![知识库](docs/screenshots/knowledge.png)
 
-**内容管理（运维）**：收录资料 / 源文件 / 词条维护三个独立 Tab；快速收录、上传、编译状态、重建与删除都在这里。
-
 ![内容管理](docs/screenshots/manage.png)
 
-**模型管理**：模型 / Provider 双 Tab；默认模型、Provider 卡片（Key 脱敏）、模型列表。
+**运营**：服务台（概览 / 缺口 / 反馈 / 工单 / 危机 / 时效）、任务与告警、审计日志。
 
-![模型管理](docs/screenshots/models.png)
+![运营任务与告警](docs/screenshots/jobs.png)
 
-**机器人**：通道 / 调试 / 日志三个 Tab；QQ 官方机器人 / QQ OneBot 11 / 微信 / 控制台四类通道配置、Webhook 地址（QQ 官方面板显示连接状态且无需 Webhook）、控制台模拟对话与消息日志。
-
-![机器人](docs/screenshots/bots.png)
-
-**设置**：基础 / 移动访问与安全 / 回复与引用三个 Tab；人设、系统提示词、管理令牌与扫码入口、Wiki 参数。
+**设置**：助手设置（基础 / 移动访问与安全 / 回复与引用）、模型、机器人、成员与权限、我的账号。
 
 ![设置](docs/screenshots/settings.png)
 
@@ -152,7 +159,7 @@ $env:NPU_PUBLIC_URL = "https://npu.example.edu.cn"
 | 4 | 知识库 → 源文件 Tab → 上传一篇新的 `.md` | 显示「编译中」→ `status=ready`、`page_count>0`，自动生成新词条与来源锚点 |
 | 5 | 打开新词条 → 编辑正文/摘要 → 保存；源文件 Tab 点「重新编译」 | 词条 `version+1`；重建不产生重复词条 |
 | 6 | 机器人页 → 控制台通道「模拟对话」 | 返回与 Web 一致的回答与双层引用，消息日志出现记录 |
-| 7 | （可选）配置 QQ 官方 / QQ / 微信通道 | QQ 官方填 AppID / AppSecret 即自动连接（无需 Webhook）；QQ / 微信复制 Webhook 地址，按 [docs/BOT-INTEGRATION.md](docs/BOT-INTEGRATION.md) 接入 NapCat 或公众号 |
+| 7 | （可选）配置 QQ 官方 / 微信公众号通道 | QQ 官方填 AppID / AppSecret 即自动连接（无需 Webhook）；微信公众号按 [docs/BOT-INTEGRATION.md](docs/BOT-INTEGRATION.md) 配置回调 |
 
 ## 六、目录结构
 
@@ -176,7 +183,7 @@ NPU-Assistant/
 │  │  │  ├─ parsing.py      # 多格式解析（pdf/docx/doc/xlsx/csv/json/html/md/txt）
 │  │  │  ├─ qq_gateway.py   # QQ 官方机器人 WebSocket 网关（令牌 / 心跳 / 重连 / 被动回复）
 │  │  │  └─ bot_pipeline.py # 机器人统一入站处理（复用 counselor；管理员入库命令）
-│  │  └─ adapters/          # qq_official（开放平台）、onebot（QQ）、wechat_mp（公众号）、base
+│  │  └─ adapters/          # qq_official（开放平台）、wechat_mp（公众号）、base
 │  ├─ data/
 │  │  ├─ seed_docs/         # 演示源文件目录（示例已清理，仅保留 .gitkeep）
 │  │  ├─ wiki_seed.json     # 真实 LLM 预编译的 Wiki 快照（冷启动离线可用）
@@ -208,7 +215,7 @@ NPU-Assistant/
 │  ├─ MOBILE-OPS.md         # 移动端运维与快速收录（v0.1.2）
 │  ├─ API.md                # 接口速览与调用示例
 │  ├─ ARCHITECTURE.md       # 架构、请求链路、表结构、部署建议
-│  ├─ BOT-INTEGRATION.md    # QQ 官方 WebSocket、NapCat / OneBot 11、公众号、控制台接入与排障
+│  ├─ BOT-INTEGRATION.md    # QQ 官方 WebSocket、公众号、控制台接入与排障
 │  ├─ CAMPUS-SEED.md        # 真实校园数据测试集 / 初始知识库（网页/PDF/DOCX/DOC）
 │  ├─ CAMPUS-CONTENT-PLAN.md # 内容领域清单、合法采集与自动更新方案
 │  ├─ CAMPUS-MANUAL-QUEUE.md # 需人工浏览器下载/复制的条目（P0/P1/P2）
@@ -290,10 +297,9 @@ $env:NPU_SEED_MODEL="deepseek-chat"                    # 可选
 
 脚本使用临时数据目录编译，不会污染 `backend/data/app.db`。
 
-## 九、QQ 官方 / QQ / 微信机器人接入
+## 九、QQ 官方 / 微信公众号机器人接入
 
 - **QQ 官方开放平台机器人（v0.1.6，推荐）**：在 QQ 开放平台创建机器人后，把 **AppID / AppSecret** 填入 `qq_official` 通道即可；服务启动后主动连接腾讯 WebSocket 网关，**不需要公网 IP、域名或 Webhook**，私聊与群内 @ 消息通过开放平台 HTTP API 被动回复（带 `msg_id`）。调试期可勾选「沙箱环境」。详见 [docs/BOT-INTEGRATION.md](docs/BOT-INTEGRATION.md) 第 3 节。
-- **QQ（NapCat / OneBot 11）**：NapCat 侧配置「HTTP 服务器」（默认 `127.0.0.1:3000`，Token 与通道 `access_token` 一致，供后端发送回复）与「WebSocket 客户端」（反向 WS，URL 为 `ws://127.0.0.1:8000/api/bots/onebot/{通道ID}/ws`，Token 字段填通道 `access_token`）；也可选用「HTTP 客户端」做反向 HTTP 事件。群聊默认仅 @ 机器人时回复。通道创建时留空 `access_token` 会自动生成随机值（API 只回显脱敏值），空 Token 的 webhook 一律 403。
 - **微信公众号（明文模式）**：需要公网可达的 URL（可用 ngrok / cpolar 内网穿透），在公众号后台「开发 → 基本配置」填写回调 URL `https://<公网域名>/api/bots/wechat/{通道ID}` 与自选强随机 Token（与通道 config 一致，**不能为空或使用公开默认值 `npu-assistant`**），完成签名校验（含 ±300 秒时间窗）后即可收发 XML 文本消息。
 - **控制台调试通道**：无需任何外部账号，在「机器人」页直接模拟学生消息，走完整 `counselor → Wiki 导航 → 词条回答` 链路。
 - **安全**：通道接口的 token 脱敏、`has_access_token`、PUT「留空不修改」、`self_id` 一致性校验及 `NPU_BOT_ALLOW_INSECURE=1` 本地调试开关详见文档。
@@ -337,7 +343,7 @@ URL 抓取默认拒绝私网/回环地址（内网部署可设 `NPU_URL_IMPORT_A
 
 ### 10.3 机器人管理员入库
 
-在机器人通道配置中填写 `admin_user_ids`（QQ 号 / 公众号 openid，逗号分隔或数组）后，管理员在 QQ / 微信中：
+在机器人通道配置中填写 `admin_user_ids`（QQ 用户 openid / 公众号 openid，逗号分隔或数组）后，管理员在 QQ / 微信中：
 
 | 发送内容 | 行为 |
 |----------|------|
@@ -365,7 +371,7 @@ cd backend
 ..\.venv\Scripts\python.exe -m pytest tests -q
 ```
 
-当前 **126 个用例全部通过**（约 42s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本 / 寒暄回复，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、body_html XSS 链接清洗、对话双层引用与降级、寒暄与闲聊意图（chitchat / 服务范围说明）、历史会话鉴权、移动端 URL/文本/批量收录与 SSRF/8MB/gzip/并发去重、手机扫码/二维码/一键公网隧道/首次启用服务端令牌/真实校园文件解析、管理员令牌、机器人安全（凭据脱敏、api_base 脱敏、webhook token、微信时间窗 + nonce 防重放、self_id、2MB body 上限、日志鉴权）、模型管理与系统设置。
+当前 **161 个用例全部通过**（约 57s）。测试使用 `tempfile` 临时数据目录（`NPU_DATA_DIR` / `NPU_DB_PATH` / `NPU_WIKI_SEED_PATH`）与 **fake LLM**（固定编译 JSON / 回答文本 / 寒暄回复，可切换失败模式），**不会调用真实 API，也不会污染** `backend/data/app.db`。覆盖：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild / builds、body_html XSS 链接清洗、对话双层引用与降级、寒暄与闲聊意图（chitchat / 服务范围说明）、历史会话鉴权、移动端 URL/文本/批量收录与 SSRF/8MB/gzip/并发去重、手机扫码/二维码/一键公网隧道/首次启用服务端令牌/真实校园文件解析、管理员令牌、机器人安全（凭据脱敏、api_base 脱敏、webhook token、微信时间窗 + nonce 防重放、self_id、2MB body 上限、日志鉴权）、模型管理与系统设置。
 
 服务启动后还可运行真实 HTTP 冒烟与前端交互检查：
 
@@ -417,7 +423,7 @@ Wiki 编译需要真实 LLM。请到「模型」页检查默认模型是否为 D
 - 涉及心理危机、人身安全、紧急医疗时，请优先联系辅导员、校保卫处、心理中心，或拨打 **110 / 120**；不要依赖 AI 作答。
 - 部署到公网前请务必设置 `NPU_ADMIN_TOKEN`、使用 HTTPS 反向代理、限制上传大小与来源 IP，并遵守《个人信息保护法》与学校数据管理规定；**上传真实文件与调用第三方 LLM 前请完成数据合规评估**。
 - **安全默认**：CORS 默认关闭（按需 `NPU_CORS_ORIGINS` 白名单）；对外监听（非 `127.0.0.1`）未设管理令牌时服务拒绝启动；历史会话、设置、导入、词条写操作在配置令牌后均需 `X-Admin-Token`；默认下发 CSP / `X-Frame-Options: DENY` / `X-Content-Type-Options: nosniff` 等响应头。
-- **机器人安全**：通道接口不返回 token / `app_secret` 明文（脱敏 + `has_access_token`），空 token 的 OneBot webhook 与使用公开默认 token `npu-assistant` 的公众号回调一律 403；微信校验签名与 ±300 秒时间窗；`self_id` 不一致事件忽略；QQ 官方通道仅接受开放平台推送的事件并校验自身凭据；`NPU_BOT_ALLOW_INSECURE=1` 仅限本机调试。
+- **机器人安全**：通道接口不返回 token / `app_secret` 明文（脱敏 + `has_access_token`），使用公开默认 token `npu-assistant` 的公众号回调一律 403；微信校验签名与 ±300 秒时间窗；QQ 官方通道仅接受开放平台推送的事件并校验自身凭据；`NPU_BOT_ALLOW_INSECURE=1` 仅限本机调试。
 - **内容安全**：URL 收录默认拒绝私网/回环地址（SSRF 防护）、仅 http(s) 与 HTML/纯文本、响应上限 8MB；Wiki 词条正文渲染前转义并对链接协议白名单清洗，外链带 `rel="noopener noreferrer"`。
 - 接入 QQ / 微信公众号需遵守对应平台协议；公众号仅实现明文模式，生产环境建议改为加密模式并做消息验签加固。
 

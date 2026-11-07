@@ -5,12 +5,14 @@
  * 接口：GET /settings、POST /chat、GET/DELETE /chat/conversations…
  */
 import {
+  createHandoff,
   deleteConversation,
   getConversationMessages,
   getHealth,
   getSettings,
   listConversations,
-  sendChat,
+  sendChatStream,
+  submitFeedback,
 } from '../api.js';
 import {
   confirmDialog,
@@ -19,6 +21,8 @@ import {
   fmtScore,
   icon,
   loadingHtml,
+  openModal,
+  setButtonBusy,
   toast,
 } from '../ui.js';
 
@@ -53,9 +57,12 @@ const state = {
   meta: null,
   sending: false,
   inflight: 0,
+  abortController: null,
   loadingConversation: false,
   lastFailedText: '',
   healthModel: '',
+  // v0.2.0 RSI: message_id -> { rating, reason_code }
+  feedback: {},
 };
 
 // 视图代次：切页后旧的异步请求返回时，禁止其覆盖新的模块级状态
@@ -77,6 +84,88 @@ function timeText(iso) {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
   return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+}
+
+/* ------------------------------------------------------------------ */
+/* 反馈（RSI）                                                         */
+/* ------------------------------------------------------------------ */
+function voterKey() {
+  try {
+    let key = localStorage.getItem('npu_feedback_voter');
+    if (!key) {
+      key = `v-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+      localStorage.setItem('npu_feedback_voter', key);
+    }
+    return key;
+  } catch {
+    return 'anonymous';
+  }
+}
+
+function feedbackBlockHtml(messageId) {
+  const id = String(messageId || '');
+  if (!id) return '';
+  const current = state.feedback[id];
+  if (current) {
+    const label = current.rating === 1 ? '已记录：有帮助' : '已记录：没帮助';
+    return `<div class="msg-feedback is-done" data-feedback-message="${esc(id)}">
+      <span class="msg-feedback-done">${current.rating === 1 ? '👍' : '👎'} ${esc(label)}</span>
+      <button class="link-btn" type="button" data-action="feedback-reset" data-message-id="${esc(id)}">修改</button>
+    </div>`;
+  }
+  return `<div class="msg-feedback" data-feedback-message="${esc(id)}">
+    <span class="msg-feedback-label">这条回答有帮助吗？</span>
+    <button class="btn btn-xs btn-ghost" type="button" data-action="feedback-up" data-message-id="${esc(id)}">👍 有帮助</button>
+    <button class="btn btn-xs btn-ghost" type="button" data-action="feedback-down" data-message-id="${esc(id)}">👎 没帮助</button>
+    <div class="feedback-reasons" hidden>
+      <span class="feedback-reasons-label">哪里不满意？</span>
+      <button class="feedback-chip" type="button" data-action="feedback-reason" data-reason="not_found">没找到</button>
+      <button class="feedback-chip" type="button" data-action="feedback-reason" data-reason="incomplete">不完整</button>
+      <button class="feedback-chip" type="button" data-action="feedback-reason" data-reason="expired">已过期</button>
+      <button class="feedback-chip" type="button" data-action="feedback-reason" data-reason="bad_citation">引用不对</button>
+      <button class="feedback-chip" type="button" data-action="feedback-reason" data-reason="other">其他</button>
+      <input class="input feedback-comment" data-feedback-comment maxlength="200" placeholder="补充说明（选填）" />
+      <button class="btn btn-xs btn-primary" type="button" data-action="feedback-submit" data-message-id="${esc(id)}">提交</button>
+      <button class="link-btn" type="button" data-action="feedback-cancel">取消</button>
+    </div>
+  </div>`;
+}
+
+function refreshFeedbackNode(root, messageId) {
+  const node = root.querySelector(`[data-feedback-message="${CSS.escape(String(messageId))}"]`);
+  if (!node) return;
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = feedbackBlockHtml(messageId);
+  node.replaceWith(wrapper.firstElementChild);
+}
+
+function crisisCardHtml(crisis) {
+  if (!crisis) return '';
+  const hotlines = Array.isArray(crisis.hotlines) ? crisis.hotlines : [];
+  const hotlineHtml = hotlines.length
+    ? `<ul class="crisis-hotlines">${hotlines
+        .map((item) => {
+          if (typeof item === 'string') return `<li>${esc(item)}</li>`;
+          return `<li>${esc(item?.name || '')}${item?.phone ? `：${esc(item.phone)}` : ''}</li>`;
+        })
+        .join('')}</ul>`
+    : '';
+  return `<div class="crisis-card" role="alert">
+    <div class="crisis-card-title">${icon('alert')} 你现在的安全最重要</div>
+    <p>请立即联系辅导员、学院学工办、心理中心或保卫处；如果有立即的人身危险，请马上拨打 <b>120</b> / <b>110</b>。</p>
+    ${hotlineHtml}
+    <p class="crisis-card-ticket">${
+      crisis.ticket_no
+        ? `已记录求助工单 <b>${esc(crisis.ticket_no)}</b>，值班老师会尽快联系你。`
+        : '请同时直接联系辅导员或值班老师，不要只等待线上回复。'
+    }</p>
+    <div class="crisis-card-actions">
+      <button class="btn btn-sm btn-ghost" type="button" data-action="handoff-open">${icon(
+        'user',
+      )}<span>联系辅导员</span></button>
+      <button class="btn btn-sm btn-ghost" type="button" data-action="crisis-ack">我已联系</button>
+    </div>
+  </div>`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -205,11 +294,17 @@ function messageHtml(message, index) {
       <div class="msg-avatar msg-avatar-user">${esc(who)}</div>
     </div>`;
   }
-  return `<div class="msg msg-assistant" data-msg-index="${index}">
+  return `<div class="msg msg-assistant" data-msg-index="${index}"${
+    message.id ? ` data-message-id="${esc(message.id)}"` : ''
+  }>
     <div class="msg-avatar msg-avatar-bot">${esc(who)}</div>
     <div class="msg-main">
-      <div class="msg-bubble">${renderContent(message.content)}</div>
+      ${crisisCardHtml(message.crisis)}
+      <div class="msg-bubble ${message.streaming ? 'is-streaming' : ''}">${renderContent(
+        message.content || (message.streaming ? '正在整理回答…' : ''),
+      )}</div>
       ${citationsHtml(message.citations, index)}
+      ${feedbackBlockHtml(message.id)}
     </div>
   </div>`;
 }
@@ -254,6 +349,9 @@ export function mount(root) {
           <h2><span id="chatCounselorName">${esc(counselor)}</span></h2>
         </div>
         <div class="chat-head-actions">
+          <button class="btn btn-sm btn-ghost chat-handoff-btn" type="button" data-action="handoff-open">
+            ${icon('user')}<span>联系辅导员</span>
+          </button>
           <button class="icon-btn" type="button" data-action="new-chat" aria-label="新建会话" title="新建会话">
             ${icon('plus')}
           </button>
@@ -296,8 +394,8 @@ export function mount(root) {
     if (!alive) return;
     const items = state.conversations;
     if (state.historyAuthRequired) {
-      historyCount.textContent = '需管理员令牌';
-      historyList.innerHTML = `<div class="history-offline">${icon('shield')}<p>历史会话需管理员令牌</p><span>请到「设置 → 移动端与管理令牌」填写 NPU_ADMIN_TOKEN</span><button class="btn btn-sm btn-ghost" type="button" data-action="go-settings">去设置</button></div>`;
+      historyCount.textContent = '需登录';
+      historyList.innerHTML = `<div class="history-offline">${icon('shield')}<p>历史会话需要登录</p><span>请使用辅导员/管理员账号登录后查看</span><button class="btn btn-sm btn-ghost" type="button" data-action="go-login">去登录</button></div>`;
       return;
     }
     historyCount.textContent = state.historyReady ? `${items.length} 个会话` : '暂不可用';
@@ -419,9 +517,9 @@ export function mount(root) {
 
   function showAuthError(message) {
     chatError.hidden = false;
-    chatError.innerHTML = `<div class="chat-error-inner">${icon('shield')}<div><strong>需要管理员令牌</strong><p>${esc(
-      message || '查看历史会话需要管理员令牌，请到「设置 → 移动端与管理令牌」登录后再试。',
-    )}</p></div><button class="btn btn-sm btn-primary" type="button" data-action="go-settings">去设置</button><button class="icon-btn" type="button" data-action="dismiss-error" aria-label="关闭">${icon(
+    chatError.innerHTML = `<div class="chat-error-inner">${icon('shield')}<div><strong>需要登录</strong><p>${esc(
+      message || '查看历史会话需要辅导员/管理员账号，请登录后再试。',
+    )}</p></div><button class="btn btn-sm btn-primary" type="button" data-action="go-login">去登录</button><button class="icon-btn" type="button" data-action="dismiss-error" aria-label="关闭">${icon(
       'x',
     )}</button></div>`;
   }
@@ -448,12 +546,16 @@ export function mount(root) {
     input.style.height = `${Math.min(input.scrollHeight, 168)}px`;
   }
 
+  function abortStreaming() {
+    state.abortController?.abort();
+  }
+
   function updateComposer() {
     input.disabled = state.sending;
-    sendBtn.disabled = state.sending || !input.value.trim();
+    sendBtn.disabled = state.sending ? false : !input.value.trim();
     sendBtn.classList.toggle('is-busy', state.sending);
     sendBtn.innerHTML = state.sending
-      ? `${icon('sparkles')}<span>思考中…</span>`
+      ? `${icon('power')}<span>停止</span>`
       : `${icon('send')}<span>发送</span>`;
     autoGrow();
   }
@@ -484,6 +586,32 @@ export function mount(root) {
     updateComposer();
     showTyping();
 
+    let streamMessage = null;
+    let renderTimer = 0;
+    const controller = new AbortController();
+    state.abortController = controller;
+
+    const paintStream = () => {
+      if (renderTimer) return;
+      renderTimer = window.setTimeout(() => {
+        renderTimer = 0;
+        if (alive && my === generation) renderMessages({ smooth: false });
+      }, 80);
+    };
+    const ensureStreamMessage = () => {
+      if (streamMessage) return streamMessage;
+      removeTyping();
+      streamMessage = {
+        role: 'assistant',
+        content: '',
+        citations: [],
+        streaming: true,
+        created_at: new Date().toISOString(),
+      };
+      state.messages.push(streamMessage);
+      return streamMessage;
+    };
+
     try {
       const payload = {
         message: text,
@@ -491,7 +619,22 @@ export function mount(root) {
         channel: 'web',
         session_key: state.conversationId ? `web:${state.conversationId}` : state.sessionKey,
       };
-      const response = await sendChat(payload);
+      const response = await sendChatStream(payload, {
+        signal: controller.signal,
+        onMeta: (meta) => {
+          if (my !== generation) return;
+          const message = ensureStreamMessage();
+          message.navigation = meta?.navigation;
+          message.pages = meta?.pages || [];
+          paintStream();
+        },
+        onDelta: (chunk) => {
+          if (my !== generation || !chunk) return;
+          const message = ensureStreamMessage();
+          message.content += chunk;
+          paintStream();
+        },
+      });
       // 代次已变化（切页/新会话）：不得覆盖当前状态
       if (my !== generation) return;
       removeTyping();
@@ -499,17 +642,36 @@ export function mount(root) {
       if (response?.model) {
         state.healthModel = response.model;
       }
-      state.messages.push({
-        role: 'assistant',
-        content: response?.reply || '（服务未返回内容）',
-        citations: Array.isArray(response?.citations) ? response.citations : [],
-        model: response?.model,
-        provider_type: response?.provider_type,
-        latency_ms: response?.latency_ms,
-        fallback: response?.fallback,
-        sources_used: response?.sources_used,
-        created_at: new Date().toISOString(),
-      });
+      if (streamMessage) {
+        Object.assign(streamMessage, {
+          id: response?.message_id,
+          content: response?.reply || streamMessage.content || '（服务未返回内容）',
+          citations: Array.isArray(response?.citations) ? response.citations : [],
+          model: response?.model,
+          provider_type: response?.provider_type,
+          latency_ms: response?.latency_ms,
+          fallback: response?.fallback,
+          sources_used: response?.sources_used,
+          crisis: response?.crisis,
+          handoff: response?.handoff,
+          streaming: false,
+        });
+      } else {
+        state.messages.push({
+          id: response?.message_id,
+          role: 'assistant',
+          content: response?.reply || '（服务未返回内容）',
+          citations: Array.isArray(response?.citations) ? response.citations : [],
+          model: response?.model,
+          provider_type: response?.provider_type,
+          latency_ms: response?.latency_ms,
+          fallback: response?.fallback,
+          sources_used: response?.sources_used,
+          crisis: response?.crisis,
+          handoff: response?.handoff,
+          created_at: new Date().toISOString(),
+        });
+      }
       if (alive) {
         renderMessages({ smooth: true });
         loadHistory({ silent: true });
@@ -517,6 +679,20 @@ export function mount(root) {
     } catch (err) {
       if (my !== generation) return;
       removeTyping();
+      if (err?.name === 'AbortError') {
+        if (streamMessage) {
+          streamMessage.streaming = false;
+          streamMessage.content = `${streamMessage.content || ''}\n\n（已停止生成）`.trim();
+          if (alive) {
+            renderMessages();
+            loadHistory({ silent: true });
+          }
+        }
+        return;
+      }
+      if (streamMessage) {
+        state.messages = state.messages.filter((message) => message !== streamMessage);
+      }
       state.messages = state.messages.filter((message) => message !== userMessage);
       state.lastFailedText = text;
       if (alive) {
@@ -528,6 +704,8 @@ export function mount(root) {
         input.focus();
       }
     } finally {
+      if (renderTimer) window.clearTimeout(renderTimer);
+      if (state.abortController === controller) state.abortController = null;
       // 先递减在飞计数并复位 sending，再根据 alive/代次决定是否更新 DOM
       state.inflight = Math.max(0, state.inflight - 1);
       state.sending = state.inflight > 0;
@@ -553,6 +731,60 @@ export function mount(root) {
   }
 
   /* ----------------------- 会话操作 ----------------------- */
+  function openHandoffModal() {
+    if (!state.conversationId) {
+      toast('请先发送一条消息，再联系辅导员', 'info');
+      return;
+    }
+    const lastAssistant = [...state.messages].reverse().find((item) => item.role === 'assistant');
+    const modal = openModal({
+      title: '联系辅导员',
+      subtitle: '提交后会生成工单，辅导员在工作时间回复',
+      body: `<form class="form" id="handoffForm">
+        <label class="field">
+          <span class="field-label">原因</span>
+          <select class="input" name="reason">
+            <option value="not_solved">问题没解决</option>
+            <option value="confirm">需要人工确认</option>
+            <option value="personal">涉及个人情况</option>
+            <option value="complaint">投诉建议</option>
+            <option value="other">其他</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field-label">联系方式 <span class="field-tip">（选填，便于辅导员联系你）</span></span>
+          <input class="input" name="contact" maxlength="120" placeholder="手机 / 微信 / QQ" />
+        </label>
+        <label class="field">
+          <span class="field-label">补充说明 <span class="field-tip">（选填）</span></span>
+          <textarea class="input" name="note" rows="3" maxlength="500" placeholder="例如：奖助材料截止时间需要确认"></textarea>
+        </label>
+      </form>`,
+      footer: `<button class="btn btn-ghost" type="button" data-modal-cancel>取消</button>
+        <button class="btn btn-primary" type="button" data-modal-submit>${icon('send')}<span>提交工单</span></button>`,
+    });
+    const form = modal.body.querySelector('#handoffForm');
+    modal.footer.querySelector('[data-modal-cancel]')?.addEventListener('click', () => modal.close());
+    modal.footer.querySelector('[data-modal-submit]')?.addEventListener('click', async (event) => {
+      const button = event.currentTarget;
+      setButtonBusy(button, true, '提交中…');
+      try {
+        const data = await createHandoff({
+          conversation_id: state.conversationId,
+          message_id: lastAssistant?.id || '',
+          reason: form.querySelector('[name="reason"]').value,
+          contact: form.querySelector('[name="contact"]').value.trim(),
+          note: form.querySelector('[name="note"]').value.trim(),
+        });
+        modal.close();
+        toast(`已提交：${data.ticket_no}。${data.sla || ''}`, 'success', { title: '工单已创建' });
+      } catch (err) {
+        toast(err?.message || '提交工单失败', 'error');
+        setButtonBusy(button, false);
+      }
+    });
+  }
+
   function newChat() {
     if (state.sending) {
       toast('请等待当前回答完成后再新建会话', 'warning');
@@ -676,6 +908,15 @@ export function mount(root) {
       case 'go-settings':
         location.hash = '#/settings';
         break;
+      case 'go-login':
+        location.hash = `#/login?next=${encodeURIComponent(location.hash)}`;
+        break;
+      case 'handoff-open':
+        openHandoffModal();
+        break;
+      case 'crisis-ack':
+        toast('已记录。请务必直接联系辅导员或拨打 120/110。', 'info');
+        break;
       case 'open-conversation':
         openConversation(trigger.dataset.id);
         break;
@@ -712,6 +953,68 @@ export function mount(root) {
       case 'retry-send':
         if (state.lastFailedText) sendMessage(state.lastFailedText);
         break;
+      case 'feedback-up': {
+        const id = trigger.dataset.messageId;
+        if (!id) break;
+        submitFeedback({ message_id: id, rating: 1, voter_key: voterKey() })
+          .then(() => {
+            state.feedback[id] = { rating: 1, reason_code: '' };
+            refreshFeedbackNode(page, id);
+            toast('感谢反馈，已记录', 'success');
+          })
+          .catch((err) => toast(err?.message || '反馈提交失败', 'error'));
+        break;
+      }
+      case 'feedback-down': {
+        const bar = trigger.closest('.msg-feedback');
+        const panel = bar?.querySelector('.feedback-reasons');
+        if (panel) panel.hidden = !panel.hidden;
+        break;
+      }
+      case 'feedback-reason': {
+        const bar = trigger.closest('.msg-feedback');
+        bar?.querySelectorAll('.feedback-chip').forEach((chip) => {
+          chip.classList.toggle('is-active', chip === trigger);
+        });
+        break;
+      }
+      case 'feedback-submit': {
+        const id = trigger.dataset.messageId;
+        const bar = trigger.closest('.msg-feedback');
+        const reason = bar?.querySelector('.feedback-chip.is-active')?.dataset.reason || '';
+        const comment = bar?.querySelector('[data-feedback-comment]')?.value.trim() || '';
+        if (!id) break;
+        if (!reason) {
+          toast('请选择不满意的原因', 'warning');
+          break;
+        }
+        submitFeedback({
+          message_id: id,
+          rating: -1,
+          reason_code: reason,
+          comment,
+          voter_key: voterKey(),
+        })
+          .then(() => {
+            state.feedback[id] = { rating: -1, reason_code: reason };
+            refreshFeedbackNode(page, id);
+            toast('已记录，辅导员会看到这个问题', 'success');
+          })
+          .catch((err) => toast(err?.message || '反馈提交失败', 'error'));
+        break;
+      }
+      case 'feedback-cancel': {
+        const panel = trigger.closest('.feedback-reasons');
+        if (panel) panel.hidden = true;
+        break;
+      }
+      case 'feedback-reset': {
+        const id = trigger.dataset.messageId;
+        if (!id) break;
+        delete state.feedback[id];
+        refreshFeedbackNode(page, id);
+        break;
+      }
       case 'dismiss-error':
         hideChatError();
         break;
@@ -728,7 +1031,7 @@ export function mount(root) {
   });
 
   input.addEventListener('input', () => {
-    sendBtn.disabled = state.sending || !input.value.trim();
+    sendBtn.disabled = state.sending ? false : !input.value.trim();
     autoGrow();
   });
 
@@ -741,6 +1044,10 @@ export function mount(root) {
 
   chatForm.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (state.sending) {
+      abortStreaming();
+      return;
+    }
     sendMessage(input.value);
   });
 

@@ -4,8 +4,6 @@
 规则来源：docs/CONTRACT.md §5.5「会话标识」。
 
 - web：``web:{conversation_id 或 anonymous}``（由 chat 路由维护，不经过本管线）
-- QQ 私聊：``onebot11:{self_id}:private:{user_id}``
-- QQ 群聊：``onebot11:{self_id}:group:{group_id}:{user_id}``
 - QQ 官方机器人私聊：``qq_official:{channel_id}:private:{openid}``
 - QQ 官方机器人群聊：``qq_official:{channel_id}:group:{group_openid}:{member_openid}``
 - 微信：``wechat_mp:{channel_id}:{FromUserName}``
@@ -17,14 +15,12 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-CHANNEL_ONEBOT = "onebot11"
 CHANNEL_WECHAT = "wechat_mp"
 CHANNEL_QQ_OFFICIAL = "qq_official"
 CHANNEL_CONSOLE = "console"
 
 SUPPORTED_CHANNEL_TYPES = (
     CHANNEL_QQ_OFFICIAL,
-    CHANNEL_ONEBOT,
     CHANNEL_WECHAT,
     CHANNEL_CONSOLE,
 )
@@ -34,7 +30,6 @@ CHAT_GROUP = "group"
 
 CHANNEL_TYPE_LABELS = {
     CHANNEL_QQ_OFFICIAL: "QQ 官方机器人",
-    CHANNEL_ONEBOT: "QQ（OneBot 11）",
     CHANNEL_WECHAT: "微信公众号",
     CHANNEL_CONSOLE: "控制台调试",
 }
@@ -48,16 +43,6 @@ DEFAULT_CHANNEL_CONFIGS: dict[str, dict[str, str]] = {
         # 沙箱环境使用 sandbox.api.sgroup.qq.com（正式环境保持 false）
         "sandbox": "false",
         # 管理员 openid 逗号分隔（可发送 #帮助 查看自己的 openid）
-        "admin_user_ids": "",
-        "import_enabled": "true",
-    },
-    CHANNEL_ONEBOT: {
-        "api_base": "",
-        "access_token": "",
-        "self_id": "",
-        # 群聊默认「仅被 @ 时回复」，设为 false 恢复为回复所有群消息
-        "group_mention_only": "true",
-        # 管理员转发即入库（docs/MOBILE-OPS.md §2.2）：QQ 号逗号分隔
         "admin_user_ids": "",
         "import_enabled": "true",
     },
@@ -110,7 +95,7 @@ def normalize_channel_type(value: Any) -> str:
     channel_type = str(value or "").strip().lower()
     if channel_type not in SUPPORTED_CHANNEL_TYPES:
         raise ValueError(
-            "不支持的通道类型，仅支持 qq_official / onebot11 / wechat_mp / console，收到："
+            "不支持的通道类型，仅支持 qq_official / wechat_mp / console，收到："
             f"{value!r}"
         )
     return channel_type
@@ -184,11 +169,6 @@ class IncomingMessage:
     @property
     def session_key(self) -> str:
         """按契约 §5.5 生成渠道内会话键。"""
-        if self.channel == CHANNEL_ONEBOT:
-            self_id = self.self_id or "0"
-            if self.is_group:
-                return f"{CHANNEL_ONEBOT}:{self_id}:group:{self.group_id}:{self.user_id}"
-            return f"{CHANNEL_ONEBOT}:{self_id}:private:{self.user_id}"
         if self.channel == CHANNEL_QQ_OFFICIAL:
             if self.is_group:
                 return (
@@ -208,11 +188,6 @@ class IncomingMessage:
         """展示用用户标识：优先昵称/群名片，其次平台 ID。"""
         name = self.user_name.strip()
         identifier = self.user_id.strip()
-        if self.channel == CHANNEL_ONEBOT:
-            base = name or (f"QQ用户{identifier}" if identifier else "QQ用户")
-            if self.is_group and self.group_id:
-                return f"{base}（群{self.group_id}）"
-            return base
         if self.channel == CHANNEL_WECHAT:
             return name or (f"微信用户{identifier}" if identifier else "微信用户")
         if self.channel == CHANNEL_QQ_OFFICIAL:

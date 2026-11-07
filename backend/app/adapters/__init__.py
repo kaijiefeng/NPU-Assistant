@@ -1,1 +1,1 @@
-"""Bot adapters package (OneBot 11 / WeChat Official Account / console)."""
+"""Bot adapters package (QQ official bot / WeChat Official Account / console)."""

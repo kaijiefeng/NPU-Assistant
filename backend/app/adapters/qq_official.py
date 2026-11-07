@@ -1,6 +1,6 @@
 """QQ 开放平台官方机器人适配器。
 
-与 OneBot 11 不同，官方机器人由**服务端主动连接** QQ 的 WebSocket 网关
+QQ 官方机器人由**服务端主动连接** QQ 的 WebSocket 网关
 （``wss://api.sgroup.qq.com/websocket``），事件通过该连接推送；回复通过
 HTTP API 以「被动回复」发送（携带原消息 ``msg_id``，5 分钟内有效）。
 

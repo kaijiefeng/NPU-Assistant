@@ -16,14 +16,14 @@
 ```mermaid
 graph TD
     subgraph Client["客户端"]
-        Browser["浏览器<br/>纯静态 SPA<br/>#/chat #/knowledge #/models #/bots #/settings"]
+        Browser["浏览器<br/>纯静态 SPA<br/>#/chat #/knowledge #/ops #/settings"]
         QQ["QQ 用户"]
         WX["公众号用户"]
     end
 
     subgraph Gateway["接入层"]
         Static["静态资源托管<br/>main.py serve_frontend"]
-        OneBot["OneBot 11 适配<br/>反向 WS / 反向 HTTP / HTTP API 发送"]
+        QQOfficial["QQ 官方机器人适配<br/>WebSocket 网关 / 主动连接"]
         WeChat["微信公众号适配<br/>签名校验 / 明文 XML"]
         Console["控制台通道<br/>/bots/channels/{id}/test"]
     end
@@ -55,7 +55,6 @@ graph TD
     end
 
     External["外部 LLM<br/>DeepSeek / OpenAI 兼容 / Ollama"]
-    NapCat["NapCat<br/>QQ 侧 OneBot 服务"]
 
     Browser --> Static
     Browser -->|fetch /api/*| System
@@ -64,10 +63,9 @@ graph TD
     Browser --> Knowledge
     Browser --> Models
     Browser --> Bots
-    QQ --> NapCat
-    NapCat -->|反向 WS / 事件| OneBot
+    QQ --> QQOfficial
     WX -->|XML 回调| WeChat
-    OneBot --> Bots
+    QQOfficial --> Bots
     WeChat --> Bots
     Console --> Bots
 
@@ -188,11 +186,11 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Q as QQ/微信用户
-    participant N as QQ 网关 / NapCat / 公众号服务器
+    participant N as QQ 网关 / 公众号服务器
     participant B as routers/bots.py / services/qq_gateway.py
     participant P as services/bot_pipeline.py
     participant S as services/counselor.py
-    participant A as OneBot HTTP API / QQ 开放平台 API
+    participant A as QQ 开放平台 API
 
     Q->>N: 私聊 / 群聊 @ / 公众号消息
     N->>B: QQ WS 事件 / 反向 WS / 反向 HTTP / 公众号 XML
@@ -203,7 +201,7 @@ sequenceDiagram
     P-->>B: {reply, outbound}
     alt QQ 官方机器人
         B->>A: POST /v2/users/{openid}/messages | /v2/groups/{group_openid}/messages（被动回复，带 msg_id）
-    else OneBot
+    else 公众号
         B->>A: POST {api_base}/send_private_msg | /send_group_msg（Bearer token）
     else 公众号
         B-->>N: 200 text/xml 明文 XML
@@ -226,7 +224,7 @@ sequenceDiagram
 | API | `routers/knowledge.py` | 源文件上传（**同步编译**）、列表 / 详情 / 删除 / reindex、seed、stats |
 | API | `routers/wiki.py` | 目录树、词条列表/详情/编辑/删除、导航搜索、stats、rebuild、builds、seed |
 | API | `routers/models.py` | Provider / 模型 CRUD、默认模型、连通性测试、Key 脱敏 |
-| API | `routers/bots.py` | 通道 CRUD、控制台模拟、日志、OneBot WS/HTTP、公众号回调；QQ 官方通道变更时通知网关重建连接 |
+| API | `routers/bots.py` | 通道 CRUD、控制台模拟、日志、QQ 官方 WebSocket 网关、公众号回调；QQ 官方通道变更时通知网关重建连接 |
 | 服务 | `services/qq_gateway.py` | QQ 开放平台网关：换 token、获取 WSS 地址、Identify/Resume、心跳、事件去重、被动回复与状态维护 |
 | 服务 | `services/counselor.py` | 问答编排：设置 → 导航选页 → 词条上下文 → LLM/降级 → 引用组装 → 落库 |
 | 服务 | `services/wiki_nav.py` | `search_pages()`（exact/keyword/llm 可观测）、`select_pages()`、`build_context()`、`attach_citations()` |
@@ -235,8 +233,8 @@ sequenceDiagram
 | 服务 | `services/ingest.py` / `parsing.py` | 上传落盘、多格式解析、reindex、删除级联（含独占词条清理） |
 | 服务 | `services/llm.py` | 三类 Provider 适配与超时、默认模型、Provider/模型测试 |
 | 服务 | `services/bot_pipeline.py` | 机器人统一入站：会话键规则、调用 `counselor.answer()`、outbound 报文 |
-| 适配 | `adapters/qq_official.py` / `onebot.py` / `wechat_mp.py` / `base.py` | QQ 官方事件归一化与回复报文、OneBot 事件归一化与 HTTP API 发送、公众号签名/XML、会话键构造 |
-| 前端 | `frontend/index.html` + `assets/` | 单页应用、hash 路由、6 个视图；知识库只读浏览，内容管理分「收录资料 / 源文件 / 词条维护」三个 Tab |
+| 适配 | `adapters/qq_official.py` / `wechat_mp.py` / `base.py` | QQ 官方事件归一化与回复报文、公众号签名/XML、会话键构造 |
+| 前端 | `frontend/index.html` + `assets/` | 单页应用、hash 路由、4 个一级入口；知识库默认浏览，有权限时进入「内容管理」；运营与设置由聚合页复用原子视图 |
 
 ## 5. 数据模型
 
@@ -331,7 +329,7 @@ erDiagram
     }
     conversations {
         TEXT id PK
-        TEXT channel "web|qq_official|onebot11|wechat_mp|console"
+        TEXT channel "web|qq_official|wechat_mp|console"
         TEXT channel_id
         TEXT session_key
         TEXT user_label
@@ -350,7 +348,7 @@ erDiagram
     }
     bot_channels {
         TEXT id PK
-        TEXT type "qq_official|onebot11|wechat_mp|console"
+        TEXT type "qq_official|wechat_mp|console"
         TEXT name
         TEXT config "JSON"
         INTEGER enabled
@@ -415,7 +413,7 @@ erDiagram
 | 提示词版本 | `config.py` 中的编译/问答提示词变更后建议重建全部词条并重新导出快照 |
 | 日志 | 应用日志写文件并轮转；不要记录 API Key、完整学生隐私内容 |
 | 合规 | 真实学生数据需脱敏；接入第三方 LLM 前完成数据出境与隐私评估 |
-| 机器人 | 公众号使用加密模式（本 MVP 仅明文）；OneBot 配置 access_token 并限制来源 IP |
+| 机器人 | 公众号使用加密模式（本 MVP 仅明文）；QQ 官方凭据与公众号 Token 按密钥管理并限制来源 |
 
 ### 7.3 扩展方向（超出 MVP）
 

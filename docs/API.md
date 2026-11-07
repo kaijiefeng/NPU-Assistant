@@ -29,7 +29,7 @@
 | 快速收录 | `POST /knowledge/import/url`、`POST /knowledge/import/text`、`POST /knowledge/import/batch` | 移动端：URL 抓取正文、粘贴文本、批量链接（≤5）→ 生成源文件并编译词条（见 [MOBILE-OPS.md](MOBILE-OPS.md)） |
 | Wiki | `GET /wiki/tree`、`GET /wiki/pages`、`GET/PUT/DELETE /wiki/pages/{id}`、`POST /wiki/search`、`GET /wiki/stats`、`POST /wiki/rebuild`、`GET /wiki/builds`、`GET /wiki/builds/{id}`、`POST /wiki/seed` | 目录、浏览、搜索、编辑、重建与构建记录 |
 | 模型 | `GET/POST /models/providers`、`PUT/DELETE /models/providers/{id}`、`POST .../test`、`GET/POST /models`、`PUT/DELETE /models/{id}`、`POST /models/{id}/default`、`POST /models/{id}/test` | Provider / 模型 CRUD、默认模型、连通性测试 |
-| 机器人 | `GET/POST /bots/channels`、`PUT/DELETE /bots/channels/{id}`、`POST .../test`、`GET /bots/logs`、`WS /bots/onebot/{id}/ws`、`POST /bots/onebot/{id}/event`、`GET/POST /bots/wechat/{id}` | 通道管理、控制台模拟、OneBot / 公众号回调；回答复用 counselor |
+| 机器人 | `GET/POST /bots/channels`、`PUT/DELETE /bots/channels/{id}`、`POST .../test`、`GET /bots/logs`、`GET/POST /bots/wechat/{id}` | 通道管理、控制台模拟、公众号回调；回答复用 counselor |
 
 > **已移除**：`GET /knowledge/documents/{id}/chunks`、`POST /knowledge/search`（经典 RAG 遗留）。
 
@@ -342,7 +342,7 @@ Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/chat `
 - 多轮对话：把上一轮 `conversation_id` 传回即可；历史消息中的 `citations` 反序列化为同一结构；
 - 匿名会话：未传 `session_key` / `conversation_id` 时，服务端生成随机 `session_key`（`web:anonymous-<随机>`），两次提问不会串到同一会话；
 - **历史会话接口**（含学生隐私）：`GET /chat/conversations`、`GET /chat/conversations/{id}/messages` 在配置 `NPU_ADMIN_TOKEN` 后需 `X-Admin-Token`（缺失/错误 → 401）；未配置时公开；`POST /chat` 始终公开；
-- 机器人渠道（OneBot / 微信 / console）复用同一回答，仅取 `reply` 发送。
+- 机器人渠道（QQ 官方 / 微信 / console）复用同一回答，仅取 `reply` 发送。
 
 ## 7. 模型管理（不变）
 
@@ -377,9 +377,9 @@ Invoke-RestMethod -Method Post ("http://127.0.0.1:8000/api/bots/channels/" + $co
   -ContentType "application/json; charset=utf-8" -Body $body
 ```
 
-公众号 / OneBot 的回调地址、签名与鉴权规则见 [BOT-INTEGRATION.md](BOT-INTEGRATION.md)。
+公众号的回调地址、签名与鉴权规则见 [BOT-INTEGRATION.md](BOT-INTEGRATION.md)。
 
-> **通道安全**：`/bots/channels` 返回的 `config` 中凭据（onebot `access_token` / 微信 `token`）脱敏为 `****`+后 4 位，`admin_user_ids` 只显示 `***（N 个管理员）`，`api_base` 去掉 userinfo/query/fragment 后回显（编辑回填脱敏值=不修改），并以布尔 `has_access_token` 表示是否已配置；PUT 传空串或脱敏占位表示「不修改」。OneBot 创建时未给 token 会自动生成随机值（响应带 `token_generated: true` 与 `token_hint`，明文不可回读）。webhook 空 token 默认 403（本地调试 `NPU_BOT_ALLOW_INSECURE=1`），微信 token 不得为空或 `npu-assistant`，回调校验 ±300 秒时间窗 + nonce 防重放（重复 403，进程内缓存），webhook 请求体上限 2MB（413）。配置 `NPU_ADMIN_TOKEN` 后 `GET /bots/logs` 需 `X-Admin-Token`。
+> **通道安全**：`/bots/channels` 返回的 `config` 中凭据（QQ 官方 `app_secret` / 微信 `token`）脱敏为 `****`+后 4 位，`admin_user_ids` 只显示 `***（N 个管理员）`，并以布尔 `has_access_token` 表示是否已配置；PUT 传空串或脱敏占位表示「不修改」。微信 token 不得为空或 `npu-assistant`，回调校验 ±300 秒时间窗 + nonce 防重放（重复 403，进程内缓存），webhook 请求体上限 2MB（413）。配置 `NPU_ADMIN_TOKEN` 后 `GET /bots/logs` 需 `X-Admin-Token`。
 
 ## 9. 手机扫码访问与一键公网（v0.1.1 新增）
 

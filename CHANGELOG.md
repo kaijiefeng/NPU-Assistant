@@ -2,6 +2,26 @@
 
 本文件记录 NPU-Assistant 的发布版本。版本号遵循语义化版本：`主版本.次版本.修订号`。
 
+## v0.2.0 — 开发中（M1-M5 已完成，待发布，2026-11-05）
+
+主题：**服务闭环（RSI）与稳定运行**。学生反馈驱动知识缺口，辅导员补资料，回答变好；危机与转人工有兜底；管理操作可分权审计；大文件后台编译，回答逐字输出，模型故障可重试/熔断/告警。
+
+- M1 反馈/缺口闭环：`answer_feedback`、`knowledge_gaps`；回答持久化 `retrieval` / `fallback` / `navigation_method`；学生「有帮助/没帮助 + 原因」；服务台概览、缺口列表、反馈列表；
+- M1 时效性：文档/词条新增发布、生效、失效、核对日期与学年；派生 `fresh/aging/stale/expired/unknown`；提示词注入当前日期与学年；导航优先新鲜词条；过期内容在无替代时才带警告回答；
+- M2 转人工：工单号 `NPU-YYYYMMDD-XXXX` + 查询凭证、SLA、认领/回复/解决；Web 对话页「联系辅导员」；
+- M2 危机升级：规则命中先于模型调用，固定安全卡片（120/110/校内热线）、紧急工单、可选 Webhook 通知与失败重试留痕；
+- M3 账号与权限：`admin_users` / `admin_sessions` / `audit_log`；PBKDF2 密码、HttpOnly 会话 Cookie、CSRF 校验；4 角色（超级管理员/管理员/辅导员/只读）；`X-Admin-Token` 继续兼容并映射超级管理员；
+- M3 审计：登录/失败/登出/改密/成员管理显式记录，所有已认证写请求由中间件记录；团队与审计页面支持成员管理、角色调整、停用/删除、重置密码、筛选日志；
+- M4 任务队列：`jobs` / `system_alerts`；单线程后台队列、进度、失败重试（≤2 次）、排队取消、重启中断恢复；`GET/POST /api/jobs*`；
+- M4 异步上传：`POST /knowledge/documents?async=1` 与 `POST .../reindex?async=1` 返回 202 + `job_id`；前端上传后轮询进度，大文件不再阻塞页面；
+- M4 任务与告警页：任务进度/重试/取消、告警确认/解决；`GET /api/alerts`、`POST /api/alerts/{id}/ack|resolve`；`/api/health` 增加队列与告警计数；
+- M5 流式回答：`POST /api/chat/stream`（SSE：`meta` → `delta` → `done`），前端逐字渲染、可「停止」；最终事件仍返回引用、消息 ID 与落库结果；
+- M5 韧性：LLM 瞬时错误自动重试一次（超时/连接/429/5xx），连续失败触发熔断（默认 3 次/60 秒）并写入告警；流式已输出后不重放，避免重复文本；
+- 信息架构：一级导航收敛为「对话 / 知识库 / 运营 / 设置」；知识库默认浏览、有权限时进入内容管理；服务台、任务与告警、审计日志收进「运营」；助手设置、模型、机器人、成员与权限、我的账号收进「设置」；旧路由自动重定向；
+- 兼容：未配置账号且未设置令牌时保持本机演示零配置；新增 `NPU_ADMIN_PASSWORD` 首启引导、`NPU_COOKIE_SECURE`、`NPU_ADMIN_SESSION_DAYS`、`NPU_LLM_RETRIES`、`NPU_LLM_BREAKER_*` 等环境变量；
+- 机器人：移除 OneBot 11 通道与 `/api/bots/onebot/*` 接口，QQ 渠道统一使用官方机器人（WebSocket），减少第三方框架与 Webhook 维护面；
+- 测试：新增 `test_insights.py`、`test_handoff.py`、`test_auth.py`、`test_jobs.py`、`test_streaming.py`；全量 175 项通过。
+
 ## v0.1.7 — 2026-11-02（源文件下载 + 对话来源链接）
 
 主题：**源文件可下载，回答自动附带相关文件链接（网页/QQ/微信全渠道）**。

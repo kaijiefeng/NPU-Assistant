@@ -20,10 +20,11 @@ import json
 import logging
 import re
 import time
+from datetime import date
 from typing import Any
 
 from .. import config, db
-from . import llm, remote_search, text_utils, wiki_nav
+from . import freshness, handoff as handoff_service, insights, llm, remote_search, text_utils, wiki_nav
 
 logger = logging.getLogger("npu-assistant")
 
@@ -210,7 +211,14 @@ def _history(conversation_id: str) -> list[dict[str, str]]:
 # ---------------------------------------------------------------------------
 def _system_prompt(settings: dict[str, Any], context: str) -> str:
     base = str(settings.get("system_prompt") or config.DEFAULT_SYSTEM_PROMPT).strip()
-    parts = [base]
+    today = date.today().isoformat()
+    academic_year = freshness.configured_academic_year()
+    time_hint = (
+        f"当前日期：{today}；当前学年：{academic_year}；时区：Asia/Shanghai。"
+        "判断“今年/明年/本学期/最近”时，必须以该日期和学年为准；"
+        "如果词条标注的适用学年或有效期与当前不一致，要明确提醒学生以最新通知为准。"
+    )
+    parts = [time_hint, base]
     if context:
         parts.append(
             "下面是本次从校园 Wiki 中选中的【Wiki 词条】，编号即引用编号。"
@@ -459,11 +467,12 @@ def _answer_from_pages(
     pages: list[dict],
     settings: dict[str, Any],
     history: list[dict[str, str]],
+    on_delta=None,
 ) -> tuple[str, list[dict], bool, str, str]:
     """基于选中的 Wiki 词条生成回答。
 
     返回 ``(reply, citations, fallback, model, provider_type)``；模型失败时降级为
-    词条摘录并保持 citations 与 ``[n]`` 对齐。
+    词条摘录并保持 citations 与 ``[n]`` 对齐。传入 ``on_delta`` 时逐段流式输出。
     """
     context = wiki_nav.build_context(pages, max_chars=settings["answer_max_chars"])
     messages: list[dict] = [
@@ -472,7 +481,15 @@ def _answer_from_pages(
     messages.extend(history)
     messages.append({"role": "user", "content": question})
     try:
-        result = llm.chat(messages, temperature=None, max_tokens=None)
+        if on_delta is not None:
+            result = llm.stream_chat(
+                messages,
+                temperature=None,
+                max_tokens=None,
+                on_delta=on_delta,
+            )
+        else:
+            result = llm.chat(messages, temperature=None, max_tokens=None)
     except Exception:  # pragma: no cover - llm.chat 契约上不抛异常，这里再兜一层
         logger.exception("LLM 调用抛出异常，降级为词条摘录")
         result = {}
@@ -493,6 +510,32 @@ def _answer_from_pages(
     )
     reply, citations = _clean_refusal_citations(reply, citations)
     return reply, citations, False, model, provider
+
+
+def _freshness_warning(pages: list[dict]) -> str:
+    """Prepend a warning when selected pages are stale/expired."""
+    expired = [p for p in pages if (p.get("freshness") or {}).get("status") == "expired"]
+    stale = [p for p in pages if (p.get("freshness") or {}).get("status") == "stale"]
+    if not expired and not stale:
+        return ""
+    labels: list[str] = []
+    for page in (expired + stale)[:3]:
+        label = page.get("title") or "未命名词条"
+        since = (page.get("freshness") or {}).get("expires_at") or (
+            page.get("freshness") or {}
+        ).get("verified_at")
+        labels.append(f"《{label}》" + (f"（{since}）" if since else ""))
+    if expired:
+        return (
+            "⚠️ 提示：以下引用内容的有效期已过或明显过时："
+            + "、".join(labels)
+            + "。请务必以学校最新官方通知为准，必要时联系辅导员确认。\n\n"
+        )
+    return (
+        "提示：以下引用内容可能不是最新："
+        + "、".join(labels)
+        + "。请以学校最新官方通知为准。\n\n"
+    )
 
 
 def _no_hit_reply(settings: dict[str, Any]) -> str:
@@ -945,11 +988,13 @@ def answer(
     session_key: str = "web:default",
     conversation_id: str | None = None,
     user_label: str | None = None,
+    on_delta=None,
+    on_meta=None,
 ) -> dict:
     """完整问答链路（Wiki 选页 → 提示词 → LLM/降级 → 落库）。
 
-    返回 ``{conversation_id, reply, citations, model, provider_type, latency_ms,
-    fallback, sources_used, navigation}``；参数非法时抛 ``ValueError``（路由层转 400）。
+    ``on_delta(text)`` 用于 SSE 流式输出；``on_meta(payload)`` 在选定词条后回调，
+    便于前端先展示来源。两者都不影响最终落库结果。
     """
     started = time.perf_counter()
     text = (question or "").strip()
@@ -982,6 +1027,18 @@ def answer(
         model_label = str(default_model.get("display_name") or default_model.get("model_name") or "")
         provider_type = (default_model.get("provider_type") or "").strip().lower()
 
+    # Safety first: crisis signals never wait for a model call.
+    if handoff_service.crisis_enabled():
+        crisis = handoff_service.detect_crisis(text)
+        if crisis:
+            return handoff_service.handle_crisis_answer(
+                text=text,
+                conversation=conversation,
+                channel=channel,
+                crisis=crisis,
+                started=started,
+            )
+
     citations: list[dict] = []
     navigation: dict = {"method": "none", "pages": []}
     retrieval: dict = {
@@ -1002,6 +1059,7 @@ def answer(
             )
             citations = []
             navigation = {"method": "chitchat", "pages": []}
+            retrieval["chitchat"] = True
             if chitchat_model:
                 model_label = chitchat_model
             if chitchat_provider:
@@ -1012,19 +1070,40 @@ def answer(
             if non_campus:
                 # 明显非校园话题：不调用 Wiki 导航与回答模型，避免编造政策
                 navigation = {"method": "none", "pages": []}
+                retrieval["non_campus"] = True
             else:
                 pages, navigation = wiki_nav.select_pages_with_method(
                     text, max_pages=settings["max_pages"]
                 )
             if pages:
                 retrieval["wiki_used"] = True
+                if on_meta:
+                    try:
+                        on_meta(
+                            {
+                                "navigation": navigation,
+                                "pages": [
+                                    {
+                                        "id": page.get("id"),
+                                        "title": page.get("title"),
+                                        "slug": page.get("slug"),
+                                    }
+                                    for page in pages[: settings["max_pages"]]
+                                ],
+                            }
+                        )
+                    except Exception:  # pragma: no cover - 展示层失败不影响回答
+                        logger.exception("流式元信息回调失败（已忽略）")
                 reply, citations, fallback_used, answer_model, answer_provider = (
-                    _answer_from_pages(text, pages, settings, history)
+                    _answer_from_pages(text, pages, settings, history, on_delta=on_delta)
                 )
                 if answer_model:
                     model_label = answer_model
                 if answer_provider:
                     provider_type = answer_provider
+                warning = _freshness_warning(pages)
+                if warning:
+                    reply = warning + reply
                 decision = _judge_answer_completeness(text, reply, citations)
                 retrieval["complete"] = decision["complete"]
                 retrieval["reason"] = decision["reason"]
@@ -1098,22 +1177,37 @@ def answer(
     latency_ms = int((time.perf_counter() - started) * 1000)
 
     # 持久化：user 在前、assistant 在后，并维护 conversations.updated_at
+    assistant_message_id = ""
     if conversation is not None:
         try:
             db.add_message(conversation["id"], "user", text)
-            db.add_message(
+            saved = db.add_message(
                 conversation["id"],
                 "assistant",
                 reply,
                 citations=citations,
                 model=model_label,
                 latency_ms=latency_ms,
+                retrieval=retrieval,
+                fallback=fallback_used,
+                navigation_method=str(navigation.get("method") or ""),
             )
+            assistant_message_id = str((saved or {}).get("id") or "")
         except Exception:
             logger.exception("保存问答消息失败（不影响本次回复）")
+    if assistant_message_id:
+        insights.record_answer_signal(
+            message_id=assistant_message_id,
+            conversation_id=conversation["id"] if conversation else "",
+            channel=channel,
+            question=text,
+            retrieval=retrieval,
+            fallback=fallback_used,
+        )
 
     return {
         "conversation_id": conversation["id"] if conversation else (conversation_id or ""),
+        "message_id": assistant_message_id,
         "reply": reply,
         "citations": citations,
         "model": model_label,

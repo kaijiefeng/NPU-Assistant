@@ -323,27 +323,23 @@ def test_bot_webhook_not_blocked_by_admin_token(client, monkeypatch):
     created = client.post(
         "/api/bots/channels",
         json={
-            "type": "onebot11",
+            "type": "wechat_mp",
             "name": "鉴权测试",
-            "config": {"self_id": "10001", "access_token": "evt-token"},
+            "config": {"token": "wechat-test-token-2026"},
         },
         headers={"X-Admin-Token": "mobile-secret-token"},
     )
     assert created.status_code == 201
     channel_id = created.json()["id"]
-    event = {
-        "post_type": "message",
-        "message_type": "private",
-        "self_id": 10001,
-        "user_id": 10002,
-        "message": [{"type": "text", "data": {"text": "你好"}}],
-        "message_id": 7001,
-    }
-    # 错误 access_token 应返回 403（业务鉴权），而不是 401（管理员令牌拦截）
-    response = client.post(
-        f"/api/bots/onebot/{channel_id}/event",
-        params={"access_token": "wrong"},
-        json=event,
+    # 错误签名应返回 403（业务鉴权），而不是 401（管理员令牌拦截）
+    response = client.get(
+        f"/api/bots/wechat/{channel_id}",
+        params={
+            "signature": "bad-signature",
+            "timestamp": "1700000000",
+            "nonce": "nonce-1",
+            "echostr": "echo",
+        },
     )
     assert response.status_code == 403
 

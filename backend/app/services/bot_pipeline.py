@@ -1,6 +1,6 @@
 """机器人统一入站处理管线。
 
-所有渠道（QQ OneBot 11 / 微信公众号 / 控制台调试）的消息最终都进入
+所有渠道（QQ 官方机器人 / 微信公众号 / 控制台调试）的消息最终都进入
 :func:`handle_incoming`，由它完成：
 
 1. 管理员「转发即入库」分流（docs/MOBILE-OPS.md §2.2）：管理员发来的链接或
@@ -29,10 +29,9 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from .. import config, db
-from ..adapters import onebot, qq_official, wechat_mp
+from ..adapters import qq_official, wechat_mp
 from ..adapters.base import (
     CHANNEL_CONSOLE,
-    CHANNEL_ONEBOT,
     CHANNEL_QQ_OFFICIAL,
     CHANNEL_WECHAT,
     CHAT_PRIVATE,
@@ -97,17 +96,6 @@ def incoming_for_channel(channel: dict, text: str, *, user_id: str = "",
     config_data = _channel_config(channel)
     clean = str(text or "").strip()
 
-    if channel_type == CHANNEL_ONEBOT:
-        self_id = str(config_data.get("self_id") or "")
-        return IncomingMessage(
-            channel=CHANNEL_ONEBOT,
-            channel_id=channel_id,
-            text=clean,
-            user_id=user_id or "10001",
-            user_name=user_name or "QQ测试同学",
-            chat_type=CHAT_PRIVATE,
-            self_id=self_id,
-        )
     if channel_type == CHANNEL_QQ_OFFICIAL:
         return IncomingMessage(
             channel=CHANNEL_QQ_OFFICIAL,
@@ -202,14 +190,6 @@ def _build_outbound(message: IncomingMessage, reply: str, channel_config: dict |
     """构造将要发送给平台的报文；不发起任何网络请求。"""
     config_data = channel_config if isinstance(channel_config, dict) else _load_channel_config(message)
     try:
-        if message.channel == CHANNEL_ONEBOT:
-            return onebot.build_outbound(
-                config_data,
-                chat_type=message.chat_type,
-                user_id=message.user_id,
-                group_id=message.group_id,
-                text=reply,
-            )
         if message.channel == CHANNEL_QQ_OFFICIAL:
             raw = message.raw if isinstance(message.raw, dict) else {}
             return qq_official.build_outbound(
@@ -239,7 +219,7 @@ def _build_outbound(message: IncomingMessage, reply: str, channel_config: dict |
 # 管理员「转发即入库」：消息文本 / URL / 命令解析
 # ---------------------------------------------------------------------------
 def _json_segment_text(value: Any) -> str:
-    """把 OneBot ``json`` 卡片消息段转成可搜索文本（提取其中的 URL）。"""
+    """把平台 JSON 卡片消息段转成可搜索文本（提取其中的 URL）。"""
     if isinstance(value, dict):
         try:
             return json.dumps(value, ensure_ascii=False)
@@ -329,8 +309,6 @@ def _is_admin(config_data: dict, user_id: str) -> bool:
 
 
 def _channel_tags(message: IncomingMessage) -> list[str]:
-    if message.channel == CHANNEL_ONEBOT:
-        return ["bot", "QQ"]
     if message.channel == CHANNEL_QQ_OFFICIAL:
         return ["bot", "QQ"]
     if message.channel == CHANNEL_WECHAT:

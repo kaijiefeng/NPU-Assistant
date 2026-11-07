@@ -10,7 +10,7 @@
  *
  * 说明：本文件由 index.html 通过 app.js 在 https 或 localhost 下注册。
  */
-const CACHE_VERSION = 'npu-assistant-static-v7';
+const CACHE_VERSION = 'npu-assistant-static-v12';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -22,9 +22,15 @@ const STATIC_ASSETS = [
   '/assets/js/mobile-access.js',
   '/assets/js/views/chat.js',
   '/assets/js/views/knowledge.js',
+  '/assets/js/views/ops-hub.js',
+  '/assets/js/views/insights.js',
+  '/assets/js/views/login.js',
+  '/assets/js/views/jobs.js',
+  '/assets/js/views/team.js',
   '/assets/js/views/models.js',
   '/assets/js/views/bots.js',
   '/assets/js/views/settings.js',
+  '/assets/js/views/settings-hub.js',
   '/assets/icons/icon-192.png',
   '/assets/icons/icon-512.png',
 ];

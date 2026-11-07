@@ -1,7 +1,7 @@
 /**
  * views/bots.js — 机器人页
  *
- * 三个通道卡片（QQ OneBot 11 / 微信公众号 / 控制台调试）、配置保存、
+ * 三个通道卡片（QQ 官方机器人 / 微信公众号 / 控制台调试）、配置保存、
  * Webhook 地址一键复制、控制台模拟对话、消息日志。
  * 接口：/api/bots/channels、/api/bots/channels/{id}/test、/api/bots/logs
  */
@@ -60,37 +60,6 @@ const CHANNEL_TYPES = {
     ],
     defaults: { app_id: '', app_secret: '', sandbox: 'false' },
   },
-  onebot11: {
-    label: 'QQ · OneBot 11',
-    tone: 'blue',
-    icon: 'qq',
-    desc: 'NapCat / go-cqhttp 等 OneBot 11 实现，支持反向 WebSocket 与反向 HTTP 事件。',
-    configFields: [
-      { key: 'api_base', label: 'HTTP API 地址', placeholder: 'http://127.0.0.1:3000', hint: 'OneBot HTTP API，用于发送回复' },
-      {
-        key: 'access_token',
-        label: 'Access Token',
-        type: 'password',
-        sensitive: true,
-        hint: '已配置时留空表示不修改；留空创建时由后端自动生成',
-      },
-      { key: 'self_id', label: '机器人 QQ 号', placeholder: '如 123456789' },
-      {
-        key: 'admin_user_ids',
-        label: '管理员账号',
-        type: 'admin',
-        hint: '允许通过机器人收录资料的管理员 QQ 号，逗号分隔；发送 #帮助 可查看自己的用户 ID',
-      },
-      {
-        key: 'group_mention_only',
-        label: '群聊仅 @ 回复',
-        type: 'checkbox',
-        default: 'true',
-        hint: '默认开启：群聊中只有 @ 机器人 才生成回复，避免刷屏',
-      },
-    ],
-    defaults: { api_base: 'http://127.0.0.1:3000', self_id: '', group_mention_only: 'true' },
-  },
   wechat_mp: {
     label: '微信公众号',
     tone: 'teal',
@@ -125,7 +94,7 @@ const CHANNEL_TYPES = {
   },
 };
 
-const CHANNEL_ORDER = ['qq_official', 'onebot11', 'wechat_mp', 'console'];
+const CHANNEL_ORDER = ['qq_official', 'wechat_mp', 'console'];
 
 const STATUS_META = {
   online: { label: '在线', tone: 'green' },
@@ -164,12 +133,6 @@ function channelLabel(type) {
 function webhookEntries(channel) {
   const raw = safeJson(channel?.webhook_urls, {}) || {};
   const labels = {
-    ws: 'OneBot 反向 WebSocket',
-    ws_url: 'OneBot 反向 WebSocket',
-    websocket: 'OneBot 反向 WebSocket',
-    event: 'OneBot 反向 HTTP 事件',
-    http: 'OneBot 反向 HTTP 事件',
-    http_event: 'OneBot 反向 HTTP 事件',
     callback: '微信回调地址',
     wechat: '微信回调地址',
     wechat_url: '微信回调地址',
@@ -181,17 +144,6 @@ function webhookEntries(channel) {
   if (entries.length) return entries;
 
   // 接口未给出 webhook_urls 时，按契约路径生成兜底地址。
-  const config = configOf(channel);
-  // 脱敏后的 token 不能拼进 URL（避免出现 ****abcd 的无效地址）
-  const rawToken = config.access_token;
-  const tokenQuery =
-    rawToken && !isMaskedValue(rawToken) ? `?access_token=${encodeURIComponent(rawToken)}` : '';
-  if (channel.type === 'onebot11') {
-    return [
-      ['OneBot 反向 WebSocket', `/api/bots/onebot/${channel.id}/ws${tokenQuery}`],
-      ['OneBot 反向 HTTP 事件', `/api/bots/onebot/${channel.id}/event${tokenQuery}`],
-    ];
-  }
   if (channel.type === 'wechat_mp') {
     return [['微信回调地址', `/api/bots/wechat/${channel.id}`]];
   }
@@ -703,12 +655,6 @@ async function removeChannel(id) {
 function createWebhookList(created, type) {
   const raw = created?.webhook_urls || created?.channel?.webhook_urls || {};
   const labels = {
-    ws: 'OneBot 反向 WebSocket',
-    ws_url: 'OneBot 反向 WebSocket',
-    websocket: 'OneBot 反向 WebSocket',
-    event: 'OneBot 反向 HTTP 事件',
-    http: 'OneBot 反向 HTTP 事件',
-    http_event: 'OneBot 反向 HTTP 事件',
     callback: '微信回调地址',
     wechat: '微信回调地址',
     wechat_url: '微信回调地址',
@@ -718,12 +664,7 @@ function createWebhookList(created, type) {
     .map(([key, value]) => [labels[String(key).toLowerCase()] || key, value]);
   if (!entries.length) {
     const id = created?.id || created?.channel?.id || '';
-    if (type === 'onebot11' && id) {
-      entries = [
-        ['OneBot 反向 WebSocket', `/api/bots/onebot/${id}/ws`],
-        ['OneBot 反向 HTTP 事件', `/api/bots/onebot/${id}/event`],
-      ];
-    } else if (type === 'wechat_mp' && id) {
+    if (type === 'wechat_mp' && id) {
       entries = [['微信回调地址', `/api/bots/wechat/${id}`]];
     }
   }
@@ -742,7 +683,7 @@ function createWebhookList(created, type) {
     .join('')}</div>`;
 }
 
-function openAddChannelModal(preferredType = 'onebot11') {
+function openAddChannelModal(preferredType = 'qq_official') {
   const modal = openModal({
     title: '添加机器人通道',
     subtitle: '同一个类型可添加多个通道（例如多个 QQ 机器人）',
@@ -778,18 +719,6 @@ function openAddChannelModal(preferredType = 'onebot11') {
           placeholder="QQ 开放平台机器人 AppSecret" />
         <span class="field-help">用于换取 access_token 并连接 WebSocket 网关；保存后只显示脱敏值。</span>
       </label>
-      <label class="field" data-create-field="onebot_api">
-        <span class="field-label">HTTP API 地址</span>
-        <input class="input mono" name="onebot_api_base" value="${esc(
-          channelTypeMeta('onebot11').defaults.api_base || 'http://127.0.0.1:3000',
-        )}" placeholder="http://127.0.0.1:3000" />
-        <span class="field-help">NapCat / go-cqhttp 的 HTTP API 地址，用于发送回复。</span>
-      </label>
-      <label class="field" data-create-field="onebot_token">
-        <span class="field-label">Access Token <span class="field-tip">（可选）</span></span>
-        <input class="input mono" name="onebot_token" type="password" autocomplete="new-password"
-          placeholder="留空则由后端自动生成随机密钥（明文不可回读）" />
-      </label>
       <label class="field" data-create-field="wechat_token" hidden>
         <span class="field-label">公众号 Token <em>*</em></span>
         <input class="input mono" name="wechat_token" type="password" autocomplete="new-password"
@@ -800,7 +729,7 @@ function openAddChannelModal(preferredType = 'onebot11') {
         <span class="field-label">AppID <span class="field-tip">（可选）</span></span>
         <input class="input mono" name="wechat_app_id" placeholder="公众号 AppID，可稍后填写" />
       </label>
-      <div class="form-hint">${icon('info')}<span>OneBot 通道留空 Token 会自动生成随机密钥；QQ 官方机器人使用 AppID / AppSecret；敏感凭据创建后不会回显明文。</span></div>
+      <div class="form-hint">${icon('info')}<span>QQ 官方机器人使用 AppID / AppSecret；敏感凭据创建后不会回显明文。</span></div>
     </form>`,
     footer: `<button class="btn btn-ghost" type="button" data-modal-cancel>取消</button>
       <button class="btn btn-primary" type="button" data-modal-submit>${icon('plus')}<span>创建通道</span></button>`,
@@ -808,8 +737,6 @@ function openAddChannelModal(preferredType = 'onebot11') {
   const form = modal.body.querySelector('#channelForm');
   const typeSelect = form.querySelector('[name="type"]');
   const nameInput = form.querySelector('[name="name"]');
-  const onebotApiField = form.querySelector('[data-create-field="onebot_api"]');
-  const onebotTokenField = form.querySelector('[data-create-field="onebot_token"]');
   const wechatTokenField = form.querySelector('[data-create-field="wechat_token"]');
   const wechatAppIdField = form.querySelector('[data-create-field="wechat_appid"]');
   const qqAppIdField = form.querySelector('[data-create-field="qq_appid"]');
@@ -818,8 +745,6 @@ function openAddChannelModal(preferredType = 'onebot11') {
     const type = typeSelect.value;
     qqAppIdField.hidden = type !== 'qq_official';
     qqSecretField.hidden = type !== 'qq_official';
-    onebotApiField.hidden = type !== 'onebot11';
-    onebotTokenField.hidden = type !== 'onebot11';
     wechatTokenField.hidden = type !== 'wechat_mp';
     wechatAppIdField.hidden = type !== 'wechat_mp';
   };
@@ -871,17 +796,10 @@ function openAddChannelModal(preferredType = 'onebot11') {
       config.token = token;
       const appId = form.querySelector('[name="wechat_app_id"]').value.trim();
       if (appId) config.app_id = appId;
-    } else if (type === 'onebot11') {
-      const apiBase = form.querySelector('[name="onebot_api_base"]').value.trim();
-      config.api_base = apiBase || 'http://127.0.0.1:3000';
-      const token = form.querySelector('[name="onebot_token"]').value.trim();
-      if (token) config.access_token = token;
-      else delete config.access_token; // 留空：由后端自动生成
     }
     setButtonBusy(button, true, '创建中…');
     try {
       const created = await createBotChannel({ type, name, config });
-      const tokenGenerated = Boolean(created?.token_generated || created?.channel?.token_generated);
       const createdName = created?.name || created?.channel?.name || name;
       toast('机器人通道已创建', 'success', { title: '创建成功' });
       await loadChannels({ silent: true });
@@ -893,11 +811,6 @@ function openAddChannelModal(preferredType = 'onebot11') {
           <div><strong>${esc(createdName)}</strong><span>${esc(channelTypeMeta(type).label)}</span></div>
         </div>
         ${
-          tokenGenerated
-            ? `<div class="inline-error is-warn">${icon('shield')}<span>已自动生成通道密钥（明文不可再次查看）。如需自定义 token（如 NapCat 使用），请到通道详情重新设置。</span></div>`
-            : ''
-        }
-        ${
           type === 'qq_official'
             ? `<ol class="bot-steps">
                 <li>通道已启用：服务会立即用 AppID / AppSecret 连接 QQ 开放平台 WebSocket 网关</li>
@@ -906,8 +819,8 @@ function openAddChannelModal(preferredType = 'onebot11') {
               </ol>`
             : `<ol class="bot-steps">
                 <li>复制下方 Webhook 地址</li>
-                <li>填到 NapCat / go-cqhttp 或公众号后台「服务器配置」</li>
-                <li>管理员在 QQ / 微信里转发链接给机器人，即可自动收录</li>
+                <li>填到公众号后台「服务器配置」</li>
+                <li>管理员在公众号里转发链接给机器人，即可自动收录</li>
               </ol>`
         }
         ${createWebhookList(created, type)}
@@ -953,11 +866,6 @@ export function mount(root) {
           <button class="quick-add-card" type="button" data-action="add-channel" data-type="qq_official">
             <span class="quick-add-icon tone-blue">${icon('qq')}</span>
             <span class="quick-add-text"><strong>QQ 官方机器人</strong><span>开放平台 · AppID / AppSecret</span></span>
-            <span class="quick-add-go">${icon('chevron-right')}</span>
-          </button>
-          <button class="quick-add-card" type="button" data-action="add-channel" data-type="onebot11">
-            <span class="quick-add-icon tone-blue">${icon('qq')}</span>
-            <span class="quick-add-text"><strong>QQ 机器人</strong><span>OneBot 11 · NapCat / go-cqhttp</span></span>
             <span class="quick-add-go">${icon('chevron-right')}</span>
           </button>
           <button class="quick-add-card" type="button" data-action="add-channel" data-type="wechat_mp">
@@ -1088,7 +996,7 @@ export function mount(root) {
         await loadLogs();
         break;
       case 'add-channel':
-        openAddChannelModal(trigger.dataset.type || 'onebot11');
+        openAddChannelModal(trigger.dataset.type || 'qq_official');
         break;
       case 'save-channel':
         saveChannel(trigger);

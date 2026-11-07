@@ -13,8 +13,9 @@ import {
   deleteDocument,
   deleteWikiPage,
   documentDownloadUrl,
-  getDocument,
   getKnowledgeStats,
+  getDocument,
+  getJob,
   getSystemInfo,
   getWikiBuild,
   getWikiPage,
@@ -31,6 +32,7 @@ import {
   searchWiki,
   updateWikiPage,
   uploadDocument,
+  verifyWikiPage,
 } from '../api.js';
 import {
   badge,
@@ -61,6 +63,13 @@ const DOC_STATUS = {
 const PAGE_STATUS = {
   ready: { label: '可问答', tone: 'green' },
   needs_review: { label: '待校对', tone: 'amber' },
+};
+const FRESHNESS_META = {
+  fresh: { label: '最新', tone: 'green' },
+  aging: { label: '待核对', tone: 'amber' },
+  stale: { label: '可能过时', tone: 'amber' },
+  expired: { label: '已过期', tone: 'red' },
+  unknown: null,
 };
 const METHOD_META = {
   exact: { label: '标题/别名精确命中', tone: 'green' },
@@ -357,7 +366,7 @@ async function loadSystemInfo() {
       const labels = preferred.filter((ext) => available.has(ext)).map((ext) => ext.replace('.', '').toUpperCase());
       hint.textContent = `支持 ${labels.join(' / ')} 等格式，单个 ≤ ${
         state.info?.max_upload_mb || 20
-      }MB；上传后由 LLM 同步编译为 Wiki 词条。`;
+      }MB；上传后在后台编译为 Wiki 词条，可继续操作。`;
     }
     const fileInput = document.getElementById('fileInput');
     if (fileInput) fileInput.accept = (state.info?.supported_exts || FALLBACK_EXTS).join(',');
@@ -396,6 +405,13 @@ function renderTagFilter() {
 /* ------------------------------------------------------------------ */
 /* 词条 Tab                                                            */
 /* ------------------------------------------------------------------ */
+function freshnessBadge(page) {
+  const status = page?.freshness?.status || 'unknown';
+  const meta = FRESHNESS_META[status];
+  if (!meta) return '';
+  return badge(meta.label, meta.tone);
+}
+
 function pageCardHtml(page) {
   const status = pageStatus(page.status);
   return `<article class="wiki-card ${page.status === 'needs_review' ? 'is-review' : ''}" role="button" tabindex="0"
@@ -403,6 +419,7 @@ function pageCardHtml(page) {
     <div class="wiki-card-head">
       <h3>${esc(page.title || '未命名词条')}</h3>
       ${page.status === 'needs_review' ? badge(status.label, status.tone) : ''}
+      ${freshnessBadge(page)}
     </div>
     <p class="wiki-summary">${esc(page.summary || '暂无摘要，点击查看正文与来源。')}</p>
     <div class="wiki-card-foot">
@@ -772,6 +789,35 @@ function openEditPageModal(page, onSaved) {
           <input class="input" name="tags" value="${esc(normalizeList(data.tags).join(', '))}" />
         </label>
       </div>
+      <div class="form-row">
+        <label class="field">
+          <span class="field-label">发布日期</span>
+          <input class="input" type="date" name="published_at" value="${esc(data.published_at || '')}" />
+        </label>
+        <label class="field">
+          <span class="field-label">有效期至</span>
+          <input class="input" type="date" name="expires_at" value="${esc(data.expires_at || '')}" />
+        </label>
+      </div>
+      <div class="form-row">
+        <label class="field">
+          <span class="field-label">适用学年 <span class="field-tip">（如 2025-2026）</span></span>
+          <input class="input" name="academic_year" placeholder="2025-2026" value="${esc(data.academic_year || '')}" />
+        </label>
+        <label class="field">
+          <span class="field-label">内容类型</span>
+          <select class="input" name="doc_type">
+            ${['general', 'notice', 'policy', 'faq']
+              .map(
+                (value) =>
+                  `<option value="${value}" ${data.doc_type === value ? 'selected' : ''}>${
+                    { general: '通用', notice: '通知', policy: '制度', faq: 'FAQ' }[value]
+                  }</option>`,
+              )
+              .join('')}
+          </select>
+        </label>
+      </div>
       <label class="field">
         <span class="field-label">正文（Markdown）<em>*</em></span>
         <textarea class="input textarea-code wiki-edit-textarea" name="body_md" rows="18" spellcheck="false">${esc(
@@ -781,10 +827,24 @@ function openEditPageModal(page, onSaved) {
       <div class="form-hint">${icon('info')}<span>支持标准 Markdown（标题、列表、表格、引用）；保存后由后端渲染为 HTML 展示。</span></div>
     </form>`,
     footer: `<button class="btn btn-ghost" type="button" data-modal-cancel>取消</button>
+      <button class="btn btn-ghost" type="button" data-modal-verify>${icon('check')}<span>标记已核对</span></button>
       <button class="btn btn-primary" type="button" data-modal-submit>${icon('check')}<span>保存修改</span></button>`,
   });
   const form = modal.body.querySelector('#wikiEditForm');
   modal.footer.querySelector('[data-modal-cancel]')?.addEventListener('click', () => modal.close());
+  modal.footer.querySelector('[data-modal-verify]')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget;
+    setButtonBusy(button, true, '记录中…');
+    try {
+      await verifyWikiPage(data.id, {});
+      toast('已标记为今天核对', 'success');
+      modal.close();
+      onSaved?.();
+    } catch (err) {
+      toast(err?.message || '标记失败', 'error');
+      setButtonBusy(button, false);
+    }
+  });
   modal.footer.querySelector('[data-modal-submit]')?.addEventListener('click', async (event) => {
     const button = event.currentTarget;
     const payload = {
@@ -793,6 +853,10 @@ function openEditPageModal(page, onSaved) {
       body_md: form.querySelector('[name="body_md"]').value,
       aliases: normalizeList(form.querySelector('[name="aliases"]').value),
       tags: normalizeList(form.querySelector('[name="tags"]').value),
+      published_at: form.querySelector('[name="published_at"]').value,
+      expires_at: form.querySelector('[name="expires_at"]').value,
+      academic_year: form.querySelector('[name="academic_year"]').value.trim(),
+      doc_type: form.querySelector('[name="doc_type"]').value,
     };
     if (!payload.title) {
       toast('词条标题不能为空', 'error');
@@ -899,6 +963,53 @@ function updateUploadProgress(id, percent) {
   }
 }
 
+async function watchUploadJob(id, jobId, fileName) {
+  let last = null;
+  for (let attempt = 0; attempt < 400; attempt += 1) {
+    await new Promise((resolve) => window.setTimeout(resolve, 1500));
+    try {
+      last = await getJob(jobId);
+    } catch (err) {
+      if (err?.status === 404 || err?.status === 401 || err?.status === 403) {
+        updateUpload(id, { status: 'error', message: err?.message || '无法查询任务进度' });
+        toast(`${fileName}：${err?.message || '无法查询任务进度'}`, 'error');
+        return;
+      }
+      continue;
+    }
+    updateUpload(id, {
+      percent: Math.max(99, Number(last.progress) || 0),
+      message: last.message || '后台编译中…',
+    });
+    if (last.status === 'succeeded') {
+      const doc = last.result?.document || {};
+      const pages = Number(doc.page_count || 0);
+      updateUpload(id, {
+        percent: 100,
+        status: 'success',
+        message: `已编译 · ${pages} 个词条`,
+      });
+      toast(`《${doc.title || fileName}》已编译 ${pages} 个词条`, 'success');
+      return;
+    }
+    if (last.status === 'failed' || last.status === 'cancelled') {
+      updateUpload(id, {
+        status: last.status === 'cancelled' ? 'error' : 'warning',
+        message: last.error || last.message || '后台编译失败',
+      });
+      toast(
+        `${fileName}：${last.error || last.message || '后台编译失败'}`,
+        'error',
+      );
+      return;
+    }
+  }
+  updateUpload(id, {
+    status: 'warning',
+    message: '任务仍在后台执行，可稍后到「任务与告警」查看',
+  });
+}
+
 async function handleFiles(fileList) {
   const files = Array.from(fileList || []);
   if (!files.length) return;
@@ -923,9 +1034,17 @@ async function handleFiles(fileList) {
     state.uploads.unshift({ id, name: file.name, size: file.size, ext, status: 'uploading', percent: 0 });
     renderUploads();
     uploadDocument(file, {
+      asyncMode: true,
       onProgress: (percent) => updateUploadProgress(id, percent),
     })
       .then((doc) => {
+        if (doc?.job_id) {
+          updateUpload(id, {
+            percent: 100,
+            message: doc.message || '已接收，后台编译中…',
+          });
+          return watchUploadJob(id, doc.job_id, file.name);
+        }
         if (doc?.status === 'failed') {
           updateUpload(id, { percent: 100, status: 'warning', message: doc.error || '编译失败' });
           toast(`《${doc.title || file.name}》编译失败：${doc.error || '未知原因'}`, 'error');
@@ -1650,10 +1769,13 @@ export function mountManage(root, context = {}) {
   stopBuildPolling();
 
   root.innerHTML = `<div class="page manage-page">
-    <div class="manage-tabs" role="tablist" aria-label="内容管理">
-      <button class="seg-tab is-active" type="button" role="tab" aria-selected="true" data-action="manage-tab" data-tab="capture">收录资料</button>
-      <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="manage-tab" data-tab="sources">源文件</button>
-      <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="manage-tab" data-tab="pages">词条维护</button>
+    <div class="manage-topbar">
+      <div class="manage-tabs" role="tablist" aria-label="内容管理">
+        <button class="seg-tab is-active" type="button" role="tab" aria-selected="true" data-action="manage-tab" data-tab="capture">收录资料</button>
+        <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="manage-tab" data-tab="sources">源文件</button>
+        <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="manage-tab" data-tab="pages">词条维护</button>
+      </div>
+      <a class="btn btn-ghost btn-sm" href="#/knowledge">${icon('book')}<span>浏览模式</span></a>
     </div>
 
     <section class="manage-panel" id="manageCapturePanel">
@@ -1984,6 +2106,13 @@ export function mount(root, context = {}) {
         <input class="input" id="wikiSearchInput" type="search" placeholder="搜索校园知识，如：国家奖学金、请假流程" aria-label="搜索词条" />
         <button class="btn btn-primary" type="submit" id="wikiSearchBtn">${icon('search')}<span>搜索</span></button>
       </form>
+      ${
+        context?.canManage
+          ? `<a class="btn btn-ghost btn-sm browse-manage-link" href="#/knowledge?manage=1">${icon(
+              'database',
+            )}<span>内容管理</span></a>`
+          : ''
+      }
     </section>
     <div class="tag-filter browse-tags" id="tagFilter" hidden></div>
     <div id="wikiSearchResult" hidden></div>
@@ -2024,7 +2153,7 @@ export function mount(root, context = {}) {
         renderPages();
         break;
       case 'go-manage':
-        location.hash = '#/manage';
+        location.hash = '#/knowledge?manage=1';
         break;
       case 'retry':
         loadPages();

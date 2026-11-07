@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#061a3d" />
+<meta name="description" content="NPU-Assistant 产品能力总览：面向学院与学工部门的校园知识助手。LLM Wiki 编译、双层引用、手机转发即入库、Web/QQ/微信全渠道、本地可控。" />
+<title>NPU-Assistant · 产品能力总览</title>
+<link rel="stylesheet" href="manual.css" />
+</head>
+<body>
+
+<div class="progress" aria-hidden="true"><span></span></div>
+
+<nav class="topbar" id="topbar" aria-label="主导航">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true">N</span>
+      <span class="brand-text">NPU-Assistant<small>校园知识助手</small></span>
+    </a>
+    <div class="topbar-links">
+      <a href="#capabilities">核心能力</a>
+      <a href="#highlights">关键亮点</a>
+      <a href="#deploy">部署形态</a>
+      <a href="#limits">能力边界</a>
+    </div>
+    <div class="topbar-actions">
+      <a class="btn btn-outline btn-sm" href="index.html">使用手册</a>
+      <a class="btn btn-nav btn-sm" href="#capabilities">查看能力</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-bg" aria-hidden="true">
+    <span class="orb orb-a"></span>
+    <span class="orb orb-b"></span>
+    <span class="orb orb-c"></span>
+    <div class="hero-grid-lines"></div>
+  </div>
+  <div class="wrap hero-inner">
+    <div class="hero-copy">
+      <span class="eyebrow"><span class="dot"></span>NPU-Assistant · 校园知识助手</span>
+      <h1>把辅导员的知识<br /><span class="grad-text">变成可核对的回答</span></h1>
+      <p class="lead">
+        面向学院、学工部门和辅导员团队：把学生手册、奖助政策、办事指南编译成结构化 Wiki 词条，
+        回答学生问题时给出「词条 + 源文件 + 章节 + 原文摘录」双层引用。
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-light" href="#capabilities">查看核心能力 →</a>
+        <a class="btn btn-ghost" href="index.html">打开使用手册 →</a>
+      </div>
+      <p class="hero-meta">v0.1.7 · 本地 / 校园内网部署 · 不依赖向量数据库 · 无 Key 也能离线演示</p>
+      <ul class="hero-points">
+        <li>回答可回溯到原文</li>
+        <li>手机转发即入库</li>
+        <li>单机即可运行</li>
+        <li>Web / QQ / 微信</li>
+      </ul>
+    </div>
+    <div class="hero-demo" aria-label="回答与引用示例">
+      <div class="demo-bar" aria-hidden="true"><i></i><i></i><i></i><span>Live Demo</span></div>
+      <p class="q">国家奖学金怎么申请？需要哪些材料？</p>
+      <p class="a">
+        国家奖学金按学年评审，通常需要先满足成绩与综合测评排名要求，再提交申请表、成绩单和证明材料。
+        具体时间与材料以当年通知为准。<b>[1]</b>
+      </p>
+      <div class="cite">
+        <b>[1] 国家奖学金申请</b>
+        <small>来源：《本科生国家奖学金评审办法》· 第三章 申请材料</small>
+        <small>“学生本人提出申请，提交申请表、成绩单……”</small>
+        <small class="cite-link">下载原文件 / 打开原文核对 →</small>
+      </div>
+      <div class="cite alt">
+        <b>没收录时</b>
+        <small>自动尝试学院官网 / 官方公众号临时检索，并标注“临时来源”，不写入知识库。</small>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap hero-stats-wrap">
+  <div class="hero-stats">
+    <div><b>100%</b><span>回答可回溯到源文件与原文</span></div>
+    <div><b>5 分钟</b><span>从上传资料到学生可问答</span></div>
+    <div><b>0</b><span>向量库 / embedding / rerank 依赖</span></div>
+    <div><b>4 端</b><span>Web · QQ · 微信 · 控制台</span></div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="wrap">
+
+    <section id="why" data-eyebrow="背景">
+      <h2><span class="num">01</span>为什么现在需要它</h2>
+      <p class="section-lead">学生的问题高度重复，政策文件却分散在官网、公众号、群文件和老师电脑里；新辅导员上手慢，回答口径还不一致。</p>
+      <div class="grid-3">
+        <div class="mini">
+          <div class="ico">🔁</div>
+          <h4>重复问答消耗辅导员</h4>
+          <p>奖助、请假、档案、宿舍等问题每届都问；同样的话一天要回很多遍。</p>
+        </div>
+        <div class="mini">
+          <div class="ico">🗂️</div>
+          <h4>政策散落、版本不清</h4>
+          <p>通知在官网、公众号、群文件里；学生不知道哪份最新，老师也难统一口径。</p>
+        </div>
+        <div class="mini">
+          <div class="ico">🕵️</div>
+          <h4>普通机器人不可核对</h4>
+          <p>通用大模型会编造金额、截止日期和电话；学生不敢信，老师不敢用。</p>
+        </div>
+      </div>
+      <p class="callout tip" style="margin-top:16px">
+        <b>目标不是“再做一个聊天机器人”</b>，而是把辅导员掌握的文件变成可查询、可核对、可维护的知识资产。
+      </p>
+    </section>
+
+    <section id="what" data-eyebrow="定义">
+      <h2><span class="num">02</span>它是什么</h2>
+      <p class="section-lead">一套可本地运行的校园问答系统：LLM Wiki 知识库 + 双层引用 + Web/QQ/微信多入口。</p>
+      <div class="flow flow-4">
+        <div><b>源文件</b>学生手册、制度文件、通知、FAQ、公众号文章</div>
+        <div><b>编译词条</b>LLM 按章节整理成结构化 Wiki 词条，保留原文锚点</div>
+        <div><b>导航选页</b>标题/别名/关键词优先，必要时 LLM 读目录选页</div>
+        <div><b>带引用回答</b>回答标注 [n]，可展开到文件、章节和原文</div>
+      </div>
+      <div class="table-wrap" style="margin-top:18px">
+        <table class="compare">
+          <thead><tr><th>对比项</th><th>普通聊天机器人</th><th>NPU-Assistant</th></tr></thead>
+          <tbody>
+            <tr><td>回答依据</td><td>模型记忆，难以核对</td><td>Wiki 词条 + 源文件 · 章节 · 原文摘录</td></tr>
+            <tr><td>知识更新</td><td>改提示词 / 重新训练</td><td>上传文件或转发链接，几分钟内编译成词条</td></tr>
+            <tr><td>内容可控</td><td>黑盒</td><td>词条可人工编辑、重建、删除；来源可追溯</td></tr>
+            <tr><td>部署</td><td>依赖云端</td><td>单机 SQLite，可离线；也可接 DeepSeek/Ollama</td></tr>
+            <tr><td>渠道</td><td>通常只有网页</td><td>Web/PWA、QQ 官方、微信公众号、控制台</td></tr>
+            <tr><td>基础设施</td><td>常需向量库/embedding</td><td>无向量库、无 embedding、无 rerank</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="capabilities" data-eyebrow="能力">
+      <h2><span class="num">03</span>核心能力</h2>
+      <p class="section-lead">从“资料进来”到“学生问到”，一条完整链路；日常维护主要在手机上完成。</p>
+      <div class="grid-3">
+        <div class="mini">
+          <div class="ico">📚</div>
+          <h4>LLM Wiki 知识库</h4>
+          <p>上传 md/txt/pdf/docx/doc/xlsx/csv/json/html，自动解析、按章节编译成词条，并校验来源摘录。</p>
+        </div>
+        <div class="mini">
+          <div class="ico">🔗</div>
+          <h4>双层引用</h4>
+          <p>每张引用卡同时给出词条与“源文件 · 章节 · 原文摘录”；支持下载原文件/打开原文。</p>
+        </div>
+        <div class="mini">
+          <div class="ico">📱</div>
+          <h4>手机转发即入库</h4>
+          <p>辅导员把官网/公众号链接转发给机器人，或粘贴文本，自动抓取、编译并回复结果。</p>
+        </div>
+        <div class="mini">
+          <div class="ico">💬</div>
+          <h4>全渠道复用</h4>
+          <p>Web/PWA、QQ 官方机器人、微信公众号、控制台共用同一问答链路。</p>
+        </div>
+        <div class="mini">
+          <div class="ico">🧠</div>
+          <h4>模型可替换</h4>
+          <p>OpenAI 兼容（DeepSeek 等）、Ollama 本地模型、内置 mock；Provider/模型可管理、可测试。</p>
+        </div>
+        <div class="mini">
+          <div class="ico">🛡️</div>
+          <h4>本地可控</h4>
+          <p>SQLite + 静态前端，单机即可跑；管理令牌、CSP、SSRF 防护、上传大小限制默认开启。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="highlights" data-eyebrow="亮点">
+      <h2><span class="num">04</span>三个关键亮点</h2>
+      <p class="section-lead">如果只记住三件事：回答可核对、内容可运营、方案可落地。</p>
+
+      <div class="card feature" data-index="01">
+        <span class="no">1</span>
+        <h3>可核对：不是“模型说”，而是“文件这么说”</h3>
+        <p>回答里的每个 <b>[n]</b> 都能展开到：来自哪个词条、哪份源文件、哪个章节、哪段原文。学生可以点“下载原文件/查看原文”自行核对；老师也能一眼看出回答依据。</p>
+        <p class="why">适合奖助、学籍、毕业、档案等“说错代价高”的场景。</p>
+      </div>
+
+      <div class="card feature" data-index="02">
+        <span class="no">2</span>
+        <h3>可运营：辅导员在手机上就能维护知识</h3>
+        <p>不需要懂技术：转发链接、粘贴微信文章、上传 Word/PDF，几分钟后变成可问答的词条；生成结果不理想可以编辑、重建、删除。没有 API Key 时也能用预编译快照离线演示。</p>
+        <p class="why">把“知识库维护”从 IT 项目变成辅导员的日常动作。</p>
+      </div>
+
+      <div class="card feature" data-index="03">
+        <span class="no">3</span>
+        <h3>可落地：单机、低成本、可离线</h3>
+        <p>FastAPI + SQLite + 纯静态前端，无 Node 构建、无向量数据库、无额外中间件；一台电脑就能跑。模型可选 DeepSeek 等 OpenAI 兼容接口，也可用 Ollama 本地模型，或完全离线只读快照。</p>
+        <p class="why">适合学院自建、内网试点、评审演示，再逐步扩展到公网。</p>
+      </div>
+    </section>
+
+    <section id="scenarios" data-eyebrow="场景">
+      <h2><span class="num">05</span>典型场景</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>角色</th><th>他们用它做什么</th><th>得到什么</th></tr></thead>
+          <tbody>
+            <tr><td><b>学生</b></td><td>问奖助、请假、宿舍、心理、就业、档案；看引用核对原文</td><td>更快找到“文件里怎么说”，不再到处问人</td></tr>
+            <tr><td><b>辅导员</b></td><td>转发通知/公众号文章、上传制度文件、校对词条</td><td>减少重复答疑；知识沉淀成可复用资产</td></tr>
+            <tr><td><b>学院/学工部</b></td><td>统一政策口径、跨渠道服务学生、评估高频问题</td><td>服务标准化；新辅导员更快上手</td></tr>
+            <tr><td><b>部署/信息化</b></td><td>本地部署、接模型、配机器人、备份与安全</td><td>数据可控、成本可预期、可逐步扩展</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid-2" style="margin-top:16px">
+        <div class="card">
+          <h3>学生侧：一次提问的完整体验</h3>
+          <ol class="steps">
+            <li><b>用日常话提问</b><p>“国奖需要什么材料？”“病假怎么请？”</p></li>
+            <li><b>拿到带引用的回答</b><p>回答先给结论，再给步骤/材料，句末标注 [1]。</p></li>
+            <li><b>展开引用核对</b><p>看词条、源文件、章节和原文摘录；可下载/打开原文。</p></li>
+            <li><b>没收录时</b><p>助手尝试查学院官网/公众号，标注“临时来源”；仍找不到会建议联系辅导员。</p></li>
+          </ol>
+        </div>
+        <div class="card">
+          <h3>辅导员侧：一条资料的入库路径</h3>
+          <ol class="steps">
+            <li><b>转发链接 / 粘贴正文 / 上传文件</b><p>手机端“快速收录”三步完成。</p></li>
+            <li><b>等待编译</b><p>通常几秒到十几秒；状态变为“已就绪”。</p></li>
+            <li><b>检查词条</b><p>看标题、正文、来源是否对得上；可编辑或重新编译。</p></li>
+            <li><b>学生即可问到</b><p>回答自动带词条与源文件引用。</p></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section id="deploy" data-eyebrow="部署">
+      <h2><span class="num">06</span>部署形态与成本</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>形态</th><th>适合</th><th>要点</th></tr></thead>
+          <tbody>
+            <tr><td><b>本机演示</b></td><td>评审、培训、个人试用</td><td><code>.\scripts\run.ps1</code>；无 Key 自动导入预编译快照；零配置。</td></tr>
+            <tr><td><b>校园局域网</b></td><td>学院/学工部内部使用</td><td><code>.\scripts\run.ps1 -Lan</code>；手机扫码；必须设置管理令牌。</td></tr>
+            <tr><td><b>公网 HTTPS</b></td><td>学生 4G/5G、公众号回调、PWA 安装</td><td>Cloudflare Tunnel / Nginx 反代；固定域名；强令牌 + 备份。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kpi-grid" style="margin-top:16px">
+        <div class="kpi"><b>1 台</b><span>普通电脑即可运行，无需额外中间件</span></div>
+        <div class="kpi"><b>0</b><span>向量库 / embedding / rerank 依赖</span></div>
+        <div class="kpi"><b>10+</b><span>支持 md/txt/pdf/docx/doc/xlsx/csv/json/html</span></div>
+        <div class="kpi"><b>4</b><span>Web、QQ 官方、微信公众号、控制台入口</span></div>
+      </div>
+      <p class="callout tip" style="margin-top:16px">
+        <b>模型成本可控：</b>只在“编译资料”和“生成回答”时调用模型；没有模型时仍可浏览词条、使用降级回答。也可接 Ollama 本地模型，把数据留在校内。
+      </p>
+    </section>
+
+    <section id="security" data-eyebrow="安全">
+      <h2><span class="num">07</span>安全与合规</h2>
+      <div class="card">
+        <ul class="checklist">
+          <li>默认本地部署，数据存放在学校自己的服务器/电脑；可接本地模型进一步减少外发。</li>
+          <li>管理写操作由 <code>NPU_ADMIN_TOKEN</code> 保护；对外监听未设令牌时服务拒绝启动。</li>
+          <li>CSP、X-Frame-Options、CORS 白名单、上传大小限制默认开启；URL 收录有 SSRF 防护。</li>
+          <li>机器人凭据脱敏展示；微信回调校验 token/签名；QQ 官方校验平台凭据。</li>
+          <li>引用可回溯到源文件，敏感/过期内容可由辅导员删除或重建。</li>
+          <li>上线前请完成学校数据合规评估；涉及心理危机/人身安全时，AI 只做求助引导，不替代人工。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="limits" data-eyebrow="路线">
+      <h2><span class="num">08</span>当前边界与下一步</h2>
+      <p class="section-lead">诚实说明能力边界，避免“什么都能做”的预期；以下能力已列入路线图。</p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>当前版本（v0.1.7）边界</h3>
+          <ul>
+            <li>不做个人系统查询：成绩、课表、请假审批、奖助进度需对接教务/学工系统。</li>
+            <li>不做语音/图片理解；学生提问以文字为主。</li>
+            <li>回答为同步返回，暂不支持逐字流式输出。</li>
+            <li>管理端目前是单一管理令牌，未做多账号/角色。</li>
+            <li>微信公众号为明文模式；QQ/微信长回答受平台长度限制。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>下一步（v0.2.0 服务闭环）</h3>
+          <ul>
+            <li>回答反馈：👍/👎 + 原因，自动汇总“学生没答好的问题”。</li>
+            <li>知识缺口工作台：辅导员一键补资料、关联词条、关闭缺口。</li>
+            <li>转人工与危机升级：工单、值班通知、紧急求助卡片。</li>
+            <li>账号/角色/审计：多辅导员分权、操作可追溯。</li>
+            <li>时效性与流式回答：来源日期/有效期、逐字输出、异步编译。</li>
+          </ul>
+          <p class="note">详细排期见项目 <code>docs/ROADMAP.md</code> 与 <code>docs/PRD-v0.2.0.md</code>。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo">
+      <div class="cta">
+        <h2>5 分钟看一遍完整链路</h2>
+        <p>冷启动 → 浏览 Wiki → 提问看引用 → 上传一篇资料 → 看到新词条 → 控制台模拟机器人对话。</p>
+        <div class="hero-actions">
+          <a class="btn btn-light" href="index.html">打开使用手册 →</a>
+          <a class="btn btn-ghost" href="index.html#counselor">辅导员上手 →</a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<button class="to-top" id="toTop" type="button" aria-label="回到顶部">↑</button>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand"><span class="brand-mark" aria-hidden="true">N</span>NPU-Assistant</div>
+        <p class="footer-desc">把辅导员掌握的文件变成可查询、可核对、可维护的知识资产；回答有出处，内容可运营。</p>
+      </div>
+      <div class="footer-col">
+        <h4>产品</h4>
+        <ul>
+          <li><a href="#capabilities">核心能力</a></li>
+          <li><a href="#highlights">关键亮点</a></li>
+          <li><a href="#scenarios">典型场景</a></li>
+          <li><a href="#limits">能力边界</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>使用</h4>
+        <ul>
+          <li><a href="index.html">使用手册</a></li>
+          <li><a href="index.html#student">学生篇</a></li>
+          <li><a href="index.html#counselor">辅导员篇</a></li>
+          <li><a href="index.html#faq">常见问题</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>资源</h4>
+        <ul>
+          <li><a href="#deploy">部署形态</a></li>
+          <li><a href="#security">安全与合规</a></li>
+          <li>路线图 <code>docs/ROADMAP.md</code></li>
+          <li>产品需求 <code>docs/PRD-v0.2.0.md</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>NPU-Assistant · 产品能力总览（v0.1.7）</span>
+      <span>校园辅导员数字分身 / LLM Wiki 知识库</span>
+    </div>
+  </div>
+</footer>
+
+<script src="manual.js" defer></script>
+
+</body>
+</html>

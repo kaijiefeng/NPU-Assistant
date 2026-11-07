@@ -1,13 +1,19 @@
 /**
  * app.js — SPA 壳层：hash 路由、全局导航、服务健康状态、错误兜底。
  *
- * 5 个视图（#/chat #/knowledge #/models #/bots #/settings）按需动态导入，
- * 每个视图模块导出 `mount(container)`，可返回清理函数。
+ * 四个一级入口（#/chat #/knowledge #/ops #/settings）按需动态导入；
+ * 运营与设置由 hub 视图聚合原有子页面，旧路由自动重定向。
  */
-import { getHealth, setUnauthorizedHandler } from './api.js';
+import { getAuthMe, getHealth, setCsrfToken, setUnauthorizedHandler } from './api.js';
 import { esc, icon, toast } from './ui.js';
 
 const ROUTES = {
+  login: {
+    title: '登录',
+    subtitle: '管理员账号登录',
+    load: () => import('./views/login.js'),
+    public: true,
+  },
   chat: {
     title: '对话',
     subtitle: '向辅导员数字分身提问',
@@ -15,30 +21,30 @@ const ROUTES = {
   },
   knowledge: {
     title: '知识库',
-    subtitle: '浏览校园知识词条',
+    subtitle: '浏览、收录与维护校园知识',
     load: () => import('./views/knowledge.js'),
   },
-  manage: {
-    title: '内容管理',
-    subtitle: '收录、整理与维护知识库内容',
-    load: () => import('./views/knowledge.js'),
-    mountName: 'mountManage',
-  },
-  models: {
-    title: '模型',
-    subtitle: '配置问答模型与 Provider',
-    load: () => import('./views/models.js'),
-  },
-  bots: {
-    title: '机器人',
-    subtitle: '接入 QQ / 微信机器人',
-    load: () => import('./views/bots.js'),
+  ops: {
+    title: '运营',
+    subtitle: '服务台、任务告警与审计',
+    load: () => import('./views/ops-hub.js'),
+    permission: 'insights:read',
   },
   settings: {
     title: '设置',
-    subtitle: '人设、移动访问与引用设置',
-    load: () => import('./views/settings.js'),
+    subtitle: '助手、模型、机器人与成员',
+    load: () => import('./views/settings-hub.js'),
+    authOnly: true,
   },
+};
+
+const LEGACY_VIEWS = {
+  manage: '#/knowledge?manage=1',
+  insights: '#/ops?tab=desk',
+  jobs: '#/ops?tab=jobs',
+  models: '#/settings?tab=models',
+  bots: '#/settings?tab=bots',
+  team: '#/settings?tab=members',
 };
 
 const DEFAULT_VIEW = 'chat';
@@ -61,6 +67,67 @@ const dom = {
 let currentView = null;
 let currentCleanup = null;
 let renderToken = 0;
+let authState = null;
+let authPromise = null;
+
+function can(permission) {
+  if (authState?.open_mode) return true;
+  const perms = authState?.permissions || [];
+  return perms.includes('*') || perms.includes(permission);
+}
+
+function canAccess(route) {
+  if (!route || route.public) return true;
+  const open = Boolean(authState?.open_mode);
+  const authed = Boolean(authState?.authenticated);
+  if (route.authOnly && !open && !authed) return false;
+  if (route.permission && !open && !can(route.permission)) return false;
+  return true;
+}
+
+function applyNavAuth() {
+  dom.nav?.querySelectorAll('[data-view]').forEach((item) => {
+    const route = ROUTES[item.dataset.view];
+    const visible = route ? canAccess(route) : true;
+    item.hidden = !visible;
+  });
+  dom.nav?.querySelectorAll('.nav-group').forEach((group) => {
+    const items = Array.from(group.querySelectorAll('[data-view]'));
+    group.hidden = items.length > 0 && items.every((item) => item.hidden);
+  });
+  const account = document.getElementById('navAccount');
+  if (account) {
+    const user = authState?.user;
+    account.hidden = !authState?.authenticated && !authState?.open_mode;
+    const name = account.querySelector('[data-account-name]');
+    if (name) name.textContent = user?.display_name || user?.username || '本机演示';
+    const role = account.querySelector('[data-account-role]');
+    if (role) role.textContent = user?.role_label || (authState?.open_mode ? '未启用账号' : '');
+  }
+  const login = document.getElementById('navLogin');
+  if (login) login.hidden = Boolean(authState?.authenticated || authState?.open_mode);
+}
+
+async function ensureAuth(force = false) {
+  if (authState && !force) return authState;
+  if (!authPromise || force) {
+    authPromise = getAuthMe()
+      .then((data) => {
+        authState = data;
+        setCsrfToken(data?.csrf_token || '');
+        applyNavAuth();
+        return authState;
+      })
+      .catch(() => {
+        authState = null;
+        return null;
+      })
+      .finally(() => {
+        authPromise = null;
+      });
+  }
+  return authPromise;
+}
 
 /* ------------------------------------------------------------------ */
 /* 路由                                                                */
@@ -95,11 +162,37 @@ function showFatal(message) {
 
 async function renderRoute() {
   const { name: requested, query } = parseHash();
+  if (LEGACY_VIEWS[requested]) {
+    location.replace(LEGACY_VIEWS[requested]);
+    return;
+  }
   const viewName = ROUTES[requested] ? requested : DEFAULT_VIEW;
 
   if (requested !== viewName) {
     toast(`页面「${requested}」不存在，已返回对话页`, 'warning', { title: '路由提示' });
     location.replace(`#/${viewName}`);
+    return;
+  }
+
+  await ensureAuth();
+  const route = ROUTES[viewName];
+  if (!canAccess(route)) {
+    if (!authState?.authenticated && !authState?.open_mode) {
+      const next = encodeURIComponent(location.hash || `#/${viewName}`);
+      location.replace(`#/login?next=${next}`);
+      return;
+    }
+    dom.title.textContent = route.title;
+    dom.subtitle.textContent = '没有访问权限';
+    setActiveNav(viewName);
+    dom.view.innerHTML = `<div class="state state-empty">
+      <div class="state-icon">${icon('shield')}</div>
+      <h3>当前账号没有访问权限</h3>
+      <p>请联系超级管理员调整角色，或使用其他账号登录。</p>
+      <div class="state-action"><a class="btn btn-primary" href="#/settings?tab=account">${icon(
+        'shield',
+      )}<span>查看我的账号</span></a></div>
+    </div>`;
     return;
   }
 
@@ -114,7 +207,6 @@ async function renderRoute() {
   }
   currentView = viewName;
 
-  const route = ROUTES[viewName];
   setActiveNav(viewName);
   dom.title.textContent = route.title;
   dom.subtitle.textContent = route.subtitle;
@@ -127,8 +219,14 @@ async function renderRoute() {
   try {
     const module = await route.load();
     if (token !== renderToken) return;
-    const mountFn = typeof module[route.mountName || 'mount'] === 'function' ? module[route.mountName || 'mount'] : module.mount;
-    const cleanup = mountFn ? mountFn(dom.view, { query }) : undefined;
+    let mountName = route.mountName || 'mount';
+    if (viewName === 'knowledge' && can('content:write') && query.get('manage') === '1') {
+      mountName = 'mountManage';
+    }
+    const mountFn = typeof module[mountName] === 'function' ? module[mountName] : module.mount;
+    const cleanup = mountFn
+      ? mountFn(dom.view, { query, canManage: can('content:write') })
+      : undefined;
     if (token !== renderToken) {
       if (typeof cleanup === 'function') cleanup();
       return;
@@ -259,14 +357,14 @@ function bindUnauthorizedGuide() {
     lastUnauthorizedAt = now;
     toast(
       detail ||
-        '该操作需要管理员令牌：请到「设置 → 移动端与管理令牌」填写 NPU_ADMIN_TOKEN 后重试。',
+        '登录已失效或需要更高权限：请重新登录，或到「设置」检查管理令牌。',
       'error',
       {
-        title: '需要管理令牌',
+        title: '需要登录',
         duration: 9000,
-        actionLabel: '去设置',
+        actionLabel: '去登录',
         onAction: () => {
-          location.hash = '#/settings';
+          location.hash = `#/login?next=${encodeURIComponent(location.hash)}`;
         },
       },
     );
@@ -292,11 +390,16 @@ function registerServiceWorker() {
 /* ------------------------------------------------------------------ */
 /* 启动                                                                */
 /* ------------------------------------------------------------------ */
-function boot() {
+async function boot() {
   bindShell();
   bindGlobalErrorHandlers();
   bindUnauthorizedGuide();
   registerServiceWorker();
+  await ensureAuth();
+  window.addEventListener('npu-auth-changed', async () => {
+    await ensureAuth(true);
+    renderRoute();
+  });
   // 无论是否有 hash 都要启动健康轮询（首访无 hash 会重定向到对话页）
   startHealthPolling();
   if (!location.hash) {

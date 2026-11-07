@@ -25,28 +25,42 @@ from fastapi.responses import FileResponse, JSONResponse
 from starlette.requests import Request
 
 from . import config, db
-from .routers import bots, chat, knowledge, mobile, models, system, wiki
-from .security import verify_admin_token
-from .services import qq_gateway
+from .routers import auth as auth_router
+from .routers import bots, chat, handoff, insights, jobs as jobs_router, knowledge, mobile, models, system, wiki
+from .security import authenticate_request
+from .services import auth as auth_service, jobs as jobs_service, qq_gateway
 
 logger = logging.getLogger("npu-assistant")
 
 API_PREFIX = "/api"
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 # Student-facing Q&A stays public; bot webhooks authenticate with their own
-# channel tokens; every other write requires the admin token when configured.
-PUBLIC_POST_PATHS = {"/api/chat"}
-BOT_WEBHOOK_PREFIXES = ("/api/bots/onebot/", "/api/bots/wechat/")
+# channel tokens; every other write is authenticated (session or admin token).
+PUBLIC_POST_PATHS = {
+    "/api/chat",
+    "/api/chat/stream",
+    "/api/chat/feedback",
+    "/api/handoff",
+    "/api/auth/login",
+    "/api/auth/setup",
+    "/api/auth/logout",
+}
+BOT_WEBHOOK_PREFIXES = ("/api/bots/wechat/",)
 LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1", "testserver"}
 # Requests carrying payloads get a hard Content-Length cap (defense in depth;
 # reverse proxies should also limit body size).
 BODY_LIMITS = {
     "/api/chat": 1 * 1024 * 1024,
-    "/api/bots/onebot": 2 * 1024 * 1024,
+    "/api/chat/stream": 1 * 1024 * 1024,
+    "/api/chat/feedback": 64 * 1024,
+    "/api/handoff": 64 * 1024,
+    "/api/auth/login": 16 * 1024,
+    "/api/auth/setup": 16 * 1024,
     "/api/bots/wechat": 2 * 1024 * 1024,
 }
 DEFAULT_BODY_LIMIT = config.MAX_UPLOAD_BYTES + 2 * 1024 * 1024
 CHAT_RATE_LIMIT = 30  # requests per minute per client IP
+LOGIN_RATE_LIMIT = 10
 _chat_hits: dict[str, list[float]] = {}
 _chat_hits_lock = threading.Lock()
 INTERNAL_PATH_RE = re.compile(r"[A-Za-z]:\\[^\s\"']+")
@@ -69,14 +83,14 @@ def _body_limit_for(path: str) -> int:
     return DEFAULT_BODY_LIMIT
 
 
-def _chat_rate_limited(client_host: str | None) -> bool:
+def _chat_rate_limited(client_host: str | None, limit: int = CHAT_RATE_LIMIT) -> bool:
     key = client_host or "unknown"
     if key in {"testclient", "testserver"}:  # TestClient / pytest
         return False
     now = time.monotonic()
     with _chat_hits_lock:
         hits = [t for t in _chat_hits.get(key, []) if now - t < 60]
-        if len(hits) >= CHAT_RATE_LIMIT:
+        if len(hits) >= limit:
             _chat_hits[key] = hits
             return True
         hits.append(now)
@@ -84,24 +98,29 @@ def _chat_rate_limited(client_host: str | None) -> bool:
         return False
 
 
+def _login_rate_limited(client_host: str | None) -> bool:
+    return _chat_rate_limited(client_host, limit=LOGIN_RATE_LIMIT)
+
+
 def _check_bind_security() -> None:
     """Refuse to expose an unauthenticated instance on a non-loopback address."""
     host = (config.HOST or "").strip().lower()
     if host in LOOPBACK_HOSTS:
         return
-    if config.ADMIN_TOKEN:
+    if config.ADMIN_TOKEN or auth_service.user_count() > 0:
         return
     if config.ALLOW_INSECURE_LAN:
         logger.warning(
-            "对外监听 %s 且未设置 NPU_ADMIN_TOKEN（NPU_ALLOW_INSECURE_LAN=1）："
+            "对外监听 %s 且未设置 NPU_ADMIN_TOKEN、也未创建管理员账号（NPU_ALLOW_INSECURE_LAN=1）："
             "仅限可信内网临时演示，任何能访问该地址的人都可以管理知识库。",
             host,
         )
         return
     raise RuntimeError(
-        "检测到对外监听（NPU_HOST=%s）但未设置 NPU_ADMIN_TOKEN："
-        "为防止知识库被任意访问/篡改，已拒绝启动。请设置 NPU_ADMIN_TOKEN（推荐 ≥24 位随机串）"
-        "后重启；仅可信内网临时演示可设置 NPU_ALLOW_INSECURE_LAN=1。" % host
+        "检测到对外监听（NPU_HOST=%s）但未配置任何管理员认证："
+        "为防止知识库被任意访问/篡改，已拒绝启动。请设置 NPU_ADMIN_TOKEN 或 "
+        "NPU_ADMIN_PASSWORD（首次启动自动创建管理员）后重启；"
+        "仅可信内网临时演示可设置 NPU_ALLOW_INSECURE_LAN=1。" % host
     )
 
 
@@ -128,8 +147,9 @@ def _warn_bot_links_unreachable() -> None:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    _check_bind_security()
     db.init_db()
+    auth_service.ensure_bootstrap()
+    _check_bind_security()
     if config.AUTO_SEED and db.wiki_page_count() == 0:
         try:
             from .services.wiki_builder import load_seed_wiki
@@ -145,11 +165,13 @@ async def lifespan(_: FastAPI):
             logger.exception("预编译 Wiki 快照导入失败（已忽略，可在知识库页手动导入）")
     logger.info("NPU-Assistant 已启动 | data=%s", config.DATA_DIR)
     _warn_bot_links_unreachable()
+    jobs_service.start_worker()
     # QQ 开放平台官方机器人：主动建立 WebSocket 网关连接（无需公网回调）。
     await qq_gateway.gateway.startup()
     try:
         yield
     finally:
+        jobs_service.stop_worker()
         await qq_gateway.gateway.shutdown()
 
 
@@ -176,55 +198,73 @@ def create_app() -> FastAPI:
             allow_origins=config.CORS_ORIGINS,
             allow_credentials=False,
             allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            allow_headers=["X-Admin-Token", "Content-Type"],
+            allow_headers=["X-Admin-Token", "X-CSRF-Token", "Content-Type"],
         )
         logger.info("已启用 CORS 白名单：%s", config.CORS_ORIGINS)
 
     @app.middleware("http")
     async def admin_guard(request: Request, call_next):
-        """Protect all admin/write APIs when NPU_ADMIN_TOKEN is configured.
+        """Authenticate every admin/write API (session cookie or admin token).
 
         Public: GET/HEAD/OPTIONS, student Q&A (POST /api/chat), bot webhooks
-        (they use their own channel token / signature). Everything else
-        (uploads, imports, wiki edits, model/bot management, settings, rebuild)
-        requires ``X-Admin-Token``.
+        (they use their own channel token / signature), and the auth endpoints.
+        Cookie sessions must echo ``X-CSRF-Token`` on writes.  Successful
+        authenticated writes are recorded in ``audit_log``.
 
-        When the instance is reachable through a non-loopback Host header and no
-        token is configured, fail closed (protects against uvicorn ``--host``
-        overrides that bypass the startup check).
+        When the instance is reachable through a non-loopback Host header with
+        no account and no token, fail closed (protects against uvicorn
+        ``--host`` overrides that bypass the startup check).
         """
         path = request.url.path
+        method = request.method
         host = (request.url.hostname or "").strip().lower().strip("[]")
-        if (
-            not config.ADMIN_TOKEN
-            and not config.ALLOW_INSECURE_LAN
-            and host
-            and host not in LOOPBACK_HOSTS
-        ):
-            return JSONResponse(
-                status_code=403,
-                content={
-                    "detail": "该服务仅允许本机访问；对外提供访问前请设置 NPU_ADMIN_TOKEN 后重启"
-                },
-            )
-        if config.ADMIN_TOKEN and request.method not in SAFE_METHODS:
-            if path not in PUBLIC_POST_PATHS and not path.startswith(BOT_WEBHOOK_PREFIXES):
-                try:
-                    verify_admin_token(request.headers.get("X-Admin-Token"))
-                except HTTPException as exc:
-                    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+        if host and host not in LOOPBACK_HOSTS and not config.ALLOW_INSECURE_LAN:
+            if not (config.ADMIN_TOKEN or auth_service.user_count() > 0):
+                return JSONResponse(
+                    status_code=403,
+                    content={
+                        "detail": "该服务仅允许本机访问；对外提供访问前请配置管理员账号或 NPU_ADMIN_TOKEN"
+                    },
+                )
+        is_write = method not in SAFE_METHODS
+        principal = None
+        if is_write and path not in PUBLIC_POST_PATHS and not path.startswith(BOT_WEBHOOK_PREFIXES):
+            try:
+                principal = authenticate_request(
+                    request, permission=auth_service.permission_for_request(method, path)
+                )
+            except HTTPException as exc:
+                return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
         length = (request.headers.get("content-length") or "").strip()
         if length.isdigit() and int(length) > _body_limit_for(path):
             return JSONResponse(
                 status_code=413, content={"detail": "请求内容过大，已拒绝（请缩小上传/请求体）"}
             )
-        if path == "/api/chat" and request.method == "POST" and _chat_rate_limited(
-            request.client.host if request.client else None
+        client_host = request.client.host if request.client else None
+        if (
+            path in {"/api/chat", "/api/chat/stream", "/api/chat/feedback", "/api/handoff"}
+            and method == "POST"
+            and _chat_rate_limited(client_host)
         ):
             return JSONResponse(
                 status_code=429, content={"detail": "提问过于频繁，请稍后再试"}
             )
-        return await call_next(request)
+        if path == "/api/auth/login" and method == "POST" and _login_rate_limited(client_host):
+            return JSONResponse(
+                status_code=429, content={"detail": "登录尝试过于频繁，请稍后再试"}
+            )
+        response = await call_next(request)
+        if principal and is_write and not path.startswith("/api/auth"):
+            auth_service.record_audit(
+                principal,
+                f"{method} {path}",
+                target_type="api",
+                target_id=path,
+                detail="ok" if response.status_code < 400 else f"HTTP {response.status_code}",
+                ip=client_host or "",
+                status_code=response.status_code,
+            )
+        return response
 
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
@@ -234,7 +274,11 @@ def create_app() -> FastAPI:
         return response
 
     app.include_router(system.router, prefix=API_PREFIX)
+    app.include_router(auth_router.router, prefix=API_PREFIX)
+    app.include_router(jobs_router.router, prefix=API_PREFIX)
     app.include_router(chat.router, prefix=API_PREFIX)
+    app.include_router(handoff.router, prefix=API_PREFIX)
+    app.include_router(insights.router, prefix=API_PREFIX)
     app.include_router(knowledge.router, prefix=API_PREFIX)
     app.include_router(wiki.router, prefix=API_PREFIX)
     app.include_router(models.router, prefix=API_PREFIX)

@@ -4,6 +4,7 @@ from __future__ import annotations
 import ipaddress
 import json
 import os
+import re
 from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, Request
@@ -35,29 +36,56 @@ EDITABLE_SETTINGS = {
     "wiki_answer_max_chars",
     "citations_enabled",
     "bot_reply_footer",
+    "academic_year",
+    "freshness_stale_days",
+    "freshness_expiry_warn_days",
+    "handoff_enabled",
+    "handoff_sla_hours",
+    "crisis_enabled",
+    "crisis_sla_minutes",
+    "crisis_hotlines",
+    "crisis_keywords_extra",
+    "crisis_notify_webhook",
 }
 
-INT_SETTINGS = ("wiki_max_pages", "wiki_answer_max_chars")
+INT_SETTINGS = (
+    "wiki_max_pages",
+    "wiki_answer_max_chars",
+    "freshness_stale_days",
+    "freshness_expiry_warn_days",
+    "handoff_sla_hours",
+    "crisis_sla_minutes",
+)
+
+BOOL_SETTINGS = ("citations_enabled", "handoff_enabled", "crisis_enabled")
+JSON_LIST_SETTINGS = ("quick_questions", "crisis_hotlines", "crisis_keywords_extra")
 
 
 def current_settings() -> dict:
     settings = db.all_settings()
-    try:
-        settings["quick_questions"] = json.loads(settings.get("quick_questions", "[]"))
-    except json.JSONDecodeError:
-        settings["quick_questions"] = []
+    for key in JSON_LIST_SETTINGS:
+        try:
+            value = json.loads(settings.get(key, "[]"))
+            settings[key] = value if isinstance(value, list) else []
+        except (json.JSONDecodeError, TypeError):
+            settings[key] = []
     for key in INT_SETTINGS:
         try:
             settings[key] = int(settings.get(key, 0))
         except (TypeError, ValueError):
             settings[key] = 0
-    settings["citations_enabled"] = db.get_bool_setting("citations_enabled", True)
+    for key in BOOL_SETTINGS:
+        settings[key] = db.get_bool_setting(key, True)
     return settings
 
 
 @router.get("/health")
 def health() -> dict:
+    from ..services import alerts, jobs
+
     model = db.get_default_model()
+    queued = db.query_one("SELECT COUNT(*) AS n FROM jobs WHERE status = 'queued'")
+    running = db.query_one("SELECT COUNT(*) AS n FROM jobs WHERE status = 'running'")
     return {
         "status": "ok",
         "app": config.APP_NAME,
@@ -65,6 +93,12 @@ def health() -> dict:
         "time": datetime.now().isoformat(timespec="seconds"),
         "knowledge_mode": "llm-wiki",
         "wiki_pages": db.wiki_page_count(),
+        "jobs": {
+            "queued": int((queued or {}).get("n") or 0),
+            "running": int((running or {}).get("n") or 0),
+            **jobs.worker_status(),
+        },
+        "alerts_open": alerts.open_count(),
         "default_model": (
             {
                 "id": model["id"],
@@ -179,11 +213,17 @@ def update_settings(payload: dict) -> dict:
     if unknown:
         raise HTTPException(status_code=400, detail=f"不支持的设置项：{', '.join(sorted(unknown))}")
     for key, value in payload.items():
-        if key == "quick_questions":
-            if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        if key in JSON_LIST_SETTINGS:
+            if not isinstance(value, list):
+                raise HTTPException(status_code=400, detail=f"{key} 必须是数组")
+            if key == "quick_questions" and not all(isinstance(item, str) for item in value):
                 raise HTTPException(status_code=400, detail="quick_questions 必须是字符串数组")
-            value = json.dumps(value, ensure_ascii=False)
-        elif key == "citations_enabled":
+            if key in {"crisis_hotlines", "crisis_keywords_extra"} and not all(
+                isinstance(item, (str, dict)) for item in value
+            ):
+                raise HTTPException(status_code=400, detail=f"{key} 的条目格式不正确")
+            value = json.dumps(value, ensure_ascii=False)[:20000]
+        elif key in BOOL_SETTINGS:
             value = "true" if value else "false"
         elif key in INT_SETTINGS:
             try:
@@ -192,8 +232,33 @@ def update_settings(payload: dict) -> dict:
                 raise HTTPException(status_code=400, detail=f"{key} 必须是整数")
             if number <= 0:
                 raise HTTPException(status_code=400, detail=f"{key} 必须大于 0")
+            if key == "freshness_stale_days" and not 30 <= number <= 730:
+                raise HTTPException(status_code=400, detail="freshness_stale_days 需在 30~730 之间")
+            if key == "freshness_expiry_warn_days" and not 1 <= number <= 180:
+                raise HTTPException(
+                    status_code=400, detail="freshness_expiry_warn_days 需在 1~180 之间"
+                )
+            if key == "handoff_sla_hours" and not 1 <= number <= 168:
+                raise HTTPException(status_code=400, detail="handoff_sla_hours 需在 1~168 之间")
+            if key == "crisis_sla_minutes" and not 1 <= number <= 60:
+                raise HTTPException(
+                    status_code=400, detail="crisis_sla_minutes 需在 1~60 之间"
+                )
             value = str(number)
+        elif key == "academic_year":
+            text = str(value or "").strip()
+            if text and not re.match(r"^\d{4}-\d{4}$", text):
+                raise HTTPException(status_code=400, detail="academic_year 必须形如 2026-2027")
+            if text:
+                start, end = text.split("-")
+                if int(end) != int(start) + 1:
+                    raise HTTPException(
+                        status_code=400, detail="academic_year 的学年范围必须连续"
+                    )
+            value = text
         elif not isinstance(value, str):
             raise HTTPException(status_code=400, detail=f"{key} 必须是字符串")
+        if isinstance(value, str) and len(value) > 20000:
+            raise HTTPException(status_code=400, detail=f"{key} 内容过长")
         db.set_setting(key, value)
     return current_settings()

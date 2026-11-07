@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import datetime
 from pathlib import Path
 
 APP_NAME = "NPU-Assistant"
@@ -21,6 +22,7 @@ REPO_DIR = BASE_DIR.parent
 FRONTEND_DIR = REPO_DIR / "frontend"
 DATA_DIR = Path(os.environ.get("NPU_DATA_DIR", BASE_DIR / "data"))
 UPLOAD_DIR = DATA_DIR / "uploads"
+JOB_STAGING_DIR = DATA_DIR / "job_staging"
 # Seed documents are versioned content shipped with the repo, so they stay in
 # the backend directory even when NPU_DATA_DIR points at a temporary/test dir.
 SEED_DOCS_DIR = Path(os.environ.get("NPU_SEED_DOCS_DIR", BASE_DIR / "data" / "seed_docs"))
@@ -52,6 +54,22 @@ ALLOW_INSECURE_LAN = os.environ.get("NPU_ALLOW_INSECURE_LAN", "0").strip().lower
 # Mobile access / QR (v0.1.1)
 # Optional fixed public URL (e.g. a named Cloudflare Tunnel or reverse proxy).
 PUBLIC_URL = os.environ.get("NPU_PUBLIC_URL", "").strip().rstrip("/")
+
+# Admin accounts / sessions (v0.2.0 M3)
+ADMIN_COOKIE_NAME = os.environ.get("NPU_ADMIN_COOKIE", "npu_admin_session")
+ADMIN_SESSION_DAYS = int(os.environ.get("NPU_ADMIN_SESSION_DAYS", "7"))
+# Set to 1 when the site is served over HTTPS so the session cookie is Secure.
+ADMIN_COOKIE_SECURE = os.environ.get("NPU_COOKIE_SECURE", "0").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+# PBKDF2 iterations for admin passwords (raise over time; hashes record their own).
+PASSWORD_HASH_ITERATIONS = int(os.environ.get("NPU_PASSWORD_ITERATIONS", "260000"))
+# Optional first-run bootstrap account (only used while no account exists).
+ADMIN_BOOTSTRAP_USERNAME = os.environ.get("NPU_ADMIN_USERNAME", "admin").strip().lower()
+ADMIN_BOOTSTRAP_PASSWORD = os.environ.get("NPU_ADMIN_PASSWORD", "").strip()
 # cloudflared executable (absolute path or name on PATH) for the one-click
 # quick tunnel. Set NPU_CLOUDFLARED when it is not on PATH.
 CLOUDFLARED_PATH = os.environ.get("NPU_CLOUDFLARED", "cloudflared").strip()
@@ -145,12 +163,31 @@ DEFAULT_SETTINGS: dict[str, str] = {
     "wiki_answer_max_chars": str(WIKI_CONTEXT_MAX_CHARS),
     "citations_enabled": "true",
     "bot_reply_footer": "\n\n— 以上信息来自校园 Wiki 词条，请以学校最新官方通知为准。",
+    # v0.2.0 freshness / time awareness
+    "academic_year": "",
+    "freshness_stale_days": "180",
+    "freshness_expiry_warn_days": "30",
+    # v0.2.0 handoff / crisis
+    "handoff_enabled": "true",
+    "handoff_sla_hours": "24",
+    "crisis_enabled": "true",
+    "crisis_sla_minutes": "5",
+    "crisis_hotlines": "[]",
+    "crisis_keywords_extra": "[]",
+    "crisis_notify_webhook": "",
 }
+
+
+def current_academic_year(today: datetime | None = None) -> str:
+    """Return the academic year label, switching on August 1 (local time)."""
+    moment = today or datetime.now()
+    start = moment.year if moment.month >= 8 else moment.year - 1
+    return f"{start}-{start + 1}"
 
 # Settings removed in the LLM Wiki migration (cleaned up on init_db).
 OBSOLETE_SETTINGS = {"retrieval_top_k", "retrieval_min_score"}
 
 
 def ensure_dirs() -> None:
-    for path in (DATA_DIR, UPLOAD_DIR, SEED_DOCS_DIR):
+    for path in (DATA_DIR, UPLOAD_DIR, SEED_DOCS_DIR, JOB_STAGING_DIR):
         path.mkdir(parents=True, exist_ok=True)

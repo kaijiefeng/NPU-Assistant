@@ -1,24 +1,37 @@
-"""可选管理员令牌校验（环境变量 ``NPU_ADMIN_TOKEN``）。
+"""Authentication / authorization helpers.
 
-设计要点：
+Authentication sources (in order):
 
-* 未设置 ``NPU_ADMIN_TOKEN`` 时**完全放行**，保证本地演示零配置即可使用；
-* 设置后，管理类写操作（新增/修改/删除 Provider、模型、默认模型、删除会话等）
-  必须携带请求头 ``X-Admin-Token``；
-* 读操作（GET）与面向学生的对话接口不做校验，避免影响正常使用。
+1. HttpOnly session cookie ``npu_admin_session`` (browser login, v0.2.0 M3);
+2. legacy ``X-Admin-Token`` header (maps to ``super_admin``);
+3. open mode — no accounts and no token configured (local demo only).
 
-本模块不参与 ``main.py`` 的装配，需要保护的 router 通过
-``Depends(require_admin_token)`` 使用即可。
+``require_admin_token`` keeps its historical name so existing routers work, but
+now also accepts a logged-in session.  New code should use
+``require_permission("content:write")`` when a specific role matters.
+
+The global HTTP guard in ``main.py`` uses :func:`authenticate_request` for every
+mutating request, which also enforces CSRF for cookie sessions.
 """
 from __future__ import annotations
 
 import secrets
 
-from fastapi import Header, HTTPException
+from fastapi import Header, HTTPException, Request
 
 from . import config
+from .services import auth
 
 ADMIN_TOKEN_HEADER = "X-Admin-Token"
+CSRF_HEADER = "X-CSRF-Token"
+OPEN_PRINCIPAL = {
+    "user_id": "",
+    "username": "local",
+    "display_name": "本机演示",
+    "role": "super_admin",
+    "auth": "open",
+    "csrf_token": "",
+}
 
 
 def admin_token_required() -> bool:
@@ -27,7 +40,7 @@ def admin_token_required() -> bool:
 
 
 def verify_admin_token(token: str | None) -> None:
-    """校验令牌；未配置令牌时直接放行，校验失败抛出 401。"""
+    """严格校验 ``X-Admin-Token``；未配置令牌时直接放行。"""
     expected = config.ADMIN_TOKEN
     if not expected:
         return
@@ -43,8 +56,80 @@ def verify_admin_token(token: str | None) -> None:
         )
 
 
+def _session_token(request: Request) -> str:
+    return (request.cookies.get(config.ADMIN_COOKIE_NAME) or "").strip()
+
+
+def resolve_principal(request: Request) -> dict | None:
+    """Return the authenticated principal, or ``None``."""
+    principal = auth.resolve_session(_session_token(request))
+    if principal:
+        return principal
+    token = (request.headers.get(ADMIN_TOKEN_HEADER) or "").strip()
+    if config.ADMIN_TOKEN and token and secrets.compare_digest(token, config.ADMIN_TOKEN):
+        return auth.token_principal()
+    return None
+
+
+def csrf_valid(request: Request, principal: dict) -> bool:
+    """Cookie sessions must echo their CSRF token on writes."""
+    if principal.get("auth") != "session":
+        return True
+    expected = str(principal.get("csrf_token") or "")
+    provided = (request.headers.get(CSRF_HEADER) or "").strip()
+    return bool(expected) and secrets.compare_digest(provided, expected)
+
+
+def authenticate_request(request: Request, *, permission: str = "") -> dict:
+    """Authenticate a request and (optionally) enforce a permission.
+
+    Raises ``HTTPException`` 401/403 with a user-facing Chinese message.
+    In open mode a synthetic super-admin principal is returned.
+    """
+    principal = resolve_principal(request)
+    if not principal:
+        if auth.auth_required():
+            raise HTTPException(
+                status_code=401,
+                detail="请先登录管理后台（或提供管理员令牌）",
+            )
+        return OPEN_PRINCIPAL
+    if request.method not in {"GET", "HEAD", "OPTIONS"}:
+        if principal.get("auth") == "session" and not csrf_valid(request, principal):
+            raise HTTPException(status_code=403, detail="CSRF 校验失败，请刷新页面后重试")
+    if permission and not auth.has_permission(principal.get("role") or "", permission):
+        raise HTTPException(status_code=403, detail="当前账号没有执行该操作的权限")
+    return principal
+
+
 def require_admin_token(
+    request: Request,
     x_admin_token: str | None = Header(default=None, alias=ADMIN_TOKEN_HEADER),
-) -> None:
-    """FastAPI 依赖：写操作的路由通过 ``dependencies=[Depends(require_admin_token)]`` 挂载。"""
-    verify_admin_token(x_admin_token)
+) -> dict:
+    """Backwards-compatible dependency: any signed-in account is accepted."""
+    # Keep the header parameter so OpenAPI still advertises it.
+    _ = x_admin_token
+    return authenticate_request(request)
+
+
+def require_permission(permission: str):
+    """FastAPI dependency factory for role checks (e.g. ``admin:manage``)."""
+
+    def _dependency(request: Request) -> dict:
+        return authenticate_request(request, permission=permission)
+
+    return _dependency
+
+
+__all__ = [
+    "ADMIN_TOKEN_HEADER",
+    "CSRF_HEADER",
+    "OPEN_PRINCIPAL",
+    "admin_token_required",
+    "verify_admin_token",
+    "resolve_principal",
+    "csrf_valid",
+    "authenticate_request",
+    "require_admin_token",
+    "require_permission",
+]

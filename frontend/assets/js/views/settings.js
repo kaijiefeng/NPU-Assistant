@@ -47,6 +47,11 @@ function collect() {
     wiki_answer_max_chars: Number(document.getElementById('settingWikiChars')?.value || 9000),
     citations_enabled: Boolean(document.getElementById('settingCitations')?.checked),
     bot_reply_footer: document.getElementById('settingFooter')?.value || '',
+    academic_year: document.getElementById('settingAcademicYear')?.value.trim() || '',
+    freshness_stale_days: Number(document.getElementById('settingFreshnessStale')?.value || 180),
+    freshness_expiry_warn_days: Number(
+      document.getElementById('settingFreshnessWarn')?.value || 30,
+    ),
   };
 }
 
@@ -106,6 +111,12 @@ function fillForm(settings) {
   if (citations) citations.checked = settings.citations_enabled !== false;
   const footer = document.getElementById('settingFooter');
   if (footer) footer.value = settings.bot_reply_footer ?? '';
+  const academicYear = document.getElementById('settingAcademicYear');
+  if (academicYear) academicYear.value = settings.academic_year ?? '';
+  const freshnessStale = document.getElementById('settingFreshnessStale');
+  if (freshnessStale) freshnessStale.value = settings.freshness_stale_days ?? 180;
+  const freshnessWarn = document.getElementById('settingFreshnessWarn');
+  if (freshnessWarn) freshnessWarn.value = settings.freshness_expiry_warn_days ?? 30;
   const quickList = document.getElementById('quickList');
   if (quickList) {
     const questions = Array.isArray(settings.quick_questions) ? settings.quick_questions : [];
@@ -230,6 +241,34 @@ function renderShell() {
             <label class="field field-inline">
               <input type="checkbox" id="settingCitations" />
               <span>在回答中展示引用词条与来源锚点</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <header class="card-head">
+            <div>
+              <h2>${icon('clock')}时效与学年</h2>
+              <p>过期内容默认不参与问答；回答会按当前日期理解“今年/明年”</p>
+            </div>
+          </header>
+          <div class="form">
+            <div class="form-row">
+              <label class="field">
+                <span class="field-label">当前学年</span>
+                <input class="input" id="settingAcademicYear" placeholder="2026-2027" />
+                <span class="field-help">用于判断词条是否属于旧学年</span>
+              </label>
+              <label class="field">
+                <span class="field-label">超过多少天未核对视为“可能过时”</span>
+                <input class="input" id="settingFreshnessStale" type="number" min="30" max="730" step="10" />
+                <span class="field-help">默认 180 天</span>
+              </label>
+            </div>
+            <label class="field">
+              <span class="field-label">提前多少天提示“即将过期”</span>
+              <input class="input" id="settingFreshnessWarn" type="number" min="1" max="180" step="1" />
+              <span class="field-help">默认 30 天</span>
             </label>
           </div>
         </section>
@@ -432,6 +471,27 @@ function bindActions() {
     }
     if (values.quick_questions.length > 12) {
       toast('快捷问题建议不超过 12 条', 'warning');
+    }
+    if (values.academic_year && !/^\d{4}-\d{4}$/.test(values.academic_year)) {
+      toast('当前学年格式应为 2026-2027', 'error');
+      document.getElementById('settingAcademicYear')?.focus();
+      return;
+    }
+    if (
+      !Number.isInteger(values.freshness_stale_days) ||
+      values.freshness_stale_days < 30 ||
+      values.freshness_stale_days > 730
+    ) {
+      toast('未核对天数需在 30 ~ 730 之间', 'error');
+      return;
+    }
+    if (
+      !Number.isInteger(values.freshness_expiry_warn_days) ||
+      values.freshness_expiry_warn_days < 1 ||
+      values.freshness_expiry_warn_days > 180
+    ) {
+      toast('到期提醒天数需在 1 ~ 180 之间', 'error');
+      return;
     }
     setButtonBusy(saveBtn, true, '保存中…');
     try {

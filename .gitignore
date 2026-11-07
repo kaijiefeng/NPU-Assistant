@@ -6,6 +6,8 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage
+htmlcov/
 
 # --- Runtime data ---
 backend/data/app.db
@@ -29,3 +31,8 @@ dist/
 backend/data/admin_token.txt
 backend/data/campus_seed/
 backend/data/campus_manual/
+backend/data/job_staging/
+
+# --- Local tooling / scratch ---
+.trae-html-share-packages/
+.screenshots/

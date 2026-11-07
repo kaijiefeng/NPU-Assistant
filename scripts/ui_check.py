@@ -2,7 +2,7 @@ r"""用 Chrome DevTools Protocol 做前端交互冒烟 + 页面截图。
 
 前置：NPU-Assistant 已在 http://127.0.0.1:8000 启动，本机安装 Chrome。
 用法：.\.venv\Scripts\python.exe scripts\ui_check.py
-产物：docs/screenshots/{chat,knowledge,manage,models,bots,settings}.png
+产物：docs/screenshots/{chat,knowledge,manage,models,bots,settings,jobs,audit}.png
 """
 from __future__ import annotations
 
@@ -170,10 +170,12 @@ async def main() -> None:
 
             for name, path, needle in [
                 ("knowledge", "#/knowledge", "知识库"),
-                ("manage", "#/manage", "内容管理"),
-                ("models", "#/models", "模型"),
-                ("bots", "#/bots", "机器人"),
-                ("settings", "#/settings", "设置"),
+                ("manage", "#/knowledge?manage=1", "收录资料"),
+                ("models", "#/settings?tab=models", "模型"),
+                ("bots", "#/settings?tab=bots", "机器人"),
+                ("settings", "#/settings", "助手设置"),
+                ("jobs", "#/ops?tab=jobs", "任务与告警"),
+                ("audit", "#/ops?tab=audit", "审计日志"),
             ]:
                 await goto(path)
                 text = await cdp.evaluate("document.body.innerText") or ""
@@ -181,6 +183,33 @@ async def main() -> None:
                     raise SystemExit(f"{name} 页面渲染失败，未找到关键字 {needle}")
                 await shot(name)
                 print(f"[PASS] {name} 页面渲染正常（已截图）")
+
+            # 旧书签兼容：内容管理自动落到知识库管理模式
+            await goto("#/manage")
+            text = await cdp.evaluate("document.body.innerText") or ""
+            if "收录资料" not in text:
+                raise SystemExit("旧路由 #/manage 未重定向到知识库管理模式")
+            print("[PASS] 旧路由 #/manage 重定向正常")
+
+            # 聚合页内切换：设置 → 模型 → 我的账号；运营 → 任务与告警
+            await goto("#/settings")
+            await cdp.evaluate("document.querySelector('[data-settings-tab=\"models\"]')?.click(); true")
+            await asyncio.sleep(2.0)
+            text = await cdp.evaluate("document.body.innerText") or ""
+            if "Provider" not in text:
+                raise SystemExit("设置聚合页切换到「模型」失败")
+            await cdp.evaluate("document.querySelector('[data-settings-tab=\"account\"]')?.click(); true")
+            await asyncio.sleep(0.5)
+            text = await cdp.evaluate("document.body.innerText") or ""
+            if "我的账号" not in text:
+                raise SystemExit("设置聚合页切换到「我的账号」失败")
+            await goto("#/ops")
+            await cdp.evaluate("document.querySelector('[data-ops-tab=\"jobs\"]')?.click(); true")
+            await asyncio.sleep(0.8)
+            text = await cdp.evaluate("document.body.innerText") or ""
+            if "后台任务" not in text:
+                raise SystemExit("运营聚合页切换到「任务与告警」失败")
+            print("[PASS] 运营 / 设置聚合页内切换正常")
 
             for event in cdp.events:
                 method = event.get("method")
@@ -196,7 +225,7 @@ async def main() -> None:
                     errors.append(str(event.get("params", {}).get("args"))[:300])
             if errors:
                 raise SystemExit(f"前端存在控制台错误：{errors[:5]}")
-            print("[PASS] 六个页面无控制台错误")
+            print("[PASS] 七个页面无控制台错误")
     finally:
         try:
             process.terminate()

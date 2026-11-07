@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS models_registry (
 
 CREATE TABLE IF NOT EXISTS conversations (
     id           TEXT PRIMARY KEY,
-    channel      TEXT NOT NULL DEFAULT 'web',       -- web|onebot11|wechat_mp|console
+    channel      TEXT NOT NULL DEFAULT 'web',       -- web|qq_official|wechat_mp|console
     channel_id   TEXT,
     session_key  TEXT NOT NULL,
     user_label   TEXT,
@@ -154,7 +154,7 @@ CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id
 
 CREATE TABLE IF NOT EXISTS bot_channels (
     id            TEXT PRIMARY KEY,
-    type          TEXT NOT NULL,                    -- onebot11|wechat_mp|console
+    type          TEXT NOT NULL,                    -- qq_official|wechat_mp|console
     name          TEXT NOT NULL,
     config        TEXT NOT NULL DEFAULT '{}',
     enabled       INTEGER NOT NULL DEFAULT 1,
@@ -162,6 +162,192 @@ CREATE TABLE IF NOT EXISTS bot_channels (
     last_seen_at  TEXT,
     created_at    TEXT NOT NULL
 );
+
+-- ---------------------------------------------------------------------------
+-- v0.2.0 RSI: feedback + knowledge gaps
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS answer_feedback (
+    id              TEXT PRIMARY KEY,
+    message_id      TEXT NOT NULL,
+    conversation_id TEXT NOT NULL,
+    channel         TEXT NOT NULL DEFAULT 'web',
+    rating          INTEGER NOT NULL,               -- 1=helpful, -1=unhelpful
+    reason_code     TEXT NOT NULL DEFAULT '',       -- not_found|incomplete|expired|bad_citation|other
+    comment         TEXT NOT NULL DEFAULT '',
+    voter_key       TEXT NOT NULL DEFAULT '',
+    status          TEXT NOT NULL DEFAULT 'open',   -- open|triaged|resolved|ignored
+    handled_by      TEXT,
+    handled_at      TEXT,
+    created_at      TEXT NOT NULL,
+    updated_at      TEXT NOT NULL,
+    UNIQUE(message_id, voter_key)
+);
+CREATE INDEX IF NOT EXISTS idx_feedback_status ON answer_feedback(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_feedback_message ON answer_feedback(message_id);
+
+CREATE TABLE IF NOT EXISTS knowledge_gaps (
+    id                 TEXT PRIMARY KEY,
+    question           TEXT NOT NULL,
+    normalized_key     TEXT NOT NULL,
+    sample_message_id  TEXT,
+    channel            TEXT NOT NULL DEFAULT 'web',
+    count              INTEGER NOT NULL DEFAULT 1,
+    reasons            TEXT NOT NULL DEFAULT '[]',
+    first_seen_at      TEXT NOT NULL,
+    last_seen_at       TEXT NOT NULL,
+    status             TEXT NOT NULL DEFAULT 'open',-- open|linked|resolved|ignored
+    priority           INTEGER NOT NULL DEFAULT 0,  -- 0 normal, 1 high
+    linked_page_id     TEXT,
+    linked_document_id TEXT,
+    assignee_id        TEXT,
+    note               TEXT NOT NULL DEFAULT '',
+    created_at         TEXT NOT NULL,
+    updated_at         TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_gaps_status ON knowledge_gaps(status, last_seen_at);
+CREATE INDEX IF NOT EXISTS idx_gaps_key ON knowledge_gaps(normalized_key);
+
+-- ---------------------------------------------------------------------------
+-- v0.2.0 handoff + crisis
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS handoff_requests (
+    id                TEXT PRIMARY KEY,
+    ticket_no         TEXT NOT NULL UNIQUE,
+    ticket_token      TEXT NOT NULL,
+    conversation_id   TEXT NOT NULL,
+    message_id        TEXT,
+    channel           TEXT NOT NULL DEFAULT 'web',
+    session_key       TEXT NOT NULL DEFAULT '',
+    user_label        TEXT,
+    contact           TEXT NOT NULL DEFAULT '',
+    reason            TEXT NOT NULL,
+    priority          TEXT NOT NULL DEFAULT 'normal',  -- normal|urgent
+    status            TEXT NOT NULL DEFAULT 'pending', -- pending|claimed|replied|resolved|closed
+    summary           TEXT NOT NULL DEFAULT '',
+    assignee_id       TEXT,
+    resolution        TEXT NOT NULL DEFAULT '',
+    source            TEXT NOT NULL DEFAULT 'student', -- student|system|crisis
+    created_at        TEXT NOT NULL,
+    claimed_at        TEXT,
+    first_response_at TEXT,
+    resolved_at       TEXT,
+    updated_at        TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_handoff_status ON handoff_requests(status, priority, created_at);
+
+CREATE TABLE IF NOT EXISTS crisis_events (
+    id               TEXT PRIMARY KEY,
+    handoff_id       TEXT,
+    conversation_id  TEXT NOT NULL,
+    message_id       TEXT,
+    category         TEXT NOT NULL,
+    matched_terms    TEXT NOT NULL DEFAULT '[]',
+    severity         TEXT NOT NULL DEFAULT 'high',
+    status           TEXT NOT NULL DEFAULT 'open',     -- open|acknowledged|resolved|false_positive
+    notified_at      TEXT,
+    notify_result    TEXT NOT NULL DEFAULT '',
+    handled_by       TEXT,
+    handled_at       TEXT,
+    note             TEXT NOT NULL DEFAULT '',
+    created_at       TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_crisis_status ON crisis_events(status, created_at);
+
+CREATE TABLE IF NOT EXISTS notification_log (
+    id           TEXT PRIMARY KEY,
+    channel      TEXT NOT NULL,
+    target       TEXT NOT NULL DEFAULT '',
+    event_type   TEXT NOT NULL,
+    resource_id  TEXT NOT NULL DEFAULT '',
+    status       TEXT NOT NULL DEFAULT 'pending',      -- pending|sent|failed
+    attempts     INTEGER NOT NULL DEFAULT 0,
+    last_error   TEXT NOT NULL DEFAULT '',
+    created_at   TEXT NOT NULL,
+    sent_at      TEXT
+);
+
+CREATE TABLE IF NOT EXISTS admin_users (
+    id                   TEXT PRIMARY KEY,
+    username             TEXT NOT NULL UNIQUE,
+    display_name         TEXT NOT NULL DEFAULT '',
+    role                 TEXT NOT NULL DEFAULT 'viewer',  -- super_admin|admin|counselor|viewer
+    password_hash        TEXT NOT NULL,
+    active               INTEGER NOT NULL DEFAULT 1,
+    must_change_password INTEGER NOT NULL DEFAULT 0,
+    created_by           TEXT NOT NULL DEFAULT '',
+    created_at           TEXT NOT NULL,
+    updated_at           TEXT NOT NULL,
+    password_updated_at  TEXT NOT NULL DEFAULT '',
+    last_login_at        TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_admin_users_role ON admin_users(role, active);
+
+CREATE TABLE IF NOT EXISTS admin_sessions (
+    id           TEXT PRIMARY KEY,
+    user_id      TEXT NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
+    token_hash   TEXT NOT NULL UNIQUE,
+    csrf_token   TEXT NOT NULL,
+    ip           TEXT NOT NULL DEFAULT '',
+    user_agent   TEXT NOT NULL DEFAULT '',
+    created_at   TEXT NOT NULL,
+    expires_at   TEXT NOT NULL,
+    last_seen_at TEXT NOT NULL,
+    revoked_at   TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_user ON admin_sessions(user_id, expires_at);
+
+CREATE TABLE IF NOT EXISTS audit_log (
+    id          TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL DEFAULT '',
+    username    TEXT NOT NULL DEFAULT '',
+    role        TEXT NOT NULL DEFAULT '',
+    action      TEXT NOT NULL,
+    target_type TEXT NOT NULL DEFAULT '',
+    target_id   TEXT NOT NULL DEFAULT '',
+    detail      TEXT NOT NULL DEFAULT '',
+    ip          TEXT NOT NULL DEFAULT '',
+    status_code INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_log(action, created_at);
+
+CREATE TABLE IF NOT EXISTS jobs (
+    id               TEXT PRIMARY KEY,
+    type             TEXT NOT NULL,                    -- ingest_upload|reindex|rebuild
+    status           TEXT NOT NULL DEFAULT 'queued',   -- queued|running|succeeded|failed|cancelled
+    payload          TEXT NOT NULL DEFAULT '{}',
+    result           TEXT NOT NULL DEFAULT '{}',
+    progress         INTEGER NOT NULL DEFAULT 0,
+    message          TEXT NOT NULL DEFAULT '',
+    error            TEXT NOT NULL DEFAULT '',
+    attempts         INTEGER NOT NULL DEFAULT 0,
+    max_attempts     INTEGER NOT NULL DEFAULT 2,
+    cancel_requested INTEGER NOT NULL DEFAULT 0,
+    created_by       TEXT NOT NULL DEFAULT '',
+    created_at       TEXT NOT NULL,
+    updated_at       TEXT NOT NULL,
+    started_at       TEXT,
+    finished_at      TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_jobs_type ON jobs(type, created_at);
+
+CREATE TABLE IF NOT EXISTS system_alerts (
+    id          TEXT PRIMARY KEY,
+    level       TEXT NOT NULL DEFAULT 'warning',       -- info|warning|error|critical
+    category    TEXT NOT NULL DEFAULT 'system',
+    title       TEXT NOT NULL,
+    detail      TEXT NOT NULL DEFAULT '',
+    status      TEXT NOT NULL DEFAULT 'open',          -- open|acknowledged|resolved
+    source      TEXT NOT NULL DEFAULT '',
+    resource_id TEXT NOT NULL DEFAULT '',
+    created_at  TEXT NOT NULL,
+    updated_at  TEXT NOT NULL,
+    resolved_at TEXT,
+    resolved_by TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_alerts_status ON system_alerts(status, created_at);
 """
 
 
@@ -281,6 +467,20 @@ def init_db() -> None:
         execute("ALTER TABLE documents ADD COLUMN source_type TEXT NOT NULL DEFAULT 'file'")
     if "source_url" not in columns:
         execute("ALTER TABLE documents ADD COLUMN source_url TEXT NOT NULL DEFAULT ''")
+    # v0.2.0 freshness: publication / effective / expiry / verification dates.
+    for column in (
+        "published_at",
+        "effective_at",
+        "expires_at",
+        "verified_at",
+        "academic_year",
+        "doc_type",
+    ):
+        if column not in columns:
+            default = "'general'" if column == "doc_type" else "''"
+            execute(
+                f"ALTER TABLE documents ADD COLUMN {column} TEXT NOT NULL DEFAULT {default}"
+            )
     execute("CREATE INDEX IF NOT EXISTS idx_documents_source_url ON documents(source_url)")
     # URL imports are deduplicated by source_url; enforce it at the DB level too
     # so concurrent imports cannot create duplicate documents.
@@ -302,13 +502,43 @@ def init_db() -> None:
             "ON documents(source_url) WHERE source_url <> ''"
         )
 
-    # 3) Drop settings that only existed for BM25 retrieval.
+    # 3) v0.2.0 RSI: persist retrieval signals on messages.
+    message_columns = _column_names("messages")
+    if "retrieval" not in message_columns:
+        execute("ALTER TABLE messages ADD COLUMN retrieval TEXT NOT NULL DEFAULT '{}'")
+    if "fallback" not in message_columns:
+        execute("ALTER TABLE messages ADD COLUMN fallback INTEGER NOT NULL DEFAULT 0")
+    if "navigation_method" not in message_columns:
+        execute(
+            "ALTER TABLE messages ADD COLUMN navigation_method TEXT NOT NULL DEFAULT ''"
+        )
+
+    # 4) v0.2.0 freshness on wiki pages (documents handled above).
+    page_columns = _column_names("wiki_pages")
+    for column in (
+        "published_at",
+        "effective_at",
+        "expires_at",
+        "verified_at",
+        "academic_year",
+        "doc_type",
+        "verified_by",
+    ):
+        if column not in page_columns:
+            default = "'general'" if column == "doc_type" else "''"
+            execute(
+                f"ALTER TABLE wiki_pages ADD COLUMN {column} TEXT NOT NULL DEFAULT {default}"
+            )
+
+    # 5) Drop settings that only existed for BM25 retrieval.
     for key in config.OBSOLETE_SETTINGS:
         execute("DELETE FROM settings WHERE key = ?", (key,))
 
     for key, value in config.DEFAULT_SETTINGS.items():
         if get_setting(key) is None:
             set_setting(key, value)
+    if not (get_setting("academic_year") or "").strip():
+        set_setting("academic_year", config.current_academic_year())
 
     # A zero-configuration demo model so the product is usable before the
     # administrator wires up a real LLM provider.  Note: compiling wiki pages
@@ -344,14 +574,16 @@ def get_document(document_id: str) -> dict | None:
 
 
 def get_documents_meta(document_ids: Iterable[str]) -> dict[str, dict]:
-    """批量取源文件来源信息（``id/source_type/source_url/filename``），用于引用补链接。"""
+    """批量取源文件来源信息（含时效字段），用于引用补链接与新鲜度展示。"""
     ids = [str(item) for item in document_ids if item]
     ids = list(dict.fromkeys(ids))
     if not ids:
         return {}
     placeholders = ",".join("?" * len(ids))
     rows = query(
-        f"SELECT id, source_type, source_url, filename FROM documents WHERE id IN ({placeholders})",
+        "SELECT id, source_type, source_url, filename, published_at, effective_at, "
+        "expires_at, verified_at, academic_year, doc_type "
+        f"FROM documents WHERE id IN ({placeholders})",
         ids,
     )
     return {str(row["id"]): row for row in rows}
@@ -400,12 +632,27 @@ def find_or_create_conversation(channel: str, session_key: str, channel_id: str 
 
 
 def add_message(conversation_id: str, role: str, content: str, citations: list | None = None,
-                model: str | None = None, latency_ms: int | None = None) -> dict:
+                model: str | None = None, latency_ms: int | None = None,
+                retrieval: dict | None = None, fallback: bool = False,
+                navigation_method: str = "") -> dict:
     message_id = new_id()
     execute(
-        "INSERT INTO messages(id, conversation_id, role, content, citations, model, latency_ms, created_at) "
-        "VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-        (message_id, conversation_id, role, content, to_json(citations or []), model, latency_ms, now()),
+        "INSERT INTO messages(id, conversation_id, role, content, citations, model, latency_ms, "
+        "retrieval, fallback, navigation_method, created_at) "
+        "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            message_id,
+            conversation_id,
+            role,
+            content,
+            to_json(citations or []),
+            model,
+            latency_ms,
+            to_json(retrieval or {}),
+            1 if fallback else 0,
+            str(navigation_method or ""),
+            now(),
+        ),
     )
     execute("UPDATE conversations SET updated_at = ? WHERE id = ?", (now(), conversation_id))
     return query_one("SELECT * FROM messages WHERE id = ?", (message_id,))  # type: ignore[return-value]

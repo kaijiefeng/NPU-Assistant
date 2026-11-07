@@ -25,12 +25,12 @@ import logging
 import mimetypes
 from pathlib import Path
 
-from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Query, Response, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from .. import config, db
-from ..services import importer, ingest, wiki_builder
+from ..services import importer, ingest, jobs, wiki_builder
 
 logger = logging.getLogger("npu-assistant")
 
@@ -88,14 +88,19 @@ class ImportBatchRequest(BaseModel):
 # ---------------------------------------------------------------------------
 @router.post("/knowledge/documents", status_code=201)
 def upload_document(
+    response: Response,
     file: UploadFile = File(..., description="知识库源文件"),
     title: str | None = Form(default=None),
     tags: str | None = Form(default=None),
+    async_mode: bool = Query(default=False, alias="async", description="true=后台编译，返回 202 + job_id"),
 ) -> dict:
-    """上传源文件并同步完成解析与 Wiki 词条编译。
+    """上传源文件并完成解析与 Wiki 词条编译。
 
+    * 默认同步：201 + doc；
+    * ``?async=1``：先保存文件并返回 202 + ``job_id``，由后台队列解析/编译，
+      进度见 ``GET /api/jobs/{id}``（适合大文件或手机弱网）；
     * 扩展名不支持 → 400；空文件 → 400；超过 20MB → 413；
-    * 解析失败或 LLM 不可用/编译失败 → 201 + doc（``status='failed'``、带中文 ``error``），
+    * 解析失败或 LLM 不可用/编译失败 → doc ``status='failed'``、带中文 ``error``，
       原始文件保留，可稍后 reindex 重试。
     """
     filename = Path((file.filename or "").strip()).name or "未命名文件"
@@ -120,12 +125,52 @@ def upload_document(
             detail=f"文件过大（{len(data) / 1024 / 1024:.1f}MB），最大支持 {max_mb}MB",
         )
 
+    normalized_title = (title or "").strip() or None
+    normalized_tags = ingest.normalize_tags(tags)
+
+    if async_mode:
+        job = jobs.create_job(
+            "ingest_upload",
+            {
+                "filename": filename,
+                "title": normalized_title,
+                "tags": normalized_tags,
+            },
+            created_by="admin",
+        )
+        try:
+            staging = jobs.stage_upload(job["id"], filename, data)
+        except OSError as exc:
+            jobs.request_cancel(job["id"])
+            raise HTTPException(status_code=500, detail=f"保存上传文件失败：{exc}") from exc
+        db.execute(
+            "UPDATE jobs SET payload = ? WHERE id = ?",
+            (
+                db.to_json(
+                    {
+                        "filename": filename,
+                        "title": normalized_title,
+                        "tags": normalized_tags,
+                        "staging_path": staging,
+                    }
+                ),
+                job["id"],
+            ),
+        )
+        response.status_code = 202
+        return {
+            "job_id": job["id"],
+            "status": "queued",
+            "document": None,
+            "message": "文件已接收，正在后台解析与编译；可在「任务与告警」查看进度。",
+        }
+
     try:
         doc = ingest.ingest_upload(
             filename=filename,
             data=data,
-            title=(title or "").strip() or None,
-            tags=ingest.normalize_tags(tags),
+            title=normalized_title,
+            tags=normalized_tags,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -257,9 +302,19 @@ def remove_document(doc_id: str) -> dict:
 
 
 @router.post("/knowledge/documents/{doc_id}/reindex")
-def reindex(doc_id: str) -> dict:
-    """重新解析并编译单篇源文件，返回 ``{document, build}``。"""
+def reindex(
+    doc_id: str,
+    response: Response,
+    async_mode: bool = Query(default=False, alias="async"),
+) -> dict:
+    """重新解析并编译单篇源文件，返回 ``{document, build}``；``?async=1`` 返回任务。"""
     require_document(doc_id)
+    if async_mode:
+        job = jobs.create_job(
+            "reindex", {"document_id": doc_id}, created_by="admin"
+        )
+        response.status_code = 202
+        return {"job_id": job["id"], "status": "queued", "document": None}
     try:
         result = ingest.reindex_document(doc_id)
     except ValueError as exc:

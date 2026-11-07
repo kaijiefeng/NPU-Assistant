@@ -15,7 +15,7 @@
 | 1 | 辅导员数字分身问答 | Web 对话 + **Wiki 词条导航**回答 + 词条级/来源级双层引用 + 多轮会话 |
 | 2 | LLM Wiki 知识库 | 上传源文件 → LLM 编译为结构化词条（带来源锚点）→ 浏览/搜索/编辑词条；**不使用 embedding、向量库、rerank、切片检索** |
 | 3 | LLM 接入与模型管理 | OpenAI 兼容（当前实测 DeepSeek）/ Ollama / mock；Provider/模型 CRUD、默认模型、连通性测试、Key 脱敏 |
-| 4 | 微信 / QQ 机器人 | OneBot 11（反向 WS + 反向 HTTP + HTTP API）、微信公众号明文回调、控制台通道（复用 counselor 问答） |
+| 4 | 微信 / QQ 机器人 | QQ 官方机器人 WebSocket、微信公众号明文回调、控制台通道（复用 counselor 问答） |
 
 **非目标**：多租户/权限体系、流式输出、embedding/向量检索、语音、插件系统、公众号加密模式。
 
@@ -35,7 +35,7 @@
 - **对外监听必须设置 `NPU_ADMIN_TOKEN`**：绑定非回环地址且无令牌时服务拒绝启动（临时内网演示可显式 `NPU_ALLOW_INSECURE_LAN=1`，会有告警）；运行时对非回环 Host 且无令牌的请求 fail-closed（403）。
 - 写操作（上传/导入/编辑/重建/模型/机器人/设置）统一由中间件校验 `X-Admin-Token`；公开接口仅 `POST /api/chat`、只读 GET、机器人 webhook（各自 token/签名）。
 - 聊天历史 `GET /api/chat/conversations*` 在配置令牌后需要管理员令牌；匿名会话使用 `web:anonymous-<随机>`，不得共用。
-- 机器人：通道凭据在 API 响应中脱敏（`****后4位`），PUT 传空串/脱敏占位表示不修改；OneBot 空 token 拒绝 webhook；微信 Token 不得为空或 `npu-assistant`，回调校验 ±300s 时间窗与 nonce 防重放；OneBot 事件校验 `self_id`；`NPU_BOT_ALLOW_INSECURE=1` 仅限本地调试。
+- 机器人：通道凭据在 API 响应中脱敏（`****后4位`），PUT 传空串/脱敏占位表示不修改；微信 Token 不得为空或 `npu-assistant`，回调校验 ±300s 时间窗与 nonce 防重放；`NPU_BOT_ALLOW_INSECURE=1` 仅限本地调试。
 - URL 抓取：SSRF 防护（逐跳 DNS + 连接 peer IP 校验）、默认拒绝私网/回环/组播/NAT64/6to4、`Accept-Encoding: identity`、总时限、8MB 上限、正文 60k 字配额；默认 `NPU_URL_IMPORT_ALLOW_PRIVATE=0`。
 - 内容安全：`body_html` 渲染后对 `<a>/<img>` 做协议白名单（http/https/mailto/#/站内相对），CSP `script-src 'self'`；上传/请求体有 Content-Length 上限。
 - 公网部署：HTTPS 反代/隧道 + 限流 + 定期备份；不要把 8000 裸端口映射公网。
@@ -112,7 +112,7 @@
 `/models/providers`、`/models` 全部 CRUD/测试/默认切换；`api_key_masked` 规则不变。
 
 ### 5.6 机器人（已完成，不变）
-OneBot 11 反向 WS/HTTP、群 @ 门控、HMAC、微信公众号明文 XML、console 通道；问答统一走 `counselor.answer()`。citation 结构变化对机器人透明（bot 只取 reply）。
+QQ 官方 WebSocket、微信公众号明文 XML、console 通道；问答统一走 `counselor.answer()`。citation 结构变化对机器人透明（bot 只取 reply）。
 
 ### 5.7 前端（web-ui）
 知识库只读浏览（搜索、来源锚点）；内容管理分「收录资料 / 源文件 / 词条维护」三个 Tab（收录、重建、导入快照、编辑删除）；对话引用卡片展示词条+来源文件·章节并可跳转词条详情；设置页用 `wiki_max_pages`/`wiki_answer_max_chars` 替换旧检索参数。详见 WIKI-DESIGN §6。

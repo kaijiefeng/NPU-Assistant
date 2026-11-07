@@ -15,9 +15,12 @@
 """
 from __future__ import annotations
 
+import json
 import logging
+import os
+import threading
 import time
-from typing import Any
+from typing import Any, Callable
 
 import httpx
 
@@ -39,6 +42,92 @@ _MODEL_JOIN_SQL = (
 
 class LLMError(RuntimeError):
     """可读的模型调用错误；``str(exc)`` 直接面向最终用户展示。"""
+
+
+# ---------------------------------------------------------------------------
+# Retry + circuit breaker (v0.2.0 M5)
+# ---------------------------------------------------------------------------
+RETRY_ATTEMPTS = int(os.environ.get("NPU_LLM_RETRIES", "1")) + 1
+RETRY_BACKOFF_SECONDS = float(os.environ.get("NPU_LLM_RETRY_BACKOFF", "0.4"))
+CIRCUIT_THRESHOLD = int(os.environ.get("NPU_LLM_BREAKER_THRESHOLD", "3"))
+CIRCUIT_COOLDOWN_SECONDS = float(os.environ.get("NPU_LLM_BREAKER_COOLDOWN", "60"))
+_CIRCUIT_LOCK = threading.Lock()
+_CIRCUIT: dict[str, dict[str, Any]] = {}
+
+
+def _circuit_key(target: dict) -> str:
+    return str(target.get("provider_id") or target.get("provider_name") or target.get("id") or "llm")
+
+
+def _circuit_open(key: str) -> bool:
+    with _CIRCUIT_LOCK:
+        state = _CIRCUIT.get(key)
+        if not state:
+            return False
+        opened_at = float(state.get("opened_at") or 0)
+        if opened_at and time.monotonic() - opened_at < CIRCUIT_COOLDOWN_SECONDS:
+            return True
+        if opened_at:
+            _CIRCUIT.pop(key, None)
+        return False
+
+
+def _record_failure(key: str, error: str) -> None:
+    with _CIRCUIT_LOCK:
+        state = _CIRCUIT.setdefault(key, {"failures": 0, "opened_at": 0.0})
+        state["failures"] = int(state.get("failures") or 0) + 1
+        state["last_error"] = error
+        if state["failures"] >= max(1, CIRCUIT_THRESHOLD) and not state.get("opened_at"):
+            state["opened_at"] = time.monotonic()
+            opened = True
+        else:
+            opened = False
+    if opened:
+        try:
+            from . import alerts
+
+            alerts.create_alert(
+                f"模型服务连续失败已熔断：{key}",
+                level="error",
+                category="llm",
+                detail=(
+                    f"连续失败 {CIRCUIT_THRESHOLD} 次，暂停调用 {int(CIRCUIT_COOLDOWN_SECONDS)} 秒。"
+                    f"最近错误：{str(error)[:300]}"
+                ),
+                source="llm",
+                resource_id=key,
+                dedupe_hours=1,
+            )
+        except Exception:  # pragma: no cover - alerting must not break answers
+            logger.exception("写入模型熔断告警失败")
+
+
+def _record_success(key: str) -> None:
+    with _CIRCUIT_LOCK:
+        _CIRCUIT.pop(key, None)
+
+
+def circuit_status() -> dict:
+    with _CIRCUIT_LOCK:
+        return {
+            key: {
+                **value,
+                "open": bool(value.get("opened_at"))
+                and time.monotonic() - float(value.get("opened_at") or 0)
+                < CIRCUIT_COOLDOWN_SECONDS,
+            }
+            for key, value in _CIRCUIT.items()
+        }
+
+
+def _retryable(message: str) -> bool:
+    text = str(message or "")
+    if "api_key" in text or "认证失败" in text or "接口不存在" in text:
+        return False
+    return any(
+        marker in text
+        for marker in ("超时", "无法连接", "429", "HTTP 5", "内部错误", "HTTPError")
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -367,6 +456,14 @@ def chat(
             "error": None,
         }
 
+    key = _circuit_key(target)
+    if _circuit_open(key):
+        return _failure(
+            "模型服务连续失败，已暂时熔断；请稍后重试或检查模型配置/网络。",
+            target,
+            started,
+        )
+
     try:
         if provider_type == "openai":
             content, usage = _chat_openai(target, cleaned, temperature, max_tokens)
@@ -375,13 +472,269 @@ def chat(
         else:
             raise LLMError(f"不支持的 Provider 类型：{provider_type or '空'}")
     except LLMError as exc:
-        logger.warning("模型调用失败（%s / %s）：%s", target.get("provider_name"), model_name, exc)
-        return _failure(str(exc), target, started)
+        message = str(exc)
+        if RETRY_ATTEMPTS > 1 and _retryable(message):
+            logger.warning("模型调用失败，准备重试（%s / %s）：%s", target.get("provider_name"), model_name, message)
+            time.sleep(max(0.0, RETRY_BACKOFF_SECONDS))
+            try:
+                if provider_type == "openai":
+                    content, usage = _chat_openai(target, cleaned, temperature, max_tokens)
+                elif provider_type == "ollama":
+                    content, usage = _chat_ollama(target, cleaned, temperature, max_tokens)
+                else:  # pragma: no cover - 上面已拦截
+                    raise LLMError(message)
+            except LLMError as retry_exc:
+                message = str(retry_exc)
+                logger.warning("模型重试仍失败（%s / %s）：%s", target.get("provider_name"), model_name, message)
+                _record_failure(key, message)
+                return _failure(message, target, started)
+        else:
+            logger.warning("模型调用失败（%s / %s）：%s", target.get("provider_name"), model_name, message)
+            _record_failure(key, message)
+            return _failure(message, target, started)
     except Exception as exc:  # pragma: no cover - 兜底，避免 500
         logger.exception("模型调用发生未预期错误")
+        _record_failure(_circuit_key(target), str(exc))
         return _failure(f"调用模型时发生未预期错误：{exc}", target, started)
 
+    _record_success(_circuit_key(target))
     return _success(content, target, usage, started)
+
+
+def _chat_openai_stream(
+    target: dict,
+    messages: list[dict[str, str]],
+    temperature: float | None,
+    max_tokens: int | None,
+    emit: Callable[[str], None],
+) -> tuple[str, dict]:
+    base_url = target.get("base_url") or ""
+    api_key = (target.get("api_key") or "").strip()
+    model_name = target.get("model_name") or ""
+    if not api_key:
+        raise LLMError("OpenAI 兼容 Provider 未配置 api_key，请先在「模型管理」中补全")
+
+    url = _join_url(base_url, "/chat/completions")
+    payload: dict[str, Any] = {
+        "model": model_name,
+        "messages": messages,
+        "stream": True,
+        "stream_options": {"include_usage": True},
+    }
+    if temperature is not None:
+        payload["temperature"] = float(temperature)
+    if max_tokens is not None:
+        payload["max_tokens"] = int(max_tokens)
+
+    provider_name = target.get("provider_name") or "OpenAI 兼容服务"
+    chunks: list[str] = []
+    usage: dict = {}
+    try:
+        with _client() as client:
+            with client.stream(
+                "POST", url, headers=_auth_headers(api_key), json=payload
+            ) as response:
+                if response.status_code >= 400:
+                    body = response.read().decode("utf-8", "replace")[:160].replace("\n", " ")
+                    raise LLMError(
+                        f"「{provider_name}」流式调用失败（HTTP {response.status_code}）：{body or '无返回内容'}"
+                    )
+                for line in response.iter_lines():
+                    line = (line or "").strip()
+                    if not line or not line.startswith("data:"):
+                        continue
+                    data = line[5:].strip()
+                    if data == "[DONE]":
+                        break
+                    try:
+                        item = json.loads(data)
+                    except ValueError:
+                        continue
+                    if isinstance(item.get("usage"), dict):
+                        usage = item["usage"]
+                    choices = item.get("choices") or []
+                    if not choices or not isinstance(choices[0], dict):
+                        continue
+                    delta = choices[0].get("delta") or {}
+                    content = delta.get("content")
+                    if isinstance(content, list):
+                        content = "".join(
+                            str(part.get("text") or "")
+                            for part in content
+                            if isinstance(part, dict)
+                        )
+                    text = str(content or "")
+                    if text:
+                        chunks.append(text)
+                        emit(text)
+    except httpx.TimeoutException as exc:
+        raise LLMError(
+            f"调用「{provider_name}」超时（{int(REQUEST_TIMEOUT_SECONDS)} 秒）：请检查网络或模型响应速度"
+        ) from exc
+    except httpx.ConnectError as exc:
+        raise LLMError(f"无法连接到「{provider_name}」（{url}）：请确认服务已启动、地址正确") from exc
+    except httpx.HTTPError as exc:
+        raise LLMError(f"调用「{provider_name}」失败：{exc.__class__.__name__}: {exc}") from exc
+
+    content = "".join(chunks).strip()
+    if not content:
+        raise LLMError("模型服务返回了空回复")
+    return content, usage
+
+
+def _chat_ollama_stream(
+    target: dict,
+    messages: list[dict[str, str]],
+    temperature: float | None,
+    max_tokens: int | None,
+    emit: Callable[[str], None],
+) -> tuple[str, dict]:
+    base_url = target.get("base_url") or DEFAULT_OLLAMA_BASE_URL
+    model_name = target.get("model_name") or ""
+    url = _join_url(base_url, "/api/chat")
+    payload: dict[str, Any] = {"model": model_name, "messages": messages, "stream": True}
+    options: dict[str, Any] = {}
+    if temperature is not None:
+        options["temperature"] = float(temperature)
+    if max_tokens is not None:
+        options["num_predict"] = int(max_tokens)
+    if options:
+        payload["options"] = options
+
+    provider_name = target.get("provider_name") or "Ollama"
+    chunks: list[str] = []
+    usage: dict = {}
+    try:
+        with _client() as client:
+            with client.stream("POST", url, json=payload) as response:
+                if response.status_code >= 400:
+                    body = response.read().decode("utf-8", "replace")[:160].replace("\n", " ")
+                    raise LLMError(
+                        f"「{provider_name}」流式调用失败（HTTP {response.status_code}）：{body or '无返回内容'}"
+                    )
+                for line in response.iter_lines():
+                    line = (line or "").strip()
+                    if not line:
+                        continue
+                    try:
+                        item = json.loads(line)
+                    except ValueError:
+                        continue
+                    if item.get("error"):
+                        raise LLMError(f"「{provider_name}」返回错误：{item['error']}")
+                    message = item.get("message") if isinstance(item.get("message"), dict) else {}
+                    text = str(message.get("content") or "")
+                    if text:
+                        chunks.append(text)
+                        emit(text)
+                    if item.get("done"):
+                        prompt_tokens = _as_int(item.get("prompt_eval_count"), 0)
+                        completion_tokens = _as_int(item.get("eval_count"), 0)
+                        usage = {
+                            "prompt_tokens": prompt_tokens,
+                            "completion_tokens": completion_tokens,
+                            "total_tokens": prompt_tokens + completion_tokens,
+                        }
+                        break
+    except httpx.TimeoutException as exc:
+        raise LLMError(f"调用「{provider_name}」超时，请检查本地 Ollama 是否繁忙") from exc
+    except httpx.ConnectError as exc:
+        raise LLMError(f"无法连接到「{provider_name}」（{url}）：请确认 Ollama 已启动") from exc
+    except httpx.HTTPError as exc:
+        raise LLMError(f"调用「{provider_name}」失败：{exc.__class__.__name__}: {exc}") from exc
+
+    content = "".join(chunks).strip()
+    if not content:
+        raise LLMError("Ollama 返回了空回复")
+    return content, usage
+
+
+def stream_chat(
+    messages: list[dict],
+    *,
+    model_id: str | None = None,
+    temperature: float | None = None,
+    max_tokens: int | None = None,
+    on_delta: Callable[[str], None],
+) -> dict:
+    """调用模型并逐段回调 ``on_delta(text)``；返回值与 :func:`chat` 相同。"""
+    started = time.perf_counter()
+    cleaned = _clean_messages(messages)
+    if not cleaned:
+        return _failure("消息内容为空，无法调用模型", None, started)
+    target = _resolve_target(model_id)
+    if target is None:
+        message = "指定的模型不存在，请检查模型配置" if model_id else "尚未配置可用的模型，请先在「模型管理」中添加并启用模型"
+        return _failure(message, None, started)
+
+    model_name = (target.get("model_name") or "").strip()
+    provider_type = (target.get("provider_type") or "").strip().lower()
+    if not model_name:
+        return _failure("模型名称为空，请检查模型配置", target, started)
+    temperature = (
+        _as_float(target.get("temperature"), 0.3) if temperature is None else float(temperature)
+    )
+    max_tokens = (
+        _as_int(target.get("max_tokens"), 1200) if max_tokens is None else int(max_tokens)
+    )
+
+    if provider_type == "mock":
+        content = chat(messages, model_id=model_id, temperature=temperature, max_tokens=max_tokens)
+        text = str(content.get("content") or "")
+        for index in range(0, len(text), 24):
+            on_delta(text[index : index + 24])
+        return content
+
+    key = _circuit_key(target)
+    if _circuit_open(key):
+        return _failure(
+            "模型服务连续失败，已暂时熔断；请稍后重试或检查模型配置/网络。",
+            target,
+            started,
+        )
+
+    emitted = False
+    attempts = max(1, RETRY_ATTEMPTS)
+    last_error = ""
+    for attempt in range(attempts):
+        def emit(text: str) -> None:
+            nonlocal emitted
+            emitted = True
+            on_delta(text)
+
+        try:
+            if provider_type == "openai":
+                text, usage = _chat_openai_stream(
+                    target, cleaned, temperature, max_tokens, emit
+                )
+            elif provider_type == "ollama":
+                text, usage = _chat_ollama_stream(
+                    target, cleaned, temperature, max_tokens, emit
+                )
+            else:
+                raise LLMError(f"不支持的 Provider 类型：{provider_type or '空'}")
+            _record_success(key)
+            return _success(text, target, usage, started)
+        except LLMError as exc:
+            last_error = str(exc)
+            logger.warning(
+                "流式模型调用失败（%s / %s，第 %s 次）：%s",
+                target.get("provider_name"),
+                model_name,
+                attempt + 1,
+                last_error,
+            )
+            # Never replay after partial output: the student would see duplicates.
+            if emitted or attempt + 1 >= attempts or not _retryable(last_error):
+                break
+            time.sleep(max(0.0, RETRY_BACKOFF_SECONDS))
+        except Exception as exc:  # pragma: no cover - 兜底
+            logger.exception("流式模型调用发生未预期错误")
+            last_error = f"调用模型时发生未预期错误：{exc}"
+            break
+
+    _record_failure(key, last_error or "流式调用失败")
+    return _failure(last_error or "流式调用失败", target, started)
 
 
 def test_provider(provider_id: str) -> dict:

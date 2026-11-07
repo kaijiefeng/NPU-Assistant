@@ -20,6 +20,7 @@ from __future__ import annotations
 import html
 import logging
 import re
+from datetime import date
 from typing import Any
 
 import markdown
@@ -28,7 +29,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from fastapi.responses import JSONResponse
 
 from .. import db
-from ..services import text_utils, wiki_builder, wiki_nav
+from ..services import freshness, text_utils, wiki_builder, wiki_nav
 
 logger = logging.getLogger("npu-assistant")
 
@@ -125,6 +126,13 @@ def _page_dict(row: dict | None) -> dict | None:
         return None
     aliases = db.from_json(row.get("aliases"), [])
     tags = db.from_json(row.get("tags"), [])
+    fresh = freshness.freshness_for(
+        published_at=row.get("published_at"),
+        effective_at=row.get("effective_at"),
+        expires_at=row.get("expires_at"),
+        verified_at=row.get("verified_at"),
+        academic_year=row.get("academic_year"),
+    )
     return {
         "id": row["id"],
         "slug": row["slug"],
@@ -138,6 +146,14 @@ def _page_dict(row: dict | None) -> dict | None:
         "source_count": int(row.get("source_count") or 0),
         "created_at": row.get("created_at"),
         "updated_at": row.get("updated_at"),
+        "published_at": fresh["published_at"],
+        "effective_at": fresh["effective_at"],
+        "expires_at": fresh["expires_at"],
+        "verified_at": fresh["verified_at"],
+        "academic_year": fresh["academic_year"],
+        "doc_type": row.get("doc_type") or "general",
+        "verified_by": row.get("verified_by") or "",
+        "freshness": fresh,
     }
 
 
@@ -152,6 +168,7 @@ def _page_card(page: dict) -> dict:
         "status": page["status"],
         "source_count": page["source_count"],
         "updated_at": page["updated_at"],
+        "freshness": page.get("freshness") or {},
     }
 
 
@@ -196,6 +213,29 @@ def _string_list(value: Any, field: str) -> list[str]:
         if text and text not in result:
             result.append(text[:60])
     return result
+
+
+def _date_value(value: Any, field: str) -> str:
+    """Normalise an optional date field to ``YYYY-MM-DD`` (empty allowed)."""
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    parsed = freshness.parse_date(text)
+    if not parsed:
+        raise HTTPException(status_code=400, detail=f"{field} 必须是 YYYY-MM-DD 格式")
+    return parsed.isoformat()
+
+
+def _academic_year_value(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    if not re.match(r"^\d{4}-\d{4}$", text):
+        raise HTTPException(status_code=400, detail="academic_year 必须形如 2025-2026")
+    start, end = text.split("-")
+    if int(end) != int(start) + 1:
+        raise HTTPException(status_code=400, detail="academic_year 的学年范围必须连续")
+    return text
 
 
 def _page_detail(page: dict) -> dict:
@@ -291,7 +331,19 @@ def update_page(page_id: str, payload: dict) -> dict:
     """手工编辑词条：version+1 且 status=ready。"""
     page = _require_page(page_id)
     data = _payload_dict(payload)
-    allowed = {"title", "summary", "body_md", "aliases", "tags"}
+    allowed = {
+        "title",
+        "summary",
+        "body_md",
+        "aliases",
+        "tags",
+        "published_at",
+        "effective_at",
+        "expires_at",
+        "verified_at",
+        "academic_year",
+        "doc_type",
+    }
     unknown = set(data) - allowed
     if unknown:
         raise HTTPException(
@@ -329,11 +381,38 @@ def update_page(page_id: str, payload: dict) -> dict:
     if "tags" in data:
         updates.append("tags = ?")
         params.append(db.to_json(_string_list(data.get("tags"), "tags")))
+    for field in ("published_at", "effective_at", "expires_at", "verified_at"):
+        if field in data:
+            updates.append(f"{field} = ?")
+            params.append(_date_value(data.get(field), field))
+    if "academic_year" in data:
+        updates.append("academic_year = ?")
+        params.append(_academic_year_value(data.get("academic_year")))
+    if "doc_type" in data:
+        doc_type = str(data.get("doc_type") or "general").strip().lower()
+        if doc_type not in {"general", "notice", "policy", "faq"}:
+            raise HTTPException(status_code=400, detail="不支持的 doc_type")
+        updates.append("doc_type = ?")
+        params.append(doc_type)
 
     updates.extend(["status = 'ready'", "version = version + 1", "updated_at = ?"])
     params.extend([db.now(), page_id])
     db.execute(f"UPDATE wiki_pages SET {', '.join(updates)} WHERE id = ?", params)
     logger.info("词条已手工编辑：%s", page_id)
+    return _page_detail(_require_page(page_id))
+
+
+@router.post("/wiki/pages/{page_id}/verify")
+def verify_page(page_id: str, payload: dict | None = None) -> dict:
+    """Mark a page as verified today (or a supplied date)."""
+    _require_page(page_id)
+    data = _payload_dict(payload)
+    verified_at = _date_value(data.get("verified_at"), "verified_at") or date.today().isoformat()
+    verified_by = str(data.get("verified_by") or "admin").strip()[:80]
+    db.execute(
+        "UPDATE wiki_pages SET verified_at = ?, verified_by = ?, updated_at = ? WHERE id = ?",
+        (verified_at, verified_by, db.now(), page_id),
+    )
     return _page_detail(_require_page(page_id))
 
 
