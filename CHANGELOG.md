@@ -2,9 +2,9 @@
 
 本文件记录 NPU-Assistant 的发布版本。版本号遵循语义化版本：`主版本.次版本.修订号`。
 
-## v0.2.0 — 开发中（M1-M5 已完成，待发布，2026-11-05）
+## v0.2.0 — 2026-11-09（服务闭环发布版）
 
-主题：**服务闭环（RSI）与稳定运行**。学生反馈驱动知识缺口，辅导员补资料，回答变好；危机与转人工有兜底；管理操作可分权审计；大文件后台编译，回答逐字输出，模型故障可重试/熔断/告警。
+主题：**服务闭环（RSI）与稳定运行**。学生反馈驱动知识缺口，辅导员补资料，回答变好；危机与转人工有兜底；管理操作可分权审计；大文件后台编译，回答逐字输出，模型故障可重试/熔断/告警。对应分支 `release`，标签 `v0.2.0`。
 
 - M1 反馈/缺口闭环：`answer_feedback`、`knowledge_gaps`；回答持久化 `retrieval` / `fallback` / `navigation_method`；学生「有帮助/没帮助 + 原因」；服务台概览、缺口列表、反馈列表；
 - M1 时效性：文档/词条新增发布、生效、失效、核对日期与学年；派生 `fresh/aging/stale/expired/unknown`；提示词注入当前日期与学年；导航优先新鲜词条；过期内容在无替代时才带警告回答；
@@ -20,7 +20,7 @@
 - 信息架构：一级导航收敛为「对话 / 知识库 / 运营 / 设置」；知识库默认浏览、有权限时进入内容管理；服务台、任务与告警、审计日志收进「运营」；助手设置、模型、机器人、成员与权限、我的账号收进「设置」；旧路由自动重定向；
 - 兼容：未配置账号且未设置令牌时保持本机演示零配置；新增 `NPU_ADMIN_PASSWORD` 首启引导、`NPU_COOKIE_SECURE`、`NPU_ADMIN_SESSION_DAYS`、`NPU_LLM_RETRIES`、`NPU_LLM_BREAKER_*` 等环境变量；
 - 机器人：移除 OneBot 11 通道与 `/api/bots/onebot/*` 接口，QQ 渠道统一使用官方机器人（WebSocket），减少第三方框架与 Webhook 维护面；
-- 测试：新增 `test_insights.py`、`test_handoff.py`、`test_auth.py`、`test_jobs.py`、`test_streaming.py`；全量 175 项通过。
+- 测试：新增 `test_insights.py`、`test_handoff.py`、`test_auth.py`、`test_jobs.py`、`test_streaming.py`；全量 161 项通过（2026-11-09 实测）。
 
 ## v0.1.7 — 2026-11-02（源文件下载 + 对话来源链接）
 

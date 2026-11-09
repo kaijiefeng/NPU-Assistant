@@ -13,7 +13,7 @@ from datetime import datetime
 from pathlib import Path
 
 APP_NAME = "NPU-Assistant"
-APP_VERSION = "0.1.7"
+APP_VERSION = "0.2.0"
 APP_DESCRIPTION = "校园助手 NPU-Assistant：辅导员数字分身 · LLM Wiki 知识库 · 模型管理 · 微信/QQ 机器人"
 
 # backend/app/config.py -> backend/

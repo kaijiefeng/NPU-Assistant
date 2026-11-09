@@ -5,7 +5,7 @@
 
 把学生手册、奖助政策、办事指南交给 LLM **编译成结构化 Wiki 词条**；学生提问时通过「目录 / 别名 / 关键词 / LLM 选页」定位词条，再由 LLM 阅读词条作答，并给出**词条 + 原始文件章节**双层引用——答案可核对、词条可编辑、系统可离线演示。后端 FastAPI + SQLite，前端纯静态，无 Node 构建、无向量库。
 
-> 当前版本：**v0.2.0 M1-M5**（开发中，分支 `develop`）· 变更见 [CHANGELOG.md](CHANGELOG.md) · QA 数据集见 [docs/npu-handbook](docs/npu-handbook/README.md)
+> 当前版本：**v0.2.0**（2026-11-09 发布）· 变更见 [CHANGELOG.md](CHANGELOG.md) · QA 数据集见 [docs/npu-handbook](docs/npu-handbook/README.md)
 >
 > 📘 **学生 / 辅导员请直接看 [图文使用手册](frontend/manual/index.html)**（手机截图、动图、常见问题）；服务启动后也可访问 <http://127.0.0.1:8000/manual/index.html>
 
