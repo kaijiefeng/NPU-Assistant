@@ -583,4 +583,38 @@ $env:NPU_PUBLIC_URL = "https://npu.example.edu.cn"
 
 ---
 
+## 16. 运行时环境变量（完整表）
+
+> 首页 README 只保留最常用项；完整清单以本节为准（与 `backend/app/config.py` 一致）。
+
+| 变量 | 默认 | 说明 |
+|------|------|------|
+| `NPU_HOST` / `NPU_PORT` | `127.0.0.1` / `8000` | 监听地址与端口 |
+| `NPU_DATA_DIR` | `backend/data` | 数据目录（数据库、上传文件） |
+| `NPU_DB_PATH` | `backend/data/app.db` | SQLite 数据库路径 |
+| `NPU_WIKI_SEED_PATH` | `backend/data/wiki_seed.json` | 预编译 Wiki 快照路径 |
+| `NPU_MAX_UPLOAD_MB` | `20` | 单文件上传上限 |
+| `NPU_AUTO_SEED` | `1` | 首启是否自动导入 Wiki 快照 |
+| `NPU_ADMIN_TOKEN` | 空 | 设置后管理类写操作与历史会话接口需 `X-Admin-Token` 请求头（学生问答 `POST /api/chat`、GET、机器人 webhook 不受影响）；也可在设置页首次启用/替换（环境变量优先，环境变量存在时 UI 轮换返回 409） |
+| `NPU_CORS_ORIGINS` | 空 | CORS 白名单（逗号分隔）；默认关闭，同源 SPA 不需要 |
+| `NPU_ALLOW_INSECURE_LAN` | `0` | 对外监听且未设管理令牌时，服务默认拒绝启动；仅可信内网临时演示可设 `1` |
+| `NPU_BOT_ALLOW_INSECURE` | `0` | 机器人 webhook 空 token 逃生开关，仅限本机调试 |
+| `NPU_QQ_OFFICIAL_AUTOSTART` | `1` | 启动时是否自动连接已启用 `qq_official` 通道的 QQ 网关；测试环境设 `0` |
+| `NPU_URL_IMPORT_ALLOW_PRIVATE` | `0` | URL 收录是否允许私网/回环地址（内网资料才临时开启） |
+| `NPU_URL_IMPORT_MAX_BYTES` | `8388608` | URL 抓取响应大小上限（默认 8MB，可调） |
+| `NPU_URL_IMPORT_MAX_URLS` | `5` | 批量收录单次链接上限 |
+
+### 16.1 重新生成预编译 Wiki 快照（会消耗 LLM Token）
+
+```powershell
+$env:NPU_SEED_API_KEY="sk-..."
+$env:NPU_SEED_BASE_URL="https://api.deepseek.com/v1"   # 可选
+$env:NPU_SEED_MODEL="deepseek-chat"                    # 可选
+.\.venv\Scripts\python.exe scripts\build_wiki_seed.py
+```
+
+脚本使用临时数据目录编译，不会污染 `backend/data/app.db`；产物写入 `backend/data/wiki_seed.json`。冷启动且 `wiki_pages` 为空时自动导入，也可在「知识库 → 源文件」点「导入预编译快照」。
+
+---
+
 *本手册面向日常管理与操作；涉及代码、数据库结构、接口开发的内容见 `docs/DEVELOPER.md`。*
