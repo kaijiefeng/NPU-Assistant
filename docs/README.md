@@ -56,4 +56,4 @@
 - 客户手册改 `frontend/manual/index.html` / `product.html`，共用样式 `manual.css`。
 - 管理员手册改 `ADMIN-OPS.md`；开发手册改 `DEVELOPER.md`；排期改 `ROADMAP.md`。
 - 接口/数据模型变更先改 `CONTRACT.md` / `API.md`，再改代码。
-- 发布时同步更新：`CHANGELOG.md`、`ROADMAP.md` 状态、README 版本号、客户手册版本号。
+- 发布时同步更新：`CHANGELOG.md`、`ROADMAP.md` 状态、README 版本号、客户手册版本号；打 tag 用 `../scripts/release.ps1`，GitHub Release 由 Actions 自动生成（见 `DEVELOPER.md` §17）。

@@ -592,13 +592,106 @@ cd backend
 
 ## 17. 版本与发布流程
 
-1. 更新 `config.APP_VERSION`。
-2. 更新 `CHANGELOG.md`（版本、日期、主题、变更点）。
-3. 更新 README/手册/路线图状态。
-4. 跑 `check.ps1` + `smoke.ps1` + 评测回归；UI 改动跑 `ui_check.py`。
-5. 备份数据。
-6. 合并到发布分支/打 tag。
-7. 部署后验证 `/api/health`、首页、一次问答、一次上传。
+发布 = 写 CHANGELOG + 跑一次脚本。tag 推送到 GitHub 后，
+`.github/workflows/release.yml` 会自动创建/更新 GitHub Release，正文取自
+`CHANGELOG.md` 的同名章节，不需要再到网页手工点「Draft a new release」。
+
+### 17.1 一次性配置
+
+- 仓库 **Settings → Actions → General → Workflow permissions** 选择
+  **Read and write permissions**（工作流用 `GITHUB_TOKEN` 创建 Release）。
+- `.github/workflows/release.yml` 必须进入**待打 tag 的那个提交**：tag push 触发的是
+  被打标签提交里的工作流，`release` 分支没有它就会静默不触发 Release。
+- 默认分支 `develop` 也要包含该工作流，否则 Actions 页面看不到可手动运行的 Release。
+  因此 `develop` / `master` / `release` 三个分支都应带上它。
+- 本地 `master` / `release` 可能落后于 `develop`：发布前先切换到发布分支并
+  `git merge --ff-only origin/develop`，否则会在旧树上发版（`v0.2.0` 历史 tag 打在
+  `develop` 上属既有偏差，不影响新流程）。
+
+### 17.2 常规发布（应用版本）
+
+1. 先把 `develop` 的改动合到 `release` 并切换过去（本地分支落后时先快进）：
+   `git switch release` → `git merge --ff-only origin/develop`。
+2. 在 `CHANGELOG.md` 顶部写发布章节，标题必须匹配 `## vX.Y.Z`：
+
+   ```markdown
+   ## v0.2.1 — 2026-11-20（主题）
+
+   主题：**一句话说明本版重点**。
+
+   - 变更点……
+   ```
+
+   提交这次文档改动（脚本要求工作区干净）。
+3. 运行发布脚本：
+
+   ```powershell
+   .\scripts\release.ps1 -Version 0.2.1 -Branch release
+   ```
+
+   脚本依次完成：检查工作区 / 分支 / 与远端同步（`git fetch` + 落后检查）/
+   tag 是否重复 → 校验 CHANGELOG 章节 → 修改 `backend/app/config.py` 的
+   `APP_VERSION` → 跑 `pytest` → 提交 `chore: release v0.2.1` → 打 annotated
+   tag → `git push --atomic` 一次性推送分支和 tag。
+4. 打开 **Actions → Release** 确认 Release 已创建。工作流会先校验 tag 与
+   `APP_VERSION` 一致，再读取 CHANGELOG 章节作为正文。
+5. 发布后同步脚本不管的位置：根 `README.md` 与 `frontend/manual/product.html`
+   的版本号、`docs/ROADMAP.md` 的状态、`docs/npu-handbook/README.md` 的数据集清单。
+6. 部署后验证 `/api/health`（`version`）、首页、一次问答、一次上传。
+
+脚本参数：`-SkipTests`（不推荐）、`-SkipPush`（只打本地 tag）、
+`-DryRun`（只做检查，不改文件、不提交、不推送；仍会 `git fetch` 访问 origin、
+默认仍跑 `pytest`，可加 `-SkipTests` 加速）。
+
+预发布：`-Version 0.2.1-rc1` 时 CHANGELOG 章节要写成 `## v0.2.1-rc1`，
+`APP_VERSION` 也会写成 `0.2.1-rc1`；workflow 会把带 `-` 的 tag 标为 prerelease。
+
+常见失败与恢复：
+
+- `tag ... 与 APP_VERSION ... 不一致`：先改 `config.py` 再打 tag，不要反过来；
+- `Resource not accessible by integration`：workflow 已声明
+  `permissions: contents: write`，仍报错时检查仓库
+  Settings → Actions → General → Workflow permissions 是否为 Read and write，
+  以及组织策略/分支保护是否限制了 `GITHUB_TOKEN`；
+- 测试失败（发生在 `APP_VERSION` 已改之后）：先
+  `git checkout -- backend/app/config.py` 清掉未提交改动，修好问题再重跑；
+- 本地 tag 已建但 push 失败：`git tag -d vX.Y.Z` 后重跑（分支 push 幂等）；
+- 远端已存在同名 tag：不能删 tag 时去 Actions 手动 `Run workflow` 补发 Release；
+- Release 正文是 GitHub 自动生成的：`CHANGELOG.md` 没有对应章节，或标题不是
+  `## vX.Y.Z`，补好后重跑工作流。
+
+### 17.3 数据集发布
+
+```powershell
+git tag dataset-v2026.22
+git push origin dataset-v2026.22
+```
+
+工作流读取 `docs/npu-handbook/release/v2026.22/dataset-card.md` 作为正文（可带
+YAML front matter）；没有 dataset card 时回退到 GitHub 自动生成的 notes。数据集
+Release 使用 `--latest=false`，不会抢应用版本的 Latest 标记。tag 必须打在包含
+`.github/workflows/release.yml` 的提交上；发布后同步
+`docs/npu-handbook/README.md` 的 release 目录清单与 `CHANGELOG.md` 的数据集章节。
+
+### 17.4 补发 / 重发
+
+Actions → Release → **Run workflow** → 输入已存在的 tag（如 `v0.2.0`、`v0.1.7`、
+`dataset-v2026.21`）。checkout 到旧 tag 后如果没有 `scripts/release_notes.py`，
+工作流会从默认分支临时取用；旧 tag 缺少 CHANGELOG 章节时自动回退 GitHub 生成的
+notes。工作流是幂等的：已有 Release 时只更新标题和正文（有 notes 文件时才改正文），
+不会重复创建。
+
+### 17.5 手工兜底
+
+Actions 不可用时，可以手工生成正文并创建 Release：
+
+```powershell
+.\.venv\Scripts\python.exe scripts\release_notes.py --version v0.2.1 --output release-notes.md
+gh release create v0.2.1 --verify-tag --title v0.2.1 --notes-file release-notes.md
+```
+
+生成的正文首行是 `## vX.Y.Z — 日期（主题）`，与 Release 标题重复，属正常。
+多个历史 tag 需要补 Release 时，逐个在 Actions 里 `Run workflow` 即可。
 
 ---
 
