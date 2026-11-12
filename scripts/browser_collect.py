@@ -298,6 +298,73 @@ async def collect_site(
     return summary
 
 
+async def collect_urls(
+    ws_url: str,
+    urls: list[str],
+    existing: set[str],
+    lock: asyncio.Lock,
+    delay: float,
+    limit: int,
+) -> dict:
+    """按 URL 清单渲染采集（用于审计发现的缺口页）。"""
+    summary = {"mode": "urls", "collected": 0, "failed": 0, "errors": []}
+    async with websockets.connect(ws_url, max_size=64 * 1024 * 1024) as ws:
+        cdp = CDP(ws)
+        await cdp.call("Page.enable")
+        await cdp.call("Runtime.enable")
+        await cdp.call(
+            "Network.setUserAgentOverride",
+            {"userAgent": BROWSER_UA, "acceptLanguage": "zh-CN,zh;q=0.9"},
+        )
+        for url in urls:
+            if summary["collected"] >= limit:
+                break
+            if url in existing:
+                continue
+            await asyncio.sleep(delay)
+            try:
+                page = await render(cdp, url)
+                article = importer.extract_article(page, content_type="text/html")
+            except Exception as exc:  # noqa: BLE001
+                summary["failed"] += 1
+                summary["errors"].append(f"{url}: {type(exc).__name__}")
+                continue
+            text = (article.get("text") or "").strip()
+            if len(text) < MIN_CHARS:
+                continue
+            title = clean_title(article.get("title") or "")
+            category, doc_type = classify(title, url)
+            content_id = doc_id(url)
+            record = {
+                "id": content_id,
+                "url": url,
+                "title": title,
+                "site": site_of(url),
+                "source_name": "定向补采（浏览器）",
+                "category": category,
+                "doc_type": doc_type,
+                "audience": normalize_audience("全体"),
+                "publish_date": extract_date(title),
+                "collected_at": datetime.now().astimezone().date().isoformat(),
+                "chars": len(text),
+                "sha256": hashlib_sha256(text),
+                "file": f"corpus/{content_id}.md",
+                "list_page": "",
+                "collector": "browser-urls",
+            }
+            async with lock:
+                if url in existing:
+                    continue
+                (OUT_DIR / record["file"]).write_text(
+                    article_markdown(record, text[:MAX_CHARS]), encoding="utf-8"
+                )
+                with MANIFEST.open("a", encoding="utf-8") as handle:
+                    handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+                existing.add(url)
+                summary["collected"] += 1
+    return summary
+
+
 def hashlib_sha256(text: str) -> str:
     import hashlib
 
@@ -313,7 +380,7 @@ def find_browser() -> str:
 
 async def run(args) -> int:
     sites = [item.strip() for item in args.sites.split(",") if item.strip() in SITES]
-    if not sites:
+    if not sites and not args.urls:
         print(f"可用站点：{', '.join(SITES)}")
         return 2
     CORPUS_DIR.mkdir(parents=True, exist_ok=True)
@@ -357,6 +424,19 @@ async def run(args) -> int:
             print(json.dumps(result, ensure_ascii=False), flush=True)
             return result
 
+        if args.urls:
+            urls = [
+                line.strip().lstrip("\ufeff")
+                for line in Path(args.urls).read_text(encoding="utf-8").splitlines()
+                if line.strip().lstrip("\ufeff") and not line.strip().startswith("#")
+            ]
+            response = httpx.put(f"http://127.0.0.1:{port}/json/new?about:blank", timeout=10)
+            ws_url = response.json()["webSocketDebuggerUrl"]
+            result = await collect_urls(ws_url, urls, existing, lock, args.delay, args.limit)
+            print(json.dumps(result, ensure_ascii=False), flush=True)
+            print(f"\n浏览器 URL 补采完成：{result['collected']} 篇 / {len(urls)} 个链接", flush=True)
+            return 0
+
         results = await asyncio.gather(*(worker(site_id) for site_id in sites))
         total = sum(row["collected"] for row in results)
         print(f"\n浏览器渲染采集完成：{total} 篇 / {len(results)} 个站点", flush=True)
@@ -372,7 +452,8 @@ async def run(args) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="用真实 Chrome 渲染采集 WAF 站点的公开页面")
     parser.add_argument("--sites", default="job,zsb,tushuguan", help="逗号分隔：job / zsb / tushuguan / library")
-    parser.add_argument("--limit", type=int, default=60, help="每个站点最多采集篇数")
+    parser.add_argument("--urls", metavar="FILE", help="按清单文件（每行一个 URL）渲染补采 HTML 页")
+    parser.add_argument("--limit", type=int, default=60, help="每个站点/清单最多采集篇数")
     parser.add_argument("--per-column", type=int, default=10, help="每个栏目最多采集篇数")
     parser.add_argument("--delay", type=float, default=0.6, help="同站请求间隔秒")
     parser.add_argument("--port", type=int, default=9333, help="Chrome 调试端口")

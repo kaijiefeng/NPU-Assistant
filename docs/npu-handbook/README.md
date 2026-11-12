@@ -12,11 +12,11 @@
 ## 公开文档批量采集（collect/，2026-11-12）
 
 - 目标：为知识库准备 **1000+ 份**官方公开文档，并保证覆盖广度（站点、主题、文档类型、受众、时效）；
-- 结果：**1702 篇 / 62 个 `nwpu.edu.cn` 站点 / 24 个主题类目 / 6 种文档类型**，正文约 226 万字，发布时间跨 2013–2026 年；
+- 结果：**1707 篇 / 65 个 `nwpu.edu.cn` 站点 / 24 个主题类目 / 6 种文档类型**，正文约 227 万字，发布时间跨 2013–2026 年；
 - 位置：独立目录 `collect/`，**不混入**上面 114 篇精选语料，也不影响已冻结的 v2026.21 QA 数据集；
 - 分类法：`collect/TAXONOMY.md`（参考高校学生手册目录、《瓜兵速成指南》、USC Wiki 等相似项目的分类方式，采用「主题 × 文档类型 × 受众 × 发布单位 × 时效」五维模型）；
-- 统计与缺口：`collect/COLLECTION-REPORT.md`、`collect/coverage.csv`、`collect/README.md`；
-- 采集器：`scripts/handbook_collect.py`（发现 → 采集 → 分片导入 → 重分类 → 报告）；被 WAF 412 拦截的就业/本科招生/图书馆站点由 `scripts/browser_collect.py`（真实 Chrome + CDP 渲染）补采；子智能体检索分片见 `collect/manual-shards/`。
+- 统计与完整性：`collect/COLLECTION-REPORT.md`、`collect/coverage.csv`、`collect/COMPLETENESS-AUDIT.md`（67 项清单，51 项已有独立文档）、`collect/README.md`；
+- 采集器：`scripts/handbook_collect.py`（发现 → 采集 → 分片导入 → 重分类 → 报告 → 审计，支持 `--urls` 定向补采）；被 WAF 412 拦截的就业/本科招生/图书馆站点由 `scripts/browser_collect.py`（真实 Chrome + CDP 渲染）补采；PDF 附件由 `scripts/attachment_collect.py` 提取；子智能体检索分片见 `collect/manual-shards/`。
 
 ## 文件
 

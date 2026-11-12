@@ -691,6 +691,343 @@ def reclassify() -> int:
 
 
 # ---------------------------------------------------------------------------
+# 完整性审计：对照「学生手册应该覆盖什么」检查已有采集
+# ---------------------------------------------------------------------------
+# (主题, 检查项, 标题/分类命中关键词)。只做可解释的关键词命中，不追求语义精确。
+HANDBOOK_CHECKLIST: list[tuple[str, str, tuple[str, ...]]] = [
+    ("学籍与注册", "学籍管理规定", ("学籍管理", "学籍处理")),
+    ("学籍与注册", "转专业（大类）实施办法", ("转专业",)),
+    ("学籍与注册", "休学/复学/退学办理", ("休学", "复学", "退学")),
+    ("学籍与注册", "保留学籍/降级/延长学制", ("保留学籍", "降级", "延长学制", "延期毕业")),
+    ("学籍与注册", "转段/硕博连读", ("转段", "硕博连读", "直博")),
+    ("培养与课程", "培养方案", ("培养方案",)),
+    ("培养与课程", "选课办法", ("选课",)),
+    ("培养与课程", "辅修/双学位", ("辅修", "双学位", "第二学士学位")),
+    ("培养与课程", "创新学分/素质拓展", ("创新学分", "素质拓展", "第二课堂")),
+    ("培养与课程", "请假/考勤", ("请假", "考勤", "销假")),
+    ("培养与课程", "导师双选/开题/中期", ("导师", "开题", "中期考核", "中期检查")),
+    ("考试与成绩", "考试管理办法", ("考试管理", "考场", "监考", "考试纪律")),
+    ("考试与成绩", "缓考/补考/重修", ("缓考", "补考", "重修")),
+    ("考试与成绩", "GPA/学分绩点计算", ("GPA", "绩点", "学分绩")),
+    ("考试与成绩", "四六级/外语考试", ("四六级", "CET", "外语考试")),
+    ("考试与成绩", "体测/体育课", ("体测", "体质", "体育课", "阳光体育")),
+    ("学位与毕业", "学位授予工作细则", ("学位授予", "学位申请")),
+    ("学位与毕业", "论文查重/学术规范", ("查重", "学术规范", "学术不端", "论文检测")),
+    ("学位与毕业", "答辩/评阅", ("答辩", "评阅", "盲审")),
+    ("学位与毕业", "毕业离校手续", ("离校", "毕业手续", "毕业证明", "毕业照")),
+    ("推免与升学", "推免（保研）办法", ("推免", "保研", "推荐免试")),
+    ("推免与升学", "考研/夏令营", ("考研", "夏令营", "招生宣传")),
+    ("奖助与资助", "国家奖学金/励志奖学金", ("国家奖学金", "励志奖学金", "奖学金")),
+    ("奖助与资助", "国家助学金/困难认定", ("助学金", "困难认定", "家庭经济困难")),
+    ("奖助与资助", "助学贷款", ("助学贷款", "生源地贷款", "贷款")),
+    ("奖助与资助", "勤工助学", ("勤工助学", "勤工")),
+    ("奖助与资助", "绿色通道/学费减免/临时补助", ("绿色通道", "学费减免", "临时困难", "补助")),
+    ("奖助与资助", "应征入伍学费补偿", ("学费补偿", "入伍", "征兵")),
+    ("纪律与申诉", "学生违纪处分办法", ("违纪", "处分", "处分规定")),
+    ("纪律与申诉", "学生申诉处理办法", ("申诉",)),
+    ("纪律与申诉", "考试违纪/学术不端处理", ("考试违纪", "学术不端", "作弊")),
+    ("宿舍与公寓", "学生公寓管理办法", ("公寓管理", "公寓", "宿舍管理")),
+    ("宿舍与公寓", "调宿/退宿/走读", ("调宿", "退宿", "走读", "校外住宿")),
+    ("宿舍与公寓", "用电/消防/门禁晚归", ("用电", "消防", "门禁", "晚归", "违章电器")),
+    ("生活服务", "食堂/超市/快递/热水/洗衣", ("食堂", "餐厅", "快递", "热水", "洗衣", "超市", "浴室")),
+    ("生活服务", "报修/水电费", ("报修", "维修", "水电", "电费", "水费")),
+    ("医疗与医保", "校医院就诊流程", ("校医院", "就诊", "门诊", "医院")),
+    ("医疗与医保", "大学生医保/报销", ("医保", "报销", "医疗保险")),
+    ("医疗与医保", "体检/疫苗", ("体检", "疫苗", "接种")),
+    ("心理健康", "心理咨询预约", ("心理咨询", "咨询预约", "心理中心")),
+    ("心理健康", "危机干预/求助渠道", ("危机", "干预", "24小时", "心理热线")),
+    ("就业与档案", "就业手续（三方/报到证/改派）", ("三方", "报到证", "改派", "就业协议")),
+    ("就业与档案", "档案转递", ("档案", "转递")),
+    ("就业与档案", "招聘会/双选会", ("双选会", "招聘会", "宣讲会")),
+    ("就业与档案", "选调生/基层就业", ("选调", "基层就业", "西部计划", "三支一扶")),
+    ("安全与户籍", "户口迁移/身份证", ("户口", "户籍", "身份证")),
+    ("安全与户籍", "安全教育/防诈骗", ("安全教育", "防诈骗", "诈骗", "反诈")),
+    ("安全与户籍", "实验室安全", ("实验室安全", "实验室", "危险品")),
+    ("校园卡与财务", "校园卡办理/挂失", ("校园卡", "一卡通")),
+    ("校园卡与财务", "学费住宿费缴纳", ("学费", "住宿费", "缴费", "收费")),
+    ("校园卡与财务", "财务报销", ("报销", "财务")),
+    ("网络与信息化", "校园网/账号/VPN", ("校园网", "VPN", "账号", "网络服务", "上网")),
+    ("网络与信息化", "一网通办/信息系统", ("一网通办", "办事大厅", "信息化", "系统")),
+    ("图书馆与文体", "入馆/借阅规则", ("入馆", "借阅", "借书", "还书", "超期")),
+    ("图书馆与文体", "座位/研习间预约", ("座位预约", "研习间", "预约", "座位")),
+    ("图书馆与文体", "体育场馆预约", ("场馆", "体育场馆", "健身房", "游泳")),
+    ("图书馆与文体", "社团/文体活动", ("社团", "文体", "艺术团", "运动会")),
+    ("军训与国防", "军训安排/学分", ("军训", "军事理论", "国防教育")),
+    ("军训与国防", "征兵/入伍政策", ("征兵", "入伍", "国防生")),
+    ("校历与出行", "校历/假期安排", ("校历", "假期", "放假", "开学时间")),
+    ("校历与出行", "校车/通勤", ("校车", "班车", "通勤", "两校区")),
+    ("校历与出行", "校门/交通出行", ("校门", "地铁", "公交", "出行")),
+    ("国际交流", "出国（境）交流项目", ("出国", "境外", "交流项目", "交换生", "公派")),
+    ("国际交流", "出国（境）手续办理", ("因公出国", "护照", "签证", "审批")),
+    ("迎新与新生", "新生入学须知/报到", ("新生", "入学须知", "报到", "迎新")),
+    ("校园概况与机构", "学校/学院概况", ("学校简介", "学院简介", "学院概况", "学校概况")),
+    ("其他", "学生手册（完整版）", ("学生手册", "本科生手册", "研究生手册")),
+]
+
+
+def audit() -> int:
+    rows = load_manifest()
+    if not rows:
+        logger.error("manifest 为空，先采集再审计")
+        return 1
+    titles = [(str(row.get("title") or ""), str(row.get("file") or "")) for row in rows]
+    bodies: dict[str, str] = {}
+    for _title, file in titles:
+        path = OUT_DIR / file
+        if file and path.is_file():
+            try:
+                bodies[file] = path.read_text(encoding="utf-8").lower()
+            except OSError:
+                bodies[file] = ""
+    results = []
+    for category, item, keywords in HANDBOOK_CHECKLIST:
+        lowered = [keyword.lower() for keyword in keywords]
+        title_hits: list[str] = []
+        body_hits: list[str] = []
+        for title, file in titles:
+            if any(keyword in title.lower() for keyword in lowered):
+                title_hits.append(title)
+                continue
+            if any(keyword in bodies.get(file, "") for keyword in lowered):
+                body_hits.append(title)
+        results.append(
+            {
+                "category": category,
+                "item": item,
+                "keywords": list(keywords),
+                "hits": len(title_hits),
+                "body_hits": len(body_hits),
+                "samples": (title_hits or body_hits)[:3],
+                "status": "covered" if title_hits else "missing",
+            }
+        )
+    missing = [row for row in results if row["status"] == "missing"]
+    weak = [row for row in results if 0 < row["hits"] <= 2]
+    by_category = Counter(row["category"] for row in rows)
+    by_type = Counter(row["doc_type"] for row in rows)
+    by_audience = Counter(normalize_audience(row.get("audience") or "") for row in rows)
+    years = Counter((row.get("publish_date") or "未知")[:4] for row in rows)
+    sites = Counter(row["site"] for row in rows)
+
+    lines = [
+        "# 资料完整性与完备性审计",
+        "",
+        f"- 生成时间：{datetime.now().astimezone().isoformat(timespec='seconds')}",
+        f"- 审计对象：`docs/npu-handbook/collect/` 共 **{len(rows)}** 篇（{len(sites)} 个站点）",
+        f"- 对照清单：{len(results)} 项「学生手册/校园知识库应覆盖内容」",
+        f"- 结果：**已覆盖 {len(results) - len(missing)} 项（{(len(results) - len(missing)) / len(results):.0%}）**，"
+        f"完全未命中 **{len(missing)} 项**，仅 1–2 篇佐证的薄弱项 **{len(weak)} 项**，"
+        f"仅在正文提及 **{sum(1 for row in results if not row['hits'] and row['body_hits'])} 项**",
+        "",
+        "## 一、逐项覆盖清单",
+        "",
+        "> 说明：「标题命中」= 有独立文档以该主题命名（强证据）；「正文提及」= 仅有文档正文里提到（弱证据，需人工确认）。",
+        "",
+        "| 主题 | 应覆盖内容 | 标题命中 | 正文提及 | 样例 | 状态 |",
+        "|---|---|---:|---:|---|---|",
+    ]
+    for row in results:
+        samples = "；".join(title[:26] for title in row["samples"]) or "—"
+        if row["hits"] >= 3:
+            status = "✅ 已覆盖"
+        elif row["hits"]:
+            status = "⚠️ 薄弱"
+        elif row["body_hits"]:
+            status = "◐ 仅正文提及"
+        else:
+            status = "❌ 缺失"
+        lines.append(
+            f"| {row['category']} | {row['item']} | {row['hits']} | {row['body_hits']} | {samples} | {status} |"
+        )
+
+    lines += [
+        "",
+        "## 二、完全缺失项（优先补）",
+        "",
+    ]
+    if missing:
+        for row in missing:
+            lines.append(f"- **{row['category']} · {row['item']}**（关键词：{' / '.join(row['keywords'])}）")
+    else:
+        lines.append("- 无")
+    lines += ["", "## 三、薄弱项（1–2 篇，需加固）", ""]
+    if weak:
+        for row in weak:
+            lines.append(f"- {row['category']} · {row['item']}（{row['hits']} 篇）")
+    else:
+        lines.append("- 无")
+
+    lines += [
+        "",
+        "## 四、类目 / 类型 / 受众 / 时效分布",
+        "",
+        "| 类目 | 文档数 |",
+        "|---|---:|",
+    ]
+    for category, count in by_category.most_common():
+        lines.append(f"| {category} | {count} |")
+    lines += ["", "| 文档类型 | 文档数 |", "|---|---:|"]
+    for name, count in by_type.most_common():
+        lines.append(f"| {name} | {count} |")
+    lines += ["", "| 受众 | 文档数 |", "|---|---:|"]
+    for name, count in by_audience.most_common():
+        lines.append(f"| {name} | {count} |")
+    lines += ["", "| 发布年份 | 文档数 |", "|---|---:|"]
+    for name, count in years.most_common(8):
+        lines.append(f"| {name} | {count} |")
+    lines += ["", "## 五、站点覆盖（文档数 ≥5 的站点）", "", "| 站点 | 文档数 |", "|---|---:|"]
+    for name, count in sites.most_common():
+        if count >= 5:
+            lines.append(f"| {name} | {count} |")
+    lines += [
+        "",
+        "## 六、补采建议（按性价比）",
+        "",
+        "1. **缺失项**：优先用 `scripts/browser_collect.py`（WAF 站点）与 `scripts/handbook_collect.py --fetch`"
+        "（普通站点）继续补；PDF 附件型制度用「附件采集」通道（见 `collect/README.md`）。",
+        "2. **薄弱项**：从已采页面的「附件」链接补原文（PDF 正文提取），或换栏目（`xxgk`、`zdgk`、`gzzd`、`bszn`）。",
+        "3. **制度类**：优先补 `xgb`（学工部制度公开）、`jiaowu`（教务部规章）、`yjsy/gs`（研究生院）、"
+        "`houqinbu`（后勤）、`caiwu`（财务）、`yiyuan`（校医院）、`dag`（档案馆）的制度/流程页。",
+        "4. **完整性闭环**：补采后重跑 `--reclassify`、`--report`、`--audit`，把新增命中写回本文件。",
+        "",
+    ]
+    path = OUT_DIR / "COMPLETENESS-AUDIT.md"
+    path.write_text("\n".join(lines), encoding="utf-8")
+    logger.info(
+        "审计完成：%s 篇，缺失 %s 项，薄弱 %s 项 → %s",
+        len(rows),
+        len(missing),
+        len(weak),
+        path,
+    )
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# URL 清单采集：按给定链接补采（HTML 或 PDF，用于审计发现的缺失项）
+# ---------------------------------------------------------------------------
+URL_RULE_HINT = re.compile(r"(办法|规定|细则|条例|章程|规范|标准|实施方案|意见|准则|制度)")
+
+
+def _read_pdf_text(data: bytes) -> str:
+    import io
+
+    from pypdf import PdfReader
+
+    reader = PdfReader(io.BytesIO(data))
+    parts: list[str] = []
+    for page in reader.pages:
+        try:
+            parts.append(page.extract_text() or "")
+        except Exception:  # noqa: BLE001
+            continue
+    text = "\n".join(parts)
+    text = re.sub(r"[ \t\u3000]+", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
+def _pdf_title(text: str, url: str) -> str:
+    for line in text.splitlines():
+        candidate = clean_title(line)
+        if 6 <= len(candidate) <= 60:
+            return candidate
+    name = Path(urlsplit(url).path).stem
+    return clean_title(name) or "西北工业大学公开文件"
+
+
+def fetch_url_list(path: Path, limit: int, delay: float) -> int:
+    urls = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip().lstrip("\ufeff")
+        if line and not line.startswith("#"):
+            urls.append(line)
+    if not urls:
+        logger.error("URL 清单为空：%s", path)
+        return 1
+    existing = load_existing_urls()
+    seen_sha = {str(row.get("sha256")) for row in load_manifest() if row.get("sha256")}
+    added = skipped = failed = 0
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/pdf,*/*",
+    }
+    manifest = MANIFEST
+    with httpx.Client(timeout=30, follow_redirects=True, headers=headers) as client:
+        with manifest.open("a", encoding="utf-8") as handle:
+            for url in urls:
+                if added >= limit:
+                    break
+                if url in existing:
+                    continue
+                try:
+                    time.sleep(delay)
+                    response = client.get(url)
+                    data = response.content or b""
+                    content_type = (response.headers.get("content-type") or "").lower()
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("抓取失败 %s：%s", url, exc)
+                    failed += 1
+                    continue
+                if response.status_code != 200 or len(data) > 10 * 1024 * 1024:
+                    failed += 1
+                    continue
+                is_pdf = "pdf" in content_type or data.startswith(b"%PDF")
+                try:
+                    if is_pdf:
+                        text = _read_pdf_text(data)
+                        title = _pdf_title(text, url)
+                    else:
+                        html = response.text
+                        article = importer.extract_article(html, content_type=content_type)
+                        text = (article.get("text") or "").strip()
+                        title = clean_title(article.get("title") or "")
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("解析失败 %s：%s", url, exc)
+                    failed += 1
+                    continue
+                if len(text) < MIN_CHARS:
+                    skipped += 1
+                    continue
+                sha = hashlib.sha256(text.encode("utf-8")).hexdigest()
+                if sha in seen_sha:
+                    skipped += 1
+                    continue
+                category, doc_type = classify(title, url)
+                if doc_type == "其他" and URL_RULE_HINT.search(title):
+                    doc_type = "制度规章"
+                content_id = doc_id(url)
+                record = {
+                    "id": content_id,
+                    "url": url,
+                    "title": title,
+                    "site": site_of(url),
+                    "source_name": "定向补采",
+                    "category": category,
+                    "doc_type": doc_type,
+                    "audience": "全体",
+                    "publish_date": extract_date(title),
+                    "collected_at": datetime.now().astimezone().date().isoformat(),
+                    "chars": len(text),
+                    "sha256": sha,
+                    "file": f"corpus/{content_id}.md",
+                    "list_page": "",
+                    "collector": "url-list",
+                }
+                (OUT_DIR / record["file"]).write_text(
+                    article_markdown(record, text[:MAX_CHARS]), encoding="utf-8"
+                )
+                handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+                handle.flush()
+                existing.add(url)
+                seen_sha.add(sha)
+                added += 1
+                logger.info("+ [%s] %s", doc_type, title[:60])
+    logger.info("URL 清单采集结束：新增 %s，跳过 %s，失败 %s", added, skipped, failed)
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # 报告
 # ---------------------------------------------------------------------------
 def report() -> int:
@@ -780,6 +1117,9 @@ def main() -> int:
     parser.add_argument("--report", action="store_true", help="生成报告与覆盖矩阵")
     parser.add_argument("--import-shards", action="store_true", help="导入子智能体采集分片")
     parser.add_argument("--reclassify", action="store_true", help="只补充分类为「其他」的记录，不重新抓取")
+    parser.add_argument("--audit", action="store_true", help="对照学生手册清单审计覆盖完整性")
+    parser.add_argument("--urls", metavar="FILE", help="按清单文件（每行一个 URL）定向补采 HTML/PDF")
+    parser.add_argument("--url-limit", type=int, default=200, help="--urls 模式最多新增篇数")
     parser.add_argument("--target", type=int, default=1200, help="目标文档数")
     parser.add_argument("--per-list", type=int, default=25, help="每个列表页最多采集篇数")
     parser.add_argument("--delay", type=float, default=0.6, help="同域请求最小间隔秒")
@@ -796,7 +1136,13 @@ def main() -> int:
         exit_code = import_shards() or exit_code
     if args.reclassify:
         exit_code = reclassify() or exit_code
-    if not any((args.discover, args.fetch, args.report, args.import_shards, args.reclassify)):
+    if args.audit:
+        exit_code = audit() or exit_code
+    if args.urls:
+        exit_code = fetch_url_list(Path(args.urls), args.url_limit, 0.5) or exit_code
+    if not any(
+        (args.discover, args.fetch, args.report, args.import_shards, args.reclassify, args.audit, args.urls)
+    ):
         parser.print_help()
     return exit_code
 

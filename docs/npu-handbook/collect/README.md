@@ -1,8 +1,9 @@
 # 公开文档采集（collect/）
 
 > 目标：为 NPU-Assistant 准备 **1000+ 份西北工业大学官方公开文档**，并保证覆盖广度（站点、主题、文档类型、受众、时效）。
-> 结果：**1702 篇 / 62 个官方站点 / 24 个主题类目 / 6 种文档类型 / 226 万字**（2026-11-12 采集）。
-> 分类口径见 [TAXONOMY.md](TAXONOMY.md)，统计见 [COLLECTION-REPORT.md](COLLECTION-REPORT.md) 与 [coverage.csv](coverage.csv)。
+> 结果：**1707 篇 / 65 个官方站点 / 24 个主题类目 / 6 种文档类型 / 227 万字**（2026-11-12 采集）。
+> 分类口径见 [TAXONOMY.md](TAXONOMY.md)，统计见 [COLLECTION-REPORT.md](COLLECTION-REPORT.md) 与 [coverage.csv](coverage.csv)，
+> 完整性审计（67 项学生手册应覆盖内容）见 [COMPLETENESS-AUDIT.md](COMPLETENESS-AUDIT.md)。
 
 ## 与既有 114 篇精选语料的关系
 
@@ -51,9 +52,11 @@ collected_at: 2026-11-12
 
 | 通道 | 脚本 | 适用 | 本轮产出 |
 |---|---|---|---|
-| HTTP 直采 | `scripts/handbook_collect.py --fetch` | 普通公开站点（httpx + bs4，复用 `services.importer.extract_article`） | 1255 篇（`manifest.jsonl`） |
-| 子智能体检索 | `scripts/handbook_collect.py --import-shards` | 难访问站点/专题页：由 6 个采集子智能体用 `web_search` + `web_fetch` 检索并落盘分片 | 82 篇（`manual-shards/`） |
-| 浏览器渲染 | `scripts/browser_collect.py` | WAF 412/403 站点（httpx 被拦）：真实 Chrome + CDP 渲染，页面 JS 自行完成校验 | 97 篇（job 48 / zsb 30 / tushuguan 19） |
+| HTTP 直采 | `scripts/handbook_collect.py --fetch` | 普通公开站点（httpx + bs4，复用 `services.importer.extract_article`） | 1255 篇 |
+| 子智能体检索 | `handbook_collect.py --import-shards` | 难访问站点/专题页：6 个采集子智能体用 `web_search` + `web_fetch` 检索并落盘分片 | 82 篇 |
+| 浏览器渲染 | `scripts/browser_collect.py` | WAF 412/403 站点：真实 Chrome + CDP 渲染，页面 JS 自行完成校验 | 97 篇（job 48 / zsb 30 / tushuguan 19） |
+| 附件（PDF） | `scripts/attachment_collect.py` | 详情页只挂 PDF 的制度（正文很短）：抓 PDF → `pypdf` 提文本 | 试跑 1 篇（公寓管理办法） |
+| 定向 URL 清单 | `handbook_collect.py --urls FILE` / `browser_collect.py --urls FILE` | 审计缺口清单：按 web_search 命中的官方页/PDF 逐条补 | +5 篇（含 1 篇 PDF、4 个 HTML 页） |
 
 ```text
 机构页（党政机关/教学科研机构/支撑保障）
@@ -120,10 +123,35 @@ httpx 直接请求 `job` / `zsb` / `tushuguan` 等站点会得到 **412（WAF）
 - 版权归西北工业大学及各原发布单位，仅用于教学演示与技术验证；引用时保留 `source_url`；
 - 采集结果没有经过逐篇人工复核，分类为规则判定，**不作为对外承诺**；正式发布前建议按 10% 抽检。
 
+## 完整性审计（67 项学生手册应覆盖内容）
+
+`handbook_collect.py --audit` 对照 67 项清单（学籍/教学/考试/学位/奖助/纪律/公寓/医保/心理/就业/网络/图书馆/军训/校历/迎新…）逐项核对：
+
+| 结果 | 数量 | 说明 |
+|---|---:|---|
+| ✅ 有独立文档（标题命中 ≥3 篇） | 51 项（76%） | 可直接作为问答依据 |
+| ⚠️ 薄弱（标题命中 1–2 篇） | 15 项 | 需加固 |
+| ◐ 仅正文提及（无独立文档） | 16 项 | 有内容但缺权威原文，需人工确认 |
+| ❌ 完全未命中 | 16 项 | 见下 |
+
+**仍缺独立文档的 16 项**（大多是「制度原文只在 PDF / 微信公众号」或「站点被 WAF 拦」）：
+缓考/补考/重修、GPA/学分绩计算、四六级、体测/体育课、学生申诉处理办法、考试违纪/学术不端、
+调宿/退宿/走读、食堂/快递/热水/洗衣、体检/疫苗、心理咨询预约、危机干预渠道、
+就业手续（三方/报到证/改派）、校园卡办理/挂失、校园网/账号/VPN、体育场馆预约、完整版学生手册。
+
+本轮定向补采（`--urls` 通道 + 浏览器渲染）已验证可补到部分原文：**学生公寓管理办法（4.4k 字）**、
+体育培养方案、心理中心工作说明、校医院迎新新闻等；但相当一部分 PDF 原文所在主机
+（`dongneng` / `tiyu` / `it` / `xxgk` 的 `download.jsp`、`caiwu` 部分 PDF）从当前网络返回
+**502 或读取超时**，无法批量下载，因此这 16 项暂未闭环。
+
 ## 已知缺口（下一轮优先补）
 
-1. **仍被拦的站点**：`library.nwpu.edu.cn`（403 旧域名，可忽略）；`kypt.nwpu.edu.cn` 需校园网；
-2. **PDF/图片型正文**：大量制度（校园卡管理办法、医保政策、公寓流程、学位细则）只有 PDF 附件或扫描流程图，当前按规则跳过；可走 `scripts/ocr_manual_pdfs.py` 的 OCR 路线补；
-3. **主题偏斜**：`其他` 占 31%，`纪律与申诉`、`军训与国防`、`生活服务`、`校历与出行`、`校园概况与机构` 偏薄；对应内容多在 PDF/公众号；
-4. **受众标注**：学院站点默认标「本科生」，口径偏粗，后续可按标题关键词细分；
-5. **浏览器通道产量**：单进程单标签顺序渲染约 2–3 秒/页，适合补关键站点；若要大规模补采可加多标签并行（`browser_collect.py` 已按站点并行）。
+1. **PDF 原文网络受限**：`*.nwpu.edu.cn/system/_content/download.jsp`、`__local/**.pdf` 在部分主机上
+   502/超时；需要校园网出口、可执行 JS 的下载环境，或让学校提供制度汇编；
+2. **扫描件 PDF**：部分制度是扫描图片，`pypdf` 提取不到文本，需 OCR（可接 `scripts/ocr_manual_pdfs.py`）；
+3. **完整版学生手册**：学校未在公网发布完整 HTML/PDF 版（第三方《瓜兵速成指南》无许可证，未导入）；
+4. **仍被拦的站点**：`library.nwpu.edu.cn`（403 旧域名）、`kypt.nwpu.edu.cn`（需校园网）、
+   `jobszqy.nwpu.edu.cn`（412）；微信公众号文章需验证码，按规则不绕过；
+5. **主题偏斜**：`其他` 占 31%，纪律申诉/军训国防/生活服务/校历出行偏薄（对应内容同样多在 PDF/公众号）；
+6. **受众标注**：学院站点默认标「本科生」，口径偏粗，后续可按标题关键词细分；
+7. **分类精度**：规则分类，「其他」与误分类需人工抽检；建议正式发布前按 10% 抽检。
