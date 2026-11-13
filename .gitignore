@@ -36,3 +36,4 @@ backend/data/job_staging/
 # --- Local tooling / scratch ---
 .trae-html-share-packages/
 .screenshots/
+docs/npu-handbook/collect/inbox/
