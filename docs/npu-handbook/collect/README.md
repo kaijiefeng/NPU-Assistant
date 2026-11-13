@@ -1,7 +1,7 @@
 # 公开文档采集（collect/）
 
 > 目标：为 NPU-Assistant 准备 **1000+ 份西北工业大学官方公开文档**，并保证覆盖广度（站点、主题、文档类型、受众、时效）。
-> 结果：**2583 篇 / 69 个官方站点 / 24 个主题类目 / 6 种文档类型 / 411 万字**（2026-11-13 采集）。
+> 结果：**2585 篇 / 69 个官方站点 / 24 个主题类目 / 6 种文档类型 / 411 万字**（2026-11-13 采集）。
 > 分类口径见 [TAXONOMY.md](TAXONOMY.md)，统计见 [COLLECTION-REPORT.md](COLLECTION-REPORT.md) 与 [coverage.csv](coverage.csv)，
 > 完整性审计（67 项学生手册应覆盖内容）见 [COMPLETENESS-AUDIT.md](COMPLETENESS-AUDIT.md)。
 
@@ -67,7 +67,7 @@ collected_at: 2026-11-12
 | 浏览器渲染 | `scripts/browser_collect.py` | WAF 412/403 站点：真实 Chrome + CDP 渲染，页面 JS 自行完成校验 | 97 篇（job 48 / zsb 30 / tushuguan 19） |
 | 附件（PDF） | `scripts/attachment_collect.py` | 详情页只挂 PDF 的制度（正文很短）：抓 PDF → `pypdf` 提文本 | 试跑 1 篇（公寓管理办法） |
 | 定向 URL 清单 | `handbook_collect.py --urls FILE` / `browser_collect.py --urls FILE` | 审计缺口清单：按 web_search 命中的官方页/PDF 逐条补 | +5 篇（含 1 篇 PDF、4 个 HTML 页） |
-| 电脑操作（computer use） | 可见 Chrome + CDP 会话，人工登录后逐页下载 | 需要登录 / HTTP 被 502 拦截但浏览器可加载的 PDF；拟人节奏、小批量 | +2 篇（校园卡管理办法、学生申诉管理办法） |
+| 电脑操作（computer use） | scripts/browser_session.py：可见 Chrome 会话，用户手动登录后按命令逐页 NAV/PDF | 需要登录或 WAF 拦截的页面/PDF；拟人节奏、单页操作、不并发 | +3 篇（就业派遣/报到证说明、2022 届毕业研究生提示）+ 2 篇 PDF（校园卡管理办法、学生申诉管理办法） |
 | 列表页/整站采集 | `scripts/list_docs_collect.py` / `scripts/site_crawl.py` | 公开且无需登录的栏目：列表页 → 详情页 → PDF 附件/正文 | **+873 篇**（xgb 制度公开 16；xxgk 信息公开网 195；首页链接的 14 个公开信息子站整站采集 662） |
 
 ```text
