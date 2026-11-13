@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import re
 import subprocess
 import sys
@@ -53,8 +54,11 @@ from handbook_collect import (  # noqa: E402
     extract_date,
     load_existing_urls,
     normalize_audience,
+    sanitize_text,
     site_of,
 )
+
+LOGIN_URL = "https://ecampus.nwpu.edu.cn/"
 
 CHROME_CANDIDATES = [
     r"C:\Program Files\Google\Chrome\Application\chrome.exe",
@@ -257,9 +261,10 @@ async def collect_site(
                         summary["failed"] += 1
                         continue
                     text = (article.get("text") or "").strip()
-                    if len(text) < MIN_CHARS:
-                        continue
                     title = clean_title(article.get("title") or link_title)
+                    text, _pii_hits, pii_drop = sanitize_text(text, title)
+                    if pii_drop or len(text) < MIN_CHARS:
+                        continue
                     category, doc_type = classify(
                         title, f"{detail_url} {column_url} {column_label}", default=site["category"]
                     )
@@ -330,9 +335,10 @@ async def collect_urls(
                 summary["errors"].append(f"{url}: {type(exc).__name__}")
                 continue
             text = (article.get("text") or "").strip()
-            if len(text) < MIN_CHARS:
-                continue
             title = clean_title(article.get("title") or "")
+            text, _pii_hits, pii_drop = sanitize_text(text, title)
+            if pii_drop or len(text) < MIN_CHARS:
+                continue
             category, doc_type = classify(title, url)
             content_id = doc_id(url)
             record = {
@@ -365,6 +371,43 @@ async def collect_urls(
     return summary
 
 
+def default_profile() -> str:
+    """持久化浏览器 profile（保存登录态），放在用户目录而不是仓库里。"""
+    base = Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "NPU-Assistant" / "browser-profile"
+    return str(base)
+
+
+async def wait_for_login(ws_url: str, timeout: float) -> bool:
+    """打开统一身份认证登录页，等待用户完成登录；检测到已登录后返回 True。"""
+    async with websockets.connect(ws_url, max_size=64 * 1024 * 1024) as ws:
+        cdp = CDP(ws)
+        await cdp.call("Page.enable")
+        await cdp.call("Runtime.enable")
+        await cdp.call("Page.navigate", {"url": LOGIN_URL})
+        print(
+            "请在打开的 Chrome 窗口里用你自己的校园账号完成登录（脚本不会读取密码）；"
+            f"检测到登录后会自动保存会话，最多等待 {int(timeout)} 秒。",
+            flush=True,
+        )
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            await asyncio.sleep(2)
+            try:
+                state = await cdp.evaluate(
+                    "({href: location.href, title: document.title,"
+                    " text: (document.body ? document.body.innerText.slice(0, 800) : '')})"
+                ) or {}
+            except Exception:  # noqa: BLE001
+                continue
+            href = str(state.get("href") or "")
+            text = str(state.get("text") or "")
+            if "cas/login" not in href and (
+                "退出" in text or "翱翔门户" in text or "个人中心" in text or "我的" in text
+            ):
+                return True
+        return False
+
+
 def hashlib_sha256(text: str) -> str:
     import hashlib
 
@@ -387,21 +430,27 @@ async def run(args) -> int:
     existing = load_existing_urls()
     lock = asyncio.Lock()
     browser = find_browser()
-    profile = tempfile.mkdtemp(prefix="npu-cdp-collect-")
+    # 登录态复用只在你显式给 --profile 或 --login 时启用；普通公开采集用临时 profile，避免串状态。
+    if args.login:
+        profile = args.profile or default_profile()
+    else:
+        profile = args.profile or tempfile.mkdtemp(prefix="npu-cdp-collect-")
+    Path(profile).mkdir(parents=True, exist_ok=True)
     port = args.port
+    launch_flags = [
+        browser,
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--blink-settings=imagesEnabled=false",
+        f"--user-data-dir={profile}",
+        f"--remote-debugging-port={port}",
+        "--window-size=1440,960",
+    ]
+    if not args.login:
+        launch_flags.append("--headless=new")
+    launch_flags.append("about:blank")
     process = subprocess.Popen(
-        [
-            browser,
-            "--headless=new",
-            "--disable-gpu",
-            "--no-first-run",
-            "--no-default-browser-check",
-            "--blink-settings=imagesEnabled=false",
-            f"--user-data-dir={profile}",
-            f"--remote-debugging-port={port}",
-            "--window-size=1440,960",
-            "about:blank",
-        ],
+        launch_flags,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
@@ -413,6 +462,17 @@ async def run(args) -> int:
                 break
             except Exception:
                 await asyncio.sleep(0.4)
+
+        if args.login:
+            targets = httpx.get(f"http://127.0.0.1:{port}/json/list", timeout=10).json()
+            pages = [item for item in targets if item.get("type") == "page"]
+            ws_url = pages[0]["webSocketDebuggerUrl"]
+            ok = await wait_for_login(ws_url, args.login_timeout)
+            if ok:
+                print(f"登录成功，会话已保存到：{profile}\n后续采集可加 --profile 复用该登录态。", flush=True)
+                return 0
+            print("未检测到登录（可能超时或登录页结构变化），请重试。", flush=True)
+            return 1
 
         async def worker(site_id: str):
             response = httpx.put(f"http://127.0.0.1:{port}/json/new?about:blank", timeout=10)
@@ -453,6 +513,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="用真实 Chrome 渲染采集 WAF 站点的公开页面")
     parser.add_argument("--sites", default="job,zsb,tushuguan", help="逗号分隔：job / zsb / tushuguan / library")
     parser.add_argument("--urls", metavar="FILE", help="按清单文件（每行一个 URL）渲染补采 HTML 页")
+    parser.add_argument(
+        "--profile",
+        help="持久化 Chrome profile 目录（默认 %%LOCALAPPDATA%%/NPU-Assistant/browser-profile，保存登录态）",
+    )
+    parser.add_argument(
+        "--login", action="store_true", help="打开可见 Chrome 由你手动登录，成功后会话保存到 profile"
+    )
+    parser.add_argument("--login-timeout", type=float, default=300, help="等待手动登录的秒数")
     parser.add_argument("--limit", type=int, default=60, help="每个站点/清单最多采集篇数")
     parser.add_argument("--per-column", type=int, default=10, help="每个栏目最多采集篇数")
     parser.add_argument("--delay", type=float, default=0.6, help="同站请求间隔秒")

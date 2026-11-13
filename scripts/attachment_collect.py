@@ -47,6 +47,7 @@ from handbook_collect import (  # noqa: E402
     load_existing_urls,
     load_manifest,
     normalize_audience,
+    sanitize_text,
     site_of,
 )
 
@@ -193,6 +194,10 @@ def main() -> int:
                         failed += 1
                         continue
                     if len(text) < MIN_TEXT_CHARS:
+                        skipped_short += 1
+                        continue
+                    text, _pii_hits, pii_drop = sanitize_text(text, link_text)
+                    if pii_drop or len(text) < MIN_TEXT_CHARS:
                         skipped_short += 1
                         continue
                     sha = hashlib.sha256(text.encode("utf-8")).hexdigest()

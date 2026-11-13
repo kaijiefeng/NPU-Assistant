@@ -413,9 +413,10 @@ def fetch_document(
     html, content_type = page
     article = importer.extract_article(html, content_type=content_type)
     text = (article.get("text") or "").strip()
-    if len(text) < MIN_CHARS:
-        return None
     title = clean_title(article.get("title") or item.title)
+    text, _pii_hits, pii_drop = sanitize_text(text, title)
+    if pii_drop or len(text) < MIN_CHARS:
+        return None
     hint_path = f"{item.url} {meta.get('list_page', '')} {meta.get('label', '')}"
     category, doc_type = classify(title, hint_path, default=meta.get("category") or "其他")
     if meta.get("doc_type") and meta["doc_type"] != "其他":
@@ -597,7 +598,8 @@ def import_shards() -> int:
                 url = str(doc.get("url") or "").strip()
                 title = clean_title(str(doc.get("title") or ""))
                 body = str(doc.get("body_md") or doc.get("text") or "").strip()
-                if not url.startswith("http") or not title or len(body) < MIN_CHARS:
+                body, _pii_hits, pii_drop = sanitize_text(body, title)
+                if not url.startswith("http") or not title or pii_drop or len(body) < MIN_CHARS:
                     skipped += 1
                     continue
                 if url in existing:
@@ -688,6 +690,38 @@ def reclassify() -> int:
         )
     logger.info("重分类完成：修正 %s 行（分类只填「其他」，不改已有结论）", changed)
     return 0
+
+
+# ---------------------------------------------------------------------------
+# 个人信息过滤（登录态采集时才可能遇到；公开页面同样适用）
+# ---------------------------------------------------------------------------
+PII_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    ("身份证号", re.compile(r"(?<!\d)\d{17}[\dXx](?!\d)")),
+    ("手机号", re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)")),
+    ("邮箱", re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")),
+    ("银行卡/一卡通号", re.compile(r"(?<!\d)\d{16,19}(?!\d)")),
+]
+PERSONAL_TITLE_RE = re.compile(
+    r"(成绩单|成绩排名|录取名单|拟录取|学号|个人信息|身份证|登记表|报名表|汇总表)"
+)
+
+
+def sanitize_text(text: str, title: str = "") -> tuple[str, int, bool]:
+    """脱敏并判断是否需要丢弃。返回 ``(脱敏后文本, 命中数, 是否丢弃)``。
+
+    规则：身份证/手机号/邮箱/长数字串替换为 ``[已脱敏:类型]``；
+    命中 ≥15 处，或标题像名单/成绩单且命中 ≥3 处时整篇丢弃（避免个人数据入库）。
+    """
+    hits = 0
+    sanitized = text
+    for name, pattern in PII_PATTERNS:
+        sanitized, count = pattern.subn(f"[已脱敏:{name}]", sanitized)
+        hits += count
+    # 学号只在「学号：」前缀后脱敏，避免误伤普通数字。
+    sanitized, student_no_hits = re.subn(r"(学号[：:\s]*)\d{6,14}", r"\1[已脱敏:学号]", sanitized)
+    hits += student_no_hits
+    drop = hits >= 15 or (bool(PERSONAL_TITLE_RE.search(title or "")) and hits >= 3)
+    return sanitized, hits, drop
 
 
 # ---------------------------------------------------------------------------
@@ -987,6 +1021,10 @@ def fetch_url_list(path: Path, limit: int, delay: float) -> int:
                     failed += 1
                     continue
                 if len(text) < MIN_CHARS:
+                    skipped += 1
+                    continue
+                text, _pii_hits, pii_drop = sanitize_text(text, title)
+                if pii_drop or len(text) < MIN_CHARS:
                     skipped += 1
                     continue
                 sha = hashlib.sha256(text.encode("utf-8")).hexdigest()
