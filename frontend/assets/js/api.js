@@ -88,6 +88,9 @@ const PROTECTED_GET_PREFIXES = [
   '/settings',
   '/system',
   '/auth/me',
+  // 后台任务 / 告警：上传后的任务进度轮询也需要令牌，否则会 401 误报「需要登录」
+  '/jobs',
+  '/alerts',
 ];
 
 function needsAdminToken(method, path) {
@@ -174,6 +177,19 @@ async function request(method, path, { body, query, signal, skipAuthToast = fals
   let res;
   try {
     res = await fetch(buildUrl(path, query), init);
+    // 兜底：配置了管理令牌时，误判为公开的 GET 若 401，自动带令牌重试一次。
+    // 典型场景：上传成功后的任务进度轮询（/jobs/{id}），不应再提示「需要登录」。
+    if (
+      res.status === 401 &&
+      hasAdminToken() &&
+      verb === 'GET' &&
+      !path.startsWith('/auth/')
+    ) {
+      res = await fetch(buildUrl(path, query), {
+        ...init,
+        headers: { ...headers, 'X-Admin-Token': getAdminToken() },
+      });
+    }
   } catch (err) {
     if (err && err.name === 'AbortError') throw err;
     throw new ApiError('无法连接后端服务，请确认 NPU-Assistant 已启动后重试。', { status: 0 });
@@ -365,6 +381,8 @@ export const getKnowledgeStats = () => get('/knowledge/stats');
 export const importUrl = (payload) => post('/knowledge/import/url', payload);
 export const importText = (payload) => post('/knowledge/import/text', payload);
 export const importBatch = (payload) => post('/knowledge/import/batch', payload);
+/** 扫描服务器本地文件夹并批量收录（需管理员；返回 job_id）。 */
+export const scanKnowledgeFolder = (payload) => post('/knowledge/scan-dir', payload);
 
 /** 导入预编译 Wiki 快照（/knowledge/seed 优先，404 时回退 /wiki/seed）。 */
 export async function seedWiki() {

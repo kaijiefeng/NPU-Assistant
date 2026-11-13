@@ -228,6 +228,44 @@ def import_batch(payload: ImportBatchRequest) -> dict:
         raise HTTPException(status_code=400, detail=importer.error_text(exc)) from exc
 
 
+class ScanDirRequest(BaseModel):
+    """``POST /knowledge/scan-dir`` 请求体：扫描服务器本地文件夹。"""
+
+    path: str | None = Field(default=None, description="服务器上的文件夹绝对路径")
+    recursive: bool = Field(default=True, description="是否递归子目录（默认 true）")
+
+
+@router.post("/knowledge/scan-dir", status_code=202)
+def scan_dir(payload: ScanDirRequest) -> dict:
+    """扫描服务器本地文件夹并批量收录（异步任务，返回 202 + job_id）。
+
+    * 仅管理员可调用（全局 ``admin_guard`` 校验）；
+    * 目录必须存在且是文件夹；配置 ``NPU_SCAN_ROOTS`` 时必须在允许目录内；
+    * 单次最多收录 ``NPU_SCAN_MAX_FILES``（默认 200）个文件，目录深度 ``NPU_SCAN_MAX_DEPTH``（默认 4）；
+    * 进度与逐文件结果见 ``GET /api/jobs/{id}``。
+    """
+    try:
+        files = ingest.list_scan_files(payload.path or "", recursive=payload.recursive)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not files:
+        raise HTTPException(
+            status_code=400,
+            detail="该文件夹下没有可收录的文件（支持 md/txt/pdf/docx/doc/xlsx/csv/json/html）",
+        )
+    job = jobs.create_job(
+        "scan_dir",
+        {"path": str(payload.path or ""), "recursive": bool(payload.recursive)},
+        created_by="admin",
+    )
+    return {
+        "job_id": job["id"],
+        "status": "queued",
+        "files": len(files),
+        "message": f"发现 {len(files)} 个可收录文件，已开始后台收录；进度可在「任务与告警」查看。",
+    }
+
+
 # ---------------------------------------------------------------------------
 # 列表 / 详情
 # ---------------------------------------------------------------------------

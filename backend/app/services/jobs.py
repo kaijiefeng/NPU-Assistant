@@ -26,7 +26,7 @@ from . import alerts
 
 logger = logging.getLogger("npu-assistant")
 
-JOB_TYPES = {"ingest_upload", "reindex", "rebuild"}
+JOB_TYPES = {"ingest_upload", "reindex", "rebuild", "scan_dir"}
 ACTIVE_STATUSES = {"queued", "running"}
 TERMINAL_STATUSES = {"succeeded", "failed", "cancelled"}
 
@@ -284,10 +284,68 @@ def _run_rebuild(payload: dict, job: dict) -> dict:
     return dict(result)
 
 
+def _run_scan_dir(payload: dict, job: dict) -> dict:
+    """扫描服务器本地文件夹并逐个收录（管理员指定目录 → 后台批量解析/编译）。"""
+    from . import ingest
+
+    path = str(payload.get("path") or "").strip()
+    recursive = bool(payload.get("recursive", True))
+    _update(job["id"], progress=5, message="正在扫描文件夹")
+    files = ingest.list_scan_files(path, recursive=recursive)
+    if not files:
+        return {
+            "files": 0,
+            "imported": [],
+            "failed": [],
+            "message": "该文件夹下没有可收录的文件（支持 md/txt/pdf/docx/doc/xlsx/csv/json/html）",
+        }
+    imported: list[dict] = []
+    failed: list[dict] = []
+    total = len(files)
+    for index, file_path in enumerate(files, start=1):
+        latest = db.query_one("SELECT cancel_requested FROM jobs WHERE id = ?", (job["id"],))
+        if latest and int(latest.get("cancel_requested") or 0):
+            break
+        _update(
+            job["id"],
+            progress=min(95, 5 + int(index * 90 / total)),
+            message=f"正在收录 {file_path.name}（{index}/{total}）",
+        )
+        try:
+            doc = ingest.ingest_upload(
+                filename=file_path.name,
+                data=file_path.read_bytes(),
+                title=None,
+                tags=[],
+            )
+        except Exception as exc:  # noqa: BLE001 - 单个文件失败不中断整批
+            failed.append({"file": file_path.name, "error": str(exc)[:200]})
+            continue
+        item = {
+            "file": file_path.name,
+            "document_id": doc.get("id"),
+            "title": doc.get("title"),
+            "status": doc.get("status"),
+        }
+        if str(doc.get("status") or "") == "failed":
+            item["error"] = str(doc.get("error") or "")[:200]
+            failed.append(item)
+        else:
+            imported.append(item)
+    return {
+        "files": total,
+        "imported": imported,
+        "failed": failed,
+        "imported_count": len(imported),
+        "failed_count": len(failed),
+    }
+
+
 _DEFAULT_HANDLERS = {
     "ingest_upload": _run_ingest_upload,
     "reindex": _run_reindex,
     "rebuild": _run_rebuild,
+    "scan_dir": _run_scan_dir,
 }
 
 

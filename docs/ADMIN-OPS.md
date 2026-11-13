@@ -603,6 +603,9 @@ $env:NPU_PUBLIC_URL = "https://npu.example.edu.cn"
 | `NPU_URL_IMPORT_ALLOW_PRIVATE` | `0` | URL 收录是否允许私网/回环地址（内网资料才临时开启） |
 | `NPU_URL_IMPORT_MAX_BYTES` | `8388608` | URL 抓取响应大小上限（默认 8MB，可调） |
 | `NPU_URL_IMPORT_MAX_URLS` | `5` | 批量收录单次链接上限 |
+| `NPU_SCAN_ROOTS` | 空 | 「知识库 → 内容管理 → 扫描文件夹」允许扫描的根目录（多个用路径分隔符）；为空时允许任意存在的文件夹（仅管理员可用），生产环境建议显式限定 |
+| `NPU_SCAN_MAX_FILES` | `200` | 单次文件夹扫描最多收录的文件数 |
+| `NPU_SCAN_MAX_DEPTH` | `4` | 文件夹扫描的目录深度上限 |
 
 ### 16.1 重新生成预编译 Wiki 快照（会消耗 LLM Token）
 

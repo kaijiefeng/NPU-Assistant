@@ -30,6 +30,7 @@ import {
   reindexDocument,
   seedWiki,
   searchWiki,
+  scanKnowledgeFolder,
   updateWikiPage,
   uploadDocument,
   verifyWikiPage,
@@ -884,6 +885,64 @@ function openEditPageModal(page, onSaved) {
 /* ------------------------------------------------------------------ */
 /* 源文件 Tab：上传                                                    */
 /* ------------------------------------------------------------------ */
+async function runScanDirectory() {
+  const input = document.getElementById('scanDirPath');
+  const path = (input?.value || '').trim();
+  if (!path) {
+    toast('请先填写要扫描的文件夹绝对路径', 'warning');
+    input?.focus();
+    return;
+  }
+  const button = document.getElementById('scanDirBtn');
+  if (button) button.disabled = true;
+  try {
+    const result = await scanKnowledgeFolder({ path, recursive: true });
+    toast(result.message || `已开始扫描 ${result.files || 0} 个文件`, 'success', { duration: 4000 });
+    watchScanJob(result.job_id);
+  } catch (err) {
+    toast(err?.message || '扫描文件夹失败', 'error');
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+async function watchScanJob(jobId) {
+  if (!jobId) return;
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < 30 * 60 * 1000) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    let job;
+    try {
+      job = await getJob(jobId);
+    } catch (err) {
+      if (err?.status === 401) return; // 全局会提示登录
+      continue;
+    }
+    if (!job) continue;
+    if (job.status === 'succeeded') {
+      const result = job.result || {};
+      const ok = Number(result.imported_count ?? (result.imported || []).length ?? 0);
+      const bad = Number(result.failed_count ?? (result.failed || []).length ?? 0);
+      toast(
+        bad
+          ? `扫描完成：成功收录 ${ok} 篇，失败 ${bad} 篇（结果见「任务与告警」）`
+          : `扫描完成：成功收录 ${ok} 篇`,
+        bad ? 'warning' : 'success',
+        { duration: 5000 },
+      );
+      loadDocs({ silent: true });
+      loadStats();
+      loadTree();
+      return;
+    }
+    if (job.status === 'failed' || job.status === 'cancelled') {
+      toast(job.error || '扫描任务失败或被取消', 'error', { duration: 6000 });
+      return;
+    }
+  }
+  toast('扫描仍在后台进行，可稍后到「任务与告警」查看进度', 'info');
+}
+
 function uploadItemHtml(item) {
   const toneClass =
     item.status === 'uploading'
@@ -1838,6 +1897,13 @@ export function mountManage(root, context = {}) {
             <input type="file" id="fileInput" multiple hidden />
           </div>
           <p class="capture-hint" id="uploadHint">支持 md / txt / pdf / docx / xlsx / csv / json / html，单个文件 ≤ 20MB；上传后由 LLM 同步编译为 Wiki 词条。</p>
+          <div class="capture-row scan-dir-row">
+            <input class="input" id="scanDirPath" placeholder="服务器文件夹绝对路径，如 D:\资料\学生手册" />
+            <button class="btn btn-ghost capture-submit" type="button" data-action="scan-dir" id="scanDirBtn">${icon(
+              'folder',
+            )}<span>扫描文件夹并收录</span></button>
+          </div>
+          <p class="capture-hint">${icon('info')}<span>自动扫描该文件夹（含子目录，最多 4 层）中的文档并批量收录，无需逐个上传；仅管理员可用。</span></p>
           <div class="upload-queue" id="uploadQueue" hidden></div>
         </div>
       </div>
@@ -2044,6 +2110,9 @@ export function mountManage(root, context = {}) {
       case 'clear-uploads':
         state.uploads = state.uploads.filter((item) => item.status === 'uploading');
         renderUploads();
+        break;
+      case 'scan-dir':
+        runScanDirectory();
         break;
       case 'dismiss-build':
         state.build = null;

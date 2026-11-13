@@ -27,6 +27,7 @@
 | 对话 | `POST /chat`、`GET /chat/conversations`、`GET /chat/conversations/{id}/messages`、`DELETE /chat/conversations/{id}` | Wiki 导航问答 + 双层引用 + `navigation` 元信息 |
 | 源文件 | `POST/GET /knowledge/documents`、`GET/DELETE /knowledge/documents/{id}`、`GET .../download`、`POST .../reindex`、`POST /knowledge/seed`、`GET /knowledge/stats` | 上传并**同步编译**、列表/详情/下载/删除/重建、导入预编译快照、统计 |
 | 快速收录 | `POST /knowledge/import/url`、`POST /knowledge/import/text`、`POST /knowledge/import/batch` | 移动端：URL 抓取正文、粘贴文本、批量链接（≤5）→ 生成源文件并编译词条（见 [MOBILE-OPS.md](MOBILE-OPS.md)） |
+| 文件夹扫描 | `POST /knowledge/scan-dir` | 管理员指定服务器本地文件夹 → 后台批量扫描并收录（202 + `job_id`；目录深度默认 4 层、单次默认 ≤200 个文件） |
 | Wiki | `GET /wiki/tree`、`GET /wiki/pages`、`GET/PUT/DELETE /wiki/pages/{id}`、`POST /wiki/search`、`GET /wiki/stats`、`POST /wiki/rebuild`、`GET /wiki/builds`、`GET /wiki/builds/{id}`、`POST /wiki/seed` | 目录、浏览、搜索、编辑、重建与构建记录 |
 | 模型 | `GET/POST /models/providers`、`PUT/DELETE /models/providers/{id}`、`POST .../test`、`GET/POST /models`、`PUT/DELETE /models/{id}`、`POST /models/{id}/default`、`POST /models/{id}/test` | Provider / 模型 CRUD、默认模型、连通性测试 |
 | 机器人 | `GET/POST /bots/channels`、`PUT/DELETE /bots/channels/{id}`、`POST .../test`、`GET /bots/logs`、`GET/POST /bots/wechat/{id}` | 通道管理、控制台模拟、公众号回调；回答复用 counselor |
@@ -299,6 +300,24 @@ Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/knowledge/import/batch 
 ```
 
 > 文档对象新增 `source_type`（`file|url|text`）与 `source_url`，在 `/knowledge/documents` 列表与详情中返回。
+
+**扫描本地文件夹** `POST /knowledge/scan-dir`（管理员）
+
+```powershell
+$body = @{ path = "D:\资料\学生手册"; recursive = $true } | ConvertTo-Json
+Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/knowledge/scan-dir `
+  -ContentType "application/json; charset=utf-8" -Body $body
+```
+
+```jsonc
+// 202 Accepted：后台逐个解析/编译，进度见 GET /api/jobs/{job_id}
+{ "job_id": "…", "status": "queued", "files": 12,
+  "message": "发现 12 个可收录文件，已开始后台收录；进度可在「任务与告警」查看。" }
+```
+
+- 目录必须存在且是文件夹；配置 `NPU_SCAN_ROOTS`（多个用 `os.pathsep` 分隔）时只允许扫描这些根目录下的文件夹；
+- 单次文件数上限 `NPU_SCAN_MAX_FILES`（默认 200），目录深度上限 `NPU_SCAN_MAX_DEPTH`（默认 4），跳过隐藏文件/临时文件与不支持的类型；
+- 任务结果：`{files, imported_count, failed_count, imported[], failed[]}`，单个文件失败不影响整批。
 
 ## 6. 对话（双层引用）
 

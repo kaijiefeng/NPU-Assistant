@@ -433,6 +433,79 @@ def delete_document(doc_id: str) -> dict:
     return {"ok": True, "pages_removed": pages_removed}
 
 
+# ---------------------------------------------------------------------------
+# 本地文件夹扫描（管理员指定目录 → 批量收录）
+# ---------------------------------------------------------------------------
+_SCAN_SKIP_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", ".idea", ".vscode"}
+_SCAN_FILE_LIMIT = 200
+
+
+def resolve_scan_directory(path: str) -> Path:
+    """校验并解析待扫描目录（必须存在、是目录、且不在磁盘根）。
+
+    若配置了 ``config.SCAN_ROOTS``，目录必须位于其中之一，避免管理员误扫整盘。
+    """
+    raw = str(path or "").strip().strip('"').strip("'")
+    if not raw:
+        raise ValueError("请填写要扫描的文件夹路径")
+    candidate = Path(raw).expanduser()
+    try:
+        candidate = candidate.resolve(strict=True)
+    except (OSError, RuntimeError) as exc:
+        raise ValueError(f"文件夹不存在或无法访问：{raw}") from exc
+    if not candidate.is_dir():
+        raise ValueError(f"不是文件夹：{candidate}")
+    if candidate.parent == candidate:
+        raise ValueError("不允许直接扫描磁盘根目录，请指定具体文件夹")
+    if config.SCAN_ROOTS and not any(
+        _is_inside(candidate, root) for root in config.SCAN_ROOTS
+    ):
+        raise ValueError("该文件夹不在允许扫描的目录内（可通过 NPU_SCAN_ROOTS 配置允许目录）")
+    return candidate
+
+
+def list_scan_files(
+    path: str | Path,
+    *,
+    recursive: bool = True,
+    max_files: int | None = None,
+    max_depth: int | None = None,
+) -> list[Path]:
+    """列出目录下可收录的文件（按扩展名/大小过滤，目录层级有上限）。"""
+    root = resolve_scan_directory(str(path))
+    limit = max(1, int(max_files or config.SCAN_MAX_FILES or _SCAN_FILE_LIMIT))
+    depth_limit = max(1, int(max_depth or config.SCAN_MAX_DEPTH))
+    root_depth = len(root.parts)
+    files: list[Path] = []
+    for current, dirnames, filenames in os.walk(root):
+        current_path = Path(current)
+        if current_path == root and not recursive:
+            dirnames[:] = []
+        if len(current_path.parts) - root_depth >= depth_limit:
+            dirnames[:] = []
+        dirnames[:] = sorted(
+            name
+            for name in dirnames
+            if name not in _SCAN_SKIP_DIRS and not name.startswith(".")
+        )
+        for name in sorted(filenames):
+            if name.startswith(".") or name.startswith("~$"):
+                continue
+            candidate = current_path / name
+            if candidate.suffix.lower() not in config.SUPPORTED_EXTS:
+                continue
+            try:
+                size = candidate.stat().st_size
+            except OSError:
+                continue
+            if size <= 0 or size > config.MAX_UPLOAD_BYTES:
+                continue
+            files.append(candidate)
+            if len(files) >= limit:
+                return files
+    return files
+
+
 __all__ = [
     "document_to_dict",
     "get_document",
@@ -443,4 +516,6 @@ __all__ = [
     "ingest_url",
     "reindex_document",
     "delete_document",
+    "resolve_scan_directory",
+    "list_scan_files",
 ]

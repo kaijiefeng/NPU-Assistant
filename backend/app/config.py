@@ -98,6 +98,16 @@ REMOTE_FALLBACK_ENABLED = os.environ.get("NPU_REMOTE_FALLBACK", "1").strip().low
 MAX_UPLOAD_BYTES = int(os.environ.get("NPU_MAX_UPLOAD_MB", "20")) * 1024 * 1024
 SUPPORTED_EXTS = {".md", ".markdown", ".txt", ".pdf", ".docx", ".doc", ".xlsx", ".csv", ".json", ".html", ".htm"}
 
+# 本地文件夹扫描（管理员在「知识库 → 内容管理」里指定目录，批量收录）
+# 默认允许任意存在的目录（仅管理员可用）；生产环境建议用 NPU_SCAN_ROOTS 限定根目录。
+SCAN_MAX_FILES = int(os.environ.get("NPU_SCAN_MAX_FILES", "200"))
+SCAN_MAX_DEPTH = int(os.environ.get("NPU_SCAN_MAX_DEPTH", "4"))
+SCAN_ROOTS = [
+    os.path.abspath(item.strip())
+    for item in os.environ.get("NPU_SCAN_ROOTS", "").split(os.pathsep)
+    if item.strip()
+]
+
 # ---------------------------------------------------------------------------
 # URL / text import (mobile quick-ingest)
 # ---------------------------------------------------------------------------

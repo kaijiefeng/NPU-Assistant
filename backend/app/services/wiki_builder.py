@@ -882,10 +882,12 @@ def compile_document(document_id: str, *, force: bool = False) -> dict:
                     len(units),
                     error or "模型未返回有效词条",
                 )
-            for raw_entry in entries[:3]:
+
+            def store_entry(raw_entry: Any) -> bool:
+                nonlocal created, updated
                 entry = normalize_entry(raw_entry, unit, doc_row)
                 if not entry:
-                    continue
+                    return False
                 existing = page_index.find(entry["title"], entry["aliases"])
                 if existing:
                     merged = _merge_page(existing, entry, doc_row)
@@ -893,21 +895,42 @@ def compile_document(document_id: str, *, force: bool = False) -> dict:
                         page_index.add(merged)
                         updated += 1
                         pending_links.append((merged, entry["related_titles"]))
-                    continue
+                    return True
                 new_page = _insert_page(entry, doc_row, unit)
                 if not new_page:
                     # slug 冲突：退化为合并到同 slug 页面
-                    conflict = _page_dict(db.get_wiki_page_by_slug(text_utils.slugify(entry["title"])))
+                    conflict = _page_dict(
+                        db.get_wiki_page_by_slug(text_utils.slugify(entry["title"]))
+                    )
                     if conflict:
                         merged = _merge_page(conflict, entry, doc_row)
                         if merged:
                             page_index.add(merged)
                             updated += 1
                             pending_links.append((merged, entry["related_titles"]))
-                    continue
+                    return True
                 page_index.add(new_page)
                 created += 1
                 pending_links.append((new_page, entry["related_titles"]))
+                return True
+
+            accepted = 0
+            for raw_entry in entries[:3]:
+                if store_entry(raw_entry):
+                    accepted += 1
+            if accepted == 0:
+                # 模型返回了 JSON 但词条全部不合法（缺标题/正文等）：用原文摘录兜底，
+                # 保证「文件已上传但整篇失败」不再发生（词条标记 needs_review 待人工确认）。
+                if store_entry(_fallback_entry(unit, doc_title)):
+                    accepted += 1
+                    logger.warning(
+                        "文档《%s》第 %s/%s 个编译单元的词条全部不合法，已降级为原文摘录",
+                        doc_title,
+                        index,
+                        len(units),
+                    )
+            if accepted == 0:
+                errors.append("模型返回的词条缺少标题或正文")
 
         for source_page, related_titles in pending_links:
             _link_related(source_page, related_titles, page_index)
