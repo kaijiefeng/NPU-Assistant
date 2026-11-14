@@ -108,7 +108,11 @@ class ParsedDocument:
 # 通用工具
 # ---------------------------------------------------------------------------
 def decode_bytes(data: bytes) -> str:
-    """尽力把字节解码成文本：UTF-8(BOM) → GB18030 → 兜底替换。"""
+    """尽力把字节解码成文本：UTF-8(BOM) → UTF-16(BOM/启发式) → GB18030 → 兜底替换。
+
+    注意：GB18030 几乎能“解码”任意字节序列，所以必须先用 BOM / NUL 字节比例
+    识别 UTF-16，否则 Windows 导出的 UTF-16 文本会被静默解成乱码。
+    """
     if not data:
         return ""
     if data.startswith(codecs.BOM_UTF8):
@@ -116,6 +120,22 @@ def decode_bytes(data: bytes) -> str:
             return data.decode("utf-8-sig")
         except UnicodeDecodeError:  # pragma: no cover - 极端情况
             pass
+    if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+        try:
+            return data.decode("utf-16")
+        except UnicodeDecodeError:  # pragma: no cover - 截断/损坏的 UTF-16
+            pass
+    # 无 BOM 的 UTF-16：ASCII 区字符会留下一半 NUL 字节（UTF-8/GBK 中文不会）。
+    # 注意：无 BOM 的中文 UTF-16 与 GBK 在字节层难以可靠区分，不在此猜测。
+    sample = data[:2048]
+    if len(sample) >= 4 and sample.count(b"\x00") >= max(4, len(sample) // 4):
+        for encoding in ("utf-16-le", "utf-16-be"):
+            try:
+                decoded = data.decode(encoding)
+            except UnicodeDecodeError:
+                continue
+            if decoded.count("\x00") == 0:
+                return decoded
     for encoding in ("utf-8", "gb18030"):
         try:
             return data.decode(encoding)

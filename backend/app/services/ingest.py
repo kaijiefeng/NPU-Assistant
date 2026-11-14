@@ -423,6 +423,11 @@ def delete_document(doc_id: str) -> dict:
             logger.warning(
                 "拒绝删除仓库内置种子文件，仅清理数据库记录与词条：%s", raw_stored_path
             )
+        elif raw_stored_path and not _is_inside(raw_stored_path, config.UPLOAD_DIR):
+            # stored_path 只应指向上传目录；被篡改/损坏时避免误删任意文件
+            logger.warning(
+                "拒绝删除上传目录之外的物理文件（仅清理数据库记录）：%s", raw_stored_path
+            )
         elif raw_stored_path:
             stored_path = Path(raw_stored_path)
             if stored_path.is_file():
@@ -499,6 +504,14 @@ def list_scan_files(
             except OSError:
                 continue
             if size <= 0 or size > config.MAX_UPLOAD_BYTES:
+                continue
+            # 文件级符号链接/目录联接可能指向扫描根之外，按解析后的真实路径再校验一次
+            try:
+                resolved = candidate.resolve(strict=True)
+            except OSError:
+                continue
+            if not _is_inside(resolved, root):
+                logger.warning("跳过指向扫描目录之外的文件：%s", candidate)
                 continue
             files.append(candidate)
             if len(files) >= limit:

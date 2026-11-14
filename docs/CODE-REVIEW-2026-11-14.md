@@ -85,4 +85,24 @@
 - 6 路审阅各自读取模块源码后产出带 `file:line` 证据的问题；
 - 3 组复核智能体拿到**他人**的问题清单，逐条重新打开代码核对，给出 confirm/partial/refute 与修正严重度；
 - 汇总智能体合并同根因、剔除证据不足项，主代理再抽查并修正分歧（#13）；
-- 未修改任何业务代码，本报告为纯审阅产物。
+- §1–§5 为纯审阅产物（未改业务代码）；§7 的第二轮专项复核附带修复与回归测试。
+
+## 7. 补充：文件链路专项复核（第二轮，含修复）
+
+针对“文件相关是否还有 bug”的追问，对解析/删除/扫描/上传读取逐段重读并写了可执行探针，确认 4 处缺陷，已修 3 处 + 1 处加固：
+
+| # | 问题 | 证据 | 处理 |
+|---|---|---|---|
+| 14 | `decode_bytes` 不识别 UTF-16 BOM：Windows「Unicode 文本」/Excel 导出的 CSV 先被 GB18030“成功”误解码——`.txt/.md` **静默乱码入库且状态 ready**，`.csv` 直接报 `new-line character seen in unquoted field` 失败 | `backend/app/services/parsing.py:110-124` 旧逻辑只处理 UTF-8 BOM；探针：UTF-16 CSV 抛 ParseError、UTF-16 TXT 得到 `'sQ嶯\t慆媱v...'` | 已修：增加 UTF-16 LE/BE BOM 解码 + 无 BOM 的 NUL 比例启发式（仅 ASCII 为主）；新增 6 条回归（`backend/tests/test_file_pipeline.py`） |
+| 15 | `delete_document` 只保护 `SEED_DOCS_DIR`，对 `stored_path` 指向上传目录之外的任意文件会直接 `unlink`（DB 被篡改/迁移错误时误删） | `backend/app/services/ingest.py:420-431`（旧）；对比 `_is_inside` 已存在却未用于 uploads | 已修：仅当 `stored_path` 位于 `UPLOAD_DIR` 内才删除物理文件，否则只清 DB；新增回归测试 |
+| 16 | `list_scan_files` 按扩展名/大小过滤后直接收录，`os.walk` 会跟随**文件级符号链接/目录联接**，可把扫描根之外的文件读进知识库（配置 `NPU_SCAN_ROOTS` 时绕过其边界） | `backend/app/services/ingest.py:495-505`（旧） | 已修：每个候选文件 `resolve(strict=True)` 后必须仍在扫描根内，否则跳过并告警 |
+| 17 | 上传路由 `data = file.file.read()` 先整文件读入内存再判大小；chunked 请求可绕过 `Content-Length` 预检（`main.py:238-242` 只在有 header 时生效），超大文件可撑爆内存 | `backend/app/routers/knowledge.py:114-118`（旧） | 已加固：改为最多读 `MAX_UPLOAD_BYTES+1` 字节，超限仍走 413 |
+
+**未修、建议后续决策的文件问题**：
+
+- `parse_docx` 只遍历 body 的段落与表格（`_iter_docx_body`），**不读页眉/页脚/文本框**；整篇内容放在文本框里的校园表单会得到“未能解析出文本”的失败。探针确认页眉内容被忽略。修法：按 `section.header/footer` 与 `w:txbxContent` 追加文本，但需避免页脚版权信息污染词条，建议做成“仅当正文为空时启用”的兜底。
+- `GET /api/knowledge/documents` 与 `/documents/{id}/download` 均为公开 GET：任何能访问站点的人可枚举文档并下载全部上传原件。若上传资料含内部名单，需要产品确认是否改为登录可见。
+- `delete_document` 非原子：先删词条/来源，再删 documents 行，最后删文件；任一步失败会留下悬挂来源或孤儿文件（仅记录日志）。
+- 扫描任务重试从头重扫且不查重（本报告 #9），会产生重复文档。
+
+**验证**：`scripts/check.ps1` → **170 passed, 1 skipped**（跳过的符号链接用例在 Windows 无创建权限时跳过，CI Linux 会执行）；新增/变更文件：`backend/app/services/parsing.py`、`backend/app/services/ingest.py`、`backend/app/routers/knowledge.py`、`backend/tests/test_file_pipeline.py`。

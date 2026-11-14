@@ -112,7 +112,8 @@ def upload_document(
         )
 
     try:
-        data = file.file.read()
+        # 只读上限多 1 字节：chunked 请求可绕过 Content-Length 预检，避免把超大文件整个读进内存
+        data = file.file.read(config.MAX_UPLOAD_BYTES + 1)
     except OSError as exc:  # pragma: no cover - 读取失败极少见
         raise HTTPException(status_code=400, detail=f"读取上传文件失败：{exc}") from exc
 
