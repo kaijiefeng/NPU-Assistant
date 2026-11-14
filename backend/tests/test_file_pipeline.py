@@ -1,6 +1,7 @@
 """文件链路回归：UTF-16 文本/CSV 解码、删除不越界、扫描不跟随链接。"""
 from __future__ import annotations
 
+import io
 import time
 
 import pytest
@@ -52,6 +53,17 @@ def test_delete_refuses_file_outside_upload_dir(client, tmp_path):
     assert response.status_code == 200, response.text
     assert target.exists(), "上传目录之外的文件不应被删除"
     assert db.get_document(doc_id) is None
+
+
+def test_docx_header_only_uses_fallback():
+    from docx import Document
+
+    doc = Document()
+    doc.sections[0].header.paragraphs[0].text = "页眉中的通知：关于选课调整"
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    parsed = parsing.parse_bytes("页眉.docx", buffer.getvalue())
+    assert "关于选课调整" in parsed.text
 
 
 def _wait_job(client, job_id: str, timeout: float = 30.0) -> dict:

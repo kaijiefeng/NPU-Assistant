@@ -470,6 +470,9 @@ export function mount(root, options = {}) {
       case 'user-add':
         addUserModal(load);
         break;
+      case 'audit-reload':
+        load();
+        break;
       case 'user-reset': {
         const user = state.users.find((item) => item.id === trigger.dataset.id);
         if (user) resetPasswordModal(user, load);

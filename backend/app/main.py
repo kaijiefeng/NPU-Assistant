@@ -46,7 +46,7 @@ PUBLIC_POST_PATHS = {
     "/api/auth/logout",
 }
 BOT_WEBHOOK_PREFIXES = ("/api/bots/wechat/",)
-LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1", "testserver"}
+LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1", "testserver", "testclient"}
 # Requests carrying payloads get a hard Content-Length cap (defense in depth;
 # reverse proxies should also limit body size).
 BODY_LIMITS = {
@@ -83,9 +83,9 @@ def _body_limit_for(path: str) -> int:
     return DEFAULT_BODY_LIMIT
 
 
-def _chat_rate_limited(client_host: str | None, limit: int = CHAT_RATE_LIMIT) -> bool:
-    key = client_host or "unknown"
-    if key in {"testclient", "testserver"}:  # TestClient / pytest
+def _chat_rate_limited(client_host: str | None, limit: int = CHAT_RATE_LIMIT, bucket: str = "chat") -> bool:
+    key = f"{bucket}:{client_host or 'unknown'}"
+    if client_host in {"testclient", "testserver"}:  # TestClient / pytest
         return False
     now = time.monotonic()
     with _chat_hits_lock:
@@ -99,7 +99,8 @@ def _chat_rate_limited(client_host: str | None, limit: int = CHAT_RATE_LIMIT) ->
 
 
 def _login_rate_limited(client_host: str | None) -> bool:
-    return _chat_rate_limited(client_host, limit=LOGIN_RATE_LIMIT)
+    # 独立桶：学生提问（/api/chat）不再消耗登录次数，避免被同 IP 提问锁死登录
+    return _chat_rate_limited(client_host, limit=LOGIN_RATE_LIMIT, bucket="login")
 
 
 def _check_bind_security() -> None:
@@ -211,14 +212,15 @@ def create_app() -> FastAPI:
         Cookie sessions must echo ``X-CSRF-Token`` on writes.  Successful
         authenticated writes are recorded in ``audit_log``.
 
-        When the instance is reachable through a non-loopback Host header with
-        no account and no token, fail closed (protects against uvicorn
-        ``--host`` overrides that bypass the startup check).
+        When the instance is reachable from a non-loopback client with no
+        account and no token, fail closed (protects against uvicorn ``--host``
+        overrides that bypass the startup check).  Uses the TCP peer address,
+        not the Host header, so spoofing ``Host: 127.0.0.1`` cannot bypass it.
         """
         path = request.url.path
         method = request.method
-        host = (request.url.hostname or "").strip().lower().strip("[]")
-        if host and host not in LOOPBACK_HOSTS and not config.ALLOW_INSECURE_LAN:
+        client_host = (request.client.host if request.client else "").strip().lower().strip("[]")
+        if client_host and client_host not in LOOPBACK_HOSTS and not config.ALLOW_INSECURE_LAN:
             if not (config.ADMIN_TOKEN or auth_service.user_count() > 0):
                 return JSONResponse(
                     status_code=403,

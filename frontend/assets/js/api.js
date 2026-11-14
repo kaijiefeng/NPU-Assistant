@@ -93,6 +93,9 @@ const PROTECTED_GET_PREFIXES = [
   '/alerts',
 ];
 
+// 只有这三个登录入口不需要 CSRF（登录前还没有会话）；/auth/password 等写操作必须带
+const CSRF_EXEMPT_PATHS = new Set(['/auth/login', '/auth/setup', '/auth/logout']);
+
 function needsAdminToken(method, path) {
   if (!hasAdminToken()) return false;
   const verb = String(method || 'GET').toUpperCase();
@@ -161,7 +164,7 @@ async function request(method, path, { body, query, signal, skipAuthToast = fals
     csrfToken &&
     verb !== 'GET' &&
     verb !== 'HEAD' &&
-    !path.startsWith('/auth/')
+    !CSRF_EXEMPT_PATHS.has(path)
   ) {
     headers['X-CSRF-Token'] = csrfToken;
   }
@@ -229,7 +232,14 @@ export const resolveAlert = (id) => post(`/alerts/${encodeURIComponent(id)}/reso
 export const getAuthMe = () => get('/auth/me', undefined, { skipAuthToast: true });
 export const loginAdmin = (payload) => post('/auth/login', payload, { skipAuthToast: true });
 export const setupAdmin = (payload) => post('/auth/setup', payload, { skipAuthToast: true });
-export const logoutAdmin = () => post('/auth/logout', undefined, { skipAuthToast: true });
+export const logoutAdmin = async () => {
+  try {
+    await post('/auth/logout', undefined, { skipAuthToast: true });
+  } finally {
+    // 即使请求失败也清掉本地令牌，避免“退出后又被令牌自动登录”
+    clearAdminToken();
+  }
+};
 export const changePassword = (payload) => post('/auth/password', payload);
 export const listAdminUsers = () => get('/admin/users');
 export const createAdminUser = (payload) => post('/admin/users', payload);

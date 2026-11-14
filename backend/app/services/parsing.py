@@ -369,6 +369,36 @@ def _iter_docx_body(document) -> Iterator[object]:
             yield Table(child, document)
 
 
+def _docx_fallback_text(document) -> list[str]:
+    """正文为空时的兜底：读页眉/页脚与文本框（很多校园表单只把内容放在这些位置）。"""
+    from docx.oxml.ns import qn
+
+    pieces: list[str] = []
+    try:
+        for section in document.sections:
+            for part in (section.header, section.footer):
+                for paragraph in part.paragraphs:
+                    text = (paragraph.text or "").strip()
+                    if text:
+                        pieces.append(text)
+                for table in part.tables:
+                    for row in table.rows:
+                        cells = [(cell.text or "").strip() for cell in row.cells]
+                        cells = [cell for cell in cells if cell]
+                        if cells:
+                            pieces.append(" | ".join(cells))
+    except Exception:  # pragma: no cover - 损坏的 header 不影响正文解析
+        pass
+    try:
+        for node in document.element.body.iter(qn("w:txbxContent")):
+            text = "".join(item.text or "" for item in node.iter(qn("w:t"))).strip()
+            if text:
+                pieces.append(text)
+    except Exception:  # pragma: no cover - 非标准文本框
+        pass
+    return pieces
+
+
 def parse_docx(data: bytes, filename: str = "") -> ParsedDocument:
     """使用 python-docx 解析段落（含样式标题）与表格文本。"""
     try:
@@ -406,6 +436,11 @@ def parse_docx(data: bytes, filename: str = "") -> ParsedDocument:
         raise
     except Exception as exc:
         raise ParseError(f"Word 文件解析失败：{exc}") from exc
+
+    if not builder.blocks:
+        # 正文为空：退而读取页眉/页脚/文本框，避免“表单明明有字却解析失败”
+        for text in _docx_fallback_text(document):
+            builder.body(text)
 
     return builder.build(title=title or Path(filename).stem or None, file_ext=".docx")
 

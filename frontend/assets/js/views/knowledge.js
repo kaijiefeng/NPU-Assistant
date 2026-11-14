@@ -858,6 +858,7 @@ function openEditPageModal(page, onSaved) {
       expires_at: form.querySelector('[name="expires_at"]').value,
       academic_year: form.querySelector('[name="academic_year"]').value.trim(),
       doc_type: form.querySelector('[name="doc_type"]').value,
+      expected_version: data.version,
     };
     if (!payload.title) {
       toast('词条标题不能为空', 'error');
@@ -897,7 +898,11 @@ async function runScanDirectory() {
   if (button) button.disabled = true;
   try {
     const result = await scanKnowledgeFolder({ path, recursive: true });
-    toast(result.message || `已开始扫描 ${result.files || 0} 个文件`, 'success', { duration: 4000 });
+    toast(
+      result.message || `已开始扫描 ${result.files || 0} 个文件`,
+      result.truncated ? 'warning' : 'success',
+      { duration: result.truncated ? 7000 : 4000 },
+    );
     watchScanJob(result.job_id);
   } catch (err) {
     toast(err?.message || '扫描文件夹失败', 'error');
@@ -923,12 +928,14 @@ async function watchScanJob(jobId) {
       const result = job.result || {};
       const ok = Number(result.imported_count ?? (result.imported || []).length ?? 0);
       const bad = Number(result.failed_count ?? (result.failed || []).length ?? 0);
+      const truncated = Boolean(result.truncated);
+      const base = bad
+        ? `扫描完成：成功收录 ${ok} 篇，失败 ${bad} 篇（结果见「任务与告警」）`
+        : `扫描完成：成功收录 ${ok} 篇`;
       toast(
-        bad
-          ? `扫描完成：成功收录 ${ok} 篇，失败 ${bad} 篇（结果见「任务与告警」）`
-          : `扫描完成：成功收录 ${ok} 篇`,
-        bad ? 'warning' : 'success',
-        { duration: 5000 },
+        truncated ? `${base}；文件超过单次上限，剩余请分批扫描` : base,
+        bad || truncated ? 'warning' : 'success',
+        { duration: truncated ? 8000 : 5000 },
       );
       loadDocs({ silent: true });
       loadStats();
@@ -1609,13 +1616,16 @@ function normalizeSingleImport(data) {
   const document = data?.document || {};
   const pages = Array.isArray(data?.pages) ? data.pages : [];
   const duplicated = Boolean(data?.duplicated);
+  const failed = String(document.status || '').toLowerCase() === 'failed';
   return {
-    status: duplicated ? 'duplicated' : 'success',
+    status: failed ? 'error' : duplicated ? 'duplicated' : 'success',
     title: document.title || '',
     pages,
-    message: duplicated
-      ? `已收录过，跳过编译${pages.length ? ` · 现有 ${pages.length} 个词条` : ''}`
-      : `已收录《${document.title || '新资料'}》${pages.length ? ` · 生成 ${pages.length} 个词条` : ''}`,
+    message: failed
+      ? `收录后编译失败：${document.error || '请到「源文件」查看原因并重新编译'}`
+      : duplicated
+        ? `已收录过，跳过编译${pages.length ? ` · 现有 ${pages.length} 个词条` : ''}`
+        : `已收录《${document.title || '新资料'}》${pages.length ? ` · 生成 ${pages.length} 个词条` : ''}`,
   };
 }
 

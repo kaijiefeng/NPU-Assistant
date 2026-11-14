@@ -287,6 +287,7 @@ def update_provider(provider_id: str, payload: dict) -> dict:
         "WHERE id = ?",
         (name, provider_type, base_url, api_key, embedding_model, provider_id),
     )
+    llm.reset_circuit()  # 凭据/地址改过后，旧的熔断状态不应继续拦截
     return _provider_obj(_get_provider(provider_id))
 
 
@@ -311,7 +312,10 @@ def test_provider(provider_id: str) -> dict:
     """测试 Provider 连通性；失败也返回 HTTP 200 + ``ok=false`` 的可读信息。"""
     if db.query_one("SELECT id FROM providers WHERE id = ?", (provider_id,)) is None:
         raise HTTPException(status_code=404, detail="Provider 不存在")
-    return llm.test_provider(provider_id)
+    result = llm.test_provider(provider_id)
+    if result.get("ok"):
+        llm.reset_circuit()
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -392,6 +396,13 @@ def update_model(model_id: str, payload: dict) -> dict:
         fields.append("temperature = ?")
         params.append(_parse_float(payload.get("temperature"), 0.3, "temperature", 0.0, 2.0))
 
+    if "provider_id" in payload and payload.get("provider_id") is not None:
+        provider_id = str(payload.get("provider_id")).strip()
+        if provider_id and db.query_one("SELECT id FROM providers WHERE id = ?", (provider_id,)) is None:
+            raise HTTPException(status_code=400, detail="Provider 不存在")
+        fields.append("provider_id = ?")
+        params.append(provider_id or None)
+
     if "max_tokens" in payload:
         fields.append("max_tokens = ?")
         params.append(_parse_int(payload.get("max_tokens"), 1200, "max_tokens", 1, 32768))
@@ -430,8 +441,13 @@ def delete_model(model_id: str) -> dict:
 @router.post("/models/{model_id}/default", dependencies=[Depends(require_admin_token)])
 def set_default_model(model_id: str) -> dict:
     """设为默认模型（事务内清除其它默认标记）。"""
-    if db.query_one("SELECT id FROM models_registry WHERE id = ?", (model_id,)) is None:
+    row = db.query_one(
+        "SELECT id, enabled FROM models_registry WHERE id = ?", (model_id,)
+    )
+    if row is None:
         raise HTTPException(status_code=404, detail="模型不存在")
+    if not int(row.get("enabled") or 0):
+        raise HTTPException(status_code=400, detail="该模型已停用，请先启用再设为默认")
     _set_default(model_id)
     return _model_obj(_get_model(model_id))  # type: ignore[arg-type]
 

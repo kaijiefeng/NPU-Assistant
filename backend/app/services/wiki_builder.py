@@ -1080,6 +1080,60 @@ def remove_pages_for_document(document_id: str) -> int:
     return removed
 
 
+def _insert_row(table: str, row: dict) -> None:
+    columns = list(row.keys())
+    placeholders = ", ".join("?" for _ in columns)
+    db.execute(
+        f"INSERT OR REPLACE INTO {table} ({', '.join(columns)}) VALUES ({placeholders})",
+        [row[column] for column in columns],
+    )
+
+
+def snapshot_document_pages(document_id: str) -> dict:
+    """编译前快照该文档独占的页面/来源/链接，编译失败时用于回滚。"""
+    page_ids = [
+        row["page_id"]
+        for row in db.query(
+            "SELECT DISTINCT page_id FROM wiki_sources WHERE document_id = ?", (document_id,)
+        )
+    ]
+    pages: list[dict] = []
+    sources: list[dict] = []
+    for page_id in page_ids:
+        page_row = db.query_one("SELECT * FROM wiki_pages WHERE id = ?", (page_id,))
+        if page_row:
+            pages.append(dict(page_row))
+        sources.extend(
+            dict(item)
+            for item in db.query("SELECT * FROM wiki_sources WHERE page_id = ?", (page_id,))
+        )
+    links: list[dict] = []
+    if page_ids:
+        placeholders = ", ".join("?" for _ in page_ids)
+        links = [
+            dict(item)
+            for item in db.query(
+                f"SELECT * FROM wiki_links WHERE from_page_id IN ({placeholders}) "
+                f"OR to_page_id IN ({placeholders})",
+                [*page_ids, *page_ids],
+            )
+        ]
+    return {"pages": pages, "sources": sources, "links": links}
+
+
+def restore_document_pages(snapshot: dict) -> int:
+    """把快照写回（幂等，按主键 INSERT OR REPLACE），返回恢复的词条数。"""
+    restored = 0
+    for row in snapshot.get("pages", []):
+        _insert_row("wiki_pages", row)
+        restored += 1
+    for row in snapshot.get("sources", []):
+        _insert_row("wiki_sources", row)
+    for row in snapshot.get("links", []):
+        _insert_row("wiki_links", row)
+    return restored
+
+
 def rebuild_document(document_id: str) -> dict:
     """重新解析并编译单个文档（先移除其独占词条，避免重复）。"""
     row = db.get_document(document_id)
@@ -1103,9 +1157,16 @@ def rebuild_document(document_id: str) -> dict:
             "error": error,
         }
 
+    snapshot = snapshot_document_pages(document_id)
     removed = remove_pages_for_document(document_id)
     result = compile_document(document_id, force=True)
     result["pages_removed"] = removed
+    if str(result.get("status") or "") == "failed":
+        restored = restore_document_pages(snapshot)
+        result["pages_restored"] = restored
+        logger.warning(
+            "文档 %s 重建失败，已回滚 %s 个原有词条（避免数据丢失）", document_id, restored
+        )
     build_id = result.get("build_id")
     if build_id:
         db.execute(

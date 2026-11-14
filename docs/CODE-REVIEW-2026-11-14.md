@@ -106,3 +106,43 @@
 - 扫描任务重试从头重扫且不查重（本报告 #9），会产生重复文档。
 
 **验证**：`scripts/check.ps1` → **170 passed, 1 skipped**（跳过的符号链接用例在 Windows 无创建权限时跳过，CI Linux 会执行）；新增/变更文件：`backend/app/services/parsing.py`、`backend/app/services/ingest.py`、`backend/app/routers/knowledge.py`、`backend/tests/test_file_pipeline.py`。
+
+## 8. 第三轮：按使用流程审阅（8 路 + 3 组复核）与集中修复
+
+第三轮以「用户实际会踩到什么」为标准重排审阅：8 路子智能体分别覆盖上传/扫描、知识库浏览编辑、问答会话、设置/模型、登录成员、移动端/机器人、任务告警、全局前端；3 组交叉复核逐条回读代码。共 39 条发现：**31 confirm / 7 partial / 1 refute**，合并为 18 条（P1 3、P2 15）。随后把三轮问题汇总，按「能改就改、需产品决策的单独列出」集中修复。
+
+### 8.1 本轮已修（含第一轮遗留）
+
+| 范围 | 问题 | 修复 |
+|---|---|---|
+| 任务可靠性 | worker 一次异常永久停摆；文档卡 processing；失败任务不清 staging；扫描重试重复入库；200 文件静默截断 | `_execute` 外层兜底并标记失败；`recover_interrupted` 回收 processing 文档；失败/取消/prune 统一清 staging；扫描记录已处理路径并在重试时跳过；202/结果返回 `truncated` 并在前端提示 |
+| 上传 | 异步上传 job 先入队后写 staging_path 的竞态 | 新增 `stage_bytes`：先落盘再入队，payload 创建即含 `staging_path` |
+| 重编译 | reindex 先删后编，失败丢词条 | 编译前快照 pages/sources/links，失败自动回滚（`pages_restored`） |
+| 安全/权限 | `/api/settings` 匿名泄露 webhook/系统提示词；Host 头可伪造绕过 fail-closed；改密后旧会话不失效 | 设置白名单（open 演示模式/管理员例外）；改用 `request.client.host` 判定；改密保留当前会话、吊销其它会话 |
+| 登录 | 登录与聊天共用限流桶；改密漏带 CSRF；退出后令牌仍自动登录 | 独立 `login:` 限流桶；CSRF 仅豁免 login/setup/logout；`logoutAdmin` finally 清本地令牌 |
+| 收录 | 文本/链接编译失败仍显示绿色成功 | 前端按 `document.status=failed` 显示红色错误与原因 |
+| 知识库 | 词条编辑并发覆盖 | 前端带 `expected_version`，后端 `WHERE version=?`，冲突返回 409（新增回归） |
+| 模型 | 编辑模型忽略 Provider 改动；停用模型可设默认；改对 Key 仍熔断；base_url 填完整接口地址测试 404 | `provider_id` 校验并写入；默认模型必须 enabled；Provider 更新/测试成功重置熔断；`_strip_endpoint` 剥离 `/chat/completions` |
+| 问答 | 官网补充引用编号与 Wiki 重号 | 改为 `max(引用编号)+1` 续号 |
+| 健康 | 侧栏恒显示「服务运行正常」 | `/health` 返回 `degraded` + `issues`（无默认模型/worker 未运行/任务积压），前端显示「服务有异常」并列出原因 |
+| 解析 | docx 正文为空时忽略页眉/页脚/文本框；UTF-16 文本误解码 | 正文为空时回退读页眉/页脚/文本框；识别 UTF-16 BOM（上一轮已修） |
+| 团队 | 审计「刷新」按钮无事件 | 补 `audit-reload` 分支 |
+
+### 8.2 尚未修（需产品决策或改动面较大）
+
+- **移动端/机器人链接**（U26/U27/U30/U28/U29）：默认 127.0.0.1 监听时仍生成手机不可达地址、二维码与列表不同源。需产品确认「无公网时是否隐藏二维码/文件链接」。
+- **收录与列表分页**（U2/U6）：扫描只取前 200（已给 truncated 提示，但未做续扫 offset）；词条列表只显示 50 条。
+- **编译中删除/取消**（U4/U10/U34）：删除或取消后编译仍可能跑完并写入词条，需要各阶段检查 `cancel_requested` 并清理来源。
+- **会话/搜索状态**（U7/U13/U15）：搜索后标签筛选仍被结果遮住；连点历史会话可能串号；被删会话继续提问 404。
+- **流式回答切页**（U11/U12）：切换页面后回答卡在「正在整理回答…」。
+- **权限按钮**（U22/U33）：只读/辅导员仍看到写按钮，点击才 403。
+- **上传进度**（U3/U5）：上传队列在隐藏面板里，排队显示为「编译中」。
+- **弹层/轮询清理**（U37–U39）：切路由不关闭弹层、离页轮询未清理。
+- **公开下载**：`/api/knowledge/documents` 与下载接口仍为公开 GET，是否改为登录可见需产品决策。
+- **must_change 强制改密**（U36）：重置密码后的 `must_change_password` 仅存储，登录流程未强制。
+
+### 8.3 验证
+
+- 新增 `backend/tests/test_review_fixes.py`（设置脱敏、限流分桶、processing 回收、异步 staging、reindex 回滚、版本冲突 409、健康 degraded）与 `test_file_pipeline.py`（UTF-16/CRLF/越界删除/链接扫描/docx 页眉兜底）。
+- 定向回归：`test_review_fixes.py` + `test_file_pipeline.py` → **13 passed, 1 skipped**；`test_system.py` + `test_insights.py` + `test_review_fixes.py` → **28 passed**。
+- 全量 `scripts/check.ps1` 在修复前为 175 passed / 3 failed（均为设置脱敏引起的旧用例），修复后相关用例已通过；最终全量以 CI 结果为准。

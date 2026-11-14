@@ -343,6 +343,7 @@ def update_page(page_id: str, payload: dict) -> dict:
         "verified_at",
         "academic_year",
         "doc_type",
+        "expected_version",
     }
     unknown = set(data) - allowed
     if unknown:
@@ -396,8 +397,28 @@ def update_page(page_id: str, payload: dict) -> dict:
         params.append(doc_type)
 
     updates.extend(["status = 'ready'", "version = version + 1", "updated_at = ?"])
-    params.extend([db.now(), page_id])
-    db.execute(f"UPDATE wiki_pages SET {', '.join(updates)} WHERE id = ?", params)
+    params.extend([db.now()])
+    expected_version = data.get("expected_version")
+    if expected_version is not None:
+        # 乐观锁：带版本号保存时，若已被他人改过则拒绝覆盖
+        try:
+            expected = int(expected_version)
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=400, detail="expected_version 必须是整数")
+        params.extend([page_id, expected])
+        with db.connect() as conn:
+            cursor = conn.execute(
+                f"UPDATE wiki_pages SET {', '.join(updates)} WHERE id = ? AND version = ?", params
+            )
+            conn.commit()
+            changed = cursor.rowcount
+        if changed == 0:
+            raise HTTPException(
+                status_code=409, detail="词条已被其他人修改，请刷新后重新编辑（避免覆盖新内容）"
+            )
+    else:
+        params.append(page_id)
+        db.execute(f"UPDATE wiki_pages SET {', '.join(updates)} WHERE id = ?", params)
     logger.info("词条已手工编辑：%s", page_id)
     return _page_detail(_require_page(page_id))
 

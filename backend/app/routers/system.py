@@ -11,9 +11,23 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from .. import config, db
-from ..security import ADMIN_TOKEN_HEADER, verify_admin_token
+from ..security import ADMIN_TOKEN_HEADER, resolve_principal, verify_admin_token
+from ..services import auth
 
 router = APIRouter(tags=["system"])
+
+# 匿名/学生可见的设置（欢迎语、辅导员名、快捷问题、热线等）；其余仅管理员可读
+PUBLIC_SETTING_KEYS = {
+    "counselor_name",
+    "welcome_message",
+    "quick_questions",
+    "citations_enabled",
+    "academic_year",
+    "handoff_enabled",
+    "crisis_enabled",
+    "crisis_hotlines",
+    "bot_reply_footer",
+}
 
 
 class AdminTokenInit(BaseModel):
@@ -86,17 +100,28 @@ def health() -> dict:
     model = db.get_default_model()
     queued = db.query_one("SELECT COUNT(*) AS n FROM jobs WHERE status = 'queued'")
     running = db.query_one("SELECT COUNT(*) AS n FROM jobs WHERE status = 'running'")
+    worker = jobs.worker_status()
+    queued_count = int((queued or {}).get("n") or 0)
+    issues: list[str] = []
+    if not worker.get("worker_running"):
+        issues.append("后台任务线程未运行，上传/扫描不会执行")
+    if model is None:
+        issues.append("未配置默认模型，问答与编译不可用")
+    if queued_count >= 20:
+        issues.append(f"任务积压 {queued_count} 个，处理较慢")
+    status = "degraded" if issues else "ok"
     return {
-        "status": "ok",
+        "status": status,
+        "issues": issues,
         "app": config.APP_NAME,
         "version": config.APP_VERSION,
         "time": datetime.now().isoformat(timespec="seconds"),
         "knowledge_mode": "llm-wiki",
         "wiki_pages": db.wiki_page_count(),
         "jobs": {
-            "queued": int((queued or {}).get("n") or 0),
+            "queued": queued_count,
             "running": int((running or {}).get("n") or 0),
-            **jobs.worker_status(),
+            **worker,
         },
         "alerts_open": alerts.open_count(),
         "default_model": (
@@ -203,8 +228,24 @@ def system_stats() -> dict:
 
 
 @router.get("/settings")
-def read_settings() -> dict:
-    return current_settings()
+def read_settings(request: Request) -> dict:
+    """公开设置白名单；仅管理员（非 open 演示模式）可拿到完整配置。
+
+    ``system_prompt``、``crisis_notify_webhook`` 等只允许 ``settings:write`` 角色读取，
+    避免匿名访问者拿到告警 webhook 或内部提示词。
+    """
+    settings = current_settings()
+    principal = resolve_principal(request)
+    role = str((principal or {}).get("role") or "")
+    auth_mode = str((principal or {}).get("auth") or "")
+    open_mode = auth.user_count() == 0 and not config.ADMIN_TOKEN
+    # 本机 open 演示模式（无账号/无令牌）可看完整设置；账号/令牌模式下匿名只返回白名单。
+    is_privileged = open_mode or (
+        bool(principal) and auth_mode != "open" and auth.has_permission(role, "settings:write")
+    )
+    if is_privileged:
+        return settings
+    return {key: settings[key] for key in PUBLIC_SETTING_KEYS if key in settings}
 
 
 @router.put("/settings")

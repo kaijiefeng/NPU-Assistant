@@ -236,9 +236,10 @@ export function mount(root) {
     } catch (err) {
       if (alive && !silent) toast(err?.message || '加载任务失败', 'error');
     } finally {
+      // refreshing 必须无条件复位：请求进行中离开页面时 alive=false，否则再进入会永久空白
+      state.refreshing = false;
       if (alive) {
         state.loading = false;
-        state.refreshing = false;
         render();
       }
     }

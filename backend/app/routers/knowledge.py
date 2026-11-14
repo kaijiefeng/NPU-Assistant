@@ -130,34 +130,28 @@ def upload_document(
     normalized_tags = ingest.normalize_tags(tags)
 
     if async_mode:
-        job = jobs.create_job(
-            "ingest_upload",
-            {
-                "filename": filename,
-                "title": normalized_title,
-                "tags": normalized_tags,
-            },
-            created_by="admin",
-        )
+        # 先落盘 staging 再入队：避免 worker 在 payload 补 staging_path 之前领取任务
         try:
-            staging = jobs.stage_upload(job["id"], filename, data)
+            staging = jobs.stage_bytes(filename, data)
         except OSError as exc:
-            jobs.request_cancel(job["id"])
             raise HTTPException(status_code=500, detail=f"保存上传文件失败：{exc}") from exc
-        db.execute(
-            "UPDATE jobs SET payload = ? WHERE id = ?",
-            (
-                db.to_json(
-                    {
-                        "filename": filename,
-                        "title": normalized_title,
-                        "tags": normalized_tags,
-                        "staging_path": staging,
-                    }
-                ),
-                job["id"],
-            ),
-        )
+        try:
+            job = jobs.create_job(
+                "ingest_upload",
+                {
+                    "filename": filename,
+                    "title": normalized_title,
+                    "tags": normalized_tags,
+                    "staging_path": staging,
+                },
+                created_by="admin",
+            )
+        except Exception:
+            try:
+                Path(staging).unlink(missing_ok=True)
+            except OSError:  # pragma: no cover - 清理失败不影响原始异常
+                logger.warning("清理上传临时文件失败：%s", staging)
+            raise
         response.status_code = 202
         return {
             "job_id": job["id"],
@@ -246,9 +240,14 @@ def scan_dir(payload: ScanDirRequest) -> dict:
     * 进度与逐文件结果见 ``GET /api/jobs/{id}``。
     """
     try:
-        files = ingest.list_scan_files(payload.path or "", recursive=payload.recursive)
+        limit = max(1, int(config.SCAN_MAX_FILES))
+        listed = ingest.list_scan_files(
+            payload.path or "", recursive=payload.recursive, max_files=limit + 1
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    truncated = len(listed) > limit
+    files = listed[:limit]
     if not files:
         raise HTTPException(
             status_code=400,
@@ -259,11 +258,18 @@ def scan_dir(payload: ScanDirRequest) -> dict:
         {"path": str(payload.path or ""), "recursive": bool(payload.recursive)},
         created_by="admin",
     )
+    message = f"发现 {len(files)} 个可收录文件，已开始后台收录；进度可在「任务与告警」查看。"
+    if truncated:
+        message = (
+            f"该文件夹文件较多，本次先收录前 {len(files)} 个（上限 NPU_SCAN_MAX_FILES）；"
+            "其余请分批扫描。"
+        )
     return {
         "job_id": job["id"],
         "status": "queued",
         "files": len(files),
-        "message": f"发现 {len(files)} 个可收录文件，已开始后台收录；进度可在「任务与告警」查看。",
+        "truncated": truncated,
+        "message": message,
     }
 
 

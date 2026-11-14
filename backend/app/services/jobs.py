@@ -90,6 +90,17 @@ def stage_upload(job_id: str, filename: str, data: bytes) -> str:
     return str(path)
 
 
+def stage_bytes(filename: str, data: bytes) -> str:
+    """把上传字节先落盘（不依赖 job id），用于「先写 staging 再入队」避免任务抢跑。"""
+    ext = Path(str(filename or "")).suffix.lower()
+    if ext not in config.SUPPORTED_EXTS:
+        ext = ".bin"
+    config.JOB_STAGING_DIR.mkdir(parents=True, exist_ok=True)
+    path = config.JOB_STAGING_DIR / f"{db.new_id()}{ext}"
+    path.write_bytes(data)
+    return str(path)
+
+
 def create_job(
     kind: str,
     payload: dict | None = None,
@@ -188,10 +199,10 @@ def retry_job(job_id: str) -> dict:
 
 
 def recover_interrupted() -> int:
+    timestamp = db.now()
     row = db.query_one("SELECT COUNT(*) AS n FROM jobs WHERE status = 'running'")
     count = int((row or {}).get("n") or 0)
     if count:
-        timestamp = db.now()
         db.execute(
             "UPDATE jobs SET status = 'failed', error = '服务重启导致任务中断，可点击重试', "
             "message = '已中断', finished_at = ?, updated_at = ? WHERE status = 'running'",
@@ -204,6 +215,16 @@ def recover_interrupted() -> int:
             detail=f"{count} 个任务被中断，请在「任务与告警」中重试。",
             source="jobs",
         )
+    # 进程被杀时文档可能永远停在 processing；启动时统一回收为 failed，允许重新编译
+    stuck = db.query_one("SELECT COUNT(*) AS n FROM documents WHERE status = 'processing'")
+    stuck_count = int((stuck or {}).get("n") or 0)
+    if stuck_count:
+        db.execute(
+            "UPDATE documents SET status = 'failed', error = ?, updated_at = ? "
+            "WHERE status = 'processing'",
+            ("服务重启导致编译中断，请重新编译该文档", timestamp),
+        )
+        logger.warning("已把 %s 篇中断文档从 processing 回收为 failed", stuck_count)
     return count
 
 
@@ -211,6 +232,19 @@ def prune_jobs(days: int = 30) -> None:
     from datetime import datetime, timedelta
 
     cutoff = (datetime.now() - timedelta(days=max(1, int(days)))).isoformat(timespec="seconds")
+    rows = db.query(
+        "SELECT payload FROM jobs WHERE status IN ('succeeded','failed','cancelled') "
+        "AND created_at < ?",
+        (cutoff,),
+    )
+    for row in rows:
+        payload = _json(row.get("payload"), {})
+        staging = str(payload.get("staging_path") or "").strip()
+        if staging:
+            try:
+                Path(staging).unlink(missing_ok=True)
+            except OSError:  # pragma: no cover - 清理失败不影响任务清理
+                logger.warning("清理任务临时文件失败：%s", staging)
     db.execute(
         "DELETE FROM jobs WHERE status IN ('succeeded','failed','cancelled') AND created_at < ?",
         (cutoff,),
@@ -291,24 +325,30 @@ def _run_scan_dir(payload: dict, job: dict) -> dict:
     path = str(payload.get("path") or "").strip()
     recursive = bool(payload.get("recursive", True))
     _update(job["id"], progress=5, message="正在扫描文件夹")
-    files = ingest.list_scan_files(path, recursive=recursive)
+    limit = max(1, int(config.SCAN_MAX_FILES))
+    files = ingest.list_scan_files(path, recursive=recursive, max_files=limit + 1)
+    truncated = len(files) > limit
+    files = files[:limit]
     if not files:
         return {
             "files": 0,
+            "truncated": False,
             "imported": [],
             "failed": [],
             "message": "该文件夹下没有可收录的文件（支持 md/txt/pdf/docx/doc/xlsx/csv/json/html）",
         }
+    processed = {str(item) for item in (payload.get("processed") or []) if item}
+    pending = [item for item in files if str(item) not in processed]
     imported: list[dict] = []
     failed: list[dict] = []
-    total = len(files)
-    for index, file_path in enumerate(files, start=1):
+    total = len(pending)
+    for index, file_path in enumerate(pending, start=1):
         latest = db.query_one("SELECT cancel_requested FROM jobs WHERE id = ?", (job["id"],))
         if latest and int(latest.get("cancel_requested") or 0):
             break
         _update(
             job["id"],
-            progress=min(95, 5 + int(index * 90 / total)),
+            progress=min(95, 5 + int(index * 90 / max(1, total))),
             message=f"正在收录 {file_path.name}（{index}/{total}）",
         )
         try:
@@ -320,6 +360,9 @@ def _run_scan_dir(payload: dict, job: dict) -> dict:
             )
         except Exception as exc:  # noqa: BLE001 - 单个文件失败不中断整批
             failed.append({"file": file_path.name, "error": str(exc)[:200]})
+            processed.add(str(file_path))
+            payload["processed"] = sorted(processed)
+            _update(job["id"], payload=db.to_json(payload))
             continue
         item = {
             "file": file_path.name,
@@ -332,8 +375,12 @@ def _run_scan_dir(payload: dict, job: dict) -> dict:
             failed.append(item)
         else:
             imported.append(item)
+        processed.add(str(file_path))
+        payload["processed"] = sorted(processed)
+        _update(job["id"], payload=db.to_json(payload))
     return {
-        "files": total,
+        "files": len(files),
+        "truncated": truncated,
         "imported": imported,
         "failed": failed,
         "imported_count": len(imported),
@@ -369,7 +416,20 @@ class JobWorker(threading.Thread):
             if not job:
                 self.stop_event.wait(self.poll_seconds)
                 continue
-            self._execute(job)
+            try:
+                self._execute(job)
+            except Exception:  # 兜底：任何未捕获异常都不能让 worker 线程退出
+                logger.exception("任务执行异常（已隔离，worker 继续运行）：%s", job.get("id"))
+                try:
+                    _update(
+                        job.get("id") or "",
+                        status="failed",
+                        error="任务执行异常，请查看服务日志后重试",
+                        message="失败，可重试",
+                        finished_at=db.now(),
+                    )
+                except Exception:  # pragma: no cover - 数据库也不可用时只能记日志
+                    logger.exception("标记异常任务失败")
         logger.info("后台任务线程已停止")
 
     def _execute(self, job: dict) -> None:
@@ -437,6 +497,7 @@ class JobWorker(threading.Thread):
                 resource_id=job_id,
             )
             logger.debug("任务异常堆栈：\n%s", traceback.format_exc())
+            _cleanup_staging(payload)
 
 
 def _cleanup_staging(payload: dict) -> None:

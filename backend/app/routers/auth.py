@@ -188,7 +188,13 @@ def change_password(
     if principal.get("auth") != "session" or not principal.get("user_id"):
         raise HTTPException(status_code=400, detail="当前使用管理令牌，请在账号登录后修改密码")
     try:
-        auth.change_password(principal["user_id"], payload.old_password, payload.new_password)
+        current_token = (request.cookies.get(config.ADMIN_COOKIE_NAME) or "").strip()
+        auth.change_password(
+            principal["user_id"],
+            payload.old_password,
+            payload.new_password,
+            keep_token=current_token,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     auth.record_audit(principal, "auth.password_change", target_type="user", target_id=principal["user_id"], ip=_ip(request))

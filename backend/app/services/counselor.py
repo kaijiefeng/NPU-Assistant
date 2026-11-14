@@ -1111,7 +1111,10 @@ def answer(
                     if citations:
                         remote_reply, remote_citations = _remote_reply(
                             text,
-                            start_index=len(citations) + 1,
+                            start_index=max(
+                                (int(item.get("index") or 0) for item in citations), default=0
+                            )
+                            + 1,
                             intro=(
                                 "补充检索：Wiki 已有基础说明，我又查了学院官网/官方公众号，"
                                 "找到以下公开信息，供你核对："

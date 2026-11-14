@@ -107,6 +107,20 @@ def _record_success(key: str) -> None:
         _CIRCUIT.pop(key, None)
 
 
+def _strip_endpoint(url: str) -> str:
+    """容忍用户把完整接口地址填进 base_url（如 .../v1/chat/completions）。"""
+    value = str(url or "").strip().rstrip("/")
+    for suffix in ("/chat/completions", "/completions", "/models"):
+        if value.endswith(suffix):
+            value = value[: -len(suffix)].rstrip("/")
+    return value
+
+
+def reset_circuit() -> None:
+    """清空熔断状态：Provider 凭据/地址改动或测试成功后调用，避免“改对了还报熔断”。"""
+    with _CIRCUIT_LOCK:
+        _CIRCUIT.clear()
+
 def circuit_status() -> dict:
     with _CIRCUIT_LOCK:
         return {
@@ -312,7 +326,7 @@ def _chat_openai(
     if not api_key:
         raise LLMError("OpenAI 兼容 Provider 未配置 api_key，请先在「模型管理」中补全")
 
-    url = _join_url(base_url, "/chat/completions")
+    url = _join_url(_strip_endpoint(base_url), "/chat/completions")
     payload: dict[str, Any] = {"model": model_name, "messages": messages, "stream": False}
     if temperature is not None:
         payload["temperature"] = float(temperature)
@@ -514,7 +528,7 @@ def _chat_openai_stream(
     if not api_key:
         raise LLMError("OpenAI 兼容 Provider 未配置 api_key，请先在「模型管理」中补全")
 
-    url = _join_url(base_url, "/chat/completions")
+    url = _join_url(_strip_endpoint(base_url), "/chat/completions")
     payload: dict[str, Any] = {
         "model": model_name,
         "messages": messages,
@@ -763,7 +777,7 @@ def test_provider(provider_id: str) -> dict:
 
     try:
         if provider_type == "openai":
-            url = _join_url(base_url, "/models")
+            url = _join_url(_strip_endpoint(base_url), "/models")
             with _client() as client:
                 data = _request_json(
                     client,

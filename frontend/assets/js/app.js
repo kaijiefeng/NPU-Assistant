@@ -286,12 +286,16 @@ function bindShell() {
 /* ------------------------------------------------------------------ */
 function paintHealth(ok, detail = {}) {
   if (!dom.healthCard) return;
-  dom.healthCard.classList.toggle('is-ok', ok);
-  dom.healthCard.classList.toggle('is-error', !ok);
+  const degraded = Boolean(ok && detail.status && detail.status !== 'ok');
+  const issues = Array.isArray(detail.issues) ? detail.issues.filter(Boolean) : [];
+  dom.healthCard.classList.toggle('is-ok', ok && !degraded);
+  dom.healthCard.classList.toggle('is-error', !ok || degraded);
   dom.healthDot?.classList.toggle('is-pending', false);
   if (ok) {
-    dom.healthTitle.textContent = '服务运行正常';
-    dom.healthCard.title = `NPU-Assistant ${detail?.version || ''} · ${detail?.time || ''}`;
+    dom.healthTitle.textContent = degraded ? '服务有异常' : '服务运行正常';
+    dom.healthCard.title = degraded
+      ? issues.join('；') || '部分能力不可用，请检查设置'
+      : `NPU-Assistant ${detail?.version || ''} · ${detail?.time || ''}`;
   } else {
     dom.healthTitle.textContent = '服务未连接';
     dom.healthCard.title = detail?.message || '无法连接 /api/health';

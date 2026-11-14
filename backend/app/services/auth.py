@@ -293,7 +293,9 @@ def reset_password(user_id: str, password: str, *, must_change: bool = True) -> 
     )
 
 
-def change_password(user_id: str, old_password: str, new_password: str) -> None:
+def change_password(
+    user_id: str, old_password: str, new_password: str, keep_token: str = ""
+) -> None:
     row = db.query_one("SELECT * FROM admin_users WHERE id = ?", (user_id,))
     if not row:
         raise ValueError("用户不存在")
@@ -308,6 +310,15 @@ def change_password(user_id: str, old_password: str, new_password: str) -> None:
         "must_change_password = 0 WHERE id = ?",
         (hash_password(new_password), timestamp, timestamp, user_id),
     )
+    # 改密后让其它会话立即失效（保留当前会话，避免用户被自己踢下线）
+    if keep_token:
+        db.execute(
+            "UPDATE admin_sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL "
+            "AND token_hash != ?",
+            (timestamp, user_id, _token_hash(keep_token)),
+        )
+    else:
+        revoke_user_sessions(user_id)
 
 
 def ensure_bootstrap() -> None:
