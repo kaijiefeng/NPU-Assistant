@@ -38,3 +38,4 @@ backend/data/job_staging/
 .screenshots/
 docs/npu-handbook/collect/inbox/
 docs/npu-handbook/collect/session/
+.artifacts/

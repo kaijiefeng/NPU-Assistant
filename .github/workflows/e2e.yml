@@ -1,0 +1,38 @@
+name: E2E
+
+on:
+  push:
+    branches: [develop, master, release]
+  pull_request:
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - "scripts/e2e/**"
+      - "scripts/e2e_verify.py"
+      - ".github/workflows/e2e.yml"
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r backend/requirements.txt
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+      - name: Run E2E (sandbox)
+        run: python scripts/e2e_verify.py --headless --ci --junit .artifacts/e2e/junit.xml
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: .artifacts/e2e
+          retention-days: 14
