@@ -313,6 +313,51 @@ class Browser:
             self.human_delay(0.02, 0.08)
         await self.wait_dom_quiet(timeout=10)
 
+    async def tap(self, selector: str, *, timeout: float = 12) -> None:
+        """移动端触摸点击：真实 touchStart/touchEnd（配合 mobile 视口）。"""
+        deadline = time.time() + timeout
+        rect = None
+        while time.time() < deadline:
+            rect = await self._rect(selector=selector)
+            if rect:
+                break
+            await asyncio.sleep(0.2)
+        if not rect:
+            raise AssertionError(f"找不到可点击元素：{selector}")
+        x = rect["x"] + rect["w"] * 0.5
+        y = rect["y"] + rect["h"] * 0.5
+        await self.call(
+            "Input.dispatchTouchEvent",
+            {"type": "touchStart", "touchPoints": [{"x": x, "y": y, "id": 1}]},
+        )
+        self.human_delay(0.04, 0.12)
+        await self.call(
+            "Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []}
+        )
+        await self.wait_dom_quiet(timeout=10)
+
+    async def tap_text(self, text: str, *, timeout: float = 12) -> None:
+        deadline = time.time() + timeout
+        rect = None
+        while time.time() < deadline:
+            rect = await self._rect(text=text)
+            if rect:
+                break
+            await asyncio.sleep(0.2)
+        if not rect:
+            raise AssertionError(f"找不到包含文字的触摸目标：{text}")
+        x = rect["x"] + rect["w"] * 0.5
+        y = rect["y"] + rect["h"] * 0.5
+        await self.call(
+            "Input.dispatchTouchEvent",
+            {"type": "touchStart", "touchPoints": [{"x": x, "y": y, "id": 1}]},
+        )
+        self.human_delay(0.04, 0.12)
+        await self.call(
+            "Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []}
+        )
+        await self.wait_dom_quiet(timeout=10)
+
     async def wheel(self, delta_y: int = 600) -> None:
         await self.call(
             "Input.dispatchMouseEvent",

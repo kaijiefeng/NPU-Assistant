@@ -37,7 +37,7 @@
 - 视口：默认 1440×960；`mobile.layout` 场景切 390×844 + touch 模拟。
 - 门禁：默认任何 console error 或 5xx 请求判失败。
 
-## 4. 场景清单（25 个）
+## 4. 场景清单（29 个）
 
 | 场景 | 覆盖 |
 |---|---|
@@ -51,6 +51,10 @@
 | `settings.assistant_and_models` | 设置页、模型标签、沙箱模型展示 |
 | `auth.login_logout` | 登录、会话建立、退出回登录页（account 档） |
 | `token.settings_redaction` | 匿名设置白名单、带令牌完整设置（token 档） |
+| `mobile.chat` | 移动端触摸：菜单开合、发送提问、引用、点赞、历史会话 |
+| `mobile.knowledge` | 移动端触摸：搜索、打开词条抽屉、标签筛选 |
+| `mobile.manage` | 移动端触摸：上传文件并落库 |
+| `mobile.settings` | 移动端触摸：设置页与模型页切换 |
 | `mobile.layout` | 390×844 四页无横向滚动、侧栏开合 |
 | `sandbox.isolation` | 数据目录在沙箱、端口非 8000、生产指纹未变 |
 | `knowledge.more` | 快速收录展开/收起、文本收录、词条列表刷新、标签筛选、导入快照、文档详情、重编译 |
@@ -79,7 +83,7 @@
 
 聊天引用不依赖模型文本，由后端检索生成，因此 mock 也能验证双层引用链路。
 
-## 6. CI
+## 6. CI 与 RSI 门禁
 
 `.github/workflows/e2e.yml`：ubuntu + setup-chrome，`python scripts/e2e_verify.py --headless --ci --junit .artifacts/e2e/junit.xml`，上传产物；触发 push（develop/master/release）、PR（frontend/backend/e2e 路径）与手动。CI runner 本身是一次性环境，不挂载生产数据。
 

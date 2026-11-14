@@ -48,7 +48,7 @@ async def _goto(ctx: Context, path: str) -> None:
     await ctx.browser.wait_dom_quiet()
 
 
-@scenario("bootstrap.routes", tags=("smoke",), covers=("",))
+@scenario("bootstrap.routes", tags=("smoke", "rsi"), covers=("",))
 async def bootstrap_routes(ctx: Context) -> None:
     async with ctx.step("打开对话页"):
         await _goto(ctx, "#/chat")
@@ -66,7 +66,7 @@ async def bootstrap_routes(ctx: Context) -> None:
         await ctx.expect_text("向辅导员数字分身提问")
 
 
-@scenario("chat.answer_and_citation", tags=("smoke", "chat"), covers=("",))
+@scenario("chat.answer_and_citation", tags=("smoke", "chat", "rsi"), covers=("",))
 async def chat_answer(ctx: Context) -> None:
     async with ctx.step("打开对话页"):
         await _goto(ctx, "#/chat")
@@ -87,7 +87,7 @@ async def chat_answer(ctx: Context) -> None:
         ctx.expect("来源" in text or "原文" in text, "引用展开后未显示来源信息")
 
 
-@scenario("knowledge.browse", tags=("knowledge",), covers=("open-page", "clear-search", "edit-page"))
+@scenario("knowledge.browse", tags=("knowledge", "rsi"), covers=("open-page", "clear-search", "edit-page"))
 async def knowledge_browse(ctx: Context) -> None:
     async with ctx.step("打开知识库"):
         await _goto(ctx, "#/knowledge")
@@ -179,7 +179,7 @@ async def auth_login_logout(ctx: Context) -> None:
         await ctx.expect_selector("#loginForm", timeout=20)
 
 
-@scenario("mobile.layout", tags=("mobile",), covers=("",))
+@scenario("mobile.layout", tags=("mobile", "rsi"), covers=("",))
 async def mobile_layout(ctx: Context) -> None:
     async with ctx.step("切换到 390x844 视口"):
         await ctx.browser.set_viewport(390, 844, mobile=True)
@@ -212,7 +212,7 @@ async def mobile_layout(ctx: Context) -> None:
         ctx.expect(visible is not None, "侧边栏未响应菜单按钮")
 
 
-@scenario("sandbox.isolation", tags=("smoke",), covers=("",))
+@scenario("sandbox.isolation", tags=("smoke", "rsi"), covers=("",))
 async def sandbox_isolation(ctx: Context) -> None:
     async with ctx.step("服务数据目录位于沙箱"):
         health = ctx.api_get("/api/health")
@@ -947,3 +947,113 @@ async def errors_retry(ctx: Context) -> None:
         await asyncio.sleep(1.2)
 
 
+async def _assert_no_overflow(ctx: Context, label: str) -> None:
+    data = await ctx.browser.evaluate(
+        "(() => { const d = document.documentElement;"
+        " return {scroll: d.scrollWidth, client: d.clientWidth}; })()"
+    ) or {}
+    ctx.expect(
+        data.get("scroll", 0) <= data.get("client", 0) + 1,
+        f"{label} 出现横向滚动：{data}",
+    )
+
+
+@scenario("mobile.chat", tags=("mobile", "rsi"), covers=("new-chat", "feedback-up", "toggle-history"))
+async def mobile_chat(ctx: Context) -> None:
+    async with ctx.step("移动端打开对话页"):
+        await ctx.browser.set_viewport(390, 844, mobile=True)
+        await _goto(ctx, "#/chat")
+        title = await ctx.browser.evaluate(
+            "document.getElementById('pageTitle')?.textContent?.trim() || ''"
+        )
+        ctx.expect(title == "对话", f"移动端对话页标题异常：{title}")
+        await _assert_no_overflow(ctx, "移动端对话页")
+    async with ctx.step("侧边栏触摸开合"):
+        await ctx.browser.tap("#menuBtn")
+        await asyncio.sleep(0.6)
+        opened = await ctx.browser.evaluate(
+            "(() => { const s = document.getElementById('sidebar');"
+            " return Boolean(s && (s.classList.contains('is-open') || getComputedStyle(s).transform !== 'none')); })()"
+        )
+        ctx.expect(bool(opened), "移动端菜单未打开")
+        await ctx.browser.press("Escape")
+        await asyncio.sleep(0.5)
+        if not await ctx.browser.wait_for_selector("#sidebarBackdrop", timeout=2):
+            await ctx.browser.tap("#menuBtn")
+            await asyncio.sleep(0.4)
+    async with ctx.step("触摸发送问题并收到引用"):
+        await ctx.browser.tap("#chatInput")
+        await ctx.browser.type("#chatInput", "国家奖学金怎么申请？")
+        await ctx.browser.tap("#sendBtn")
+        await ctx.browser.wait_for_selector(".citation-row", timeout=45)
+        await _assert_no_overflow(ctx, "移动端回答页")
+    async with ctx.step("触摸点赞"):
+        if await ctx.browser.wait_for_selector('[data-testid="feedback-down"]', timeout=5):
+            await ctx.browser.tap('[data-action="feedback-up"]')
+            await asyncio.sleep(0.6)
+    async with ctx.step("触摸历史会话开关"):
+        await ctx.browser.tap('[data-action="toggle-history"]')
+        await asyncio.sleep(0.6)
+        await ctx.browser.press("Escape")
+
+
+@scenario("mobile.knowledge", tags=("mobile", "rsi"), covers=("open-page", "filter-tag"))
+async def mobile_knowledge(ctx: Context) -> None:
+    async with ctx.step("移动端搜索词条"):
+        await ctx.browser.set_viewport(390, 844, mobile=True)
+        await _goto(ctx, "#/knowledge")
+        await ctx.expect_text("知识库")
+        await _assert_no_overflow(ctx, "移动端知识库")
+        await ctx.browser.tap("#wikiSearchInput")
+        await ctx.browser.type("#wikiSearchInput", "国家奖学金")
+        await ctx.browser.tap("#wikiSearchBtn")
+        await ctx.browser.wait_for_selector("#wikiSearchResult:not([hidden])", timeout=20)
+    async with ctx.step("触摸打开词条抽屉"):
+        await ctx.browser.tap('[data-action="open-page"]')
+        await ctx.browser.wait_for_selector('[data-testid="wiki-detail"]', timeout=20)
+        await _assert_no_overflow(ctx, "移动端词条详情")
+        await ctx.browser.press("Escape")
+    async with ctx.step("触摸标签筛选"):
+        await _goto(ctx, "#/knowledge")
+        await ctx.browser.wait_for_selector('[data-action="filter-tag"]', timeout=15)
+        await ctx.browser.tap('[data-action="filter-tag"]')
+        await asyncio.sleep(0.8)
+        await _assert_no_overflow(ctx, "移动端标签筛选")
+
+
+@scenario("mobile.manage", tags=("mobile",), covers=("pick-file", "manage-tab"))
+async def mobile_manage(ctx: Context) -> None:
+    sample = ctx.sandbox.root / "fixtures" / "移动端上传.md"
+    async with ctx.step("移动端上传文件"):
+        sample.parent.mkdir(parents=True, exist_ok=True)
+        sample.write_text("# 移动端上传\n\n" + "移动端上传验证内容。" * 20, encoding="utf-8")
+        await ctx.browser.set_viewport(390, 844, mobile=True)
+        await _fresh(ctx, "#/knowledge?manage=1")
+        await ctx.browser.tap('[data-action="manage-tab"][data-tab="capture"]')
+        await ctx.browser.tap('[data-action="capture-mode"][data-mode="file"]')
+        await ctx.browser.set_files("#fileInput", [sample])
+        await asyncio.sleep(1.5)
+        deadline = time.time() + 40
+        found = False
+        while time.time() < deadline:
+            docs = ctx.api_get("/api/knowledge/documents")["items"]
+            if any(item.get("filename") == sample.name for item in docs):
+                found = True
+                break
+            await asyncio.sleep(1.0)
+        ctx.expect(found, "移动端上传未入库")
+        await _assert_no_overflow(ctx, "移动端内容管理")
+
+
+@scenario("mobile.settings", tags=("mobile",), covers=("models-tab",))
+async def mobile_settings(ctx: Context) -> None:
+    async with ctx.step("移动端设置与模型页"):
+        await ctx.browser.set_viewport(390, 844, mobile=True)
+        await _fresh(ctx, "#/settings")
+        await ctx.expect_text("助手设置")
+        await ctx.browser.tap('[data-action="settings-tab"][data-tab="basic"]')
+        await _goto(ctx, "#/settings?tab=models")
+        await ctx.browser.wait_for_selector('[data-action="models-tab"]', timeout=20)
+        await ctx.browser.tap('[data-action="models-tab"][data-tab="providers"]')
+        await asyncio.sleep(0.8)
+        await _assert_no_overflow(ctx, "移动端模型页")

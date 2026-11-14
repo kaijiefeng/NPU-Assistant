@@ -1,9 +1,9 @@
 # E2E 覆盖率与截图证据
 
-- 生成时间：2026-11-14 22:16:59
-- 沙箱：`npu-e2e-0qp9redi`（临时目录，运行后删除）
+- 生成时间：2026-11-14 23:06:15
+- 沙箱：`npu-e2e-_lbgq73f`（临时目录，运行后删除）
 - 静态动作覆盖：**106/114 = 93.0%**
-- 场景：PASS 25 / FAIL 0 / KNOWN 0
+- 场景：PASS 29 / FAIL 0 / KNOWN 0
 
 ## 场景与截图
 
@@ -30,6 +30,10 @@
 | `insights.actions` | PASS | handoff-claim, handoff-copy, handoff-reply, handoff-resolve, crisis-status, gap-copy, gap-resolve, gap-ignore, feedback-resolve, feedback-ignore, cancel, open-wiki-page | [00-制造反馈_工单_危机数据](screenshots/e2e/insights.actions/00-制造反馈_工单_危机数据.png)<br>[01-打开服务台并刷新](screenshots/e2e/insights.actions/01-打开服务台并刷新.png)<br>[02-工单_认领_复制_回复_解决](screenshots/e2e/insights.actions/02-工单_认领_复制_回复_解决.png)<br>[03-危机事件状态](screenshots/e2e/insights.actions/03-危机事件状态.png)<br>[04-知识缺口处理](screenshots/e2e/insights.actions/04-知识缺口处理.png)<br>[05-反馈处理](screenshots/e2e/insights.actions/05-反馈处理.png) |
 | `chat.extra` | PASS | scroll-cite, retry-send, dismiss-error, crisis-ack | [00-发送问题并定位引用](screenshots/e2e/chat.extra/00-发送问题并定位引用.png)<br>[01-拦截接口制造发送失败](screenshots/e2e/chat.extra/01-拦截接口制造发送失败.png)<br>[02-危机提示确认](screenshots/e2e/chat.extra/02-危机提示确认.png) |
 | `errors.retry` | PASS | retry-page, retry | [00-词条详情加载失败后重试](screenshots/e2e/errors.retry/00-词条详情加载失败后重试.png)<br>[01-设置加载失败后重试](screenshots/e2e/errors.retry/01-设置加载失败后重试.png) |
+| `mobile.chat` | PASS | new-chat, feedback-up, toggle-history | [00-移动端打开对话页](screenshots/e2e/mobile.chat/00-移动端打开对话页.png)<br>[01-侧边栏触摸开合](screenshots/e2e/mobile.chat/01-侧边栏触摸开合.png)<br>[02-触摸发送问题并收到引用](screenshots/e2e/mobile.chat/02-触摸发送问题并收到引用.png)<br>[03-触摸点赞](screenshots/e2e/mobile.chat/03-触摸点赞.png)<br>[04-触摸历史会话开关](screenshots/e2e/mobile.chat/04-触摸历史会话开关.png) |
+| `mobile.knowledge` | PASS | open-page, filter-tag | [00-移动端搜索词条](screenshots/e2e/mobile.knowledge/00-移动端搜索词条.png)<br>[01-触摸打开词条抽屉](screenshots/e2e/mobile.knowledge/01-触摸打开词条抽屉.png)<br>[02-触摸标签筛选](screenshots/e2e/mobile.knowledge/02-触摸标签筛选.png) |
+| `mobile.manage` | PASS | pick-file, manage-tab | [00-移动端上传文件](screenshots/e2e/mobile.manage/00-移动端上传文件.png) |
+| `mobile.settings` | PASS | models-tab | [00-移动端设置与模型页](screenshots/e2e/mobile.settings/00-移动端设置与模型页.png) |
 | `auth.login_logout` | PASS |  | [00-打开登录页并登录](screenshots/e2e/auth.login_logout/00-打开登录页并登录.png)<br>[01-退出登录](screenshots/e2e/auth.login_logout/01-退出登录.png) |
 | `team.users` | PASS | team-tab, team-reload, user-add, user-role, user-toggle, user-reset, cancel | [00-登录管理员](screenshots/e2e/team.users/00-登录管理员.png)<br>[01-打开成员页](screenshots/e2e/team.users/01-打开成员页.png)<br>[02-取消新增弹窗](screenshots/e2e/team.users/02-取消新增弹窗.png)<br>[03-新增成员](screenshots/e2e/team.users/03-新增成员.png)<br>[04-修改角色](screenshots/e2e/team.users/04-修改角色.png)<br>[05-停用成员](screenshots/e2e/team.users/05-停用成员.png)<br>[06-重置成员密码](screenshots/e2e/team.users/06-重置成员密码.png) |
 | `settings.account` | PASS | cancel, logout, go-login | [00-登录并打开账号页](screenshots/e2e/settings.account/00-登录并打开账号页.png)<br>[01-退出登录](screenshots/e2e/settings.account/01-退出登录.png) |

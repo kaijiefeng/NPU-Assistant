@@ -29,10 +29,14 @@ jobs:
         uses: browser-actions/setup-chrome@v1
       - name: Run E2E (sandbox)
         run: python scripts/e2e_verify.py --headless --ci --min-coverage 90 --junit .artifacts/e2e/junit.xml
+      - name: RSI quality gate
+        run: python scripts/rsi_verify.py --from-artifacts --min-coverage 90
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: e2e-artifacts
-          path: .artifacts/e2e
+          path: |
+            .artifacts/e2e
+            docs/rsi
           retention-days: 14

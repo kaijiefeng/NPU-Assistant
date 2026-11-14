@@ -1,0 +1,81 @@
+{
+  "generated_at": "2026-11-14T23:06:15+0800",
+  "commit": "149974f",
+  "source_report": ".artifacts\\e2e\\npu-e2e-_lbgq73f\\report.json",
+  "coverage_percent": 93.0,
+  "min_coverage": 90.0,
+  "rsi_scenarios": [
+    {
+      "id": "bootstrap.routes",
+      "status": "PASS",
+      "duration": 5.96
+    },
+    {
+      "id": "chat.answer_and_citation",
+      "status": "PASS",
+      "duration": 6.54
+    },
+    {
+      "id": "knowledge.browse",
+      "status": "PASS",
+      "duration": 6.85
+    },
+    {
+      "id": "mobile.layout",
+      "status": "PASS",
+      "duration": 9.03
+    },
+    {
+      "id": "sandbox.isolation",
+      "status": "PASS",
+      "duration": 0.22
+    },
+    {
+      "id": "mobile.chat",
+      "status": "PASS",
+      "duration": 12.49
+    },
+    {
+      "id": "mobile.knowledge",
+      "status": "PASS",
+      "duration": 8.52
+    }
+  ],
+  "counts": {
+    "pass": 7,
+    "fail": 0,
+    "skip": 0,
+    "total": 7
+  },
+  "screenshots": [
+    "latest\\screenshots\\bootstrap.routes\\00-打开对话页.png",
+    "latest\\screenshots\\bootstrap.routes\\01-侧边栏切换到知识库.png",
+    "latest\\screenshots\\bootstrap.routes\\02-旧路由_manage_重定向.png",
+    "latest\\screenshots\\bootstrap.routes\\03-未知路由回落到对话.png",
+    "latest\\screenshots\\chat.answer_and_citation\\00-打开对话页.png",
+    "latest\\screenshots\\chat.answer_and_citation\\01-输入并发送问题.png",
+    "latest\\screenshots\\chat.answer_and_citation\\02-等待回答与引用.png",
+    "latest\\screenshots\\chat.answer_and_citation\\03-展开引用来源.png",
+    "latest\\screenshots\\knowledge.browse\\00-打开知识库.png",
+    "latest\\screenshots\\knowledge.browse\\01-搜索并打开词条.png",
+    "latest\\screenshots\\knowledge.browse\\02-关闭抽屉.png",
+    "latest\\screenshots\\mobile.layout\\00-切换到_390x844_视口.png",
+    "latest\\screenshots\\mobile.layout\\01-检查_chat_无横向滚动.png",
+    "latest\\screenshots\\mobile.layout\\02-检查_knowledge_无横向滚动.png",
+    "latest\\screenshots\\mobile.layout\\03-检查_ops_无横向滚动.png",
+    "latest\\screenshots\\mobile.layout\\04-检查_settings_无横向滚动.png",
+    "latest\\screenshots\\mobile.layout\\05-侧边栏开合.png",
+    "latest\\screenshots\\sandbox.isolation\\00-服务数据目录位于沙箱.png",
+    "latest\\screenshots\\sandbox.isolation\\01-生产数据未被写入.png",
+    "latest\\screenshots\\mobile.chat\\00-移动端打开对话页.png",
+    "latest\\screenshots\\mobile.chat\\01-侧边栏触摸开合.png",
+    "latest\\screenshots\\mobile.chat\\02-触摸发送问题并收到引用.png",
+    "latest\\screenshots\\mobile.chat\\03-触摸点赞.png",
+    "latest\\screenshots\\mobile.chat\\04-触摸历史会话开关.png",
+    "latest\\screenshots\\mobile.knowledge\\00-移动端搜索词条.png",
+    "latest\\screenshots\\mobile.knowledge\\01-触摸打开词条抽屉.png",
+    "latest\\screenshots\\mobile.knowledge\\02-触摸标签筛选.png"
+  ],
+  "passed": true,
+  "evidence_dir": "docs/rsi/latest"
+}
