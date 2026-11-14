@@ -249,6 +249,9 @@ async def knowledge_scan_and_delete(ctx: Context) -> None:
         ctx.expect(found, "扫描后 60s 内未出现文档")
     async with ctx.step("切换到源文件并刷新"):
         await ctx.browser.click('[data-action="manage-tab"][data-tab="sources"]')
+        if not await ctx.browser.wait_for_selector('[data-action="refresh-docs"]', timeout=8):
+            await ctx.browser.click('[data-action="manage-tab"][data-tab="sources"]')
+            await ctx.browser.wait_for_selector('[data-action="refresh-docs"]', timeout=15)
         await ctx.browser.click('[data-action="refresh-docs"]')
         await ctx.expect_text("扫描样例.md", timeout=20)
     async with ctx.step("删除扫描文档"):
