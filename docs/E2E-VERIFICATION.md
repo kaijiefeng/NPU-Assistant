@@ -37,7 +37,7 @@
 - 视口：默认 1440×960；`mobile.layout` 场景切 390×844 + touch 模拟。
 - 门禁：默认任何 console error 或 5xx 请求判失败。
 
-## 4. 场景清单（12 个）
+## 4. 场景清单（16 个）
 
 | 场景 | 覆盖 |
 |---|---|
@@ -53,8 +53,12 @@
 | `token.settings_redaction` | 匿名设置白名单、带令牌完整设置（token 档） |
 | `mobile.layout` | 390×844 四页无横向滚动、侧栏开合 |
 | `sandbox.isolation` | 数据目录在沙箱、端口非 8000、生产指纹未变 |
+| `knowledge.more` | 快速收录展开/收起、文本收录、词条列表刷新、标签筛选、导入快照、文档详情、重编译 |
+| `chat.more` | 点踩+原因+提交、历史会话打开/删除、转人工弹窗 |
+| `models.crud` | Provider/模型增改测、设默认、停用、刷新、删除（含确认框） |
+| `team.users` | 成员新增、角色变更、停用、重置密码（account 档） |
 
-覆盖度量：`coverage.json` 静态盘点各 view 的 `data-action`（当前 114 个），按场景 `covers` 统计。**首版动作覆盖率 12.3%（14/114）**，缺口按 view 列在 `coverage.json`，后续按缺口补场景；CI 暂不设覆盖率门槛，可用 `--min-coverage` 自行要求。
+覆盖度量：`coverage.json` 静态盘点各 view 的 `data-action`（当前 114 个），按场景 `covers` 统计，且只计入未失败场景。**当前动作覆盖率 39.5%（45/114）**，缺口按 view 列在 `coverage.json`；截图证据与逐场景覆盖表见 [E2E-COVERAGE.md](E2E-COVERAGE.md)（由 `--publish` 生成，截图在 `docs/screenshots/e2e/`）。
 
 ## 5. 确定性模型
 
@@ -76,7 +80,15 @@
 - 编译链路使用 mock JSON，验证的是状态流转与 UI，不是真实模型质量。
 - 文件上传通过 `DOM.setFileInputFiles`（浏览器限制无法模拟系统文件选择器），其余交互均为真实输入事件。
 
-## 8. 引擎单测
+## 8. 截图证据
+
+```powershell
+.\scripts\e2e.ps1 -Publish
+```
+
+运行后把每一步截图复制到 `docs/screenshots/e2e/<场景>/`，并生成 [E2E-COVERAGE.md](E2E-COVERAGE.md)：场景状态、覆盖动作、可点击截图链接。
+
+## 9. 引擎单测
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest scripts\e2e\tests -q

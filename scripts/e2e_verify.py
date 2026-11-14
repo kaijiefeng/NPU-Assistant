@@ -79,6 +79,16 @@ async def main_async(args: argparse.Namespace) -> int:
     )
     print(f"报告：{sandbox.report_dir}")
 
+    if args.publish:
+        engine.publish_evidence(
+            sandbox,
+            results,
+            coverage,
+            shots_dir=ROOT / "docs" / "screenshots" / "e2e",
+            doc_path=ROOT / "docs" / "E2E-COVERAGE.md",
+        )
+        print(f"证据已发布：{ROOT / 'docs' / 'E2E-COVERAGE.md'}")
+
     if args.junit:
         source = sandbox.report_dir / "junit.xml"
         if source.is_file():
@@ -108,6 +118,7 @@ def main() -> int:
     parser.add_argument("--min-coverage", type=float, default=0.0, help="覆盖率下限（百分比）")
     parser.add_argument("--self-test", action="store_true", help="只做引擎自检")
     parser.add_argument("--ci", action="store_true", help="CI 模式（等价 headless + 保留失败现场）")
+    parser.add_argument("--publish", action="store_true", help="把截图与覆盖文档发布到 docs/（作为验证证据）")
     args = parser.parse_args()
     if args.ci:
         args.headed = False

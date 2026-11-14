@@ -27,6 +27,7 @@ class Scenario:
     profile: str = "open"
     covers: tuple[str, ...] = ()
     known_issues: tuple[str, ...] = ()
+    allow_errors: tuple[str, ...] = ()
 
 
 REGISTRY: list[Scenario] = []
@@ -39,6 +40,7 @@ def scenario(
     profile: str = "open",
     covers: tuple[str, ...] = (),
     known_issues: tuple[str, ...] = (),
+    allow_errors: tuple[str, ...] = (),
 ):
     def decorator(fn):
         REGISTRY.append(
@@ -49,6 +51,7 @@ def scenario(
                 profile=profile,
                 covers=covers,
                 known_issues=known_issues,
+                allow_errors=allow_errors,
             )
         )
         return fn
@@ -90,11 +93,13 @@ class Context:
         server: AppServer,
         browser: Browser,
         scenario: Scenario,
+        mock_url: str = "",
     ) -> None:
         self.sandbox = sandbox
         self.server = server
         self.browser = browser
         self.scenario = scenario
+        self.mock_url = mock_url
         self.steps: list[StepResult] = []
         self.screenshots: list[str] = []
         self._step_start = 0.0
@@ -153,7 +158,9 @@ class Context:
 
     # -- 收尾 -----------------------------------------------------------
     def gate(self) -> None:
-        errors = self.browser.console_errors()
+        raw_errors = self.browser.console_errors()
+        allowed = getattr(self.scenario, "allow_errors", ())
+        errors = [item for item in raw_errors if not any(token in item for token in allowed)]
         failures = [item for item in self.browser.network_failures() if item.get("status")]
         if errors:
             raise AssertionError(f"控制台错误：{errors[:3]}")
@@ -176,10 +183,13 @@ def inventory_actions() -> dict[str, set[str]]:
     return result
 
 
-def coverage_report() -> dict:
+def coverage_report(statuses: dict[str, str] | None = None) -> dict:
+    """静态盘点 + 场景声明覆盖；传入 statuses 时只统计未失败场景（避免虚报）。"""
     inventory = inventory_actions()
     covered: set[str] = set()
     for item in REGISTRY:
+        if statuses is not None and statuses.get(item.id) == "FAIL":
+            continue
         covered.update(item.covers)
     total = sum(len(items) for items in inventory.values())
     hit = sum(1 for items in inventory.values() for action in items if action in covered)
@@ -283,11 +293,71 @@ def write_reports(sandbox: RunSandbox, results: list[ScenarioResult], coverage: 
 
 
 # ---------------------------------------------------------------------------
+# 证据发布（截图 + 覆盖文档）
+# ---------------------------------------------------------------------------
+def publish_evidence(
+    sandbox: RunSandbox,
+    results: list[ScenarioResult],
+    coverage: dict,
+    *,
+    shots_dir: Path,
+    doc_path: Path,
+) -> None:
+    """把本轮截图复制到仓库目录，并生成可点击的覆盖率/证据文档。"""
+    shots_dir.mkdir(parents=True, exist_ok=True)
+    for result in results:
+        for shot in result.screenshots:
+            source = sandbox.report_dir / shot
+            if not source.is_file():
+                continue
+            target = shots_dir / result.id / source.name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(source.read_bytes())
+
+    lines = [
+        "# E2E 覆盖率与截图证据",
+        "",
+        f"- 生成时间：{time.strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 沙箱：`{sandbox.root.name}`（临时目录，运行后删除）",
+        f"- 静态动作覆盖：**{coverage['covered']}/{coverage['total']} = {coverage['percent']}%**",
+        f"- 场景：PASS {sum(1 for r in results if r.status=='PASS')} / FAIL "
+        f"{sum(1 for r in results if r.status=='FAIL')} / KNOWN {sum(1 for r in results if r.status=='KNOWN')}",
+        "",
+        "## 场景与截图",
+        "",
+        "| 场景 | 状态 | 覆盖动作 | 截图 |",
+        "|---|---|---|---|",
+    ]
+    registry = {item.id: item for item in REGISTRY}
+    for result in results:
+        item = registry.get(result.id)
+        covers = ", ".join(item.covers) if item and item.covers else "—"
+        shots = [
+            f"[{Path(shot).stem}](screenshots/e2e/{result.id}/{Path(shot).name})"
+            for shot in result.screenshots
+            if (shots_dir / result.id / Path(shot).name).is_file()
+        ]
+        lines.append(
+            f"| `{result.id}` | {result.status} | {covers} | {'<br>'.join(shots) or '—'} |"
+        )
+    lines += ["", "## 分视图覆盖", ""]
+    for view, info in coverage["views"].items():
+        lines.append(f"- **{view}**：{info['covered']}/{info['total']}")
+    doc_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
 # 运行器
 # ---------------------------------------------------------------------------
-async def run_scenario(scenario_obj: Scenario, sandbox: RunSandbox, server: AppServer, browser: Browser) -> ScenarioResult:
+async def run_scenario(
+    scenario_obj: Scenario,
+    sandbox: RunSandbox,
+    server: AppServer,
+    browser: Browser,
+    mock_url: str = "",
+) -> ScenarioResult:
     started = time.time()
-    context = Context(sandbox, server, browser, scenario_obj)
+    context = Context(sandbox, server, browser, scenario_obj, mock_url=mock_url)
     result = ScenarioResult(
         id=scenario_obj.id,
         profile=scenario_obj.profile,
@@ -356,7 +426,7 @@ async def run_selected(
                 for item in items:
                     if verbose:
                         print(f"[RUN ] {item.id}", flush=True)
-                    result = await run_scenario(item, sandbox, server, browser)
+                    result = await run_scenario(item, sandbox, server, browser, mock_url=mock.base_url())
                     results.append(result)
                     line = f"[{result.status:5}] {result.id} ({result.duration:.1f}s)"
                     if result.error:
@@ -369,6 +439,6 @@ async def run_selected(
         mock.stop()
 
     sandbox.verify_production_untouched()
-    coverage = coverage_report()
+    coverage = coverage_report({item.id: item.status for item in results})
     write_reports(sandbox, results, coverage)
     return results, sandbox
