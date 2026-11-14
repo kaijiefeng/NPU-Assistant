@@ -583,14 +583,14 @@ async def bots_console(ctx: Context) -> None:
 @scenario(
     "settings.quick",
     tags=("settings",),
-    covers=("settings-tab", "add-quick", "remove-quick", "open-mobile-access", "toggle-token-visibility", "save-token", "clear-token", "test-token"),
+    covers=("settings-tab", "add-quick", "remove-quick", "open-mobile-access", "toggle-token-visibility", "save-token", "clear-token", "test-token", "enable-server-token"),
     allow_errors=("401", "400"),
 )
 async def settings_quick(ctx: Context) -> None:
     async with ctx.step("打开设置并切换安全页"):
         await _fresh(ctx, "#/settings")
         await ctx.expect_text("助手设置", timeout=20)
-        await ctx.browser.click('[data-action="settings-tab"][data-tab="security"]')
+        await ctx.browser.click('[data-testid="settings-tab-security"]')
         await asyncio.sleep(0.8)
     async with ctx.step("新增/删除快捷问题"):
         await ctx.browser.click('[data-action="settings-tab"][data-tab="basic"]')
@@ -601,7 +601,7 @@ async def settings_quick(ctx: Context) -> None:
         await ctx.browser.type("#quickList input", "E2E 快捷问题")
         await ctx.browser.click('[data-action="remove-quick"]')
     async with ctx.step("打开手机扫码弹窗"):
-        await ctx.browser.click('[data-action="settings-tab"][data-tab="security"]')
+        await ctx.browser.click('[data-testid="settings-tab-security"]')
         if not await ctx.browser.wait_for_selector('[data-action="open-mobile-access"]', timeout=5):
             await ctx.browser.evaluate(
                 "(() => { const p = document.getElementById('settingsSecurityPanel');"
@@ -612,8 +612,11 @@ async def settings_quick(ctx: Context) -> None:
         await ctx.browser.click('[data-action="open-mobile-access"]')
         await asyncio.sleep(1.0)
         await ctx.browser.press("Escape")
+    async with ctx.step("启用服务端令牌（空输入仅校验）"):
+        await ctx.browser.wait_for_selector('[data-testid="enable-server-token"]', timeout=10)
+        await ctx.browser.click('[data-testid="enable-server-token"]')
+        await asyncio.sleep(0.8)
     async with ctx.step("令牌显示切换与保存/清除"):
-        await ctx.browser.click('[data-action="settings-tab"][data-tab="security"]')
         await ctx.browser.click('[data-action="toggle-token-visibility"]')
         await ctx.browser.type("#adminTokenInput", "e2e-short")
         await ctx.browser.click('[data-action="save-token"]')
@@ -658,7 +661,7 @@ async def settings_account(ctx: Context) -> None:
 @scenario(
     "knowledge.extra",
     tags=("knowledge",),
-    covers=("edit-page", "import-links", "doc-download", "rebuild-all", "clear-uploads", "copy-capture-url", "dismiss-build"),
+    covers=("edit-page", "import-links", "doc-download", "rebuild-all", "clear-uploads", "copy-capture-url", "dismiss-build", "delete-page"),
 )
 async def knowledge_extra(ctx: Context) -> None:
     async with ctx.step("编辑词条"):
@@ -710,6 +713,26 @@ async def knowledge_extra(ctx: Context) -> None:
         await asyncio.sleep(2.0)
         if await ctx.browser.wait_for_selector('[data-action="dismiss-build"]', timeout=8):
             await ctx.browser.click('[data-action="dismiss-build"]')
+    async with ctx.step("删除一个词条"):
+        await _fresh(ctx, "#/knowledge?manage=1")
+        await ctx.browser.click('[data-action="manage-tab"][data-tab="pages"]')
+        await ctx.browser.wait_for_selector(".wiki-card", timeout=20)
+        await ctx.browser.evaluate(
+            "(() => { const c = Array.from(document.querySelectorAll('.wiki-card'))"
+            ".filter(n => n.getClientRects().length)[0]; c?.click(); })()"
+        )
+        await ctx.browser.wait_for_selector('[data-testid="page-delete"]', timeout=20)
+        before = ctx.api_get("/api/wiki/stats").get("pages", 0)
+        await ctx.browser.click('[data-testid="page-delete"]')
+        await _confirm(ctx)
+        deadline = time.time() + 8
+        after = before
+        while time.time() < deadline:
+            after = ctx.api_get("/api/wiki/stats").get("pages", 0)
+            if after == before - 1:
+                break
+            await asyncio.sleep(0.8)
+        ctx.expect(after == before - 1, f"删除词条后数量未减少：{before} -> {after}")
     async with ctx.step("上传后清除已完成队列"):
         sample = ctx.sandbox.root / "fixtures" / "E2E清空队列.md"
         sample.parent.mkdir(parents=True, exist_ok=True)

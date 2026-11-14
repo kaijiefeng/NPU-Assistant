@@ -110,14 +110,14 @@ function feedbackBlockHtml(messageId) {
     const label = current.rating === 1 ? '已记录：有帮助' : '已记录：没帮助';
     return `<div class="msg-feedback is-done" data-feedback-message="${esc(id)}">
       <span class="msg-feedback-done">${current.rating === 1 ? '👍' : '👎'} ${esc(label)}</span>
-      <button class="link-btn" type="button" data-action="feedback-reset" data-message-id="${esc(id)}">修改</button>
+      <button class="link-btn" type="button" data-action="feedback-reset" data-testid="feedback-reset" data-message-id="${esc(id)}">修改</button>
     </div>`;
   }
   return `<div class="msg-feedback" data-feedback-message="${esc(id)}">
     <span class="msg-feedback-label">这条回答有帮助吗？</span>
     <button class="btn btn-xs btn-ghost" type="button" data-action="feedback-up" data-message-id="${esc(id)}">👍 有帮助</button>
-    <button class="btn btn-xs btn-ghost" type="button" data-action="feedback-down" data-message-id="${esc(id)}">👎 没帮助</button>
-    <div class="feedback-reasons" hidden>
+    <button class="btn btn-xs btn-ghost" type="button" data-action="feedback-down" data-testid="feedback-down" data-message-id="${esc(id)}">👎 没帮助</button>
+    <div class="feedback-reasons" data-testid="feedback-reasons" hidden>
       <span class="feedback-reasons-label">哪里不满意？</span>
       <button class="feedback-chip" type="button" data-action="feedback-reason" data-reason="not_found">没找到</button>
       <button class="feedback-chip" type="button" data-action="feedback-reason" data-reason="incomplete">不完整</button>
@@ -125,8 +125,8 @@ function feedbackBlockHtml(messageId) {
       <button class="feedback-chip" type="button" data-action="feedback-reason" data-reason="bad_citation">引用不对</button>
       <button class="feedback-chip" type="button" data-action="feedback-reason" data-reason="other">其他</button>
       <input class="input feedback-comment" data-feedback-comment maxlength="200" placeholder="补充说明（选填）" />
-      <button class="btn btn-xs btn-primary" type="button" data-action="feedback-submit" data-message-id="${esc(id)}">提交</button>
-      <button class="link-btn" type="button" data-action="feedback-cancel">取消</button>
+      <button class="btn btn-xs btn-primary" type="button" data-action="feedback-submit" data-testid="feedback-submit" data-message-id="${esc(id)}">提交</button>
+      <button class="link-btn" type="button" data-action="feedback-cancel" data-testid="feedback-cancel">取消</button>
     </div>
   </div>`;
 }
@@ -404,7 +404,7 @@ export function mount(root) {
       return;
     }
     if (!state.historyReady) {
-      historyList.innerHTML = `<div class="history-offline">${icon('offline')}<p>历史会话接口暂不可用</p><button class="btn btn-sm btn-ghost" type="button" data-action="refresh-history">重试</button></div>`;
+      historyList.innerHTML = `<div class="history-offline">${icon('offline')}<p>历史会话接口暂不可用</p><button class="btn btn-sm btn-ghost" type="button" data-action="refresh-history" data-testid="history-retry">重试</button></div>`;
       return;
     }
     if (!items.length) {

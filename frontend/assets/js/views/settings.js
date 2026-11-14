@@ -132,9 +132,9 @@ function fillForm(settings) {
 function renderShell() {
   return `<div class="page settings-page">
     <div class="seg-tabs" role="tablist" aria-label="设置">
-      <button class="seg-tab is-active" type="button" role="tab" aria-selected="true" data-action="settings-tab" data-tab="basic">基础</button>
-      <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="settings-tab" data-tab="security">移动访问与安全</button>
-      <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="settings-tab" data-tab="reply">回复与引用</button>
+      <button class="seg-tab is-active" type="button" role="tab" aria-selected="true" data-action="settings-tab" data-testid="settings-tab-basic" data-tab="basic">基础</button>
+      <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="settings-tab" data-testid="settings-tab-security" data-tab="security">移动访问与安全</button>
+      <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="settings-tab" data-testid="settings-tab-reply" data-tab="reply">回复与引用</button>
     </div>
 
     <form class="settings-layout" id="settingsForm" novalidate>
@@ -207,8 +207,8 @@ function renderShell() {
             </label>
             <div class="token-status" id="adminTokenStatus">${icon('info')}<span>读取中…</span></div>
             <div class="token-actions">
-              <button class="btn btn-primary btn-sm" type="button" data-action="save-token">${icon('check')}<span>保存令牌</span></button>
-              <button class="btn btn-ghost btn-sm" type="button" data-action="enable-server-token" id="enableServerTokenBtn" hidden>${icon('shield')}<span>启用服务端令牌</span></button>
+              <button class="btn btn-primary btn-sm" type="button" data-action="save-token" data-testid="save-token">${icon('check')}<span>保存令牌</span></button>
+              <button class="btn btn-ghost btn-sm" type="button" data-action="enable-server-token" data-testid="enable-server-token" id="enableServerTokenBtn" hidden>${icon('shield')}<span>启用服务端令牌</span></button>
               <button class="btn btn-ghost btn-sm" type="button" data-action="test-token">${icon('link')}<span>测试连接</span></button>
               <button class="btn btn-ghost btn-sm is-danger" type="button" data-action="clear-token">${icon('trash')}<span>清除令牌</span></button>
             </div>
@@ -370,7 +370,7 @@ async function refreshTokenServerState() {
 
 function updateTokenInputState() {
   const input = document.getElementById('adminTokenInput');
-  const saveBtn = document.querySelector('[data-action="save-token"]');
+  const saveBtn = document.querySelector('[data-testid="save-token"]');
   const token = getAdminToken();
   if (input) {
     input.value = '';
@@ -559,7 +559,7 @@ function bindActions() {
   });
 
   /* 管理令牌：保存 / 替换 / 清除 / 测试 / 显示隐藏 */
-  document.querySelector('[data-action="save-token"]')?.addEventListener('click', async (event) => {
+  document.querySelector('[data-testid="save-token"]')?.addEventListener('click', async (event) => {
     const input = document.getElementById('adminTokenInput');
     const value = String(input?.value || '').trim();
     if (!value) {
@@ -634,7 +634,7 @@ function bindActions() {
     }
   });
 
-  document.querySelector('[data-action="enable-server-token"]')?.addEventListener('click', async (event) => {
+  document.querySelector('[data-testid="enable-server-token"]')?.addEventListener('click', async (event) => {
     const input = document.getElementById('adminTokenInput');
     const value = String(input?.value || '').trim();
     if (value.length < 16) {

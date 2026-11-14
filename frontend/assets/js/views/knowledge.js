@@ -529,7 +529,7 @@ function renderPages() {
           icon: 'book',
           title: state.activeTag ? `标签「${state.activeTag}」下暂无词条` : '校园 Wiki 还没有词条',
           desc: '词条由管理员在「内容管理」中收录并编译，稍后再来看看。',
-          action: `<button class="btn btn-primary" type="button" data-action="go-manage">${icon(
+          action: `<button class="btn btn-primary" type="button" data-action="go-manage" data-testid="go-manage">${icon(
             'database',
           )}<span>去内容管理</span></button>`,
         })
@@ -585,7 +585,7 @@ function wikiDetailHtml(data) {
   const links = Array.isArray(data?.links) ? data.links : [];
   const aliases = normalizeList(page.aliases);
   const tags = normalizeList(page.tags);
-  return `<div class="wiki-detail">
+  return `<div class="wiki-detail" data-testid="wiki-detail">
     <header class="wiki-detail-head">
       <div>
         <h2>${esc(page.title || '未命名词条')}</h2>
@@ -595,10 +595,10 @@ function wikiDetailHtml(data) {
         ${
           state.readOnly
             ? ''
-            : `<button class="btn btn-sm btn-ghost" type="button" data-action="edit-page" data-id="${esc(
+            : `<button class="btn btn-sm btn-ghost" type="button" data-action="edit-page" data-testid="page-edit" data-id="${esc(
                 page.id,
               )}">${icon('edit')}<span>编辑</span></button>
-        <button class="btn btn-sm btn-ghost is-danger" type="button" data-action="delete-page" data-id="${esc(
+        <button class="btn btn-sm btn-ghost is-danger" type="button" data-action="delete-page" data-testid="page-delete" data-id="${esc(
           page.id,
         )}">${icon('trash')}<span>删除</span></button>`
         }

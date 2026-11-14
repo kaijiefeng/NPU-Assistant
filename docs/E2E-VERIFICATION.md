@@ -68,7 +68,7 @@
 | `errors.retry` | 词条详情加载失败重试、设置加载失败重试 |
 
 
-覆盖度量：`coverage.json` 静态盘点各 view 的 `data-action`（当前 114 个），按场景 `covers` 统计，且只计入未失败场景。**当前动作覆盖率 91.2%（104/114）**，缺口按 view 列在 `coverage.json`；截图证据与逐场景覆盖表见 [E2E-COVERAGE.md](E2E-COVERAGE.md)（由 `--publish` 生成，截图在 `docs/screenshots/e2e/`）。
+覆盖度量：`coverage.json` 静态盘点各 view 的 `data-action`（当前 114 个），按场景 `covers` 统计，且只计入未失败场景。**当前动作覆盖率 93.0%（106/114）**，缺口按 view 列在 `coverage.json`；截图证据与逐场景覆盖表见 [E2E-COVERAGE.md](E2E-COVERAGE.md)（由 `--publish` 生成，截图在 `docs/screenshots/e2e/`）。
 
 ## 5. 确定性模型
 
@@ -90,7 +90,11 @@
 - 编译链路使用 mock JSON，验证的是状态流转与 UI，不是真实模型质量。
 - 文件上传通过 `DOM.setFileInputFiles`（浏览器限制无法模拟系统文件选择器），其余交互均为真实输入事件。
 
-## 8. 截图证据
+## 8. 稳定选择器
+
+管理页抽屉、成员行、反馈条、引用抽屉等动态节点已补 `data-testid`（`page-delete`/`page-edit`/`wiki-detail`/`feedback-*`/`history-retry`/`team-tab-*`/`password-self`/`user-delete`/`enable-server-token` 等），场景优先用 testid 定位，减少对 DOM 结构的依赖。
+
+## 9. 截图证据
 
 ```powershell
 .\scripts\e2e.ps1 -Publish
@@ -98,7 +102,7 @@
 
 运行后把每一步截图复制到 `docs/screenshots/e2e/<场景>/`，并生成 [E2E-COVERAGE.md](E2E-COVERAGE.md)：场景状态、覆盖动作、可点击截图链接。
 
-## 9. 引擎单测
+## 10. 引擎单测
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest scripts\e2e\tests -q

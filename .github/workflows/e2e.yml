@@ -28,7 +28,7 @@ jobs:
       - name: Setup Chrome
         uses: browser-actions/setup-chrome@v1
       - name: Run E2E (sandbox)
-        run: python scripts/e2e_verify.py --headless --ci --junit .artifacts/e2e/junit.xml
+        run: python scripts/e2e_verify.py --headless --ci --min-coverage 90 --junit .artifacts/e2e/junit.xml
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4

@@ -1,8 +1,8 @@
 # E2E 覆盖率与截图证据
 
-- 生成时间：2026-11-14 20:21:22
-- 沙箱：`npu-e2e-rwojsgzw`（临时目录，运行后删除）
-- 静态动作覆盖：**104/114 = 91.2%**
+- 生成时间：2026-11-14 22:16:59
+- 沙箱：`npu-e2e-0qp9redi`（临时目录，运行后删除）
+- 静态动作覆盖：**106/114 = 93.0%**
 - 场景：PASS 25 / FAIL 0 / KNOWN 0
 
 ## 场景与截图
@@ -23,8 +23,8 @@
 | `chat.more` | PASS | feedback-down, feedback-reason, feedback-submit, toggle-history, open-conversation, delete-conversation, handoff-open | [00-发送问题](screenshots/e2e/chat.more/00-发送问题.png)<br>[01-点踩并选择原因](screenshots/e2e/chat.more/01-点踩并选择原因.png)<br>[02-历史会话打开](screenshots/e2e/chat.more/02-历史会话打开.png)<br>[03-删除历史会话](screenshots/e2e/chat.more/03-删除历史会话.png)<br>[04-转人工弹窗](screenshots/e2e/chat.more/04-转人工弹窗.png) |
 | `models.crud` | PASS | models-tab, add-provider, test-provider, edit-provider, add-model, test-model, set-default, toggle-model, edit-model, delete-model, delete-provider, refresh | [00-打开_Provider_标签](screenshots/e2e/models.crud/00-打开_Provider_标签.png)<br>[01-新增_Provider](screenshots/e2e/models.crud/01-新增_Provider.png)<br>[02-测试与编辑_Provider](screenshots/e2e/models.crud/02-测试与编辑_Provider.png)<br>[03-新增并测试模型](screenshots/e2e/models.crud/03-新增并测试模型.png)<br>[04-编辑模型](screenshots/e2e/models.crud/04-编辑模型.png)<br>[05-设为默认_停用_刷新](screenshots/e2e/models.crud/05-设为默认_停用_刷新.png)<br>[06-删除模型与_Provider](screenshots/e2e/models.crud/06-删除模型与_Provider.png) |
 | `bots.console` | PASS | bots-tab, add-channel, save-channel, toggle-channel, refresh-channels, open-console, run-console, clear-console, refresh-logs, clear-admin, delete-channel | [00-打开机器人页](screenshots/e2e/bots.console/00-打开机器人页.png)<br>[01-新增微信公众号通道](screenshots/e2e/bots.console/01-新增微信公众号通道.png)<br>[02-保存_停用_刷新通道](screenshots/e2e/bots.console/02-保存_停用_刷新通道.png)<br>[03-控制台模拟对话](screenshots/e2e/bots.console/03-控制台模拟对话.png)<br>[04-查看日志并清空管理员绑定](screenshots/e2e/bots.console/04-查看日志并清空管理员绑定.png)<br>[05-删除通道](screenshots/e2e/bots.console/05-删除通道.png) |
-| `settings.quick` | PASS | settings-tab, add-quick, remove-quick, open-mobile-access, toggle-token-visibility, save-token, clear-token, test-token | [00-打开设置并切换安全页](screenshots/e2e/settings.quick/00-打开设置并切换安全页.png)<br>[01-新增_删除快捷问题](screenshots/e2e/settings.quick/01-新增_删除快捷问题.png)<br>[02-打开手机扫码弹窗](screenshots/e2e/settings.quick/02-打开手机扫码弹窗.png)<br>[03-令牌显示切换与保存_清除](screenshots/e2e/settings.quick/03-令牌显示切换与保存_清除.png) |
-| `knowledge.extra` | PASS | edit-page, import-links, doc-download, rebuild-all, clear-uploads, copy-capture-url, dismiss-build | [00-编辑词条](screenshots/e2e/knowledge.extra/00-编辑词条.png)<br>[01-链接收录_本地手册页_](screenshots/e2e/knowledge.extra/01-链接收录_本地手册页_.png)<br>[02-下载源文件](screenshots/e2e/knowledge.extra/02-下载源文件.png)<br>[03-全部重建](screenshots/e2e/knowledge.extra/03-全部重建.png)<br>[04-上传后清除已完成队列](screenshots/e2e/knowledge.extra/04-上传后清除已完成队列.png) |
+| `settings.quick` | PASS | settings-tab, add-quick, remove-quick, open-mobile-access, toggle-token-visibility, save-token, clear-token, test-token, enable-server-token | [00-打开设置并切换安全页](screenshots/e2e/settings.quick/00-打开设置并切换安全页.png)<br>[01-新增_删除快捷问题](screenshots/e2e/settings.quick/01-新增_删除快捷问题.png)<br>[02-打开手机扫码弹窗](screenshots/e2e/settings.quick/02-打开手机扫码弹窗.png)<br>[03-启用服务端令牌_空输入仅校验_](screenshots/e2e/settings.quick/03-启用服务端令牌_空输入仅校验_.png)<br>[04-令牌显示切换与保存_清除](screenshots/e2e/settings.quick/04-令牌显示切换与保存_清除.png) |
+| `knowledge.extra` | PASS | edit-page, import-links, doc-download, rebuild-all, clear-uploads, copy-capture-url, dismiss-build, delete-page | [00-编辑词条](screenshots/e2e/knowledge.extra/00-编辑词条.png)<br>[01-链接收录_本地手册页_](screenshots/e2e/knowledge.extra/01-链接收录_本地手册页_.png)<br>[02-下载源文件](screenshots/e2e/knowledge.extra/02-下载源文件.png)<br>[03-全部重建](screenshots/e2e/knowledge.extra/03-全部重建.png)<br>[04-删除一个词条](screenshots/e2e/knowledge.extra/04-删除一个词条.png)<br>[05-上传后清除已完成队列](screenshots/e2e/knowledge.extra/05-上传后清除已完成队列.png) |
 | `jobs.actions` | PASS | jobs-tab, jobs-reload, job-retry, job-cancel, alert-ack, alert-resolve | [00-制造失败任务与告警](screenshots/e2e/jobs.actions/00-制造失败任务与告警.png)<br>[01-打开任务页并刷新](screenshots/e2e/jobs.actions/01-打开任务页并刷新.png)<br>[02-重试失败任务](screenshots/e2e/jobs.actions/02-重试失败任务.png)<br>[03-取消排队任务](screenshots/e2e/jobs.actions/03-取消排队任务.png)<br>[04-确认并解决告警](screenshots/e2e/jobs.actions/04-确认并解决告警.png) |
 | `insights.tabs` | PASS | insights-tab, insights-reload | [00-打开服务台并刷新](screenshots/e2e/insights.tabs/00-打开服务台并刷新.png)<br>[01-切换服务台标签](screenshots/e2e/insights.tabs/01-切换服务台标签.png) |
 | `insights.actions` | PASS | handoff-claim, handoff-copy, handoff-reply, handoff-resolve, crisis-status, gap-copy, gap-resolve, gap-ignore, feedback-resolve, feedback-ignore, cancel, open-wiki-page | [00-制造反馈_工单_危机数据](screenshots/e2e/insights.actions/00-制造反馈_工单_危机数据.png)<br>[01-打开服务台并刷新](screenshots/e2e/insights.actions/01-打开服务台并刷新.png)<br>[02-工单_认领_复制_回复_解决](screenshots/e2e/insights.actions/02-工单_认领_复制_回复_解决.png)<br>[03-危机事件状态](screenshots/e2e/insights.actions/03-危机事件状态.png)<br>[04-知识缺口处理](screenshots/e2e/insights.actions/04-知识缺口处理.png)<br>[05-反馈处理](screenshots/e2e/insights.actions/05-反馈处理.png) |
@@ -41,8 +41,8 @@
 - **chat**：17/20
 - **insights**：15/15
 - **jobs**：6/6
-- **knowledge**：23/26
+- **knowledge**：24/26
 - **models**：12/12
-- **settings**：9/10
+- **settings**：10/10
 - **settings-hub**：2/3
 - **team**：9/11

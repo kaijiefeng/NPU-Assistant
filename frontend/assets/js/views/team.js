@@ -56,7 +56,7 @@ function tabsHtml() {
   return `<div class="insights-tabs">${tabs
     .map(
       ([key, label]) =>
-        `<button class="insights-tab ${state.tab === key ? 'is-active' : ''}" type="button" data-action="team-tab" data-tab="${key}">${esc(label)}</button>`,
+        `<button class="insights-tab ${state.tab === key ? 'is-active' : ''}" type="button" data-action="team-tab" data-testid="team-tab-${key}" data-tab="${key}">${esc(label)}</button>`,
     )
     .join('')}</div>`;
 }
@@ -82,7 +82,7 @@ function accountHtml() {
     ${
       state.me?.auth_mode === 'session'
         ? `<div class="card-actions" style="margin-top:14px">
-            <button class="btn btn-primary btn-sm" type="button" data-action="password-self">${icon(
+            <button class="btn btn-primary btn-sm" type="button" data-action="password-self" data-testid="password-self">${icon(
               'key',
             )}<span>修改密码</span></button>
             <button class="btn btn-ghost btn-sm" type="button" data-action="logout">${icon(
@@ -106,10 +106,10 @@ function usersHtml() {
         <p class="muted" style="margin:4px 0 0">角色决定可执行的操作。至少保留一名启用的超级管理员。</p>
       </div>
       <div class="chip-row">
-        <button class="btn btn-sm btn-ghost" type="button" data-action="password-self">${icon(
+        <button class="btn btn-sm btn-ghost" type="button" data-action="password-self" data-testid="password-self">${icon(
           'key',
         )}<span>修改我的密码</span></button>
-        <button class="btn btn-sm btn-primary" type="button" data-action="user-add">${icon(
+        <button class="btn btn-sm btn-primary" type="button" data-action="user-add" data-testid="user-add">${icon(
           'plus',
         )}<span>新增成员</span></button>
       </div>
@@ -151,7 +151,7 @@ function usersHtml() {
                       )}" data-active="${user.active ? '1' : '0'}">${icon('power')}<span>${
                         user.active ? '停用' : '启用'
                       }</span></button>
-                    <button class="btn btn-xs btn-ghost" type="button" data-action="user-delete" data-id="${esc(
+                    <button class="btn btn-xs btn-ghost" type="button" data-action="user-delete" data-testid="user-delete" data-id="${esc(
                       user.id,
                     )}" data-name="${esc(user.username)}">${icon('x')}<span>删除</span></button>`
                 }
@@ -257,7 +257,7 @@ function addUserModal(reload) {
   const footer = document.createElement('div');
   footer.className = 'modal-actions';
   footer.innerHTML = `<button class="btn btn-ghost" type="button" data-action="cancel">取消</button>
-    <button class="btn btn-primary" type="submit">创建成员</button>`;
+    <button class="btn btn-primary" type="submit" data-testid="team-user-submit">创建成员</button>`;
   form.appendChild(footer);
   const modal = openModal({ title: '新增团队成员', body: form, size: 'md' });
   footer.querySelector('[data-action="cancel"]').addEventListener('click', modal.close);
