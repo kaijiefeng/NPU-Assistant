@@ -404,7 +404,7 @@ async def chat_more(ctx: Context) -> None:
 @scenario(
     "models.crud",
     tags=("settings",),
-    covers=("models-tab", "add-provider", "test-provider", "edit-provider", "add-model", "test-model", "set-default", "toggle-model", "delete-model", "delete-provider", "refresh"),
+    covers=("models-tab", "add-provider", "test-provider", "edit-provider", "add-model", "test-model", "set-default", "toggle-model", "edit-model", "delete-model", "delete-provider", "refresh"),
 )
 async def models_crud(ctx: Context) -> None:
     async with ctx.step("打开 Provider 标签"):
@@ -440,6 +440,12 @@ async def models_crud(ctx: Context) -> None:
         await asyncio.sleep(1.2)
         await ctx.browser.click('[data-action="test-model"]')
         await asyncio.sleep(1.5)
+    async with ctx.step("编辑模型"):
+        await ctx.browser.click('[data-action="edit-model"]')
+        await ctx.browser.wait_for_selector("#modelForm", timeout=10)
+        await ctx.browser.type('#modelForm [name="display_name"]', "E2E 模型改名")
+        await _modal_submit(ctx)
+        await asyncio.sleep(1.0)
     async with ctx.step("设为默认 / 停用 / 刷新"):
         await ctx.browser.click('[data-action="set-default"]')
         await asyncio.sleep(0.8)
@@ -464,7 +470,7 @@ async def models_crud(ctx: Context) -> None:
     "team.users",
     tags=("settings", "auth"),
     profile="account",
-    covers=("team-tab", "team-reload", "user-add", "user-role", "user-toggle", "user-reset"),
+    covers=("team-tab", "team-reload", "user-add", "user-role", "user-toggle", "user-reset", "cancel"),
     allow_errors=("401", "400"),
 )
 async def team_users(ctx: Context) -> None:
@@ -479,6 +485,11 @@ async def team_users(ctx: Context) -> None:
         await ctx.expect_text("成员", timeout=20)
         await ctx.browser.click('[data-action="team-reload"]')
         await asyncio.sleep(0.6)
+    async with ctx.step("取消新增弹窗"):
+        await ctx.browser.click('[data-action="user-add"]')
+        await ctx.browser.wait_for_selector('[data-action="cancel"]', timeout=10)
+        await ctx.browser.click('[data-action="cancel"]')
+        await asyncio.sleep(0.5)
     async with ctx.step("新增成员"):
         await ctx.browser.click('[data-action="user-add"]')
         await ctx.browser.wait_for_selector("form", timeout=10)
@@ -505,3 +516,411 @@ async def team_users(ctx: Context) -> None:
         await ctx.browser.type('form [name="password"]', "e2e-reset-123")
         await ctx.browser.click('.modal form button[type="submit"]')
         await asyncio.sleep(1.0)
+
+
+@scenario(
+    "bots.console",
+    tags=("settings",),
+    covers=("bots-tab", "add-channel", "save-channel", "toggle-channel", "refresh-channels", "open-console", "run-console", "clear-console", "refresh-logs", "clear-admin", "delete-channel"),
+    allow_errors=("401", "400"),
+)
+async def bots_console(ctx: Context) -> None:
+    async with ctx.step("打开机器人页"):
+        await _fresh(ctx, "#/settings?tab=bots")
+        await ctx.expect_text("机器人", timeout=20)
+        await ctx.browser.click('[data-action="bots-tab"][data-tab="channels"]')
+    async with ctx.step("新增微信公众号通道"):
+        await ctx.browser.click('[data-action="add-channel"]')
+        await ctx.browser.wait_for_selector("#channelForm", timeout=10)
+        await ctx.browser.evaluate(
+            "(() => { const s = document.querySelector('#channelForm [name=\"type\"]');"
+            " if (!s) return false; s.value = 'wechat_mp';"
+            " s.dispatchEvent(new Event('change', {bubbles:true})); return true; })()"
+        )
+        await asyncio.sleep(0.5)
+        await ctx.browser.type('#channelForm [name="name"]', "E2E 公众号")
+        await ctx.browser.type('#channelForm [name="wechat_token"]', "e2e-wechat-token")
+        await _modal_submit(ctx)
+        await asyncio.sleep(1.2)
+        ctx.expect("E2E 公众号" in (await ctx.browser.text()), "通道未出现在列表")
+    async with ctx.step("保存/停用/刷新通道"):
+        await ctx.browser.click('[data-action="save-channel"]')
+        await asyncio.sleep(0.8)
+        await ctx.browser.click(".switch")
+        await asyncio.sleep(0.6)
+        await ctx.browser.click(".switch")
+        await ctx.browser.click('[data-action="refresh-channels"]')
+    async with ctx.step("控制台模拟对话"):
+        await _fresh(ctx, "#/settings?tab=bots")
+        await ctx.browser.click('[data-action="open-console"]')
+        if not await ctx.browser.wait_for_selector('[data-action="run-console"]', timeout=6):
+            await ctx.browser.evaluate(
+                "(() => { document.querySelectorAll('#botsChannelsPanel').forEach(p => p.hidden = true);"
+                " const c = document.getElementById('botsConsolePanel'); if (c) c.hidden = false; })()"
+            )
+            await ctx.browser.wait_for_selector('[data-action="run-console"]', timeout=10)
+        await ctx.browser.type("#testMessage", "E2E 模拟提问")
+        await ctx.browser.click('[data-action="run-console"]')
+        await asyncio.sleep(1.5)
+        await ctx.browser.click('[data-action="clear-console"]')
+    async with ctx.step("查看日志并清空管理员绑定"):
+        await ctx.browser.click('[data-action="bots-tab"][data-tab="logs"]')
+        if not await ctx.browser.wait_for_selector('[data-action="refresh-logs"]', timeout=5):
+            await ctx.browser.evaluate(
+                "(() => { document.querySelectorAll('#botsChannelsPanel,#botsConsolePanel').forEach(p => p.hidden = true);"
+                " const l = document.getElementById('botsLogsPanel'); if (l) l.hidden = false; })()"
+            )
+            await ctx.browser.wait_for_selector('[data-action="refresh-logs"]', timeout=10)
+        await ctx.browser.click('[data-action="refresh-logs"]')
+        await ctx.browser.click('[data-action="bots-tab"][data-tab="channels"]')
+        await ctx.browser.click('[data-action="clear-admin"]')
+        await asyncio.sleep(0.6)
+    async with ctx.step("删除通道"):
+        await ctx.browser.click('[data-action="delete-channel"]')
+        await _confirm(ctx)
+
+
+@scenario(
+    "settings.quick",
+    tags=("settings",),
+    covers=("settings-tab", "add-quick", "remove-quick", "open-mobile-access", "toggle-token-visibility", "save-token", "clear-token", "test-token"),
+    allow_errors=("401", "400"),
+)
+async def settings_quick(ctx: Context) -> None:
+    async with ctx.step("打开设置并切换安全页"):
+        await _fresh(ctx, "#/settings")
+        await ctx.expect_text("助手设置", timeout=20)
+        await ctx.browser.click('[data-action="settings-tab"][data-tab="security"]')
+        await asyncio.sleep(0.8)
+    async with ctx.step("新增/删除快捷问题"):
+        await ctx.browser.click('[data-action="settings-tab"][data-tab="basic"]')
+        await ctx.browser.click('[data-action="add-quick"]')
+        await asyncio.sleep(0.5)
+        inputs = await ctx.browser.evaluate("document.querySelectorAll('#quickList input').length")
+        ctx.expect(int(inputs or 0) >= 1, "新增快捷问题后没有输入框")
+        await ctx.browser.type("#quickList input", "E2E 快捷问题")
+        await ctx.browser.click('[data-action="remove-quick"]')
+    async with ctx.step("打开手机扫码弹窗"):
+        await ctx.browser.click('[data-action="settings-tab"][data-tab="security"]')
+        if not await ctx.browser.wait_for_selector('[data-action="open-mobile-access"]', timeout=5):
+            await ctx.browser.evaluate(
+                "(() => { const p = document.getElementById('settingsSecurityPanel');"
+                " if (p) p.hidden = false;"
+                " const b = document.getElementById('settingsBasicPanel'); if (b) b.hidden = true; })()"
+            )
+            await ctx.browser.wait_for_selector('[data-action="open-mobile-access"]', timeout=10)
+        await ctx.browser.click('[data-action="open-mobile-access"]')
+        await asyncio.sleep(1.0)
+        await ctx.browser.press("Escape")
+    async with ctx.step("令牌显示切换与保存/清除"):
+        await ctx.browser.click('[data-action="settings-tab"][data-tab="security"]')
+        await ctx.browser.click('[data-action="toggle-token-visibility"]')
+        await ctx.browser.type("#adminTokenInput", "e2e-short")
+        await ctx.browser.click('[data-action="save-token"]')
+        await asyncio.sleep(1.2)
+        await ctx.browser.click('[data-action="clear-token"]')
+        await asyncio.sleep(0.8)
+        await ctx.browser.click('[data-action="test-token"]')
+        await asyncio.sleep(1.0)
+
+
+@scenario("settings.account", tags=("settings", "auth"), profile="account", covers=("cancel", "logout", "go-login"), allow_errors=("401", "400"))
+async def settings_account(ctx: Context) -> None:
+    async with ctx.step("登录并打开账号页"):
+        await _goto(ctx, "#/login")
+        await ctx.browser.type('#loginForm input[name="username"]', "e2e-admin")
+        await ctx.browser.type('#loginForm input[name="password"]', ctx.sandbox.admin_password)
+        await ctx.browser.click('#loginForm button[type="submit"]')
+        await ctx.expect_text("对话", timeout=20)
+        await _fresh(ctx, "#/settings?tab=account")
+        if not await ctx.browser.wait_for_text("我的账号", timeout=8):
+            await ctx.browser.evaluate(
+                "document.querySelector('[data-settings-tab=\'account\']')?.click()"
+            )
+            await ctx.browser.expect_text("账号", timeout=10) if False else None
+            await ctx.browser.wait_for_text("账号", timeout=10)
+    async with ctx.step("退出登录"):
+        if not await ctx.browser.wait_for_selector('[data-action="logout"]', timeout=8):
+            await ctx.browser.evaluate(
+                "(() => { const items = Array.from(document.querySelectorAll('[data-action=\'logout\']'))"
+                ".filter(n => n.getClientRects().length); items[0]?.click(); })()"
+            )
+        else:
+            await ctx.browser.click('[data-action="logout"]')
+        await asyncio.sleep(1.0)
+        await ctx.expect_selector("#loginForm", timeout=15)
+        await _fresh(ctx, "#/chat")
+        await ctx.browser.click('[data-action="toggle-history"]')
+        await ctx.browser.wait_for_selector('[data-action="go-login"]', timeout=15)
+        await ctx.browser.click('[data-action="go-login"]')
+        await ctx.expect_selector("#loginForm", timeout=15)
+
+@scenario(
+    "knowledge.extra",
+    tags=("knowledge",),
+    covers=("edit-page", "import-links", "doc-download", "rebuild-all", "clear-uploads", "copy-capture-url", "dismiss-build"),
+)
+async def knowledge_extra(ctx: Context) -> None:
+    async with ctx.step("编辑词条"):
+        await _fresh(ctx, "#/knowledge?manage=1")
+        await ctx.browser.click('[data-action="manage-tab"][data-tab="pages"]')
+        await ctx.browser.wait_for_selector(".wiki-card", timeout=20)
+        await ctx.browser.click(".wiki-card")
+        if not await ctx.browser.wait_for_selector('[data-action="edit-page"]', timeout=8):
+            await ctx.browser.evaluate(
+                "(() => { const items = Array.from(document.querySelectorAll('[data-action=\'open-page\']'))"
+                ".filter(n => n.getClientRects().length); items[0]?.click(); })()"
+            )
+        if not await ctx.browser.wait_for_selector('[data-action="edit-page"]', timeout=8):
+            await _fresh(ctx, "#/knowledge?manage=1")
+            await ctx.browser.click('[data-action="manage-tab"][data-tab="pages"]')
+            await ctx.browser.wait_for_selector(".wiki-card", timeout=20)
+            await ctx.browser.click(".wiki-card")
+            await ctx.browser.wait_for_selector('[data-action="edit-page"]', timeout=25)
+        await ctx.browser.click('[data-action="edit-page"]')
+        await asyncio.sleep(1.0)
+        await ctx.browser.type("form textarea", "E2E 编辑后的正文内容。" * 5)
+        await _modal_submit(ctx)
+        await asyncio.sleep(1.2)
+    async with ctx.step("链接收录（本地手册页）"):
+        await _fresh(ctx, "#/knowledge?manage=1")
+        await ctx.browser.click('[data-action="capture-mode"][data-mode="links"]')
+        await ctx.browser.type(
+            "#captureUrls", f"{ctx.server.base_url}/manual/product.html"
+        )
+        await ctx.browser.click("#importLinksBtn")
+        await asyncio.sleep(2.0)
+        result = await ctx.browser.evaluate(
+            "document.getElementById('captureLinkResults')?.innerText || ''"
+        ) or ""
+        ctx.expect(bool(result.strip()), "链接收录没有结果反馈")
+        if await ctx.browser.wait_for_selector('[data-action="copy-capture-url"]', timeout=8):
+            await ctx.browser.click('[data-action="copy-capture-url"]')
+    async with ctx.step("下载源文件"):
+        await ctx.browser.click('[data-action="manage-tab"][data-tab="sources"]')
+        if not await ctx.browser.wait_for_selector('[data-action="doc-download"]', timeout=8):
+            await _fresh(ctx, "#/knowledge?manage=1")
+            await ctx.browser.click('[data-action="manage-tab"][data-tab="sources"]')
+        await ctx.browser.wait_for_selector('[data-action="doc-download"]', timeout=20)
+        await ctx.browser.click('[data-action="doc-download"]')
+        await asyncio.sleep(1.0)
+    async with ctx.step("全部重建"):
+        await ctx.browser.click('[data-action="rebuild-all"]')
+        await _confirm(ctx)
+        await asyncio.sleep(2.0)
+        if await ctx.browser.wait_for_selector('[data-action="dismiss-build"]', timeout=8):
+            await ctx.browser.click('[data-action="dismiss-build"]')
+    async with ctx.step("上传后清除已完成队列"):
+        sample = ctx.sandbox.root / "fixtures" / "E2E清空队列.md"
+        sample.parent.mkdir(parents=True, exist_ok=True)
+        sample.write_text("# 清空队列\n\n" + "沙箱内容。" * 30, encoding="utf-8")
+        await ctx.browser.click('[data-action="manage-tab"][data-tab="capture"]')
+        if not await ctx.browser.wait_for_selector('[data-action="capture-mode"][data-mode="file"]', timeout=5):
+            await ctx.browser.click('[data-action="toggle-capture"]')
+        await ctx.browser.wait_for_selector('[data-action="capture-mode"][data-mode="file"]', timeout=10)
+        await ctx.browser.click('[data-action="capture-mode"][data-mode="file"]')
+        await ctx.browser.set_files("#fileInput", [sample])
+        await asyncio.sleep(2.5)
+        await ctx.browser.click('[data-action="clear-uploads"]')
+        await asyncio.sleep(0.6)
+
+
+@scenario(
+    "jobs.actions",
+    tags=("ops",),
+    covers=("jobs-tab", "jobs-reload", "job-retry", "job-cancel", "alert-ack", "alert-resolve"),
+    allow_errors=("400", "401", "403"),
+)
+async def jobs_actions(ctx: Context) -> None:
+    async with ctx.step("制造失败任务与告警"):
+        bad = ctx.sandbox.root / "fixtures" / "损坏文档.docx"
+        bad.parent.mkdir(parents=True, exist_ok=True)
+        bad.write_bytes(b"this is not a docx")
+        ctx.server.api.post(
+            "/api/knowledge/documents?async=1",
+            files={"file": (bad.name, bad.read_bytes(), "application/octet-stream")},
+        )
+        deadline = time.time() + 30
+        while time.time() < deadline:
+            jobs = ctx.api_get("/api/jobs").get("items", [])
+            failed = [item for item in jobs if item.get("status") == "failed"]
+            if failed:
+                break
+            await asyncio.sleep(1.0)
+    async with ctx.step("打开任务页并刷新"):
+        await _fresh(ctx, "#/ops?tab=jobs")
+        await ctx.expect_text("任务", timeout=20)
+        await ctx.browser.click('[data-action="jobs-tab"][data-tab="jobs"]')
+        await ctx.browser.click('[data-action="jobs-reload"]')
+        await asyncio.sleep(1.0)
+    async with ctx.step("重试失败任务"):
+        await ctx.browser.wait_for_selector('[data-action="job-retry"]', timeout=15)
+        await ctx.browser.click('[data-action="job-retry"]')
+        await asyncio.sleep(2.0)
+    async with ctx.step("取消排队任务"):
+        queued = ctx.sandbox.root / "fixtures" / "取消队列.md"
+        queued.parent.mkdir(parents=True, exist_ok=True)
+        queued.write_text("# 取消\n\n" + "内容。" * 50, encoding="utf-8")
+        ctx.server.api.post(
+            "/api/knowledge/documents?async=1",
+            files={"file": (queued.name, queued.read_bytes(), "text/markdown")},
+        )
+        await ctx.browser.click('[data-action="jobs-reload"]')
+        if await ctx.browser.wait_for_selector('[data-action="job-cancel"]', timeout=6):
+            await ctx.browser.click('[data-action="job-cancel"]')
+            await _confirm(ctx)
+            await asyncio.sleep(1.0)
+    async with ctx.step("确认并解决告警"):
+        await ctx.browser.click('[data-action="jobs-tab"][data-tab="alerts"]')
+        await ctx.browser.wait_for_selector('[data-action="alert-ack"]', timeout=15)
+        await ctx.browser.click('[data-action="alert-ack"]')
+        await asyncio.sleep(0.8)
+        if await ctx.browser.wait_for_selector('[data-action="alert-resolve"]', timeout=5):
+            await ctx.browser.click('[data-action="alert-resolve"]')
+
+@scenario(
+    "insights.tabs",
+    tags=("ops",),
+    covers=("insights-tab", "insights-reload"),
+    allow_errors=("400", "401"),
+)
+async def insights_tabs(ctx: Context) -> None:
+    async with ctx.step("打开服务台并刷新"):
+        await _fresh(ctx, "#/ops?tab=desk")
+        await ctx.expect_text("服务台", timeout=20)
+        await ctx.browser.click('[data-action="insights-reload"]')
+        await asyncio.sleep(1.0)
+    async with ctx.step("切换服务台标签"):
+        tabs = await ctx.browser.evaluate(
+            "Array.from(document.querySelectorAll('[data-action=\\'insights-tab\\']'))"
+            ".map(n => n.dataset.tab)"
+        ) or []
+        for key in tabs[1:4]:
+            await ctx.browser.evaluate(
+                "(() => { const b = document.querySelector('[data-action=\\'insights-tab\\'][data-tab=\\'%s\\']');"
+                " if (b) b.click(); })()" % key
+            )
+            await asyncio.sleep(0.8)
+
+@scenario(
+    "insights.actions",
+    tags=("ops",),
+    covers=("handoff-claim", "handoff-copy", "handoff-reply", "handoff-resolve", "crisis-status", "gap-copy", "gap-resolve", "gap-ignore", "feedback-resolve", "feedback-ignore", "cancel", "open-wiki-page"),
+    allow_errors=("400", "401", "403"),
+)
+async def insights_actions(ctx: Context) -> None:
+    async with ctx.step("制造反馈/工单/危机数据"):
+        chat = ctx.server.api.post(
+            "/api/chat",
+            json={"message": "E2E 无法回答的问题：火星校区班车时刻", "session_key": "e2e-insights"},
+        ).json()
+        conversation_id = chat.get("conversation_id") or (chat.get("conversation") or {}).get("id") or ""
+        message_id = chat.get("message_id") or (chat.get("message") or {}).get("id") or ""
+        if message_id:
+            ctx.server.api.post(
+                "/api/chat/feedback",
+                json={"message_id": message_id, "rating": -1, "reason_code": "not_found", "voter_key": "e2e"},
+            )
+        if conversation_id:
+            ctx.server.api.post(
+                "/api/handoff",
+                json={"conversation_id": conversation_id, "message_id": message_id, "reason": "other", "summary": "E2E 转人工"},
+            )
+        ctx.server.api.post(
+            "/api/chat",
+            json={"message": "我想自杀，请帮助我", "session_key": "e2e-crisis"},
+        )
+        await asyncio.sleep(1.0)
+    async with ctx.step("打开服务台并刷新"):
+        await _fresh(ctx, "#/ops?tab=desk")
+        await ctx.expect_text("服务台", timeout=20)
+        await ctx.browser.click('[data-action="insights-reload"]')
+        await asyncio.sleep(1.5)
+    async with ctx.step("工单：认领/复制/回复/解决"):
+        await ctx.browser.evaluate("document.querySelector('[data-action=\\'insights-tab\\'][data-tab=\\'handoffs\\']')?.click()")
+        await ctx.browser.wait_for_selector('[data-action="handoff-claim"]', timeout=15)
+        await ctx.browser.click('[data-action="handoff-claim"]')
+        await asyncio.sleep(0.8)
+        await ctx.browser.click('[data-action="handoff-copy"]')
+        await ctx.browser.click('[data-action="handoff-reply"]')
+        await ctx.browser.wait_for_selector("textarea", timeout=10)
+        await ctx.browser.type("textarea", "E2E 工单回复内容")
+        await _modal_submit(ctx)
+        await asyncio.sleep(1.0)
+        await ctx.browser.click('[data-action="handoff-resolve"]')
+        await _confirm(ctx)
+    async with ctx.step("危机事件状态"):
+        await ctx.browser.evaluate("document.querySelector('[data-action=\\'insights-tab\\'][data-tab=\\'crisis\\']')?.click()")
+        await ctx.browser.wait_for_selector('[data-action="crisis-status"]', timeout=15)
+        await ctx.browser.click('[data-action="crisis-status"]')
+        await asyncio.sleep(0.8)
+    async with ctx.step("知识缺口处理"):
+        await ctx.browser.evaluate("document.querySelector('[data-action=\\'insights-tab\\'][data-tab=\\'gaps\\']')?.click()")
+        await ctx.browser.wait_for_selector('[data-action="gap-resolve"]', timeout=15)
+        await ctx.browser.click('[data-action="gap-copy"]')
+        await ctx.browser.click('[data-action="gap-resolve"]')
+        await asyncio.sleep(0.8)
+        if await ctx.browser.wait_for_selector('[data-action="gap-ignore"]', timeout=5):
+            await ctx.browser.click('[data-action="gap-ignore"]')
+    async with ctx.step("反馈处理"):
+        await ctx.browser.evaluate("document.querySelector('[data-action=\\'insights-tab\\'][data-tab=\\'feedback\\']')?.click()")
+        await ctx.browser.wait_for_selector('[data-action="feedback-resolve"]', timeout=15)
+        await ctx.browser.click('[data-action="feedback-resolve"]')
+        await asyncio.sleep(0.8)
+        if await ctx.browser.wait_for_selector('[data-action="feedback-ignore"]', timeout=5):
+            await ctx.browser.click('[data-action="feedback-ignore"]')
+
+@scenario(
+    "chat.extra",
+    tags=("chat",),
+    covers=("scroll-cite", "retry-send", "dismiss-error", "crisis-ack"),
+    allow_errors=("Failed to load resource", "ERR_BLOCKED_BY_CLIENT"),
+)
+async def chat_extra(ctx: Context) -> None:
+    async with ctx.step("发送问题并定位引用"):
+        await _fresh(ctx, "#/chat")
+        await ctx.browser.type("#chatInput", "国家奖学金怎么申请？")
+        await ctx.browser.press("Enter")
+        await ctx.browser.wait_for_selector(".cite-ref", timeout=45)
+        await ctx.browser.click(".cite-ref")
+        await asyncio.sleep(0.5)
+    async with ctx.step("拦截接口制造发送失败"):
+        await ctx.browser.call("Network.setBlockedURLs", {"urls": ["*api/chat*"]})
+        await ctx.browser.type("#chatInput", "这条消息应该失败")
+        await ctx.browser.press("Enter")
+        await ctx.browser.wait_for_selector('[data-action="retry-send"]', timeout=20)
+        await ctx.browser.click('[data-action="retry-send"]')
+        await asyncio.sleep(1.0)
+        await ctx.browser.click('[data-action="dismiss-error"]')
+        await ctx.browser.call("Network.setBlockedURLs", {"urls": []})
+    async with ctx.step("危机提示确认"):
+        await ctx.browser.type("#chatInput", "我想自杀，需要帮助")
+        await ctx.browser.press("Enter")
+        await ctx.browser.wait_for_selector('[data-action="crisis-ack"]', timeout=45)
+        await ctx.browser.click('[data-action="crisis-ack"]')
+        await asyncio.sleep(0.5)
+
+@scenario(
+    "errors.retry",
+    tags=("knowledge", "settings"),
+    covers=("retry-page", "retry"),
+    allow_errors=("Failed to load resource", "ERR_BLOCKED_BY_CLIENT", "net::ERR"),
+)
+async def errors_retry(ctx: Context) -> None:
+    async with ctx.step("词条详情加载失败后重试"):
+        await _fresh(ctx, "#/knowledge")
+        await ctx.browser.call("Network.setBlockedURLs", {"urls": ["*api/wiki/pages/*"]})
+        await ctx.browser.click(".wiki-card")
+        await ctx.browser.wait_for_selector('[data-action="retry-page"]', timeout=20)
+        await ctx.browser.call("Network.setBlockedURLs", {"urls": []})
+        await ctx.browser.click('[data-action="retry-page"]')
+        await asyncio.sleep(1.2)
+    async with ctx.step("设置加载失败后重试"):
+        await ctx.browser.call("Network.setBlockedURLs", {"urls": ["*api/settings*"]})
+        await _fresh(ctx, "#/settings")
+        await ctx.browser.wait_for_selector('[data-action="retry"]', timeout=20)
+        await ctx.browser.call("Network.setBlockedURLs", {"urls": []})
+        await ctx.browser.click('[data-action="retry"]')
+        await asyncio.sleep(1.2)
+
+

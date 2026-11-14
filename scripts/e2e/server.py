@@ -112,6 +112,9 @@ class AppServer:
             )
             login.raise_for_status()
             self.api.cookies.update(login.cookies)
+            csrf = str(login.json().get("csrf_token") or "")
+            if csrf:
+                self.api.headers.update({"X-CSRF-Token": csrf})
 
     # ------------------------------------------------------------------
     def stop(self) -> None:

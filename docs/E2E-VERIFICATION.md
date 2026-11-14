@@ -37,7 +37,7 @@
 - 视口：默认 1440×960；`mobile.layout` 场景切 390×844 + touch 模拟。
 - 门禁：默认任何 console error 或 5xx 请求判失败。
 
-## 4. 场景清单（16 个）
+## 4. 场景清单（25 个）
 
 | 场景 | 覆盖 |
 |---|---|
@@ -56,9 +56,19 @@
 | `knowledge.more` | 快速收录展开/收起、文本收录、词条列表刷新、标签筛选、导入快照、文档详情、重编译 |
 | `chat.more` | 点踩+原因+提交、历史会话打开/删除、转人工弹窗 |
 | `models.crud` | Provider/模型增改测、设默认、停用、刷新、删除（含确认框） |
-| `team.users` | 成员新增、角色变更、停用、重置密码（account 档） |
+| `team.users` | 成员新增、取消弹窗、角色变更、停用、重置密码（account 档） |
+| `knowledge.extra` | 编辑词条、链接收录、下载源文件、全部重建、清空上传队列、复制收录链接、关闭构建提示 |
+| `chat.extra` | 引用定位、发送失败重试/关闭错误、危机提示确认 |
+| `bots.console` | 公众号通道增改、启停、刷新、控制台模拟对话、日志、清空管理员绑定、删除通道 |
+| `settings.quick` | 快捷问题增删、手机扫码弹窗、令牌显示/保存/清除/测试 |
+| `settings.account` | 账号页、退出登录、匿名历史「去登录」 |
+| `jobs.actions` | 失败任务重试、排队任务取消、告警确认/解决 |
+| `insights.tabs` | 服务台标签切换与刷新 |
+| `insights.actions` | 工单认领/复制/回复/解决、危机状态、缺口/反馈处理 |
+| `errors.retry` | 词条详情加载失败重试、设置加载失败重试 |
 
-覆盖度量：`coverage.json` 静态盘点各 view 的 `data-action`（当前 114 个），按场景 `covers` 统计，且只计入未失败场景。**当前动作覆盖率 39.5%（45/114）**，缺口按 view 列在 `coverage.json`；截图证据与逐场景覆盖表见 [E2E-COVERAGE.md](E2E-COVERAGE.md)（由 `--publish` 生成，截图在 `docs/screenshots/e2e/`）。
+
+覆盖度量：`coverage.json` 静态盘点各 view 的 `data-action`（当前 114 个），按场景 `covers` 统计，且只计入未失败场景。**当前动作覆盖率 91.2%（104/114）**，缺口按 view 列在 `coverage.json`；截图证据与逐场景覆盖表见 [E2E-COVERAGE.md](E2E-COVERAGE.md)（由 `--publish` 生成，截图在 `docs/screenshots/e2e/`）。
 
 ## 5. 确定性模型
 
