@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-11-15T10:28:11+0800",
-  "commit": "beda5cc",
+  "generated_at": "2026-11-15T15:02:24+0800",
+  "commit": "8d5a3ed",
   "source_report": ".artifacts\\e2e\\npu-e2e-gv4i0o5i\\report.json",
   "coverage_percent": 100.0,
   "min_coverage": 90.0,
