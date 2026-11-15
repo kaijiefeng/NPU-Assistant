@@ -76,10 +76,10 @@ def existing_documents(client: httpx.Client) -> set[str]:
     return names
 
 
-def select(items: list[dict], args: argparse.Namespace, skip_files: set[str]) -> list[dict]:
+def select(items: list[dict], args: argparse.Namespace, skip_files: set[str], skip_types: set[str]) -> list[dict]:
     picked: list[dict] = []
     for item in items:
-        if item.get("doc_type") in args.skip_type:
+        if item.get("doc_type") in skip_types:
             continue
         if args.doc_type and item.get("doc_type") not in args.doc_type:
             continue
@@ -108,7 +108,7 @@ def main() -> int:
     parser.add_argument("--token", default="")
     parser.add_argument("--doc-type", action="append", default=[], help="只导入这些文档类型，可多次")
     parser.add_argument("--category", action="append", default=[], help="只导入这些主题，可多次")
-    parser.add_argument("--skip-type", action="append", default=sorted(SKIP_TYPES))
+    parser.add_argument("--skip-type", action="append", default=[], help="跳过这些文档类型；传入 __none__ 表示不跳过")
     parser.add_argument("--min-chars", type=int, default=400)
     parser.add_argument("--limit", type=int, default=0, help="最多导入多少篇，0 表示不限")
     parser.add_argument("--delay", type=float, default=0.4, help="两次提交间隔秒")
@@ -119,6 +119,7 @@ def main() -> int:
 
     items = load_manifest()
     done = load_resume()
+    skip_types = set(args.skip_type) if args.skip_type else set(SKIP_TYPES)
     headers = {"X-Admin-Token": args.token} if args.token else {}
 
     with httpx.Client(base_url=args.base_url, headers=headers, timeout=args.timeout, trust_env=False) as client:
@@ -136,7 +137,7 @@ def main() -> int:
         else:
             existing = set()
 
-        picked = select(items, args, done | existing)
+        picked = select(items, args, done | existing, skip_types)
         by_type = Counter(item.get("doc_type") for item in picked)
         by_cat = Counter(item.get("category") for item in picked)
         print(f"清单 {len(items)} 篇；已导入/已提交 {len(done)} 篇；本次候选 {len(picked)} 篇")

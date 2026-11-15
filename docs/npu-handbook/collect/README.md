@@ -178,3 +178,14 @@ httpx 直接请求 `job` / `zsb` / `tushuguan` 等站点会得到 **412（WAF）
 ```
 
 默认跳过「新闻动态/其他」，候选 752 篇；导入后由应用后台异步编译成 Wiki 词条。
+
+## 全量导入结果（2026-11-15）
+
+- 提交文件：**2,482** 个（去重后），后台任务 **2,504** 个全部 `succeeded`
+- 词条：**287 → 3,686**；文档：**114 → 2,618**
+- 失败：0（重启中断 1 个任务与 1 个文档，已重试/重新编译）
+- 耗时：约 4 小时（单 worker 约 3 小时后补充 2 个 worker 加速）
+- 证据：[`docs/HANDBOOK-IMPORT.md`](../../HANDBOOK-IMPORT.md)
+- 复跑/续跑：`import_handbook_collect.py` 会按 `imported-app.jsonl` 断点续传
+
+数据库已备份到 `backend/data/backups/app-20261115-162421.db`（导入前 287 条）。

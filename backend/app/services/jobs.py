@@ -516,10 +516,15 @@ def _claim_next() -> dict | None:
     )
     if not row:
         return None
-    db.execute(
-        "UPDATE jobs SET status = 'running', updated_at = ? WHERE id = ? AND status = 'queued'",
-        (db.now(), row["id"]),
-    )
+    with db.connect() as conn:
+        cur = conn.execute(
+            "UPDATE jobs SET status = 'running', updated_at = ? WHERE id = ? AND status = 'queued'",
+            (db.now(), row["id"]),
+        )
+        conn.commit()
+        # 多 worker 场景：抢占失败说明被其他 worker 领走，本轮直接跳过
+        if cur.rowcount == 0:
+            return None
     return get_job(row["id"])
 
 
