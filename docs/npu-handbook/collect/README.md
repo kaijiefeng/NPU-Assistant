@@ -166,3 +166,15 @@ httpx 直接请求 `job` / `zsb` / `tushuguan` 等站点会得到 **412（WAF）
 5. **主题偏斜**：`其他` 占 31%，纪律申诉/军训国防/生活服务/校历出行偏薄（对应内容同样多在 PDF/公众号）；
 6. **受众标注**：学院站点默认标「本科生」，口径偏粗，后续可按标题关键词细分；
 7. **分类精度**：规则分类，「其他」与误分类需人工抽检；建议正式发布前按 10% 抽检。
+## 导入到应用知识库（可选）
+
+采集语料默认独立存放；如需让应用真正检索这些文档，用批量导入脚本（按类型/主题筛选、跳过已入库、断点续传）：
+
+```powershell
+# 只统计
+.\.venv\Scripts\python.exe scripts\import_handbook_collect.py --dry-run
+# 导入制度/办事指南（252 篇）
+.\.venv\Scripts\python.exe scripts\import_handbook_collect.py --apply --doc-type 制度规章 --doc-type 办事指南
+```
+
+默认跳过「新闻动态/其他」，候选 752 篇；导入后由应用后台异步编译成 Wiki 词条。

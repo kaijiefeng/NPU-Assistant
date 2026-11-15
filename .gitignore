@@ -39,3 +39,5 @@ backend/data/job_staging/
 docs/npu-handbook/collect/inbox/
 docs/npu-handbook/collect/session/
 .artifacts/
+
+docs/npu-handbook/collect/imported-app.jsonl
