@@ -16,6 +16,7 @@ States
 from __future__ import annotations
 
 import re
+import time
 from datetime import date, datetime, timedelta
 from typing import Any
 
@@ -59,14 +60,33 @@ def current_academic_year(today: date | None = None) -> str:
     return f"{start}-{start + 1}"
 
 
+_SETTING_CACHE: dict[str, tuple[float, str]] = {}
+_SETTING_TTL = 30.0
+
+
+def _cached_setting(key: str, default: str = "") -> str:
+    """会话内缓存设置读取：freshness 会按词条调用，避免每页两次 DB 查询。"""
+    now = time.time()
+    hit = _SETTING_CACHE.get(key)
+    if hit and now - hit[0] < _SETTING_TTL:
+        return hit[1]
+    try:
+        value = db.get_setting(key, default)
+    except Exception:  # pragma: no cover - 设置表异常时退回默认值
+        value = default
+    value = str(value if value is not None else default)
+    _SETTING_CACHE[key] = (now, value)
+    return value
+
+
 def configured_academic_year() -> str:
-    value = (db.get_setting("academic_year") or "").strip()
+    value = (_cached_setting("academic_year") or "").strip()
     return value or current_academic_year()
 
 
 def _setting_int(key: str, default: int) -> int:
     try:
-        return int(db.get_setting(key, str(default)) or default)
+        return int(_cached_setting(key, str(default)) or default)
     except (TypeError, ValueError):
         return default
 

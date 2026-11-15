@@ -124,12 +124,47 @@ def _page_dict(row: dict | None) -> dict | None:
     }
 
 
+_PAGES_CACHE: dict[str, object] = {"key": None, "pages": []}
+_TOKEN_CACHE: dict[str, tuple[set[str], set[str], set[str], set[str]]] = {}
+
+
+def _tokens_for(page: dict) -> tuple[set[str], set[str], set[str], set[str]]:
+    title = set(text_utils.tokenize(page.get("title") or ""))
+    alias: set[str] = set()
+    for item in page.get("aliases") or []:
+        alias.update(text_utils.tokenize(item))
+    tags: set[str] = set()
+    for item in page.get("tags") or []:
+        tags.update(text_utils.tokenize(item))
+    summary = set(text_utils.tokenize(page.get("summary") or ""))
+    return title, alias, tags, summary
+
+
 def _load_ready_pages() -> list[dict]:
+    """读取全部 ready 词条；按 (数量, 最新更新时间, 日期) 缓存，避免每次检索重算时效。"""
+    from datetime import date as _date
+
+    try:
+        sig_row = db.query_one(
+            "SELECT COUNT(*) AS n, MAX(updated_at) AS u FROM wiki_pages WHERE status = 'ready'"
+        ) or {}
+        key = (int(sig_row.get("n") or 0), sig_row.get("u") or "", _date.today().isoformat())
+        if _PAGES_CACHE["key"] == key:
+            return list(_PAGES_CACHE["pages"])  # type: ignore[arg-type]
+    except Exception:  # pragma: no cover - 签名查询失败时走完整加载
+        key = None
     rows = db.query(
         "SELECT * FROM wiki_pages WHERE status = 'ready' ORDER BY updated_at DESC, rowid DESC"
     )
     pages = [_page_dict(row) for row in rows]
-    return [page for page in pages if page]
+    pages = [page for page in pages if page]
+    _TOKEN_CACHE.clear()
+    for page in pages:
+        _TOKEN_CACHE[page["id"]] = _tokens_for(page)
+    if key is not None:
+        _PAGES_CACHE["key"] = key
+        _PAGES_CACHE["pages"] = pages
+    return pages
 
 
 def _llm_available() -> bool:
@@ -198,14 +233,8 @@ def _keyword_candidates(query: str, pages: list[dict]) -> list[dict]:
     fields: list[tuple[dict, set[str], set[str], set[str], set[str]]] = []
     document_frequency: Counter[str] = Counter()
     for page in pages:
-        title_tokens = set(text_utils.tokenize(page.get("title") or ""))
-        alias_tokens: set[str] = set()
-        for alias in page.get("aliases") or []:
-            alias_tokens.update(text_utils.tokenize(alias))
-        tag_tokens: set[str] = set()
-        for tag in page.get("tags") or []:
-            tag_tokens.update(text_utils.tokenize(tag))
-        summary_tokens = set(text_utils.tokenize(page.get("summary") or ""))
+        cached = _TOKEN_CACHE.get(page["id"])
+        title_tokens, alias_tokens, tag_tokens, summary_tokens = cached or _tokens_for(page)
         fields.append((page, title_tokens, alias_tokens, tag_tokens, summary_tokens))
         document_frequency.update(title_tokens | alias_tokens | tag_tokens | summary_tokens)
 
