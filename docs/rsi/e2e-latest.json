@@ -1,44 +1,44 @@
 {
-  "generated_at": "2026-11-14T23:18:31+0800",
-  "commit": "d39b6ff",
-  "source_report": ".artifacts\\e2e\\npu-e2e-_lbgq73f\\report.json",
-  "coverage_percent": 93.0,
+  "generated_at": "2026-11-15T10:28:11+0800",
+  "commit": "beda5cc",
+  "source_report": ".artifacts\\e2e\\npu-e2e-gv4i0o5i\\report.json",
+  "coverage_percent": 100.0,
   "min_coverage": 90.0,
   "rsi_scenarios": [
     {
       "id": "bootstrap.routes",
       "status": "PASS",
-      "duration": 5.96
+      "duration": 6.24
     },
     {
       "id": "chat.answer_and_citation",
       "status": "PASS",
-      "duration": 6.54
+      "duration": 6.21
     },
     {
       "id": "knowledge.browse",
       "status": "PASS",
-      "duration": 6.85
+      "duration": 7.19
     },
     {
       "id": "mobile.layout",
       "status": "PASS",
-      "duration": 9.03
+      "duration": 8.89
     },
     {
       "id": "sandbox.isolation",
       "status": "PASS",
-      "duration": 0.22
+      "duration": 0.16
     },
     {
       "id": "mobile.chat",
       "status": "PASS",
-      "duration": 12.49
+      "duration": 12.48
     },
     {
       "id": "mobile.knowledge",
       "status": "PASS",
-      "duration": 8.52
+      "duration": 7.8
     }
   ],
   "counts": {

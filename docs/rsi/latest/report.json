@@ -1,22 +1,22 @@
 {
   "sandbox": {
-    "root": "C:\\Users\\123\\AppData\\Local\\Temp\\npu-e2e-_lbgq73f",
-    "data_dir": "C:\\Users\\123\\AppData\\Local\\Temp\\npu-e2e-_lbgq73f\\data",
-    "port": 59942,
-    "mock_port": 59943,
-    "chrome_profile": "C:\\Users\\123\\AppData\\Local\\Temp\\npu-e2e-_lbgq73f\\chrome-profile",
-    "report_dir": "D:\\Development\\NPU-Assistant\\.artifacts\\e2e\\npu-e2e-_lbgq73f"
+    "root": "C:\\Users\\123\\AppData\\Local\\Temp\\npu-e2e-gv4i0o5i",
+    "data_dir": "C:\\Users\\123\\AppData\\Local\\Temp\\npu-e2e-gv4i0o5i\\data",
+    "port": 56980,
+    "mock_port": 56981,
+    "chrome_profile": "C:\\Users\\123\\AppData\\Local\\Temp\\npu-e2e-gv4i0o5i\\chrome-profile",
+    "report_dir": "D:\\Development\\NPU-Assistant\\.artifacts\\e2e\\npu-e2e-gv4i0o5i"
   },
   "counts": {
-    "pass": 29,
+    "pass": 32,
     "fail": 0,
     "known": 0,
     "skip": 0
   },
   "coverage": {
     "total": 114,
-    "covered": 106,
-    "percent": 93.0,
+    "covered": 114,
+    "percent": 100.0,
     "views": {
       "bots": {
         "total": 11,
@@ -25,12 +25,8 @@
       },
       "chat": {
         "total": 20,
-        "covered": 17,
-        "missing": [
-          "feedback-cancel",
-          "feedback-reset",
-          "refresh-history"
-        ]
+        "covered": 20,
+        "missing": []
       },
       "insights": {
         "total": 15,
@@ -44,11 +40,8 @@
       },
       "knowledge": {
         "total": 26,
-        "covered": 24,
-        "missing": [
-          "go-manage",
-          "use-text-import"
-        ]
+        "covered": 26,
+        "missing": []
       },
       "models": {
         "total": 12,
@@ -62,18 +55,13 @@
       },
       "settings-hub": {
         "total": 3,
-        "covered": 2,
-        "missing": [
-          "password-self"
-        ]
+        "covered": 3,
+        "missing": []
       },
       "team": {
         "total": 11,
-        "covered": 9,
-        "missing": [
-          "password-self",
-          "user-delete"
-        ]
+        "covered": 11,
+        "missing": []
       }
     }
   },
@@ -82,35 +70,35 @@
       "id": "bootstrap.routes",
       "profile": "open",
       "status": "PASS",
-      "duration": 5.96,
+      "duration": 6.24,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "打开对话页",
           "status": "PASS",
-          "duration": 1.75,
+          "duration": 1.93,
           "error": "",
           "screenshot": "screenshots\\bootstrap.routes\\00-打开对话页.png"
         },
         {
           "name": "侧边栏切换到知识库",
           "status": "PASS",
-          "duration": 0.81,
+          "duration": 0.83,
           "error": "",
           "screenshot": "screenshots\\bootstrap.routes\\01-侧边栏切换到知识库.png"
         },
         {
           "name": "旧路由 #/manage 重定向",
           "status": "PASS",
-          "duration": 1.71,
+          "duration": 1.73,
           "error": "",
           "screenshot": "screenshots\\bootstrap.routes\\02-旧路由_manage_重定向.png"
         },
         {
           "name": "未知路由回落到对话",
           "status": "PASS",
-          "duration": 1.69,
+          "duration": 1.75,
           "error": "",
           "screenshot": "screenshots\\bootstrap.routes\\03-未知路由回落到对话.png"
         }
@@ -120,35 +108,35 @@
       "id": "chat.answer_and_citation",
       "profile": "open",
       "status": "PASS",
-      "duration": 6.54,
+      "duration": 6.21,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "打开对话页",
           "status": "PASS",
-          "duration": 1.7,
+          "duration": 1.71,
           "error": "",
           "screenshot": "screenshots\\chat.answer_and_citation\\00-打开对话页.png"
         },
         {
           "name": "输入并发送问题",
           "status": "PASS",
-          "duration": 1.94,
+          "duration": 1.93,
           "error": "",
           "screenshot": "screenshots\\chat.answer_and_citation\\01-输入并发送问题.png"
         },
         {
           "name": "等待回答与引用",
           "status": "PASS",
-          "duration": 1.74,
+          "duration": 1.43,
           "error": "",
           "screenshot": "screenshots\\chat.answer_and_citation\\02-等待回答与引用.png"
         },
         {
           "name": "展开引用来源",
           "status": "PASS",
-          "duration": 1.16,
+          "duration": 1.14,
           "error": "",
           "screenshot": "screenshots\\chat.answer_and_citation\\03-展开引用来源.png"
         }
@@ -158,28 +146,28 @@
       "id": "knowledge.browse",
       "profile": "open",
       "status": "PASS",
-      "duration": 6.85,
+      "duration": 7.19,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "打开知识库",
           "status": "PASS",
-          "duration": 1.72,
+          "duration": 2.14,
           "error": "",
           "screenshot": "screenshots\\knowledge.browse\\00-打开知识库.png"
         },
         {
           "name": "搜索并打开词条",
           "status": "PASS",
-          "duration": 4.11,
+          "duration": 4.0,
           "error": "",
           "screenshot": "screenshots\\knowledge.browse\\01-搜索并打开词条.png"
         },
         {
           "name": "关闭抽屉",
           "status": "PASS",
-          "duration": 1.01,
+          "duration": 1.06,
           "error": "",
           "screenshot": "screenshots\\knowledge.browse\\02-关闭抽屉.png"
         }
@@ -189,28 +177,28 @@
       "id": "knowledge.manage_upload",
       "profile": "open",
       "status": "PASS",
-      "duration": 3.1,
+      "duration": 3.06,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "进入收录资料",
           "status": "PASS",
-          "duration": 1.74,
+          "duration": 1.71,
           "error": "",
           "screenshot": "screenshots\\knowledge.manage_upload\\00-进入收录资料.png"
         },
         {
           "name": "选择文件并上传",
           "status": "PASS",
-          "duration": 1.22,
+          "duration": 1.2,
           "error": "",
           "screenshot": "screenshots\\knowledge.manage_upload\\01-选择文件并上传.png"
         },
         {
           "name": "等待后台任务完成",
           "status": "PASS",
-          "duration": 0.13,
+          "duration": 0.15,
           "error": "",
           "screenshot": "screenshots\\knowledge.manage_upload\\02-等待后台任务完成.png"
         }
@@ -220,7 +208,7 @@
       "id": "settings.assistant_and_models",
       "profile": "open",
       "status": "PASS",
-      "duration": 2.77,
+      "duration": 2.74,
       "known_issues": [],
       "error": "",
       "steps": [
@@ -234,14 +222,14 @@
         {
           "name": "切换到模型管理",
           "status": "PASS",
-          "duration": 0.91,
+          "duration": 0.89,
           "error": "",
           "screenshot": "screenshots\\settings.assistant_and_models\\01-切换到模型管理.png"
         },
         {
           "name": "模型列表出现 E2E Mock",
           "status": "PASS",
-          "duration": 0.15,
+          "duration": 0.14,
           "error": "",
           "screenshot": "screenshots\\settings.assistant_and_models\\02-模型列表出现_E2E_Mock.png"
         }
@@ -251,28 +239,28 @@
       "id": "ops.tabs",
       "profile": "open",
       "status": "PASS",
-      "duration": 6.06,
+      "duration": 5.55,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "打开运营页",
           "status": "PASS",
-          "duration": 2.32,
+          "duration": 1.71,
           "error": "",
           "screenshot": "screenshots\\ops.tabs\\00-打开运营页.png"
         },
         {
           "name": "切换到任务与告警",
           "status": "PASS",
-          "duration": 0.82,
+          "duration": 0.88,
           "error": "",
           "screenshot": "screenshots\\ops.tabs\\01-切换到任务与告警.png"
         },
         {
           "name": "切换到审计并刷新",
           "status": "PASS",
-          "duration": 2.92,
+          "duration": 2.96,
           "error": "",
           "screenshot": "screenshots\\ops.tabs\\02-切换到审计并刷新.png"
         }
@@ -282,49 +270,49 @@
       "id": "mobile.layout",
       "profile": "open",
       "status": "PASS",
-      "duration": 9.03,
+      "duration": 8.89,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "切换到 390x844 视口",
           "status": "PASS",
-          "duration": 0.08,
+          "duration": 0.11,
           "error": "",
           "screenshot": "screenshots\\mobile.layout\\00-切换到_390x844_视口.png"
         },
         {
           "name": "检查 #/chat 无横向滚动",
           "status": "PASS",
-          "duration": 1.64,
+          "duration": 1.62,
           "error": "",
           "screenshot": "screenshots\\mobile.layout\\01-检查_chat_无横向滚动.png"
         },
         {
           "name": "检查 #/knowledge 无横向滚动",
           "status": "PASS",
-          "duration": 1.67,
+          "duration": 1.63,
           "error": "",
           "screenshot": "screenshots\\mobile.layout\\02-检查_knowledge_无横向滚动.png"
         },
         {
           "name": "检查 #/ops 无横向滚动",
           "status": "PASS",
-          "duration": 1.73,
+          "duration": 1.62,
           "error": "",
           "screenshot": "screenshots\\mobile.layout\\03-检查_ops_无横向滚动.png"
         },
         {
           "name": "检查 #/settings 无横向滚动",
           "status": "PASS",
-          "duration": 1.64,
+          "duration": 1.63,
           "error": "",
           "screenshot": "screenshots\\mobile.layout\\04-检查_settings_无横向滚动.png"
         },
         {
           "name": "侧边栏开合",
           "status": "PASS",
-          "duration": 2.26,
+          "duration": 2.28,
           "error": "",
           "screenshot": "screenshots\\mobile.layout\\05-侧边栏开合.png"
         }
@@ -334,21 +322,21 @@
       "id": "sandbox.isolation",
       "profile": "open",
       "status": "PASS",
-      "duration": 0.22,
+      "duration": 0.16,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "服务数据目录位于沙箱",
           "status": "PASS",
-          "duration": 0.11,
+          "duration": 0.07,
           "error": "",
           "screenshot": "screenshots\\sandbox.isolation\\00-服务数据目录位于沙箱.png"
         },
         {
           "name": "生产数据未被写入",
           "status": "PASS",
-          "duration": 0.11,
+          "duration": 0.09,
           "error": "",
           "screenshot": "screenshots\\sandbox.isolation\\01-生产数据未被写入.png"
         }
@@ -358,35 +346,35 @@
       "id": "chat.interactions",
       "profile": "open",
       "status": "PASS",
-      "duration": 7.97,
+      "duration": 8.94,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "快捷问题",
           "status": "PASS",
-          "duration": 4.06,
+          "duration": 4.61,
           "error": "",
           "screenshot": "screenshots\\chat.interactions\\00-快捷问题.png"
         },
         {
           "name": "点赞反馈",
           "status": "PASS",
-          "duration": 1.23,
+          "duration": 1.33,
           "error": "",
           "screenshot": "screenshots\\chat.interactions\\01-点赞反馈.png"
         },
         {
           "name": "打开历史会话",
           "status": "PASS",
-          "duration": 0.61,
+          "duration": 0.62,
           "error": "",
           "screenshot": "screenshots\\chat.interactions\\02-打开历史会话.png"
         },
         {
           "name": "关闭历史会话",
           "status": "PASS",
-          "duration": 0.64,
+          "duration": 0.95,
           "error": "",
           "screenshot": "screenshots\\chat.interactions\\03-关闭历史会话.png"
         },
@@ -403,35 +391,35 @@
       "id": "knowledge.scan_and_delete",
       "profile": "open",
       "status": "PASS",
-      "duration": 22.41,
+      "duration": 22.72,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "填写扫描目录并开始扫描",
           "status": "PASS",
-          "duration": 6.35,
+          "duration": 6.41,
           "error": "",
           "screenshot": "screenshots\\knowledge.scan_and_delete\\00-填写扫描目录并开始扫描.png"
         },
         {
           "name": "等待扫描任务产出文档",
           "status": "PASS",
-          "duration": 0.05,
+          "duration": 0.06,
           "error": "",
           "screenshot": "screenshots\\knowledge.scan_and_delete\\01-等待扫描任务产出文档.png"
         },
         {
           "name": "切换到源文件并刷新",
           "status": "PASS",
-          "duration": 1.53,
+          "duration": 1.63,
           "error": "",
           "screenshot": "screenshots\\knowledge.scan_and_delete\\02-切换到源文件并刷新.png"
         },
         {
           "name": "删除扫描文档",
           "status": "PASS",
-          "duration": 14.48,
+          "duration": 14.61,
           "error": "",
           "screenshot": "screenshots\\knowledge.scan_and_delete\\03-删除扫描文档.png"
         }
@@ -441,35 +429,35 @@
       "id": "knowledge.more",
       "profile": "open",
       "status": "PASS",
-      "duration": 35.3,
+      "duration": 34.82,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "收起/展开快速收录",
           "status": "PASS",
-          "duration": 4.95,
+          "duration": 4.89,
           "error": "",
           "screenshot": "screenshots\\knowledge.more\\00-收起_展开快速收录.png"
         },
         {
           "name": "文本收录",
           "status": "PASS",
-          "duration": 12.22,
+          "duration": 12.19,
           "error": "",
           "screenshot": "screenshots\\knowledge.more\\01-文本收录.png"
         },
         {
           "name": "切到词条列表并刷新",
           "status": "PASS",
-          "duration": 1.33,
+          "duration": 1.3,
           "error": "",
           "screenshot": "screenshots\\knowledge.more\\02-切到词条列表并刷新.png"
         },
         {
           "name": "按标签筛选",
           "status": "PASS",
-          "duration": 3.42,
+          "duration": 3.29,
           "error": "",
           "screenshot": "screenshots\\knowledge.more\\03-按标签筛选.png"
         },
@@ -483,7 +471,7 @@
         {
           "name": "源文件详情与重编译",
           "status": "PASS",
-          "duration": 8.85,
+          "duration": 8.62,
           "error": "",
           "screenshot": "screenshots\\knowledge.more\\05-源文件详情与重编译.png"
         }
@@ -493,44 +481,51 @@
       "id": "chat.more",
       "profile": "open",
       "status": "PASS",
-      "duration": 18.75,
+      "duration": 27.52,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "发送问题",
           "status": "PASS",
-          "duration": 3.8,
+          "duration": 3.52,
           "error": "",
           "screenshot": "screenshots\\chat.more\\00-发送问题.png"
         },
         {
           "name": "点踩并选择原因",
           "status": "PASS",
-          "duration": 8.37,
+          "duration": 8.28,
           "error": "",
           "screenshot": "screenshots\\chat.more\\01-点踩并选择原因.png"
         },
         {
+          "name": "修改与取消反馈",
+          "status": "PASS",
+          "duration": 9.28,
+          "error": "",
+          "screenshot": "screenshots\\chat.more\\02-修改与取消反馈.png"
+        },
+        {
           "name": "历史会话打开",
           "status": "PASS",
-          "duration": 2.1,
+          "duration": 2.14,
           "error": "",
-          "screenshot": "screenshots\\chat.more\\02-历史会话打开.png"
+          "screenshot": "screenshots\\chat.more\\03-历史会话打开.png"
         },
         {
           "name": "删除历史会话",
           "status": "PASS",
-          "duration": 2.14,
+          "duration": 1.97,
           "error": "",
-          "screenshot": "screenshots\\chat.more\\03-删除历史会话.png"
+          "screenshot": "screenshots\\chat.more\\04-删除历史会话.png"
         },
         {
           "name": "转人工弹窗",
           "status": "PASS",
-          "duration": 2.34,
+          "duration": 2.33,
           "error": "",
-          "screenshot": "screenshots\\chat.more\\04-转人工弹窗.png"
+          "screenshot": "screenshots\\chat.more\\05-转人工弹窗.png"
         }
       ]
     },
@@ -538,56 +533,56 @@
       "id": "models.crud",
       "profile": "open",
       "status": "PASS",
-      "duration": 65.29,
+      "duration": 66.0,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "打开 Provider 标签",
           "status": "PASS",
-          "duration": 3.3,
+          "duration": 3.39,
           "error": "",
           "screenshot": "screenshots\\models.crud\\00-打开_Provider_标签.png"
         },
         {
           "name": "新增 Provider",
           "status": "PASS",
-          "duration": 4.56,
+          "duration": 4.53,
           "error": "",
           "screenshot": "screenshots\\models.crud\\01-新增_Provider.png"
         },
         {
           "name": "测试与编辑 Provider",
           "status": "PASS",
-          "duration": 5.52,
+          "duration": 5.35,
           "error": "",
           "screenshot": "screenshots\\models.crud\\02-测试与编辑_Provider.png"
         },
         {
           "name": "新增并测试模型",
           "status": "PASS",
-          "duration": 22.07,
+          "duration": 22.73,
           "error": "",
           "screenshot": "screenshots\\models.crud\\03-新增并测试模型.png"
         },
         {
           "name": "编辑模型",
           "status": "PASS",
-          "duration": 3.03,
+          "duration": 2.89,
           "error": "",
           "screenshot": "screenshots\\models.crud\\04-编辑模型.png"
         },
         {
           "name": "设为默认 / 停用 / 刷新",
           "status": "PASS",
-          "duration": 4.28,
+          "duration": 4.32,
           "error": "",
           "screenshot": "screenshots\\models.crud\\05-设为默认_停用_刷新.png"
         },
         {
           "name": "删除模型与 Provider",
           "status": "PASS",
-          "duration": 22.54,
+          "duration": 22.78,
           "error": "",
           "screenshot": "screenshots\\models.crud\\06-删除模型与_Provider.png"
         }
@@ -597,28 +592,28 @@
       "id": "bots.console",
       "profile": "open",
       "status": "PASS",
-      "duration": 35.99,
+      "duration": 36.18,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "打开机器人页",
           "status": "PASS",
-          "duration": 3.21,
+          "duration": 3.31,
           "error": "",
           "screenshot": "screenshots\\bots.console\\00-打开机器人页.png"
         },
         {
           "name": "新增微信公众号通道",
           "status": "PASS",
-          "duration": 4.32,
+          "duration": 4.36,
           "error": "",
           "screenshot": "screenshots\\bots.console\\01-新增微信公众号通道.png"
         },
         {
           "name": "保存/停用/刷新通道",
           "status": "PASS",
-          "duration": 4.07,
+          "duration": 3.93,
           "error": "",
           "screenshot": "screenshots\\bots.console\\02-保存_停用_刷新通道.png"
         },
@@ -632,14 +627,14 @@
         {
           "name": "查看日志并清空管理员绑定",
           "status": "PASS",
-          "duration": 8.25,
+          "duration": 8.29,
           "error": "",
           "screenshot": "screenshots\\bots.console\\04-查看日志并清空管理员绑定.png"
         },
         {
           "name": "删除通道",
           "status": "PASS",
-          "duration": 3.69,
+          "duration": 3.83,
           "error": "",
           "screenshot": "screenshots\\bots.console\\05-删除通道.png"
         }
@@ -649,28 +644,28 @@
       "id": "settings.quick",
       "profile": "open",
       "status": "PASS",
-      "duration": 22.54,
+      "duration": 22.5,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "打开设置并切换安全页",
           "status": "PASS",
-          "duration": 4.04,
+          "duration": 3.99,
           "error": "",
           "screenshot": "screenshots\\settings.quick\\00-打开设置并切换安全页.png"
         },
         {
           "name": "新增/删除快捷问题",
           "status": "PASS",
-          "duration": 2.77,
+          "duration": 2.78,
           "error": "",
           "screenshot": "screenshots\\settings.quick\\01-新增_删除快捷问题.png"
         },
         {
           "name": "打开手机扫码弹窗",
           "status": "PASS",
-          "duration": 8.06,
+          "duration": 8.02,
           "error": "",
           "screenshot": "screenshots\\settings.quick\\02-打开手机扫码弹窗.png"
         },
@@ -684,7 +679,7 @@
         {
           "name": "令牌显示切换与保存/清除",
           "status": "PASS",
-          "duration": 6.2,
+          "duration": 6.25,
           "error": "",
           "screenshot": "screenshots\\settings.quick\\04-令牌显示切换与保存_清除.png"
         }
@@ -694,49 +689,49 @@
       "id": "knowledge.extra",
       "profile": "open",
       "status": "PASS",
-      "duration": 60.78,
+      "duration": 60.38,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "编辑词条",
           "status": "PASS",
-          "duration": 10.59,
+          "duration": 9.87,
           "error": "",
           "screenshot": "screenshots\\knowledge.extra\\00-编辑词条.png"
         },
         {
           "name": "链接收录（本地手册页）",
           "status": "PASS",
-          "duration": 7.99,
+          "duration": 8.07,
           "error": "",
           "screenshot": "screenshots\\knowledge.extra\\01-链接收录_本地手册页_.png"
         },
         {
           "name": "下载源文件",
           "status": "PASS",
-          "duration": 13.75,
+          "duration": 13.73,
           "error": "",
           "screenshot": "screenshots\\knowledge.extra\\02-下载源文件.png"
         },
         {
           "name": "全部重建",
           "status": "PASS",
-          "duration": 13.81,
+          "duration": 14.0,
           "error": "",
           "screenshot": "screenshots\\knowledge.extra\\03-全部重建.png"
         },
         {
           "name": "删除一个词条",
           "status": "PASS",
-          "duration": 9.27,
+          "duration": 9.44,
           "error": "",
           "screenshot": "screenshots\\knowledge.extra\\04-删除一个词条.png"
         },
         {
           "name": "上传后清除已完成队列",
           "status": "PASS",
-          "duration": 5.36,
+          "duration": 5.26,
           "error": "",
           "screenshot": "screenshots\\knowledge.extra\\05-上传后清除已完成队列.png"
         }
@@ -746,7 +741,7 @@
       "id": "jobs.actions",
       "profile": "open",
       "status": "PASS",
-      "duration": 18.32,
+      "duration": 18.25,
       "known_issues": [],
       "error": "",
       "steps": [
@@ -760,28 +755,28 @@
         {
           "name": "打开任务页并刷新",
           "status": "PASS",
-          "duration": 4.89,
+          "duration": 4.85,
           "error": "",
           "screenshot": "screenshots\\jobs.actions\\01-打开任务页并刷新.png"
         },
         {
           "name": "重试失败任务",
           "status": "PASS",
-          "duration": 2.68,
+          "duration": 2.65,
           "error": "",
           "screenshot": "screenshots\\jobs.actions\\02-重试失败任务.png"
         },
         {
           "name": "取消排队任务",
           "status": "PASS",
-          "duration": 6.81,
+          "duration": 6.7,
           "error": "",
           "screenshot": "screenshots\\jobs.actions\\03-取消排队任务.png"
         },
         {
           "name": "确认并解决告警",
           "status": "PASS",
-          "duration": 2.84,
+          "duration": 2.93,
           "error": "",
           "screenshot": "screenshots\\jobs.actions\\04-确认并解决告警.png"
         }
@@ -791,21 +786,21 @@
       "id": "insights.tabs",
       "profile": "open",
       "status": "PASS",
-      "duration": 6.7,
+      "duration": 7.06,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "打开服务台并刷新",
           "status": "PASS",
-          "duration": 4.22,
+          "duration": 4.6,
           "error": "",
           "screenshot": "screenshots\\insights.tabs\\00-打开服务台并刷新.png"
         },
         {
           "name": "切换服务台标签",
           "status": "PASS",
-          "duration": 2.48,
+          "duration": 2.46,
           "error": "",
           "screenshot": "screenshots\\insights.tabs\\01-切换服务台标签.png"
         }
@@ -815,49 +810,49 @@
       "id": "insights.actions",
       "profile": "open",
       "status": "PASS",
-      "duration": 29.3,
+      "duration": 28.69,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "制造反馈/工单/危机数据",
           "status": "PASS",
-          "duration": 2.38,
+          "duration": 2.2,
           "error": "",
           "screenshot": "screenshots\\insights.actions\\00-制造反馈_工单_危机数据.png"
         },
         {
           "name": "打开服务台并刷新",
           "status": "PASS",
-          "duration": 4.78,
+          "duration": 5.01,
           "error": "",
           "screenshot": "screenshots\\insights.actions\\01-打开服务台并刷新.png"
         },
         {
           "name": "工单：认领/复制/回复/解决",
           "status": "PASS",
-          "duration": 14.89,
+          "duration": 14.98,
           "error": "",
           "screenshot": "screenshots\\insights.actions\\02-工单_认领_复制_回复_解决.png"
         },
         {
           "name": "危机事件状态",
           "status": "PASS",
-          "duration": 1.56,
+          "duration": 1.6,
           "error": "",
           "screenshot": "screenshots\\insights.actions\\03-危机事件状态.png"
         },
         {
           "name": "知识缺口处理",
           "status": "PASS",
-          "duration": 2.84,
+          "duration": 2.74,
           "error": "",
           "screenshot": "screenshots\\insights.actions\\04-知识缺口处理.png"
         },
         {
           "name": "反馈处理",
           "status": "PASS",
-          "duration": 2.84,
+          "duration": 2.16,
           "error": "",
           "screenshot": "screenshots\\insights.actions\\05-反馈处理.png"
         }
@@ -867,28 +862,28 @@
       "id": "chat.extra",
       "profile": "open",
       "status": "PASS",
-      "duration": 11.41,
+      "duration": 11.16,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "发送问题并定位引用",
           "status": "PASS",
-          "duration": 5.76,
+          "duration": 5.72,
           "error": "",
           "screenshot": "screenshots\\chat.extra\\00-发送问题并定位引用.png"
         },
         {
           "name": "拦截接口制造发送失败",
           "status": "PASS",
-          "duration": 3.36,
+          "duration": 3.21,
           "error": "",
           "screenshot": "screenshots\\chat.extra\\01-拦截接口制造发送失败.png"
         },
         {
           "name": "危机提示确认",
           "status": "PASS",
-          "duration": 2.29,
+          "duration": 2.22,
           "error": "",
           "screenshot": "screenshots\\chat.extra\\02-危机提示确认.png"
         }
@@ -898,23 +893,30 @@
       "id": "errors.retry",
       "profile": "open",
       "status": "PASS",
-      "duration": 11.61,
+      "duration": 13.9,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "词条详情加载失败后重试",
           "status": "PASS",
-          "duration": 7.04,
+          "duration": 5.74,
           "error": "",
           "screenshot": "screenshots\\errors.retry\\00-词条详情加载失败后重试.png"
         },
         {
+          "name": "历史会话加载失败后重试",
+          "status": "PASS",
+          "duration": 3.61,
+          "error": "",
+          "screenshot": "screenshots\\errors.retry\\01-历史会话加载失败后重试.png"
+        },
+        {
           "name": "设置加载失败后重试",
           "status": "PASS",
-          "duration": 4.57,
+          "duration": 4.54,
           "error": "",
-          "screenshot": "screenshots\\errors.retry\\01-设置加载失败后重试.png"
+          "screenshot": "screenshots\\errors.retry\\02-设置加载失败后重试.png"
         }
       ]
     },
@@ -922,7 +924,7 @@
       "id": "mobile.chat",
       "profile": "open",
       "status": "PASS",
-      "duration": 12.49,
+      "duration": 12.48,
       "known_issues": [],
       "error": "",
       "steps": [
@@ -936,28 +938,28 @@
         {
           "name": "侧边栏触摸开合",
           "status": "PASS",
-          "duration": 5.15,
+          "duration": 5.27,
           "error": "",
           "screenshot": "screenshots\\mobile.chat\\01-侧边栏触摸开合.png"
         },
         {
           "name": "触摸发送问题并收到引用",
           "status": "PASS",
-          "duration": 2.79,
+          "duration": 2.69,
           "error": "",
           "screenshot": "screenshots\\mobile.chat\\02-触摸发送问题并收到引用.png"
         },
         {
           "name": "触摸点赞",
           "status": "PASS",
-          "duration": 1.16,
+          "duration": 1.17,
           "error": "",
           "screenshot": "screenshots\\mobile.chat\\03-触摸点赞.png"
         },
         {
           "name": "触摸历史会话开关",
           "status": "PASS",
-          "duration": 1.76,
+          "duration": 1.72,
           "error": "",
           "screenshot": "screenshots\\mobile.chat\\04-触摸历史会话开关.png"
         }
@@ -967,28 +969,28 @@
       "id": "mobile.knowledge",
       "profile": "open",
       "status": "PASS",
-      "duration": 8.52,
+      "duration": 7.8,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "移动端搜索词条",
           "status": "PASS",
-          "duration": 3.6,
+          "duration": 3.06,
           "error": "",
           "screenshot": "screenshots\\mobile.knowledge\\00-移动端搜索词条.png"
         },
         {
           "name": "触摸打开词条抽屉",
           "status": "PASS",
-          "duration": 2.01,
+          "duration": 1.75,
           "error": "",
           "screenshot": "screenshots\\mobile.knowledge\\01-触摸打开词条抽屉.png"
         },
         {
           "name": "触摸标签筛选",
           "status": "PASS",
-          "duration": 2.91,
+          "duration": 2.99,
           "error": "",
           "screenshot": "screenshots\\mobile.knowledge\\02-触摸标签筛选.png"
         }
@@ -998,14 +1000,14 @@
       "id": "mobile.manage",
       "profile": "open",
       "status": "PASS",
-      "duration": 5.35,
+      "duration": 5.3,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "移动端上传文件",
           "status": "PASS",
-          "duration": 5.34,
+          "duration": 5.29,
           "error": "",
           "screenshot": "screenshots\\mobile.manage\\00-移动端上传文件.png"
         }
@@ -1015,16 +1017,57 @@
       "id": "mobile.settings",
       "profile": "open",
       "status": "PASS",
-      "duration": 6.05,
+      "duration": 5.99,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "移动端设置与模型页",
           "status": "PASS",
-          "duration": 6.05,
+          "duration": 5.99,
           "error": "",
           "screenshot": "screenshots\\mobile.settings\\00-移动端设置与模型页.png"
+        }
+      ]
+    },
+    {
+      "id": "knowledge.empty",
+      "profile": "open",
+      "status": "PASS",
+      "duration": 17.31,
+      "known_issues": [],
+      "error": "",
+      "steps": [
+        {
+          "name": "清空全部词条制造空态",
+          "status": "PASS",
+          "duration": 15.55,
+          "error": "",
+          "screenshot": "screenshots\\knowledge.empty\\00-清空全部词条制造空态.png"
+        },
+        {
+          "name": "空态引导去管理",
+          "status": "PASS",
+          "duration": 1.76,
+          "error": "",
+          "screenshot": "screenshots\\knowledge.empty\\01-空态引导去管理.png"
+        }
+      ]
+    },
+    {
+      "id": "links.oversize",
+      "profile": "open",
+      "status": "PASS",
+      "duration": 7.62,
+      "known_issues": [],
+      "error": "",
+      "steps": [
+        {
+          "name": "导入超限网页触发降级",
+          "status": "PASS",
+          "duration": 7.22,
+          "error": "",
+          "screenshot": "screenshots\\links.oversize\\00-导入超限网页触发降级.png"
         }
       ]
     },
@@ -1032,21 +1075,21 @@
       "id": "auth.login_logout",
       "profile": "account",
       "status": "PASS",
-      "duration": 6.51,
+      "duration": 6.28,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "打开登录页并登录",
           "status": "PASS",
-          "duration": 3.97,
+          "duration": 3.85,
           "error": "",
           "screenshot": "screenshots\\auth.login_logout\\00-打开登录页并登录.png"
         },
         {
           "name": "退出登录",
           "status": "PASS",
-          "duration": 2.54,
+          "duration": 2.43,
           "error": "",
           "screenshot": "screenshots\\auth.login_logout\\01-退出登录.png"
         }
@@ -1056,35 +1099,35 @@
       "id": "team.users",
       "profile": "account",
       "status": "PASS",
-      "duration": 19.06,
+      "duration": 17.67,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "登录管理员",
           "status": "PASS",
-          "duration": 3.72,
+          "duration": 3.74,
           "error": "",
           "screenshot": "screenshots\\team.users\\00-登录管理员.png"
         },
         {
           "name": "打开成员页",
           "status": "PASS",
-          "duration": 2.91,
+          "duration": 2.94,
           "error": "",
           "screenshot": "screenshots\\team.users\\01-打开成员页.png"
         },
         {
           "name": "取消新增弹窗",
           "status": "PASS",
-          "duration": 2.07,
+          "duration": 2.1,
           "error": "",
           "screenshot": "screenshots\\team.users\\02-取消新增弹窗.png"
         },
         {
           "name": "新增成员",
           "status": "PASS",
-          "duration": 4.51,
+          "duration": 4.46,
           "error": "",
           "screenshot": "screenshots\\team.users\\03-新增成员.png"
         },
@@ -1098,16 +1141,47 @@
         {
           "name": "停用成员",
           "status": "PASS",
-          "duration": 1.58,
+          "duration": 0.89,
           "error": "",
           "screenshot": "screenshots\\team.users\\05-停用成员.png"
         },
         {
           "name": "重置成员密码",
           "status": "PASS",
-          "duration": 3.36,
+          "duration": 2.63,
           "error": "",
           "screenshot": "screenshots\\team.users\\06-重置成员密码.png"
+        }
+      ]
+    },
+    {
+      "id": "team.account",
+      "profile": "account",
+      "status": "PASS",
+      "duration": 16.42,
+      "known_issues": [],
+      "error": "",
+      "steps": [
+        {
+          "name": "登录并打开成员页",
+          "status": "PASS",
+          "duration": 7.53,
+          "error": "",
+          "screenshot": "screenshots\\team.account\\00-登录并打开成员页.png"
+        },
+        {
+          "name": "新增并删除成员",
+          "status": "PASS",
+          "duration": 7.84,
+          "error": "",
+          "screenshot": "screenshots\\team.account\\01-新增并删除成员.png"
+        },
+        {
+          "name": "本人修改密码（打开弹窗）",
+          "status": "PASS",
+          "duration": 1.05,
+          "error": "",
+          "screenshot": "screenshots\\team.account\\02-本人修改密码_打开弹窗_.png"
         }
       ]
     },
@@ -1115,21 +1189,21 @@
       "id": "settings.account",
       "profile": "account",
       "status": "PASS",
-      "duration": 28.61,
+      "duration": 13.2,
       "known_issues": [],
       "error": "",
       "steps": [
         {
           "name": "登录并打开账号页",
           "status": "PASS",
-          "duration": 15.3,
+          "duration": 7.55,
           "error": "",
           "screenshot": "screenshots\\settings.account\\00-登录并打开账号页.png"
         },
         {
           "name": "退出登录",
           "status": "PASS",
-          "duration": 13.31,
+          "duration": 5.65,
           "error": "",
           "screenshot": "screenshots\\settings.account\\01-退出登录.png"
         }
@@ -1139,7 +1213,7 @@
       "id": "token.settings_redaction",
       "profile": "token",
       "status": "PASS",
-      "duration": 0.11,
+      "duration": 0.12,
       "known_issues": [],
       "error": "",
       "steps": [
@@ -1153,7 +1227,7 @@
         {
           "name": "带管理令牌可读完整设置",
           "status": "PASS",
-          "duration": 0.05,
+          "duration": 0.06,
           "error": "",
           "screenshot": "screenshots\\token.settings_redaction\\01-带管理令牌可读完整设置.png"
         }

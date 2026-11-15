@@ -367,7 +367,7 @@ async def knowledge_more(ctx: Context) -> None:
 @scenario(
     "chat.more",
     tags=("chat",),
-    covers=("feedback-down", "feedback-reason", "feedback-submit", "toggle-history", "open-conversation", "delete-conversation", "handoff-open"),
+    covers=("feedback-down", "feedback-reason", "feedback-submit", "feedback-reset", "feedback-cancel", "toggle-history", "open-conversation", "delete-conversation", "handoff-open"),
 )
 async def chat_more(ctx: Context) -> None:
     async with ctx.step("发送问题"):
@@ -383,6 +383,21 @@ async def chat_more(ctx: Context) -> None:
         await ctx.browser.click('[data-action="feedback-reason"]')
         await ctx.browser.click('[data-action="feedback-submit"]')
         await asyncio.sleep(0.8)
+    async with ctx.step("修改与取消反馈"):
+        await ctx.browser.click('[data-action="feedback-up"]')
+        await ctx.browser.wait_for_selector('[data-testid="feedback-reset"]', timeout=12)
+        await ctx.browser.click('[data-testid="feedback-reset"]')
+        await asyncio.sleep(0.5)
+        await ctx.browser.click('[data-action="feedback-down"]')
+        if not await ctx.browser.wait_for_selector('[data-testid="feedback-cancel"]', timeout=5):
+            await ctx.browser.click('[data-action="feedback-down"]')
+        if not await ctx.browser.wait_for_selector('[data-testid="feedback-cancel"]', timeout=5):
+            await ctx.browser.evaluate(
+                "(document.querySelector('[data-testid=\'feedback-down\']'))?.click()"
+            )
+        await ctx.browser.wait_for_selector('[data-testid="feedback-cancel"]', timeout=15)
+        await ctx.browser.click('[data-testid="feedback-cancel"]')
+        await asyncio.sleep(0.4)
     async with ctx.step("历史会话打开"):
         await ctx.browser.click('[data-action="toggle-history"]')
         await ctx.expect_text("历史会话", timeout=15)
@@ -501,21 +516,77 @@ async def team_users(ctx: Context) -> None:
         ctx.expect("e2e-user" in (await ctx.browser.text()), "新增成员未出现在列表")
     async with ctx.step("修改角色"):
         changed = await ctx.browser.evaluate(
-            "(() => { const s = document.querySelector('[data-action=\"user-role\"]');"
+            "(() => { const rows = Array.from(document.querySelectorAll('tr, .user-row, .member-row'));"
+            " const row = rows.find(r => r.textContent.includes('e2e-user'));"
+            " const s = row?.querySelector('[data-action=\"user-role\"]');"
             " if (!s) return false; s.value = 'admin';"
             " s.dispatchEvent(new Event('change', {bubbles:true})); return true; })()"
         )
-        ctx.expect(bool(changed), "找不到角色选择框")
+        ctx.expect(bool(changed), "找不到 e2e-user 的角色选择框")
         await asyncio.sleep(0.8)
     async with ctx.step("停用成员"):
-        await ctx.browser.click('[data-action="user-toggle"]')
+        clicked = await ctx.browser.evaluate(
+            "(() => { const rows = Array.from(document.querySelectorAll('tr, .user-row, .member-row'));"
+            " const row = rows.find(r => r.textContent.includes('e2e-user'));"
+            " const b = row?.querySelector('[data-action=\"user-toggle\"]'); if (!b) return false;"
+            " b.click(); return true; })()"
+        )
+        ctx.expect(bool(clicked), "找不到 e2e-user 的停用按钮")
         await asyncio.sleep(0.8)
     async with ctx.step("重置成员密码"):
-        await ctx.browser.click('[data-action="user-reset"]')
+        clicked = await ctx.browser.evaluate(
+            "(() => { const rows = Array.from(document.querySelectorAll('tr, .user-row, .member-row'));"
+            " const row = rows.find(r => r.textContent.includes('e2e-user'));"
+            " const b = row?.querySelector('[data-action=\"user-reset\"]'); if (!b) return false;"
+            " b.click(); return true; })()"
+        )
+        ctx.expect(bool(clicked), "找不到 e2e-user 的重置按钮")
         await ctx.browser.wait_for_selector("form", timeout=10)
         await ctx.browser.type('form [name="password"]', "e2e-reset-123")
         await ctx.browser.click('.modal form button[type="submit"]')
         await asyncio.sleep(1.0)
+
+
+
+@scenario(
+    "team.account",
+    tags=("settings", "auth"),
+    profile="account",
+    covers=("password-self", "user-delete"),
+    allow_errors=("400", "401", "403"),
+)
+async def team_account(ctx: Context) -> None:
+    async with ctx.step("登录并打开成员页"):
+        await _goto(ctx, "#/login")
+        await _ensure_login(ctx)
+        for _ in range(4):
+            await _goto(ctx, "#/settings")
+            if await ctx.browser.wait_for_selector('[data-settings-tab="members"]', timeout=6):
+                break
+            await asyncio.sleep(1.5)
+        await ctx.browser.click('[data-settings-tab="members"]')
+        await ctx.browser.wait_for_selector('[data-testid="user-add"]', timeout=20)
+    async with ctx.step("新增并删除成员"):
+        await ctx.browser.click('[data-testid="user-add"]')
+        await ctx.browser.wait_for_selector(".modal form", timeout=10)
+        await ctx.browser.type('.modal form [name="username"]', "e2e-del-user")
+        await ctx.browser.type('.modal form [name="password"]', "e2e-del-pass-123")
+        await ctx.browser.click('[data-testid="team-user-submit"]')
+        await asyncio.sleep(1.2)
+        if not await ctx.browser.wait_for_selector('[data-testid="user-delete"]', timeout=8):
+            await ctx.browser.evaluate(
+                "(() => { const b = document.querySelector('[data-testid=\'user-delete\']'); b?.click(); })()"
+            )
+        await ctx.browser.wait_for_selector('[data-testid="user-delete"]', timeout=15)
+        await ctx.browser.click('[data-testid="user-delete"]')
+        await _confirm(ctx)
+    async with ctx.step("本人修改密码（打开弹窗）"):
+        await ctx.browser.evaluate(
+            "(document.querySelector('[data-testid=\'password-self\']'))?.click()"
+        )
+        await ctx.browser.wait_for_text("修改我的密码", timeout=12)
+        await ctx.browser.press("Escape")
+        await asyncio.sleep(0.4)
 
 
 @scenario(
@@ -627,14 +698,11 @@ async def settings_quick(ctx: Context) -> None:
         await asyncio.sleep(1.0)
 
 
-@scenario("settings.account", tags=("settings", "auth"), profile="account", covers=("cancel", "logout", "go-login"), allow_errors=("401", "400"))
+@scenario("settings.account", tags=("settings", "auth"), profile="account", covers=("cancel", "logout", "go-login"), allow_errors=("401", "400", "403"))
 async def settings_account(ctx: Context) -> None:
     async with ctx.step("登录并打开账号页"):
         await _goto(ctx, "#/login")
-        await ctx.browser.type('#loginForm input[name="username"]', "e2e-admin")
-        await ctx.browser.type('#loginForm input[name="password"]', ctx.sandbox.admin_password)
-        await ctx.browser.click('#loginForm button[type="submit"]')
-        await ctx.expect_text("对话", timeout=20)
+        await _ensure_login(ctx)
         await _fresh(ctx, "#/settings?tab=account")
         if not await ctx.browser.wait_for_text("我的账号", timeout=8):
             await ctx.browser.evaluate(
@@ -669,6 +737,14 @@ async def knowledge_extra(ctx: Context) -> None:
         await ctx.browser.click('[data-action="manage-tab"][data-tab="pages"]')
         await ctx.browser.wait_for_selector(".wiki-card", timeout=20)
         await ctx.browser.click(".wiki-card")
+        if not await ctx.browser.wait_for_selector('[data-action="edit-page"]', timeout=8):
+            await _fresh(ctx, "#/knowledge?manage=1")
+            await ctx.browser.click('[data-action="manage-tab"][data-tab="pages"]')
+            await ctx.browser.wait_for_selector(".wiki-card", timeout=20)
+            await ctx.browser.evaluate(
+                "(() => { const c = Array.from(document.querySelectorAll('.wiki-card'))"
+                ".filter(n => n.getClientRects().length)[0]; c?.click(); })()"
+            )
         if not await ctx.browser.wait_for_selector('[data-action="edit-page"]', timeout=8):
             await ctx.browser.evaluate(
                 "(() => { const items = Array.from(document.querySelectorAll('[data-action=\'open-page\']'))"
@@ -926,7 +1002,7 @@ async def chat_extra(ctx: Context) -> None:
 @scenario(
     "errors.retry",
     tags=("knowledge", "settings"),
-    covers=("retry-page", "retry"),
+    covers=("retry-page", "retry", "refresh-history"),
     allow_errors=("Failed to load resource", "ERR_BLOCKED_BY_CLIENT", "net::ERR"),
 )
 async def errors_retry(ctx: Context) -> None:
@@ -938,6 +1014,14 @@ async def errors_retry(ctx: Context) -> None:
         await ctx.browser.call("Network.setBlockedURLs", {"urls": []})
         await ctx.browser.click('[data-action="retry-page"]')
         await asyncio.sleep(1.2)
+    async with ctx.step("历史会话加载失败后重试"):
+        await ctx.browser.call("Network.setBlockedURLs", {"urls": ["*api/chat/conversations*"]})
+        await _goto(ctx, "#/chat")
+        await ctx.browser.click('[data-action="toggle-history"]')
+        await ctx.browser.wait_for_selector('[data-testid="history-retry"]', timeout=20)
+        await ctx.browser.call("Network.setBlockedURLs", {"urls": []})
+        await ctx.browser.click('[data-testid="history-retry"]')
+        await asyncio.sleep(0.8)
     async with ctx.step("设置加载失败后重试"):
         await ctx.browser.call("Network.setBlockedURLs", {"urls": ["*api/settings*"]})
         await _fresh(ctx, "#/settings")
@@ -945,6 +1029,19 @@ async def errors_retry(ctx: Context) -> None:
         await ctx.browser.call("Network.setBlockedURLs", {"urls": []})
         await ctx.browser.click('[data-action="retry"]')
         await asyncio.sleep(1.2)
+
+
+
+
+async def _ensure_login(ctx: Context) -> None:
+    """已登录时直接复用会话；未登录才走登录表单。"""
+    if not await ctx.browser.wait_for_selector("#loginForm", timeout=3):
+        return
+    await ctx.browser.type('#loginForm input[name="username"]', "e2e-admin")
+    await ctx.browser.type('#loginForm input[name="password"]', ctx.sandbox.admin_password)
+    await ctx.browser.click('#loginForm button[type="submit"]')
+    await ctx.expect_text("对话", timeout=20)
+    await ctx.browser.wait_for_selector("#chatInput", timeout=20)
 
 
 async def _assert_no_overflow(ctx: Context, label: str) -> None:
@@ -1057,3 +1154,60 @@ async def mobile_settings(ctx: Context) -> None:
         await ctx.browser.tap('[data-action="models-tab"][data-tab="providers"]')
         await asyncio.sleep(0.8)
         await _assert_no_overflow(ctx, "移动端模型页")
+
+@scenario("knowledge.empty", tags=("knowledge",), covers=("go-manage",))
+async def knowledge_empty(ctx: Context) -> None:
+    async with ctx.step("清空全部词条制造空态"):
+        for _ in range(10):
+            items = ctx.api_get("/api/wiki/pages?limit=200").get("items", [])
+            if not items:
+                break
+            for item in items:
+                ctx.server.api.delete(f"/api/wiki/pages/{item['id']}")
+        remaining = ctx.api_get("/api/wiki/stats").get("pages", 0)
+        ctx.expect(remaining == 0, f"清空词条失败，仍有 {remaining} 条")
+        await _fresh(ctx, "#/knowledge")
+        await ctx.browser.wait_for_selector('[data-testid="go-manage"]', timeout=20)
+    async with ctx.step("空态引导去管理"):
+        await ctx.browser.click('[data-testid="go-manage"]')
+        await asyncio.sleep(1.0)
+        hash_value = await ctx.browser.evaluate("location.hash") or ""
+        ctx.expect("manage=1" in hash_value, f"未跳转到内容管理（hash={hash_value}）")
+
+
+@scenario("links.oversize", tags=("knowledge",), covers=("use-text-import",), allow_errors=("400", "Failed to load resource"))
+async def links_oversize(ctx: Context) -> None:
+    import threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):  # noqa: N802
+            body = b"<html><body>" + b"x" * (9 * 1024 * 1024) + b"</body></html>"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *args):  # noqa: D401
+            return
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    url = f"http://127.0.0.1:{server.server_port}/oversize.html"
+    try:
+        async with ctx.step("导入超限网页触发降级"):
+            await _fresh(ctx, "#/knowledge?manage=1")
+            await ctx.browser.click('[data-action="capture-mode"][data-mode="links"]')
+            await ctx.browser.type("#captureUrls", url)
+            await ctx.browser.click("#importLinksBtn")
+            await ctx.browser.wait_for_selector('[data-action="use-text-import"]', timeout=40)
+            await ctx.browser.click('[data-action="use-text-import"]')
+            await asyncio.sleep(1.0)
+            mode = await ctx.browser.evaluate(
+                "(() => { const a = document.getElementById('captureText');"
+                " return Boolean(a && a.getClientRects().length); })()"
+            )
+            ctx.expect(bool(mode), "点击改用文本收录后未切换到文本面板")
+    finally:
+        server.shutdown()

@@ -37,7 +37,7 @@
 - 视口：默认 1440×960；`mobile.layout` 场景切 390×844 + touch 模拟。
 - 门禁：默认任何 console error 或 5xx 请求判失败。
 
-## 4. 场景清单（29 个）
+## 4. 场景清单（32 个）
 
 | 场景 | 覆盖 |
 |---|---|
@@ -51,6 +51,9 @@
 | `settings.assistant_and_models` | 设置页、模型标签、沙箱模型展示 |
 | `auth.login_logout` | 登录、会话建立、退出回登录页（account 档） |
 | `token.settings_redaction` | 匿名设置白名单、带令牌完整设置（token 档） |
+| `team.account` | 账号档：改密弹窗、成员新增/删除 |
+| `knowledge.empty` | 清空词条后的空态引导「去管理」 |
+| `links.oversize` | 超限网页导入失败 → 改用文本收录 |
 | `mobile.chat` | 移动端触摸：菜单开合、发送提问、引用、点赞、历史会话 |
 | `mobile.knowledge` | 移动端触摸：搜索、打开词条抽屉、标签筛选 |
 | `mobile.manage` | 移动端触摸：上传文件并落库 |
@@ -72,7 +75,7 @@
 | `errors.retry` | 词条详情加载失败重试、设置加载失败重试 |
 
 
-覆盖度量：`coverage.json` 静态盘点各 view 的 `data-action`（当前 114 个），按场景 `covers` 统计，且只计入未失败场景。**当前动作覆盖率 93.0%（106/114）**，缺口按 view 列在 `coverage.json`；截图证据与逐场景覆盖表见 [E2E-COVERAGE.md](E2E-COVERAGE.md)（由 `--publish` 生成，截图在 `docs/screenshots/e2e/`）。
+覆盖度量：`coverage.json` 静态盘点各 view 的 `data-action`（当前 114 个），按场景 `covers` 统计，且只计入未失败场景。**当前动作覆盖率 100%（114/114）**，缺口按 view 列在 `coverage.json`；截图证据与逐场景覆盖表见 [E2E-COVERAGE.md](E2E-COVERAGE.md)（由 `--publish` 生成，截图在 `docs/screenshots/e2e/`）。
 
 ## 5. 确定性模型
 
