@@ -1,0 +1,41 @@
+---
+title: "《西北工业大学三航筑梦计划管理办法》-青春驿站-共青团西北工业大学委员会"
+source_url: https://youth.nwpu.edu.cn/info/1089/39671.htm
+source_site: youth.nwpu.edu.cn
+source_name: "团委"
+category: 其他
+doc_type: 制度规章
+audience: 全体
+publish_date: 2025-09-23
+collected_at: 2026-11-12
+---
+
+# 《西北工业大学三航筑梦计划管理办法》-青春驿站-共青团西北工业大学委员会
+
+×
+站内搜索
+政务公开
+规章制度
+通知公告
+规章制度
+当前位置:
+首页
+>>
+政务公开
+>>
+规章制度
+>>
+正文
+《西北工业大学三航筑梦计划管理办法》
+发布时间：2025-09-23 作者：
+《西北工业大学三航筑梦计划管理办法》.pdf
+附件【《西北工业大学三航筑梦计划管理办法》.pdf】已下载次
+上一条：《西北工业大学创新创业教育改革试点学院项目建设经费管理办法》
+下一条：《西北工业大学加升南洋奖学金管理办法》
+西工大青年
+三航青年-西工大团委
+西北工业大学团委
+团委概况&nbsp | &nbsp政务公开&nbsp | &nbsp理论学习&nbsp | &nbsp办事指南&nbsp | &nbsp媒体聚焦&nbsp | &nbsp特色工作
+Copyright © 2017 共青团西北工业大学委员会. All Rights Reserved
+
+> 来源：https://youth.nwpu.edu.cn/info/1089/39671.htm

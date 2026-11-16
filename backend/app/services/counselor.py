@@ -24,7 +24,16 @@ from datetime import date
 from typing import Any
 
 from .. import config, db
-from . import freshness, handoff as handoff_service, insights, llm, remote_search, text_utils, wiki_nav
+from . import (
+    freshness,
+    handoff as handoff_service,
+    insights,
+    llm,
+    privacy,
+    remote_search,
+    text_utils,
+    wiki_nav,
+)
 
 logger = logging.getLogger("npu-assistant")
 
@@ -1038,6 +1047,12 @@ def answer(
                 crisis=crisis,
                 started=started,
             )
+
+    # 个人信息请求：确定性拒绝，优先于检索与模型调用
+    if privacy.is_personal_info_request(text):
+        return privacy.refusal_answer(
+            text=text, conversation=conversation, started=started, channel=channel
+        )
 
     citations: list[dict] = []
     navigation: dict = {"method": "none", "pages": []}
