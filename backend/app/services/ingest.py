@@ -27,7 +27,7 @@ import re
 from pathlib import Path
 
 from .. import config, db
-from . import parsing, wiki_builder
+from . import parsing, redaction, wiki_builder
 
 logger = logging.getLogger("npu-assistant")
 
@@ -217,11 +217,6 @@ def _ingest_bytes(
 
     try:
         parsed = parsing.parse_document(original_name, data)
-        final_title = requested_title or parsed.title or fallback_title
-        db.execute(
-            "UPDATE documents SET title = ?, char_count = ?, updated_at = ? WHERE id = ?",
-            (final_title, len(parsed.text), db.now(), doc_id),
-        )
     except parsing.ParseError as exc:
         error = _error_text(exc)
         _mark_failed(doc_id, error)
@@ -232,6 +227,25 @@ def _ingest_bytes(
         _mark_failed(doc_id, error)
         logger.warning("文档解析异常：%s（%s）", original_name, error)
         return document_to_dict(db.get_document(doc_id))
+
+    final_title = requested_title or parsed.title or fallback_title
+    if redaction.is_list_document(final_title, parsed.text):
+        db.execute("DELETE FROM documents WHERE id = ?", (doc_id,))
+        try:
+            stored_path.unlink(missing_ok=True)
+        except OSError:
+            logger.warning("删除名单类源文件失败：%s", stored_path)
+        raise ValueError("名单/成绩类文档包含个人信息，按隐私规则不收录")
+    parsed.text = redaction.redact_text(parsed.text)
+    if ext in {".md", ".txt", ".html", ".htm", ".csv", ".json"}:
+        raw_text = data.decode("utf-8", errors="ignore")
+        clean_raw = redaction.redact_text(raw_text)
+        if clean_raw != raw_text:
+            stored_path.write_text(clean_raw, encoding="utf-8")
+    db.execute(
+        "UPDATE documents SET title = ?, char_count = ?, updated_at = ? WHERE id = ?",
+        (final_title, len(parsed.text), db.now(), doc_id),
+    )
 
     # 同步编译：失败会写入 documents.error / status=failed，不抛异常
     try:
@@ -254,8 +268,10 @@ def _ingest_markdown(
     filename_prefix: str,
 ) -> dict:
     """把「一级标题 + 正文」写成 Markdown 源文件后入库编译。"""
-    clean_title = _one_line(title) or "未命名资料"
-    body_text = str(body or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    clean_title = redaction.redact_text(_one_line(title) or "未命名资料")
+    body_text = redaction.redact_text(
+        str(body or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    )
     if not body_text:
         raise ValueError("正文内容为空，无法收录")
     markdown = f"# {clean_title}\n\n{body_text}\n"

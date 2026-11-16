@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any
 
 from .. import config, db
-from . import llm, parsing, text_utils
+from . import llm, parsing, redaction, text_utils
 
 logger = logging.getLogger("npu-assistant")
 
@@ -860,6 +860,14 @@ def compile_document(document_id: str, *, force: bool = False) -> dict:
             row.get("filename") or stored_path.name, stored_path.read_bytes()
         )
         doc_title = str(row.get("title") or parsed.title or stored_path.stem)
+        if redaction.is_list_document(doc_title, parsed.text):
+            error = "名单/成绩类文档包含个人信息，按隐私规则不收录"
+            _mark_document(document_id, "failed", error=error)
+            finish_build(build_id, status="failed", model=model_label, error=error)
+            result["document"] = _document_json(db.get_document(document_id))
+            result["error"] = error
+            return result
+        parsed.text = redaction.redact_text(parsed.text)
         doc_row = dict(row)
         doc_row["title"] = doc_title
 

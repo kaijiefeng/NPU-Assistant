@@ -22,6 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
+from app.services import redaction  # noqa: E402
 
 OUT = ROOT / ".artifacts" / "sanitized-release"
 LIST_TITLE = re.compile(r"(名单|录取|拟录取|合格考生|考生名单|成绩单|花名册|复试|推免)")
@@ -64,15 +65,16 @@ def sanitize(text: str) -> tuple[str, Counter]:
     return value, counts
 
 
-def is_list_document(doc: dict, uploads: Path) -> bool:
+def is_list_document(doc: dict, uploads: Path, stored: dict) -> bool:
     title = str(doc.get("title") or "")
     if LIST_TITLE.search(title):
         return True
-    path = uploads / str(doc.get("filename") or "")
-    if path.suffix.lower() not in {".md", ".txt", ".html", ".htm"} or not path.is_file():
+    src = Path(str(stored.get(doc.get("id")) or ""))
+    if not src.is_file():
+        src = uploads / str(doc.get("filename") or "")
+    if not src.is_file() or src.suffix.lower() not in {".md", ".txt", ".html", ".htm"}:
         return False
-    text = path.read_text(encoding="utf-8", errors="ignore")
-    return "姓名" in text and any(key in text for key in ("报名号", "学号", "准考证号", "身份证"))
+    return redaction.is_list_document(title, src.read_text(encoding="utf-8", errors="ignore"))
 
 
 def main() -> int:
@@ -98,13 +100,20 @@ def main() -> int:
     for doc in documents:
         if doc.get("file_ext") in BINARY_EXT or str(doc.get("filename", "")).lower().endswith(tuple(BINARY_EXT)):
             excluded[doc["id"]] = "binary"
-        elif is_list_document(doc, uploads):
+        elif is_list_document(doc, uploads, stored):
             excluded[doc["id"]] = "list"
 
     kept_docs = [doc for doc in documents if doc["id"] not in excluded]
     kept_sources = [src for src in sources if src.get("document_id") not in excluded]
     kept_page_ids = {src.get("page_id") for src in kept_sources}
-    kept_pages = [page for page in pages if page["id"] in kept_page_ids]
+    def page_is_list(page: dict) -> bool:
+        title = str(page.get("title") or "")
+        body = str(page.get("body_md") or "")
+        return bool(LIST_TITLE.search(title)) or redaction.is_list_document(title, body)
+
+    kept_pages = [
+        page for page in pages if page["id"] in kept_page_ids and not page_is_list(page)
+    ]
     kept_ids = {page["id"] for page in kept_pages}
     kept_links = [
         link

@@ -14,9 +14,15 @@
 
 默认系统提示词第 6 条同步约束模型；已安装实例的 `system_prompt` 也已追加同一规则。
 
-## 2. 数据侧：发布包脱敏
+## 2. 数据侧：解析时脱敏
 
-`scripts/build_sanitized_release.py` 生成可公开的 `wiki_seed.json` 与 `seed_docs/`：
+`backend/app/services/redaction.py` 在解析后、入库/编译前执行：
+
+- 手机号、身份证号、个人邮箱、16–24 位长数字打码；
+- 办公邮箱 `@nwpu.edu.cn`、`029-` 办公座机、办公人员姓名保留；
+- 名单/成绩类文档直接拒绝（HTTP 400），不落库。
+
+`scripts/build_sanitized_release.py` 再生成可公开的 `wiki_seed.json` 与 `seed_docs/`：
 
 - 名单/成绩类文档整篇剔除；
 - 手机号、身份证号、个人邮箱、超长数字打码；

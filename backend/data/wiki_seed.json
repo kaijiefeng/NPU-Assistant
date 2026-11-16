@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-11-16T10:58:00",
+  "generated_at": "2026-11-16T11:58:11",
   "documents": [
     {
       "id": "35b4c637b68741e19147b8f768e3155e",
@@ -13,7 +13,7 @@
         "校园公开资料",
         "网页"
       ],
-      "char_count": 1739,
+      "char_count": 1740,
       "page_count": 2,
       "status": "ready",
       "source_type": "url",
@@ -842,14 +842,14 @@
       "title": "学生助学贷款办理流程",
       "filename": "学生助学贷款办理流程.md",
       "file_ext": ".md",
-      "size_bytes": 2475,
+      "size_bytes": 2457,
       "tags": [
         "真实数据",
         "校园公开资料",
         "资助",
         "助学贷款"
       ],
-      "char_count": 890,
+      "char_count": 873,
       "page_count": 3,
       "status": "ready",
       "source_type": "url",
@@ -1618,7 +1618,7 @@
         "集成电路学院",
         "学生组织"
       ],
-      "char_count": 1709,
+      "char_count": 1710,
       "page_count": 3,
       "status": "ready",
       "source_type": "url",
@@ -1659,7 +1659,7 @@
         "集成电路学院",
         "实验室"
       ],
-      "char_count": 318,
+      "char_count": 319,
       "page_count": 2,
       "status": "ready",
       "source_type": "url",
@@ -1679,7 +1679,7 @@
         "集成电路学院",
         "实验室"
       ],
-      "char_count": 298,
+      "char_count": 299,
       "page_count": 2,
       "status": "ready",
       "source_type": "url",
@@ -1853,14 +1853,14 @@
       "title": "集成电路学院第七次学生代表大会暨第六次研究生代表大会通知",
       "filename": "集成电路学院第七次学生代表大会暨第六次研究生代表大会通知.md",
       "file_ext": ".md",
-      "size_bytes": 3288,
+      "size_bytes": 3281,
       "tags": [
         "真实数据",
         "校园公开资料",
         "集成电路学院",
         "学生组织"
       ],
-      "char_count": 1199,
+      "char_count": 1193,
       "page_count": 2,
       "status": "ready",
       "source_type": "url",
@@ -1933,7 +1933,7 @@
       "title": "集成电路学院联系我们（行政/教务/学工人员）",
       "filename": "集成电路学院联系我们（行政-教务-学工人员）.md",
       "file_ext": ".md",
-      "size_bytes": 3309,
+      "size_bytes": 3298,
       "tags": [
         "真实数据",
         "校园公开资料",
@@ -1941,7 +1941,7 @@
         "教师与辅导员",
         "行政人员"
       ],
-      "char_count": 1558,
+      "char_count": 1548,
       "page_count": 3,
       "status": "ready",
       "source_type": "url",
@@ -2449,9 +2449,9 @@
       "title": "多轴数控加工刀轨生成与仿真联合技术中心二期项目外协关联关系公示公告-西北工业大学",
       "filename": "1111f877ad75dfd1f0499f11effad381.md",
       "file_ext": ".md",
-      "size_bytes": 2627,
+      "size_bytes": 2585,
       "tags": [],
-      "char_count": 1114,
+      "char_count": 1115,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -2509,9 +2509,9 @@
       "title": "关于开展2026年度分析测试中心基础研究开放测试基金 申请工作的通知",
       "filename": "1a822096237e46bb3bad71325f016584.md",
       "file_ext": ".md",
-      "size_bytes": 2504,
+      "size_bytes": 2463,
       "tags": [],
-      "char_count": 1056,
+      "char_count": 1058,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -2524,9 +2524,9 @@
       "title": "北京市海淀区住房租赁项目竞选结果公告-西北工业大学",
       "filename": "77aed47951afab6375719e2d06f83750.md",
       "file_ext": ".md",
-      "size_bytes": 1044,
+      "size_bytes": 1008,
       "tags": [],
-      "char_count": 557,
+      "char_count": 558,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -2599,9 +2599,9 @@
       "title": "DSP等电子耗材采购”项目竞选结果公告-西北工业大学",
       "filename": "82d8f66e2bea73a13cb03f5507e082a8.md",
       "file_ext": ".md",
-      "size_bytes": 2156,
+      "size_bytes": 1988,
       "tags": [],
-      "char_count": 1303,
+      "char_count": 1304,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -2614,9 +2614,9 @@
       "title": "分析测试中心2026年暑假正常运行通知",
       "filename": "52161a346172420e2e29ca0f618ce2f4.md",
       "file_ext": ".md",
-      "size_bytes": 3136,
+      "size_bytes": 3014,
       "tags": [],
-      "char_count": 1666,
+      "char_count": 1668,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -2659,9 +2659,9 @@
       "title": "TVS元器件采购”项目竞选结果公告-西北工业大学",
       "filename": "3c6aeeb616e54d2f92d98225077c044d.md",
       "file_ext": ".md",
-      "size_bytes": 1488,
+      "size_bytes": 1380,
       "tags": [],
-      "char_count": 915,
+      "char_count": 916,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -2719,9 +2719,9 @@
       "title": "贴片电容采购”项目竞选结果公告-西北工业大学",
       "filename": "49f255b1c4f740ba34a0c43d74e579be.md",
       "file_ext": ".md",
-      "size_bytes": 2141,
+      "size_bytes": 1978,
       "tags": [],
-      "char_count": 1319,
+      "char_count": 1320,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -2764,9 +2764,9 @@
       "title": "贴片电阻采购”项目竞选结果公告-西北工业大学",
       "filename": "2b4af5d0bcc7819644cc2a7a4e5bf30e.md",
       "file_ext": ".md",
-      "size_bytes": 1981,
+      "size_bytes": 1833,
       "tags": [],
-      "char_count": 1194,
+      "char_count": 1195,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -2824,9 +2824,9 @@
       "title": "钽电容采购”项目竞选结果公告-西北工业大学",
       "filename": "eba435ff07abc2b7f97222ba2dddd079.md",
       "file_ext": ".md",
-      "size_bytes": 1525,
+      "size_bytes": 1427,
       "tags": [],
-      "char_count": 904,
+      "char_count": 905,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -2839,9 +2839,9 @@
       "title": "中共党员党组织关系转入、转出须知",
       "filename": "9d19b8bdd68778c1b9b6a5ecdc3adfbc.md",
       "file_ext": ".md",
-      "size_bytes": 1903,
+      "size_bytes": 1876,
       "tags": [],
-      "char_count": 869,
+      "char_count": 870,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -2869,9 +2869,9 @@
       "title": "北京市自然科学基金委员会办公室关于2025年度北京市自然科学基金第二批联合基金项目及2026年度面上项目、青年科学基金项目（储备）申请的通知-西北工业大学",
       "filename": "83b7dff0ee9ea2126fef922682d64415.md",
       "file_ext": ".md",
-      "size_bytes": 3874,
+      "size_bytes": 3832,
       "tags": [],
-      "char_count": 1643,
+      "char_count": 1644,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -2884,9 +2884,9 @@
       "title": "关于举办高精度力学测试系统试用及设备培训活动的通知",
       "filename": "ad81574dfb6e2088fa5eb25ee906ebcd.md",
       "file_ext": ".md",
-      "size_bytes": 3282,
+      "size_bytes": 3221,
       "tags": [],
-      "char_count": 1494,
+      "char_count": 1495,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -2899,9 +2899,9 @@
       "title": "关于邀请参加“2025年中亚青年科学家对话活动”的通知-西北工业大学",
       "filename": "e98177c57cf225be2f1913bafd4beefe.md",
       "file_ext": ".md",
-      "size_bytes": 2320,
+      "size_bytes": 2284,
       "tags": [],
-      "char_count": 985,
+      "char_count": 986,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -2944,9 +2944,9 @@
       "title": "关于推荐北京市自然科学基金评审专家的通知-西北工业大学",
       "filename": "1067947c9acfeca01025383f8360132f.md",
       "file_ext": ".md",
-      "size_bytes": 2756,
+      "size_bytes": 2723,
       "tags": [],
-      "char_count": 1146,
+      "char_count": 1147,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -2974,9 +2974,9 @@
       "title": "关于组织参加“2026年中国仿真创新应用大赛（材料科学与工程仿真方向）”的通知",
       "filename": "0f610652e931ebd524032b8f42780a31.md",
       "file_ext": ".md",
-      "size_bytes": 6132,
+      "size_bytes": 6067,
       "tags": [],
-      "char_count": 2364,
+      "char_count": 2365,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -3004,9 +3004,9 @@
       "title": "关于2025年度北京市自然科学基金第二批项目申请的通知-西北工业大学",
       "filename": "3fec310e27116659033c3c3bd39a39cc.md",
       "file_ext": ".md",
-      "size_bytes": 4047,
+      "size_bytes": 4005,
       "tags": [],
-      "char_count": 1702,
+      "char_count": 1703,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -3019,9 +3019,9 @@
       "title": "英国国际预备课程培训项目-西北工业大学",
       "filename": "4c2660930627fc41dea75c31f4af1486.md",
       "file_ext": ".md",
-      "size_bytes": 918,
+      "size_bytes": 896,
       "tags": [],
-      "char_count": 563,
+      "char_count": 564,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -3169,9 +3169,9 @@
       "title": "关于举办“分析·创新‘1→0’： 2026分析测试方法研究生暑期学术论坛”的通知",
       "filename": "7fb785c3c431600c179641426393b9e7.md",
       "file_ext": ".md",
-      "size_bytes": 2514,
+      "size_bytes": 2477,
       "tags": [],
-      "char_count": 1088,
+      "char_count": 1089,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -3664,9 +3664,9 @@
       "title": "航空学院2026年第二次博士研究生招生“申请-考核”制实施方案",
       "filename": "34c9cddfb4a9f74cc4965f68466c93ee.md",
       "file_ext": ".md",
-      "size_bytes": 12382,
+      "size_bytes": 12262,
       "tags": [],
-      "char_count": 4550,
+      "char_count": 4544,
       "page_count": 6,
       "status": "ready",
       "source_type": "file",
@@ -4234,9 +4234,9 @@
       "title": "西北工业大学宁波研究院（浙江省三航科技概念验证中心） 概念验证专项资金项目征集通知",
       "filename": "5e43d83d359b6eb1fefd43503b7563f5.md",
       "file_ext": ".md",
-      "size_bytes": 3685,
+      "size_bytes": 3639,
       "tags": [],
-      "char_count": 1474,
+      "char_count": 1475,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -4354,9 +4354,9 @@
       "title": "【人才培养】2026年12月网络安全管理员职业技能等级认定开始报名",
       "filename": "d76cad470b884e467f821b5f0e6983a0.md",
       "file_ext": ".md",
-      "size_bytes": 8554,
+      "size_bytes": 8423,
       "tags": [],
-      "char_count": 3286,
+      "char_count": 3267,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -4369,9 +4369,9 @@
       "title": "【人才培养】2026年12月人工智能训练师（3/5级）职业技能等级认定报名通知",
       "filename": "14699237ff2cfd81a9b62f07873daaf5.md",
       "file_ext": ".md",
-      "size_bytes": 10141,
+      "size_bytes": 9993,
       "tags": [],
-      "char_count": 3882,
+      "char_count": 3863,
       "page_count": 5,
       "status": "ready",
       "source_type": "file",
@@ -4399,9 +4399,9 @@
       "title": "【认定公示】2026年10月职业技能等级 认定结果公示",
       "filename": "ee53a6928706a267ffde3867914d4b89.md",
       "file_ext": ".md",
-      "size_bytes": 1081,
+      "size_bytes": 1050,
       "tags": [],
-      "char_count": 593,
+      "char_count": 590,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -4444,9 +4444,9 @@
       "title": "2026年11月人工智能训练师（3/4/5级）职业技能等级认定报名通知",
       "filename": "b186413a36485ff8e6bf928d577bab2a.md",
       "file_ext": ".md",
-      "size_bytes": 11243,
+      "size_bytes": 11077,
       "tags": [],
-      "char_count": 4316,
+      "char_count": 4297,
       "page_count": 6,
       "status": "ready",
       "source_type": "file",
@@ -4474,9 +4474,9 @@
       "title": "【认定公示】2026年8月职业技能等级认定结果公示",
       "filename": "19678b1d1d70a02d9b8b90edd1141d0b.md",
       "file_ext": ".md",
-      "size_bytes": 1032,
+      "size_bytes": 1002,
       "tags": [],
-      "char_count": 571,
+      "char_count": 568,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -4894,9 +4894,9 @@
       "title": "第十九届尖烽时刻全国商业模拟大赛校内选拔赛报名通知",
       "filename": "dc5cb25416bbcce25a4364bd8efc977c.md",
       "file_ext": ".md",
-      "size_bytes": 3433,
+      "size_bytes": 3399,
       "tags": [],
-      "char_count": 1424,
+      "char_count": 1425,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -4969,9 +4969,9 @@
       "title": "关于举办2026年陕西省高校企业竞争模拟大赛西北工业大学校内选拔赛的通知",
       "filename": "a13fc7aed15dd301bd4017d60732cb6a.md",
       "file_ext": ".md",
-      "size_bytes": 3935,
+      "size_bytes": 3891,
       "tags": [],
-      "char_count": 1570,
+      "char_count": 1571,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -5014,9 +5014,9 @@
       "title": "关于开展“以赛促教—教学能力提升示范展示”系列活动的通知",
       "filename": "60f2abfa35d72cfa91af94e44a043509.md",
       "file_ext": ".md",
-      "size_bytes": 5637,
+      "size_bytes": 5576,
       "tags": [],
-      "char_count": 2141,
+      "char_count": 2142,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -5074,9 +5074,9 @@
       "title": "关于组织参加第二十届全国大学生软件创新大赛报名工作的通知",
       "filename": "540515bea3baafa54f0d30232a489d7d.md",
       "file_ext": ".md",
-      "size_bytes": 3227,
+      "size_bytes": 3179,
       "tags": [],
-      "char_count": 1434,
+      "char_count": 1435,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -5104,9 +5104,9 @@
       "title": "关于举办西北工业大学第四届大学生工程实践与创新能力大赛的通知",
       "filename": "bd94d026094851e6417f9332cd66c309.md",
       "file_ext": ".md",
-      "size_bytes": 4601,
+      "size_bytes": 4554,
       "tags": [],
-      "char_count": 1845,
+      "char_count": 1846,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -5149,9 +5149,9 @@
       "title": "关于开展2026年第三批“高峰领航计划”暨本科生萌创项目立项工作的通知",
       "filename": "4ee946659913fce2b98c36036dbee48e.md",
       "file_ext": ".md",
-      "size_bytes": 7025,
+      "size_bytes": 6879,
       "tags": [],
-      "char_count": 2804,
+      "char_count": 2805,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -5209,9 +5209,9 @@
       "title": "关于组织参加第十八届蓝桥杯全国大学生软件和信息技术专业人才大赛的通知",
       "filename": "e572427b670bd598329a2a70aa00f183.md",
       "file_ext": ".md",
-      "size_bytes": 3239,
+      "size_bytes": 3192,
       "tags": [],
-      "char_count": 1383,
+      "char_count": 1384,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -5314,9 +5314,9 @@
       "title": "关于举办西北工业大学第六届教师教学创新竞赛的通知",
       "filename": "36adcfe2b4d1f526bed76b88b505dba1.md",
       "file_ext": ".md",
-      "size_bytes": 5944,
+      "size_bytes": 5892,
       "tags": [],
-      "char_count": 2263,
+      "char_count": 2264,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -5389,9 +5389,9 @@
       "title": "关于组织开展2026年陕西省课程思政精品课程（本科）推荐工作的通知",
       "filename": "c21d811d7446301d94a4239cd200c678.md",
       "file_ext": ".md",
-      "size_bytes": 5405,
+      "size_bytes": 5362,
       "tags": [],
-      "char_count": 2065,
+      "char_count": 2066,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -6064,9 +6064,9 @@
       "title": "关于开展11月份教职工法律咨询服务的通知-校工会（帮扶办）/ 妇女联合会",
       "filename": "e445976cd4e1ecdfb79cbdf0fe35ea01.md",
       "file_ext": ".md",
-      "size_bytes": 2563,
+      "size_bytes": 2514,
       "tags": [],
-      "char_count": 1145,
+      "char_count": 1146,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -6259,9 +6259,9 @@
       "title": "关于开展10月份教职工法律咨询服务的通知-校工会（帮扶办）/ 妇女联合会",
       "filename": "5a5cba454daf3726878abb80145d5c9c.md",
       "file_ext": ".md",
-      "size_bytes": 2565,
+      "size_bytes": 2516,
       "tags": [],
-      "char_count": 1149,
+      "char_count": 1150,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -6454,9 +6454,9 @@
       "title": "关于开展9月份教职工法律咨询服务的通知-校工会（帮扶办）/ 妇女联合会",
       "filename": "63c1b282837d708de8de086422dcc2d2.md",
       "file_ext": ".md",
-      "size_bytes": 2560,
+      "size_bytes": 2511,
       "tags": [],
-      "char_count": 1146,
+      "char_count": 1147,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -6619,9 +6619,9 @@
       "title": "【学位项目】爱尔兰都柏林大学学位项目及学分交换项目报名通知",
       "filename": "d1bda8525cb1e62ba970fe7bc2d67794.md",
       "file_ext": ".md",
-      "size_bytes": 6195,
+      "size_bytes": 6073,
       "tags": [],
-      "char_count": 2707,
+      "char_count": 2701,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -6649,9 +6649,9 @@
       "title": "关于开展实验室危险化学品、不明液体 规整清理工作的通知",
       "filename": "c9fb6237cba117be6b591c3f9c021a1c.md",
       "file_ext": ".md",
-      "size_bytes": 2974,
+      "size_bytes": 2936,
       "tags": [],
-      "char_count": 1197,
+      "char_count": 1198,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -6859,9 +6859,9 @@
       "title": "第五届全国“红色工业文化研究”学术会议通知-西北工业大学",
       "filename": "0405e16106b825fd9c84ba81eb16c799.md",
       "file_ext": ".md",
-      "size_bytes": 6204,
+      "size_bytes": 6127,
       "tags": [],
-      "char_count": 2422,
+      "char_count": 2418,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -6934,9 +6934,9 @@
       "title": "第五届中国创新挑战赛（宁波）暨2020年宁波企业技术创新需求对接活动企业技术需求公告",
       "filename": "7ccc2f670c4283cb17e508b070ec819e.md",
       "file_ext": ".md",
-      "size_bytes": 1722,
+      "size_bytes": 1703,
       "tags": [],
-      "char_count": 782,
+      "char_count": 783,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -7219,9 +7219,9 @@
       "title": "【成果转化】专利权转让现金收益分配公示",
       "filename": "62cf2b4c0d67b2c40127c16762f015de.md",
       "file_ext": ".md",
-      "size_bytes": 1887,
+      "size_bytes": 1838,
       "tags": [],
-      "char_count": 929,
+      "char_count": 918,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -7339,9 +7339,9 @@
       "title": "【科技项目】关于组织申报2024年度广东省基础与应用基础研究基金自然科学基金项目的通知",
       "filename": "05521c9c2458f312013d7cfaca1949de.md",
       "file_ext": ".md",
-      "size_bytes": 3038,
+      "size_bytes": 2998,
       "tags": [],
-      "char_count": 1270,
+      "char_count": 1272,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -7399,9 +7399,9 @@
       "title": "2027年公共管理硕士（MPA）专业学位研究生招生宣讲会",
       "filename": "a3ddbc33a98272d47c2c555252b0520c.md",
       "file_ext": ".md",
-      "size_bytes": 5903,
+      "size_bytes": 5818,
       "tags": [],
-      "char_count": 2367,
+      "char_count": 2368,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -7474,9 +7474,9 @@
       "title": "西北工业大学公共政策与管理学院2026年暑期校园开放日暨研究生招生宣传日活动方案",
       "filename": "3b34f10e5ae2edd7c6d1988a4999fb7b.md",
       "file_ext": ".md",
-      "size_bytes": 5405,
+      "size_bytes": 5328,
       "tags": [],
-      "char_count": 2195,
+      "char_count": 2196,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -8044,9 +8044,9 @@
       "title": "关于张贴博士研究生学位论文答辩公告的通知-西北工业大学研究生院",
       "filename": "4b388639fbc515bac5ab0d7058b75ec0.md",
       "file_ext": ".md",
-      "size_bytes": 1603,
+      "size_bytes": 1572,
       "tags": [],
-      "char_count": 741,
+      "char_count": 742,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -8149,9 +8149,9 @@
       "title": "关于第十五届中国创新创业大赛—重型装备智能制造专业赛参赛项目征集的通知-西北工业大学资产经营管理有限公司",
       "filename": "68d6834cf750b951cdcb9cee65409a6e.md",
       "file_ext": ".md",
-      "size_bytes": 4396,
+      "size_bytes": 4319,
       "tags": [],
-      "char_count": 1752,
+      "char_count": 1739,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -8344,9 +8344,9 @@
       "title": "关于举办2026年西安高校科技成果转化大赛的通知-西北工业大学资产经营管理有限公司",
       "filename": "d6a293762f873b149af8e08f2d85f887.md",
       "file_ext": ".md",
-      "size_bytes": 3933,
+      "size_bytes": 3869,
       "tags": [],
-      "char_count": 1561,
+      "char_count": 1555,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -8659,9 +8659,9 @@
       "title": "关于举办西北工业大学国际教育学院关于举办第一届大学生课外学术科技作品竞赛学院选拔赛通知",
       "filename": "26b3082539d79fe67325303618f273de.md",
       "file_ext": ".md",
-      "size_bytes": 3567,
+      "size_bytes": 3514,
       "tags": [],
-      "char_count": 1444,
+      "char_count": 1438,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -9049,9 +9049,9 @@
       "title": "西北工业大学-汉江实验室2026年联合培养博士研究生专项计划招生公告（二）",
       "filename": "19278496c0eac4ee1f5edb022c05f994.md",
       "file_ext": ".md",
-      "size_bytes": 8471,
+      "size_bytes": 8368,
       "tags": [],
-      "char_count": 3147,
+      "char_count": 3144,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -9139,9 +9139,9 @@
       "title": "西北工业大学2026年国家级重点实验室博士研究生专项计划招生公告",
       "filename": "4d5d5e37c83fab86f88b8d2d4fe7575a.md",
       "file_ext": ".md",
-      "size_bytes": 13835,
+      "size_bytes": 13617,
       "tags": [],
-      "char_count": 5155,
+      "char_count": 5149,
       "page_count": 5,
       "status": "ready",
       "source_type": "file",
@@ -10204,9 +10204,9 @@
       "title": "流体力学仿真软件租赁”项目竞选结果公告",
       "filename": "f375cc026018049406064b7959977e75.md",
       "file_ext": ".md",
-      "size_bytes": 1061,
+      "size_bytes": 1022,
       "tags": [],
-      "char_count": 563,
+      "char_count": 564,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -10564,9 +10564,9 @@
       "title": "西北工业大学就业信息网",
       "filename": "66914fff2211c58042ee203da815dbcc.md",
       "file_ext": ".md",
-      "size_bytes": 7351,
+      "size_bytes": 7113,
       "tags": [],
-      "char_count": 3193,
+      "char_count": 3195,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -11998,21 +11998,6 @@
       "source_url": "",
       "created_at": "2026-11-15T17:53:45",
       "updated_at": "2026-11-15T17:54:08"
-    },
-    {
-      "id": "b5bb55cca96e485d9c69745cdccd47cb",
-      "title": "西北工业大学2015年艺术特长生招生专业测试合格公告",
-      "filename": "18e9d390beacdb2c6bc259e7f00c4ad5.md",
-      "file_ext": ".md",
-      "size_bytes": 7730,
-      "tags": [],
-      "char_count": 3892,
-      "page_count": 4,
-      "status": "ready",
-      "source_type": "file",
-      "source_url": "",
-      "created_at": "2026-11-15T17:57:44",
-      "updated_at": "2026-11-15T17:57:58"
     },
     {
       "id": "a5df8b9a71d54d58b6950e7ba54d4608",
@@ -15124,9 +15109,9 @@
       "title": "学生助学贷款办理流程",
       "filename": "40421d58a55f933895e36eec30c815a5.md",
       "file_ext": ".md",
-      "size_bytes": 2845,
+      "size_bytes": 2790,
       "tags": [],
-      "char_count": 1180,
+      "char_count": 1164,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -18319,9 +18304,9 @@
       "title": "西北工业大学航空学院2026年暑期校园开放日活动方案",
       "filename": "f278e6c256743e342045192986b57da3.md",
       "file_ext": ".md",
-      "size_bytes": 9140,
+      "size_bytes": 9057,
       "tags": [],
-      "char_count": 3547,
+      "char_count": 3541,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -18889,9 +18874,9 @@
       "title": "西北工业大学航空学院2025年暑期校园开放日暨研究生招生宣传日活动方案",
       "filename": "677de1f2e377c998746a0c346221e805.md",
       "file_ext": ".md",
-      "size_bytes": 8495,
+      "size_bytes": 8413,
       "tags": [],
-      "char_count": 3313,
+      "char_count": 3307,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -19159,9 +19144,9 @@
       "title": "航空学院2024年全国优秀大学生暑期夏令营工作方案",
       "filename": "0cf2d73dff4cebffc24dd3102efd3d2d.md",
       "file_ext": ".md",
-      "size_bytes": 12963,
+      "size_bytes": 12856,
       "tags": [],
-      "char_count": 4856,
+      "char_count": 4850,
       "page_count": 5,
       "status": "ready",
       "source_type": "file",
@@ -20119,9 +20104,9 @@
       "title": "王文",
       "filename": "a4b874a6eeee063c499c9162aae754d6.md",
       "file_ext": ".md",
-      "size_bytes": 901,
+      "size_bytes": 876,
       "tags": [],
-      "char_count": 513,
+      "char_count": 510,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -20224,9 +20209,9 @@
       "title": "Christopher Bray",
       "filename": "0290ba790a4a5e210a814fafdcbac402.md",
       "file_ext": ".md",
-      "size_bytes": 1007,
+      "size_bytes": 982,
       "tags": [],
-      "char_count": 605,
+      "char_count": 604,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -20389,9 +20374,9 @@
       "title": "Hazel Screen",
       "filename": "4b0304eed3afa98b92ac45189ed367c6.md",
       "file_ext": ".md",
-      "size_bytes": 1571,
+      "size_bytes": 1522,
       "tags": [],
-      "char_count": 886,
+      "char_count": 879,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -20464,9 +20449,9 @@
       "title": "Alex Clark",
       "filename": "3a9aac63bb301b7990295fff965b94fa.md",
       "file_ext": ".md",
-      "size_bytes": 924,
+      "size_bytes": 896,
       "tags": [],
-      "char_count": 551,
+      "char_count": 546,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -20644,9 +20629,9 @@
       "title": "顾军渭",
       "filename": "bda3a019776fcbf532b418bd0955bab7.md",
       "file_ext": ".md",
-      "size_bytes": 1795,
+      "size_bytes": 1770,
       "tags": [],
-      "char_count": 850,
+      "char_count": 848,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -20689,9 +20674,9 @@
       "title": "Micheal Reece",
       "filename": "53111f2eecd5f54d4afa73d89cf57531.md",
       "file_ext": ".md",
-      "size_bytes": 1197,
+      "size_bytes": 1170,
       "tags": [],
-      "char_count": 686,
+      "char_count": 682,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -20794,9 +20779,9 @@
       "title": "James Busfield",
       "filename": "c702168855f2ee2071515ce29608e59b.md",
       "file_ext": ".md",
-      "size_bytes": 1193,
+      "size_bytes": 1166,
       "tags": [],
-      "char_count": 631,
+      "char_count": 626,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -20899,9 +20884,9 @@
       "title": "Maria Romero-Gonzalez",
       "filename": "067f169a77f3811d47779607677f0709.md",
       "file_ext": ".md",
-      "size_bytes": 731,
+      "size_bytes": 695,
       "tags": [],
-      "char_count": 493,
+      "char_count": 481,
       "page_count": 1,
       "status": "ready",
       "source_type": "file",
@@ -25339,9 +25324,9 @@
       "title": "新时代人文经济学自主知识体系构建学术论坛征文启事-西北工业大学",
       "filename": "43f346c395ab3204c20c351f009eb645.md",
       "file_ext": ".md",
-      "size_bytes": 2775,
+      "size_bytes": 2726,
       "tags": [],
-      "char_count": 1155,
+      "char_count": 1150,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -30754,9 +30739,9 @@
       "title": "西北工业大学就业信息网",
       "filename": "fe5095103487ef5b6643e18c518c8242.md",
       "file_ext": ".md",
-      "size_bytes": 17294,
+      "size_bytes": 17166,
       "tags": [],
-      "char_count": 6383,
+      "char_count": 6380,
       "page_count": 5,
       "status": "ready",
       "source_type": "file",
@@ -30769,9 +30754,9 @@
       "title": "西北工业大学就业信息网",
       "filename": "c905adf2b4165b80eca19917c934d22f.md",
       "file_ext": ".md",
-      "size_bytes": 9849,
+      "size_bytes": 9657,
       "tags": [],
-      "char_count": 3922,
+      "char_count": 3918,
       "page_count": 5,
       "status": "ready",
       "source_type": "file",
@@ -30784,9 +30769,9 @@
       "title": "西北工业大学就业信息网",
       "filename": "8f3625b5278fa47b9415071a815d0e80.md",
       "file_ext": ".md",
-      "size_bytes": 5677,
+      "size_bytes": 5560,
       "tags": [],
-      "char_count": 2488,
+      "char_count": 2487,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -30799,9 +30784,9 @@
       "title": "西北工业大学就业信息网",
       "filename": "f6ec98f34754b866114ae3a55fc0fb97.md",
       "file_ext": ".md",
-      "size_bytes": 11266,
+      "size_bytes": 11059,
       "tags": [],
-      "char_count": 4679,
+      "char_count": 4630,
       "page_count": 5,
       "status": "ready",
       "source_type": "file",
@@ -30814,9 +30799,9 @@
       "title": "西北工业大学就业信息网",
       "filename": "76f442c039136c48809bb43eb71c0278.md",
       "file_ext": ".md",
-      "size_bytes": 5746,
+      "size_bytes": 5621,
       "tags": [],
-      "char_count": 2867,
+      "char_count": 2860,
       "page_count": 2,
       "status": "ready",
       "source_type": "file",
@@ -30829,9 +30814,9 @@
       "title": "西北工业大学就业信息网",
       "filename": "f93a010dd72b45690e7d6c30a88a39f3.md",
       "file_ext": ".md",
-      "size_bytes": 16950,
+      "size_bytes": 16745,
       "tags": [],
-      "char_count": 6383,
+      "char_count": 6379,
       "page_count": 5,
       "status": "ready",
       "source_type": "file",
@@ -30844,7 +30829,7 @@
       "title": "西北工业大学就业信息网",
       "filename": "a38c2de638b42a73f4a5d263717ddacf.md",
       "file_ext": ".md",
-      "size_bytes": 10274,
+      "size_bytes": 10099,
       "tags": [],
       "char_count": 4134,
       "page_count": 4,
@@ -30859,9 +30844,9 @@
       "title": "西北工业大学就业信息网",
       "filename": "64c1c47efbdae9e83985f06d82769a85.md",
       "file_ext": ".md",
-      "size_bytes": 3869,
+      "size_bytes": 3758,
       "tags": [],
-      "char_count": 1875,
+      "char_count": 1870,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -30874,9 +30859,9 @@
       "title": "西北工业大学就业信息网",
       "filename": "0418aee4a340c43a396a25b3c7bdda36.md",
       "file_ext": ".md",
-      "size_bytes": 15585,
+      "size_bytes": 15429,
       "tags": [],
-      "char_count": 5986,
+      "char_count": 5988,
       "page_count": 6,
       "status": "ready",
       "source_type": "file",
@@ -30904,9 +30889,9 @@
       "title": "西北工业大学就业信息网",
       "filename": "aace5b61e4bc0ebfafd545b54890c9cc.md",
       "file_ext": ".md",
-      "size_bytes": 13311,
+      "size_bytes": 13176,
       "tags": [],
-      "char_count": 5230,
+      "char_count": 5226,
       "page_count": 6,
       "status": "ready",
       "source_type": "file",
@@ -30919,9 +30904,9 @@
       "title": "西北工业大学就业信息网",
       "filename": "cee37a7e806389119ac22bed786fe03e.md",
       "file_ext": ".md",
-      "size_bytes": 15812,
+      "size_bytes": 15653,
       "tags": [],
-      "char_count": 6009,
+      "char_count": 6008,
       "page_count": 4,
       "status": "ready",
       "source_type": "file",
@@ -30964,9 +30949,9 @@
       "title": "西北工业大学就业信息网",
       "filename": "2067a20a3c243473fa33471c9fb6cb75.md",
       "file_ext": ".md",
-      "size_bytes": 10248,
+      "size_bytes": 10128,
       "tags": [],
-      "char_count": 4144,
+      "char_count": 4140,
       "page_count": 6,
       "status": "ready",
       "source_type": "file",
@@ -34039,9 +34024,9 @@
       "title": "增值税开票信息",
       "filename": "b44d91188adbd4aad54d974264163214.md",
       "file_ext": ".md",
-      "size_bytes": 1640,
+      "size_bytes": 1579,
       "tags": [],
-      "char_count": 983,
+      "char_count": 967,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -34084,9 +34069,9 @@
       "title": "我校银行账户信息",
       "filename": "6c3994a78a0e3de465417b7656a6bcb4.md",
       "file_ext": ".md",
-      "size_bytes": 1504,
+      "size_bytes": 1441,
       "tags": [],
-      "char_count": 949,
+      "char_count": 933,
       "page_count": 3,
       "status": "ready",
       "source_type": "file",
@@ -37714,7 +37699,7 @@
       "title": "西北工业大学电子信息学院高效无线技术研发团队招聘启事",
       "filename": "963d1799208956f07d4438ae9fb6c8d5.md",
       "file_ext": ".md",
-      "size_bytes": 2396,
+      "size_bytes": 2355,
       "tags": [],
       "char_count": 1061,
       "page_count": 1,
@@ -37898,7 +37883,7 @@
       ],
       "status": "ready",
       "version": 15,
-      "source_count": 8,
+      "source_count": 2,
       "created_at": "2026-10-26T18:17:34",
       "updated_at": "2026-11-15T17:36:44"
     },
@@ -39592,7 +39577,7 @@
       ],
       "status": "ready",
       "version": 3,
-      "source_count": 3,
+      "source_count": 2,
       "created_at": "2026-10-27T09:24:23",
       "updated_at": "2026-11-15T17:35:58"
     },
@@ -39613,7 +39598,7 @@
       ],
       "status": "ready",
       "version": 2,
-      "source_count": 2,
+      "source_count": 1,
       "created_at": "2026-10-27T09:24:32",
       "updated_at": "2026-11-15T17:36:08"
     },
@@ -39635,7 +39620,7 @@
       ],
       "status": "ready",
       "version": 2,
-      "source_count": 2,
+      "source_count": 1,
       "created_at": "2026-10-27T09:24:56",
       "updated_at": "2026-11-15T17:36:28"
     },
@@ -39661,7 +39646,7 @@
       ],
       "status": "ready",
       "version": 4,
-      "source_count": 3,
+      "source_count": 2,
       "created_at": "2026-10-27T09:25:04",
       "updated_at": "2026-11-15T17:37:01"
     },
@@ -39682,7 +39667,7 @@
       ],
       "status": "ready",
       "version": 2,
-      "source_count": 2,
+      "source_count": 1,
       "created_at": "2026-10-27T09:25:13",
       "updated_at": "2026-11-15T17:36:39"
     },
@@ -39708,7 +39693,7 @@
       ],
       "status": "ready",
       "version": 6,
-      "source_count": 6,
+      "source_count": 3,
       "created_at": "2026-10-27T09:25:19",
       "updated_at": "2026-11-15T17:37:06"
     },
@@ -39729,7 +39714,7 @@
       ],
       "status": "ready",
       "version": 2,
-      "source_count": 2,
+      "source_count": 1,
       "created_at": "2026-10-27T09:25:59",
       "updated_at": "2026-11-15T17:36:25"
     },
@@ -39752,7 +39737,7 @@
       ],
       "status": "ready",
       "version": 2,
-      "source_count": 2,
+      "source_count": 1,
       "created_at": "2026-10-27T09:26:23",
       "updated_at": "2026-11-15T18:15:45"
     },
@@ -39902,7 +39887,7 @@
       ],
       "status": "ready",
       "version": 2,
-      "source_count": 2,
+      "source_count": 1,
       "created_at": "2026-10-27T09:49:17",
       "updated_at": "2026-11-15T17:35:24"
     },
@@ -39926,7 +39911,7 @@
       ],
       "status": "ready",
       "version": 2,
-      "source_count": 2,
+      "source_count": 1,
       "created_at": "2026-10-27T09:49:17",
       "updated_at": "2026-11-15T17:35:26"
     },
@@ -40600,7 +40585,7 @@
       "slug": "生源地助学贷款办理流程",
       "title": "生源地助学贷款办理流程",
       "summary": "生源地助学贷款分国家开发银行和其他银行两类，学生到校后将回执交至党委学生工作部学生资助服务中心，学校按批次汇总并冲抵学杂费欠费，余额转入工行卡；具体时间与材料以资助服务中心、计划财务部最新通知为准。",
-      "body_md": "## 概述\n生源地助学贷款分为国家开发银行生源地助学贷款和其他银行（农商行、农信社等）生源地助学贷款两类，办理与入账方式不同。学生在生源地申请后，到校需将助学贷款回执交至党委学生工作部学生资助服务中心，学校按批次汇总并冲抵学杂费。\n\n## 国家开发银行生源地助学贷款\n1. 学生申请后，需将助学贷款回执交至党委学生工作部学生资助服务中心。\n2. 贷款放款至代办机构（支付宝、招行银行、平安银行等）学生个人账户后，由当地学生资助服务中心从代办机构学生个人账户划转学杂费金额至学校账户。\n3. 学校学生资助服务中心汇总后按批提交学生名单和到款明细至财务处，财务处批量处理冲抵学杂费欠费，冲抵后余额转入财务系统所维护工行卡中；未足额缴纳的部分，由学生后续自行缴纳。\n\n## 其他银行生源地助学贷款\n1. 学生在其他金融机构（农商行、农信社等）申请后，按照金融机构填写学校账户信息及备注信息（学号及姓名）。\n2. 待金融机构放款后，财务处收款并按备注信息手动入账，入账后冲抵学杂费欠费，冲抵后余额转入财务系统所维护工行卡中；未足额缴纳的部分，由学生后续自行缴纳。\n3. 如转账时未备注信息，在放款一个工作日后，持转账银行回单和身份证明至财务处办公点现场入账。\n\n## 学校账户信息\n- 户名：西北工业大学\n- 账号：611301130018000866283\n- 开户行：交行友谊西路支行\n\n## 注意事项\n学杂费金额并非贷款金额，贷款金额中包含的生活费在代办机构（支付宝、招行银行、平安银行等）账户暂存，学生自行取用。\n\n## 补充说明\n具体申请时间、所需材料和到账处理，以学生资助服务中心、计划财务部最新通知为准。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。",
+      "body_md": "## 概述\n生源地助学贷款分为国家开发银行生源地助学贷款和其他银行（农商行、农信社等）生源地助学贷款两类，办理与入账方式不同。学生在生源地申请后，到校需将助学贷款回执交至党委学生工作部学生资助服务中心，学校按批次汇总并冲抵学杂费。\n\n## 国家开发银行生源地助学贷款\n1. 学生申请后，需将助学贷款回执交至党委学生工作部学生资助服务中心。\n2. 贷款放款至代办机构（支付宝、招行银行、平安银行等）学生个人账户后，由当地学生资助服务中心从代办机构学生个人账户划转学杂费金额至学校账户。\n3. 学校学生资助服务中心汇总后按批提交学生名单和到款明细至财务处，财务处批量处理冲抵学杂费欠费，冲抵后余额转入财务系统所维护工行卡中；未足额缴纳的部分，由学生后续自行缴纳。\n\n## 其他银行生源地助学贷款\n1. 学生在其他金融机构（农商行、农信社等）申请后，按照金融机构填写学校账户信息及备注信息（学号及姓名）。\n2. 待金融机构放款后，财务处收款并按备注信息手动入账，入账后冲抵学杂费欠费，冲抵后余额转入财务系统所维护工行卡中；未足额缴纳的部分，由学生后续自行缴纳。\n3. 如转账时未备注信息，在放款一个工作日后，持转账银行回单和身份证明至财务处办公点现场入账。\n\n## 学校账户信息\n- 户名：西北工业大学\n- 账号：***\n- 开户行：交行友谊西路支行\n\n## 注意事项\n学杂费金额并非贷款金额，贷款金额中包含的生活费在代办机构（支付宝、招行银行、平安银行等）账户暂存，学生自行取用。\n\n## 补充说明\n具体申请时间、所需材料和到账处理，以学生资助服务中心、计划财务部最新通知为准。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。",
       "aliases": [
         "生源地贷款",
         "国开行助学贷款",
@@ -44782,7 +44767,7 @@
       ],
       "status": "ready",
       "version": 9,
-      "source_count": 9,
+      "source_count": 8,
       "created_at": "2026-11-15T16:30:23",
       "updated_at": "2026-11-15T18:45:55"
     },
@@ -44949,26 +44934,6 @@
       "updated_at": "2026-11-15T16:33:25"
     },
     {
-      "id": "4286336403e5469a80615b1603370a30",
-      "slug": "硕士研究生复试与录取",
-      "title": "硕士研究生复试与录取",
-      "summary": "复试由我校按教育部相关规定统一组织，复试基本线由我校自主划定；录取根据初试成绩和复试成绩，并结合平时学习成绩、思想政治素质与品德、业务素质及身体健康等状况确定拟录取名单。",
-      "body_md": "## 复试\n- 复试按照教育部相关规定由我校统一组织，初试成绩满足复试资格线的考生可参加复试。\n- 复试基本线由我校自主划定，具体安排请考生及时关注我校研究生招生信息网相关通知。\n\n## 录取\n我校本着立德树人、服务战略、供需适配、综合评价、择优录取的招生原则，根据考生的初试成绩和复试成绩，并结合其平时学习成绩和思想政治素质与品德、业务素质以及身体健康等状况确定拟录取名单。在通过主管部门的录取检查后，拟录取考生将被正式录取。",
-      "aliases": [
-        "复试",
-        "复试资格线",
-        "拟录取"
-      ],
-      "tags": [
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T16:31:14",
-      "updated_at": "2026-11-15T16:31:14"
-    },
-    {
       "id": "b94462b5e10e488d8373ba5800f6d8f0",
       "slug": "硕士研究生学制学费与住宿",
       "title": "硕士研究生学制学费与住宿",
@@ -45093,54 +45058,6 @@
       "source_count": 1,
       "created_at": "2026-11-15T16:31:27",
       "updated_at": "2026-11-15T16:31:27"
-    },
-    {
-      "id": "3ce9271d1e2c4caba83f5c7b0745578b",
-      "slug": "2027年推免生预报名申请条件与招生计划",
-      "title": "2027年推免生预报名申请条件与招生计划",
-      "summary": "西北工业大学接收推荐免试研究生预报名，申请者须为应届普通全日制本科毕业生、有望取得推免资格；2027年拟接收推免硕士2400名、直博生500名左右，2026年拟接收硕士约2000名、直博约200名；文化遗产研究院2024年拟接收推免硕士5余名，报名时间为9月13日—9月22日，并列出部分学院联系电话及招生专业。",
-      "body_md": "## 概述\n西北工业大学将接收推荐免试研究生预报名。能够获得推荐资格且有意申请推荐免试攻读我校研究生的同学，请登录“西北工业大学推免生预报名系统”进行报名。\n\n## 申请基本条件\n1. 中华人民共和国公民，拥护中国共产党的领导，品德良好，遵纪守法。\n2. 应届普通全日制本科毕业生（2027年通知要求为2027届，2026年通知要求为2026届，文化遗产研究院2024年通知要求为2024届），有望取得本科所在学校的推荐免试生资格。\n3. 具有科研潜力和创新意识。\n4. 诚实守信，学风端正，身心健康，在校期间未受过任何纪律处分。\n5. 符合申请学院规定的其他条件。\n\n## 招生专业\n- 我校所有全日制硕士专业均接收推荐免试硕士研究生。\n- 理工类专业（含工程博士）接收推荐免试直接攻读博士研究生。\n- 文化遗产研究院硕士招生学科、专业：145100文物（专业学位）。\n\n## 招生计划\n- 2027年拟接收推荐免试硕士研究生2400名，拟接收直接攻读博士研究生500名左右。\n- 2026年拟接收推荐免试硕士研究生2000名左右，直接攻读博士研究生200名左右。\n- 文化遗产研究院2024年拟接收推荐免试硕士研究生5余名。\n- 实际招生人数以最后确认录取人数为准。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。\n\n## 报名时间与系统\n- 文化遗产研究院2024年报名时间：9月13日—9月22日。\n- 报名系统：西北工业大学推免生预报名系统（https://yjsjy.nwpu.edu.cn/zsbm/tmsgl）。\n\n## 学院与专业\n- 029-88430774：080900电子科学与技术、140100集成电路科学与工程、085401新一代电子信息技术（含量子技术等）、085403集成电路工程、085410人工智能\n- 019网络空间安全学院，029-88495027：083900网络空间安全、085412网络与信息安全\n- 020民航学院，029-88460935：080100力学、080502材料学、081001通信与信息系统、082500航空宇航科学与技术、089903 低空技术与工程、085402通信工程（含宽带网络、移动通信等）、085406控制工程、085503航空工程、085601材料工程\n- 021无人系统技术研究院/人工智能学院，029-88492167：089902无人系统科学与技术、085406控制工程、085410人工智能、085510机器人工程\n- 028柔性电子学院，029-88431960：089901柔性电子学、085401新一代电子信息技术（含量子技术等）、085408光电信息工程、085601材料工程、085602化学工程、086001生物技术与工程\n- 030光电与智能研究院，029-88495713：0812J1智能科学与工程、085408光电信息工程、085410人工智能\n- 035 海洋研究院，0512-53331593：082400船舶与海洋工程、085401新一代电子信息技术（含量子技术等）、085505船舶工程\n- 文化遗产研究院：联系人贾老师、杜老师（029-88491395）；推免复试QQ群：725634590，请成功报名的学生务必加入QQ群，具体复试安排将在群内公布。\n\n## 注意事项\n若申请人弄虚作假、违反招生规定、存在有违学术道德、专业伦理、诚实守信等方面的不当行为，一经查实，立即取消其来我校的免试读研资格，并通报申请人所在学校。\n\n## 补充说明\n国家卓越工程师学院、学科交叉中心/未来技术学院招生工作另行通知。\n\n2027年通知由研究生院于2026年9月4日发布；2026年通知为同年度的推免预报名通知；文化遗产研究院2024年通知为该年度院系推免预报名通知。具体年度安排以学校最新官方通知为准。",
-      "aliases": [
-        "推免预报名",
-        "保研预报名",
-        "推免生申请条件",
-        "2027推免",
-        "2026推免",
-        "文化遗产研究院推免",
-        "免试研究生预报名"
-      ],
-      "tags": [
-        "学籍",
-        "就业",
-        "研究生招生"
-      ],
-      "status": "ready",
-      "version": 4,
-      "source_count": 4,
-      "created_at": "2026-11-15T16:31:33",
-      "updated_at": "2026-11-15T18:03:32"
-    },
-    {
-      "id": "e08e19d1e3c041c9a610885a4b876f37",
-      "slug": "推免生预报名流程与复试材料",
-      "title": "推免生预报名流程与复试材料",
-      "summary": "推免预报名登录西北工业大学推免生预报名系统，每人限报1个志愿，学院分批初审并发放复试通知；复试需提供成绩单、科研成果、外语水平证明等材料，拟录取后须在教育部推免服务系统完成注册与确认。",
-      "body_md": "## 预报名时间与入口\n- 预报名时间：9月3日9:00—9月20日18:00，具体时间以各学院公布为准。\n- 报名系统：“西北工业大学推免生预报名系统”（https://yjszs.nwpu.edu.cn/pp/#/exam-free-apply/master/declare/200875/index）\n- 每个学生限报1个志愿。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。\n\n## 申请程序\n1. 申请人在预报名系统进行网上预报名。\n2. 学院分批次对推免生的报名信息进行初审，确定复试名单，向申请人发放复试通知。\n3. 考生参加复试，学院确定拟录取名单。\n4. 待教育部开通全国推免生报名系统后，已通过预报名复试拟录取的推免生须登录“教育部推免服务系统”进行注册，并按照拟接收的专业填报相关志愿。我校将在“教育部推免服务系统”中发放复试通知，先申请者优先确认。未按拟接收专业填报志愿者及未在规定时间内按要求完成录取确认者，均视为自动放弃。\n5. 未进行预报名的同学在教育部开通全国推免生报名系统后可登录“教育部推免服务系统”进行报名，各学院将根据实际情况组织安排复试。\n\n## 复试需提供的材料\n1. 本科成绩单、综合测评成绩单（加盖学校或院系教务部门公章）；\n2. 学术科研成果（公开发表的论文、出版的专著等）和获奖证书；\n3. 外语水平证明（大学英语四级、大学英语六级、托福、雅思、PETS等成绩单）；\n4. 参加社会实践、公益事业等证明；\n5. 其他可反映自身能力和水平的相关材料；\n6. 学院通知要求的其他材料。\n\n## 注意事项\n推免生信息采集系统中的学科主要为我校2026年拟接收推免生的学科专业，仅供信息采集时使用。2027年推免生接收学科专业以学校公布的2027年研究生招生目录为准，最终录取学科专业以全国推免服务系统中录取确认为准。\n\n## 补充说明\n- 预报名、学院初审发放复试通知、参加复试确定拟录取名单、教育部系统注册确认，构成完整流程，各环节均需在规定时间内完成。\n- 复试材料清单两版来源一致，按学院通知要求准备即可。",
-      "aliases": [
-        "推免报名流程",
-        "推免复试材料",
-        "预报名系统",
-        "预报名时间"
-      ],
-      "tags": [
-        "学籍",
-        "就业"
-      ],
-      "status": "ready",
-      "version": 2,
-      "source_count": 2,
-      "created_at": "2026-11-15T16:31:33",
-      "updated_at": "2026-11-15T16:34:03"
     },
     {
       "id": "98753292c9d1444d8ea008fbba60f2a2",
@@ -45515,7 +45432,7 @@
       ],
       "status": "ready",
       "version": 2,
-      "source_count": 2,
+      "source_count": 1,
       "created_at": "2026-11-15T16:32:29",
       "updated_at": "2026-11-15T16:43:34"
     },
@@ -46011,37 +45928,6 @@
       "source_count": 1,
       "created_at": "2026-11-15T16:34:27",
       "updated_at": "2026-11-15T16:34:27"
-    },
-    {
-      "id": "13bcf995e76f48cc821e490173e5449a",
-      "slug": "翱翔快响专项计划拟录取公示异议渠道",
-      "title": "翱翔快响专项计划拟录取公示异议渠道",
-      "summary": "本词条汇总西北工业大学招生公示、异议与咨询渠道：动力与能源学院2027年翱翔快响专项计划（第一批）拟录取异议渠道（孔老师，029-8843117，kmj@nwpu.edu.cn，7日公示期内）；2015年艺术特长生合格名单说明与信访电话；2019年高水平艺术团招生咨询电话、时间与网址；2021年高校专项“筑梦计划”招生",
-      "body_md": "## 概述\n本词条汇总西北工业大学招生公示相关的异议与咨询渠道，包括动力与能源学院2027年翱翔快响专项计划（第一批）拟录取名单的公示异议渠道、2015年艺术特长生招生专业测试合格名单的公示说明与信访电话、2019年高水平艺术团招生咨询方式、2021年高校专项“筑梦计划”招生简章中的招生办公室联系方式与监督渠道、2020年艺术类招生简章的咨询与联系方式，以及2020年高水平运动队招生简章的监督机制与联系方式。\n\n## 时间节点\n- 翱翔快响专项计划（第一批）拟录取公示时间为7日。\n- 异议须在公示期内提出。\n\n## 异议与申诉方式\n若对拟录取情况有异议，请于公示期内与我院相关人员联系：\n- 联系人：孔老师\n- 联系电话：029-8843117\n- 咨询及申诉渠道：kmj@nwpu.edu.cn\n\n## 注意事项\n- 异议须在公示期内提出。\n- 仅受理对拟录取情况的异议，需在公示期内联系。\n- 公示名单由学院研究生招生工作小组审核通过后发布。\n\n## 2015年艺术特长生合格名单\n2015年艺术特长生招生专业测试合格名单包含考生号、姓名、性别、所在中学、专业项目、测试成绩与等级，例如：\n- 2015000083 郭睿瑶 女 西安尊德中学 中提琴 85.7 二等\n- 2015000170 于博伦 男 兰州交大东方中学 中提琴 85.7 二等\n\n根据教育部相关要求，学校后续将上报教育部阳光高考平台，待阳光高考平台审核公布后，确定最终合格名单。\n\n## 信访电话（2015年艺术特长生）\n- 招生办公室：029-88460206\n- 团委：029-88430887\n- 纪委办：029-88493708\n\n## 2019年高水平艺术团招生咨询方式\n- 咨询电话：029-88430215、029-88460206\n- 咨询时间：工作日 9:00-12:00、14:00-17:00\n- 地址：陕西省西安市碑林区友谊西路127号招生办公室，邮编：710072\n- 招生办公室网址：http://zsb.nwpu.edu.cn/\n- 艺术教育中心网址：http://ysjyzx.nwpu.edu.cn/\n- 官微：zsbnwpu\n\n发布单位：西北工业大学招生办公室，2019年1月9日。\n\n## 2021年高校专项“筑梦计划”招生联系方式\n本简章由西北工业大学招生办公室负责解释。\n- 地址：西安市友谊西路127号招生办公室，邮编：710072\n- 电话：029-88460206\n- 传真：029-88492310\n- 电子邮件：[已脱敏:邮箱]\n- 官方微信：zsbnwpu\n- 学校官方网站：http://www.nwpu.edu.cn\n- 本科招生信息网：http://zsb.nwpu.edu.cn\n\n监督渠道：社会监督和投诉电话 029-88493708。\n\n发布时间：西北工业大学招生办公室，2021年4月14日。\n\n## 2020年艺术类招生咨询与联系方式\n2020年艺术类招生的咨询与联系渠道如下：\n- 咨询电话：机电学院 029-88491821；招生办公室 029-88460206\n- 地址：西安市友谊西路127号招生办公室，邮编：710072\n- 电子邮件：[已脱敏:邮箱]\n- 网址：http://zsb.nwpu.edu.cn/\n- 官方微信：zsbnwpu\n\n发布单位：西北工业大学招生办公室，2020年3月。\n\n## 2020年高水平运动队监督与联系方式\n### 监督机制\n- 高水平运动队选拔工作在学校招生工作领导小组领导下，在学校监督下进行，学校将成立高水平运动队测试专家组。\n- 招生工作遵循“公开、公平、公正”的原则，严格选拔程序，加强过程管理。\n- 考核结果在“西北工业大学本科招生信息网”、“教育部阳光高考特殊类型招生报名平台”上公布，全程接受学校纪委、监察处的监督。\n- 社会监督和投诉电话：029-88493708。\n\n### 违规处理\n- 经查实属替考、舞弊、违规录取、冒名顶替入学等违法情况的，一律取消该生录取资格，不予学籍电子注册，并通报考生所在地省级招生考试机构倒查追责，依法处理。\n- 已取得学籍者将取消学籍，空缺名额不递补。\n\n### 联系方式\n- 咨询电话：体育部 029-88493539，招生办公室 029-8846020",
-      "aliases": [
-        "拟录取异议",
-        "公示期申诉",
-        "招生咨询电话",
-        "拟录取异议联系方式",
-        "招生咨询申诉渠道",
-        "孔老师联系方式",
-        "特长生合格名单",
-        "阳光高考平台公示",
-        "招生办联系方式",
-        "筑梦计划联系方式"
-      ],
-      "tags": [
-        "招生与入学",
-        "校园生活",
-        "档案",
-        "就业",
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 8,
-      "source_count": 8,
-      "created_at": "2026-11-15T16:34:31",
-      "updated_at": "2026-11-15T18:51:38"
     },
     {
       "id": "e7d9efa02b8e47cb8e3f2f6468699084",
@@ -46578,32 +46464,6 @@
       "updated_at": "2026-11-15T16:36:14"
     },
     {
-      "id": "507aa678d3da4cfaa8ecb42d4fea764a",
-      "slug": "博士拟录取公示异议与咨询渠道",
-      "title": "博士拟录取公示异议与咨询渠道",
-      "summary": "本词条汇总西北工业大学两类公示异议与咨询渠道：动力与能源学院2026年第一次“申请-考核”制博士拟录取名单公示期为7日，名单于2025年12月17日发布，异议可通过kmj@nwpu.edu.cn或029-88431117反映；2023年优秀博士学位论文评选结果公示期为2023年4月14日至4月20日，异议书面材料扫描后",
-      "body_md": "## 概述\n本词条汇总西北工业大学两类公示异议与咨询渠道：动力与能源学院2026年第一次“申请-考核”制博士拟录取名单公示，以及2023年西北工业大学优秀博士学位论文评选结果公示。若对公示情况有异议，请于对应公示期内按下列渠道联系。\n\n## 博士拟录取公示异议与咨询渠道\n动力与能源学院2026年第一次“申请-考核”制博士拟录取名单公示期为7日。若对拟录取情况有异议，请于公示期内与学院相关人员联系。\n- 邮箱：kmj@nwpu.edu.cn\n- 咨询电话：029-88431117\n\n注意事项：\n- 异议须在公示期内提出。\n- 公示名单由学院研究生招生工作小组审核通过后发布，发布日期为2025年12月17日，公示期为7日。\n\n## 优秀博士学位论文评选异议申诉\n2023年西北工业大学优秀博士学位论文评选结果公示期间，如对评选结果有异议，可按以下方式提出。\n- 公示时间：2023年4月14日至2023年4月20日。\n- 申诉方式：请将有关书面材料扫描后发至西北工业大学研究生院学位办公室邮箱（xwb@nwpu.edu.cn）。\n- 联系人：毛伟云、王建平\n- 联系电话：88430612、88494385\n- 地址：西安市长安区东祥路1号西北工业大学研究生院学位办\n- 邮政编码：710129\n\n## 补充说明\n- 本词条同时适用于拟录取申诉、公示期异议反馈及博士招生咨询等场景。\n- 公示名单的发布主体为学院研究生招生工作小组，名单经其审核通过后公布。\n- 两类公示的受理主体、公示期与联系方式不同，提出异议时请按对应事项选择渠道。",
-      "aliases": [
-        "拟录取申诉渠道",
-        "公示期异议反馈",
-        "能动学院咨询电话",
-        "博士招生咨询电话",
-        "公示期异议",
-        "优博公示异议",
-        "评选结果申诉"
-      ],
-      "tags": [
-        "招生与入学",
-        "学籍",
-        "档案"
-      ],
-      "status": "ready",
-      "version": 3,
-      "source_count": 3,
-      "created_at": "2026-11-15T16:36:19",
-      "updated_at": "2026-11-15T17:14:08"
-    },
-    {
       "id": "e716f5deb1fc4f0e83feb3e3b93c3a65",
       "slug": "两校区灭火器检修充装更换及增配项目采购",
       "title": "两校区灭火器检修充装更换及增配项目采购",
@@ -46755,35 +46615,6 @@
       "updated_at": "2026-11-15T16:37:14"
     },
     {
-      "id": "e52cb64aa6f24982a2c53aded9167320",
-      "slug": "硕博连读复试内容与成绩计算",
-      "title": "硕博连读复试内容与成绩计算",
-      "summary": "该词条汇总硕博连读、MPA调剂及工程博士三类复试：硕博连读复试含思想政治考核、专业外语笔试（20%）与专业综合素质考核（80%，其中专业知识笔试40%、综合素质面试60%），复试成绩低于60分不予录取；MPA调剂复试采用网络视频，含思想政治理论10%、专业知识30%、专业外语10%、综合素质50%；工程博士专项班复试含",
-      "body_md": "## 考核流程\n复试分笔试和面试两种方式，包括考生汇报和专家考核等环节：\n- 先进行2分钟英文自我介绍；\n- 再使用PPT汇报个人学习及工作经历、科研计划、论文发表、专利申请和荣誉获奖等情况，汇报环节限时8分钟（综合素质考核面试汇报时间不多于8分钟，内容包括个人基本情况、硕士论文研究内容及成果、读博科研计划等）；\n- 专家组按照考核内容要求提问（包含中英文提问），每位考生复试时间不少于20分钟；专家组质询不少于12分钟。\n\n## 材料\n考生现场PPT汇报前，应提交个人简历及各类成果证明（格式不限），一式五份。\n\n## 考核内容\n复试包含思想政治考核、专业外语考核、专业综合素质考核三部分（均为百分制）。\n- 思想政治素质和品德状况、心理健康测试（面试）：考核政治态度、思想意识、学术道德和科学精神等，实行一票否决制，不计入综合考核成绩，但考核不合格者立即终止面试过程。\n- 英语考核：专业外语水平及听说能力，占录取总成绩的20%；专业外语考核以笔试方式进行，重点考核外文专业文献的阅读及理解能力。\n- 专业知识及实践能力复试考核：考查专业课程基础、学术能力及综合素质，专家独立打分、面试过程不讨论，以专家打分的平均成绩为专业知识考核成绩，占总成绩的80%。其中专业知识考核（笔试）考核公共管理学相关知识及应用能力；综合素质考核（面试）考核科研志趣、逻辑思维与语言表达能力（包括英语表达能力）、创新意识与分析解决问题的能力。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。\n\n## 录取\n- 专业综合素质考核成绩 = 专业知识考核（笔试）成绩×40% + 综合素质考核（面试）成绩×60%。\n- 录取总成绩=专业外语水平考核成绩×20%+专业综合能力考核成绩×80%（即专业外语考核（笔试）成绩×20% + 专业综合素质考核成绩×80%）。\n- 按总成绩在相应学科专业排名从高到低依次录取；对于复试合格的考生，学院根据综合考核结果和招生指标情况，按照考生总成绩从高到低依次录取。\n- 政审不合格、思想政治素质和道德品质考核不合格的不予录取；复试成绩低于60分的不予录取；复试中认定为违规违纪的不予录取。\n- 同等学力及跨学科考生加试成绩不计入录取总成绩；加试科目低于60分的不予录取。\n- 应届硕士毕业生入学时未取得国家承认的硕士学位证书者，录取资格无效。\n\n## 咨询与申诉\n咨询电话：029-88431909；电子信箱：weiyuyun@nwpu.edu.cn；联系人：魏老师。学校将对拟录取名单进行公示，公示时间不少于7日。\n\n## 补充说明\n- 招生计划：学术型、非定向，公共管理学（120400），招生计划2人。\n\n### MPA非全日制调剂复试（2026年）\n- 复试方式：采用网络视频复试，复试现场具体要求待调剂申请确认后另行通知；复试具体时间另行通知，请保持电话畅通。\n- 复试内容：包含思想政治理论、专业知识、专业外语水平、综合素质四部分，其中思想政治理论采用“开卷笔试”方式进行，其他采用“考官质询、即时作答”方式进行。\n  - 思想政治理论（占复试总成绩10%）：主要内容为党的二十大和二十届历次全会精神、全国教育大会精神、时事政治等。\n  - 专业知识（占复试总成绩30%）：主要内容为公共管理学。\n  - 专业外语水平（占复试总成绩10%）：主要考核考生的英文听说能力。\n  - 综合素质（占复试总成绩50%）：主要考核考生的理论知识和应用技能的掌握程度，以及培养潜质和创新素质等。\n- 成绩计算：复试总成绩=思想政治理论成绩×0.1+专业知识成绩×0.3+专业外语水平成绩×0.1+综合素质成绩×0.5；录取总成绩＝初试总成绩/3×0.6+复试总成绩×0.4。拟录取名单通过公共政策与管理学院网站（https://sppa.nwpu.edu.cn/）公布。\n- 录取原则：根据录取总成绩从高到低顺序择优录取；政审不合格、思想政治理论成绩考核不合格的不予录取；加试科目低于60分的不予录取；复试总成绩低于60分的不予录取；复试中认定为违规违纪的不予录取。入学后3个月内，学校将对所有考生进行全面复查，包括全口径照片复查、证件复查、档案复查、资格复查、户籍复查、特殊类加分复查，以及抽样性的专业能力复试复查。\n- 复试纪律：严禁考生弄虚作假及替考作弊等行为；严禁",
-      "aliases": [
-        "复试内容",
-        "复试成绩计算",
-        "面试环节",
-        "录取总成绩",
-        "录取总成绩计算",
-        "复试录取原则",
-        "MPA复试",
-        "调剂复试成绩计算",
-        "工程博士复试",
-        "录取原则"
-      ],
-      "tags": [
-        "学籍",
-        "就业",
-        "推免与升学"
-      ],
-      "status": "ready",
-      "version": 7,
-      "source_count": 7,
-      "created_at": "2026-11-15T16:37:19",
-      "updated_at": "2026-11-15T18:31:00"
-    },
-    {
       "id": "31ed9a62fdac4ba5b33496be22265266",
       "slug": "技防两校区日常运维服务项目成交公示",
       "title": "技防两校区日常运维服务项目成交公示",
@@ -46915,34 +46746,6 @@
       "source_count": 1,
       "created_at": "2026-11-15T16:37:52",
       "updated_at": "2026-11-15T16:37:52"
-    },
-    {
-      "id": "ad16eb93d8364cb4b1024aee5d41d26d",
-      "slug": "动力与能源学院2026年博士综合考核与录取",
-      "title": "动力与能源学院2026年博士综合考核与录取",
-      "summary": "2026年博士“申请-考核”制综合考核含思想政治与品德、专业外语、专业综合素质（学术综合能力）考核；思想政治不合格一票否决，任一考核成绩低于60分不予录取；按总成绩在专业内从高到低录取。拟录取名单在学院网站公布并在学校研究生招生信息网公示，公示期7日，公示结束后签订定向培养协议书并发放录取通知书。",
-      "body_md": "## 综合考核\n\n综合考核分面试和笔试两种方式，考核考生的思想政治素养、外语水平和专业综合能力。学院组织成立综合考核专家组，由正高职称的研究生指导教师组成，不少于5人。各考核部分均为百分制。\n\n- 思想政治考核（面试）：全面考核考生的思想政治素质和道德品质，包括政治态度、思想意识、学术道德和科学精神、学习（工作）态度、遵纪守法、诚实守信等，实行一票否决制，审查不合格的终止申请考核流程。\n- 专业外语考核（笔试）：考核考生外文专业文献的阅读及理解能力，内容包括科技英语翻译（英文单词不少于600字）、英语作文（命题作文）及英语口语（5分钟），由英语面试小组负责实施。\n- 专业综合素质考核：\n  - 专业知识考核（笔试）：涵盖专业基础知识、专业方向知识及外语与汉语表达能力，考察相关基础知识的掌握程度及其灵活运用能力，不指定参考书。\n  - 综合素质考核（面试）：内容包括外语口语、个人基本情况、硕士论文研究内容及成果、读博科研计划等，主要考核科研志趣、逻辑思维与语言表达能力、创新意识与分析解决问题的能力。每位考生面试时间为30分钟，其中PPT汇报15分钟，专家质询15分钟；PPT报告内容包括思政表现与立场、教育经历与专业成绩、科研经历及成果、科研计划。\n\n现场面试考核全程录音录像，如实记录各项考核内容，妥善保存考核记录（含录音录像）等资料。考核内容不得涉及国家秘密，严格执行国家和学校相关保密规定。面试时间和地点以学院通知为准。\n\n其中，同等学力及跨学科考生应加试2门所报考专业的硕士主干课程，成绩低于60分者不予录取，加试成绩不计入总成绩。\n\n## 录取\n\n### 总成绩计算\n\n- 专业外语考核占比20%、专业综合素质考核占比80%。\n- 思想政治考核不计分，实行一票否决。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。\n\n### 录取原则\n\n1. 按照总成绩在相应专业（领域）的排名，从高到低依次录取；学院根据情况对考生报考导师及方向进行调剂，不服从调剂者不予录取。\n2. 政审不合格，思想政治素质和道德品质考核不合格的不予录取；考核成绩低于60分的不予录取；考核中认定为违规违纪的不予录取；有违反学术道德规范的不予录取。\n\n2026年拟录取的博士研究生入学后3个月内，我校将对所有考生进行全面复查。复查不合格的，取消学籍；情节严重的，移交有关部门调查处理。\n\n## 信息公开\n\n- 预录取名单公布：按专业招生指标数，根据录取总成绩从高到低顺序择优录取。公布时间：复试结束后三个工作日内；公布方式：学院网站-通知公告。\n- 招生相关信息在学院网站进行公开；最终录取结果在西北工业大学研究生招生信息网公示。\n- 学校将对拟录取名单公示，公示时间不少于7日。未经公示的考生一律不得录取，不予学籍注册。\n\n## 拟录取名单公示与后续安排\n\n2026年博士研究生招生录取工作已经结束，拟录取名单予以公示，具体名单见附件。\n\n- 公示期：7日。\n- 反馈方式：如有问题请在公示期内通过邮件或书面形式向西北工业大学研究生招生办公室反映。\n- 联系电话：029-88493042\n- 电子邮箱：yzb@nwpu.edu.cn\n\n拟录取名单公示结束后，学校将进行2026年博士研究生定向培养协议书的签订和录取通知书的发放。\n\n## 监督与复议\n\n- 咨询及申诉渠道：kmj@nwpu.edu.cn；weiyuyun@nwpu.edu.cn\n- 咨询电话：029-88431117 孔老师；029-88431909\n\n## 补充说明\n\n航空学院2026年第二次博士研究生招生“申请-考核”制的综合考核内容包括学术综合能力面试考核（含思想政治和品德考核）与专业外语能力考核。思想政治和品德考核审查不合格的实行一票否决，终止申请考核流程。学术综合能力面试考核内容主要包括思想政治、专业基础、创新能力、学术潜力等；专业外语能力考核由英语面试小组负责实施，英语水平测试成绩不满足学院当年最低成绩要求者，不予录取。",
-      "aliases": [
-        "博士综合考核",
-        "申请-考核成绩计算",
-        "博士录取公示",
-        "申请考核考核内容",
-        "博士复试考核",
-        "博士复试",
-        "博士录取原则",
-        "博士拟录取公示",
-        "拟录取名单"
-      ],
-      "tags": [
-        "招生与入学",
-        "学籍",
-        "就业"
-      ],
-      "status": "ready",
-      "version": 4,
-      "source_count": 4,
-      "created_at": "2026-11-15T16:37:52",
-      "updated_at": "2026-11-15T17:20:57"
     },
     {
       "id": "b79fbe58246c4343bf3b3a06debe43d0",
@@ -47189,7 +46992,7 @@
       ],
       "status": "ready",
       "version": 4,
-      "source_count": 4,
+      "source_count": 1,
       "created_at": "2026-11-15T16:41:44",
       "updated_at": "2026-11-15T18:22:34"
     },
@@ -47215,7 +47018,7 @@
       ],
       "status": "ready",
       "version": 4,
-      "source_count": 4,
+      "source_count": 2,
       "created_at": "2026-11-15T16:41:44",
       "updated_at": "2026-11-15T18:32:57"
     },
@@ -47315,27 +47118,6 @@
         "综合考核总成绩",
         "总成绩折算",
         "成绩计算公式"
-      ],
-      "tags": [
-        "学籍",
-        "就业"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T16:42:05",
-      "updated_at": "2026-11-15T16:42:05"
-    },
-    {
-      "id": "73c41f7ceec645ba906219bbe20e2c48",
-      "slug": "博士申请考核录取规则",
-      "title": "博士申请考核录取规则",
-      "summary": "学院按学科内综合考核总成绩排名并结合招生名额确定拟录取名单；报考同一导师者从高到低依次录取至指标录满，同分依次比较面试、材料评议、英语成绩。",
-      "body_md": "## 概述\n航空学院依照考生学科内综合考核总成绩排名，结合当年学院招生名额和学科指标分配情况确定拟录取考生名单并公示。\n\n## 录取规则\n- 报考同一导师的考生，依据综合考核总成绩，从高到低依次录取，直到该导师招生指标录满为止。\n- 综合考核总成绩相同的依次按学术综合能力面试成绩、材料评议成绩、英语成绩的高低确定排序。\n\n## 审批与公示\n- 拟录取名单上报西北工业大学研究生招生工作领导小组审批，由研究生院发放正式录取通知。\n- 学院根据综合考核结果、招生指标，组织开展导师和学生双向选择，确定拟录取名单，并将综合考核结果、拟录取名单以及相关考核材料报研究生院，审核通过后，由学院进行公示。\n- 学校将拟录取名单上报主管部门，审核通过后，由研究生院统一进行公示。\n\n## 注意事项\n学院要将考核的结果告知考生，并做好必要的解释工作；考核结束后，学院根据学校要求在研究生招生管理信息系统录入考核成绩。",
-      "aliases": [
-        "博士拟录取",
-        "录取排序规则",
-        "导师指标录取"
       ],
       "tags": [
         "学籍",
@@ -47529,26 +47311,6 @@
       "source_count": 2,
       "created_at": "2026-11-15T16:43:03",
       "updated_at": "2026-11-15T18:25:15"
-    },
-    {
-      "id": "bb4efdb659b4452e8f537ec9c5ba8732",
-      "slug": "航空学院2024年暑期夏令营入营名单",
-      "title": "航空学院2024年暑期夏令营入营名单",
-      "summary": "公布航空学院2024年暑期夏令营入营名单，共120名营员，按序号、申请编号、姓名列出。",
-      "body_md": "## 概述\n以下为西北工业大学航空学院2024年暑期夏令营入营名单，共120人，按序号、申请编号、姓名列出。\n\n## 名单说明\n- 名单来源：航空学院2024年暑期夏令营安排通知；\n- 名单按序号排列，含申请编号与姓名；\n- 完整名单请以原文（来源：https://hangkong.nwpu.edu.cn/info/1357/37544.htm）为准。\n\n## 注意事项\n- 入营营员须按安排于2024年7月12日（9:00~18:00）到神隆大酒店报到；\n- 详细日程安排请关注后续群通知。",
-      "aliases": [
-        "夏令营入营名单",
-        "入营名单"
-      ],
-      "tags": [
-        "推免与升学",
-        "校园生活"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T16:43:03",
-      "updated_at": "2026-11-15T16:43:03"
     },
     {
       "id": "a0fedd0acd8e4d4191be21c9be22da3c",
@@ -51330,7 +51092,7 @@
       ],
       "status": "ready",
       "version": 2,
-      "source_count": 2,
+      "source_count": 1,
       "created_at": "2026-11-15T16:53:09",
       "updated_at": "2026-11-15T18:07:58"
     },
@@ -55361,28 +55123,6 @@
       "updated_at": "2026-11-15T17:07:16"
     },
     {
-      "id": "5eaefab4656e466490dd23318b643997",
-      "slug": "2027年非全日制mpa考试与录取",
-      "title": "2027年非全日制MPA考试与录取",
-      "summary": "西北工业大学2027年非全日制MPA的初试科目与时间、复试安排、录取方式、学制学费及毕业学位授予说明。",
-      "body_md": "## 初试\n- 初试科目：英语二（满分100分）；管理类综合能力（满分200分，包括数学、写作、逻辑三部分），共计两门。国家统一命题，考试时间均为3小时。\n- 准考证下载与打印：考生应当在考前十天左右，凭网报用户名和密码登录“研招网”自行下载打印《准考证》。《准考证》使用A4白纸打印，正、反两面在使用期间不得涂改或书写。考生凭下载打印的《准考证》及有效居民身份证参加初试和复试。\n- 初试日期和考试时间：2027年全国硕士研究生招生考试初试时间为2026年12月19日（8:30—11:30，14:00—17:00）；考试地点：详见《准考证》上公布的初试地点。\n\n## 复试\n复试按照教育部相关规定由我校统一组织，初试成绩满足复试资格线的考生可参加复试。复试基本线由我校自主划定，具体安排请考生及时关注我校研究生招生信息网相关通知。以同等学力参加复试的考生需加试《公共管理学》、《公共政策分析》两门主干课程。\n\n## 录取\n我校本着服务战略、按需招生、全面衡量、择优录取和宁缺毋滥的原则，根据考生的初试成绩和复试成绩，并结合其思想政治素质与品德、业务素质以及身体健康等状况确定拟录取名单。在通过主管部门的录取检查后，拟录取考生将被正式录取。\n\n## 培养方式及学制\nMPA非全日制专业学位硕士研究生实行定向就业培养方式，应在被录取前与招生单位、用人单位分别签订定向就业合同。学制3年，最长不能超过4年；周末授课（国家法定节假日除外）。一经录取后，不得变更录取信息中的就业方式。学习期间不调档，不转户口，无需转党团组织关系，不享受国家奖助金。\n\n## 毕业和学位授予\nMPA学生在规定年限之内修完规定课程和学分且通过学位论文答辩者，经校学位评定委员会审核通过，授予西北工业大学公共管理硕士（MPA）学位证书及毕业证书。\n\n## 相关费用\n2027年度非全日制公共管理硕士（MPA）专业学位培养费：西安班9万，其他班9.8万，按协议分两学年缴清。考生报名费、体检费均按陕西省物价局规定的标准执行。",
-      "aliases": [
-        "MPA初试复试",
-        "MPA考试安排",
-        "MPA学费学制"
-      ],
-      "tags": [
-        "就业",
-        "奖助学金",
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T17:07:23",
-      "updated_at": "2026-11-15T17:07:23"
-    },
-    {
       "id": "01fc7e3218cf47b0aa4bd31d50cf495f",
       "slug": "非全日制mpa就业方式与定向就业",
       "title": "非全日制MPA就业方式与定向就业",
@@ -57952,27 +57692,6 @@
       "updated_at": "2026-11-15T17:23:00"
     },
     {
-      "id": "644cd972e8de4c5d907dac91f957f58d",
-      "slug": "翱翔快响专项计划考核与预录取",
-      "title": "翱翔快响专项计划考核与预录取",
-      "summary": "翱翔快响专项计划的学院综合考核内容、预录取资格确认及提前入校和正式入学时间安排。",
-      "body_md": "## 学院综合考核\n综合考核内容主要包括思想政治考核、专业外语水平考核、专业综合能力考核等。具体要求及实施办法由各学院确定。\n\n## 预录取资格确认\n- 学院综合考核结束后，学校将进行终审并确定预录取资格。\n- 获得预录取资格的考生，可申请提前入校学习和科研工作，学校将参照在校生标准为其提供用餐、住宿、公共楼宇出入等保障。\n- 获得预录取资格的考生，于2027年4月或9月办理正式入学手续。具体入学时间以《录取通知书》为准。\n- 我校在读硕士研究生按照硕博连读或“申请-考核”相关要求进行报名。",
-      "aliases": [
-        "快响计划考核",
-        "预录取资格",
-        "综合考核"
-      ],
-      "tags": [
-        "招生与入学",
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T17:20:25",
-      "updated_at": "2026-11-15T17:20:25"
-    },
-    {
       "id": "7506de67becd4cd5a76a17c58b99bd02",
       "slug": "大型仪器共享平台仪器设置",
       "title": "大型仪器共享平台仪器设置",
@@ -58188,32 +57907,6 @@
       "source_count": 2,
       "created_at": "2026-11-15T17:21:19",
       "updated_at": "2026-11-15T18:10:39"
-    },
-    {
-      "id": "c582ef1b7ec746f89cc41571e49b1ac8",
-      "slug": "2026年暑假中文成绩单办理",
-      "title": "2026年暑假中文成绩单办理",
-      "summary": "档案馆暑假工作安排对中文成绩单及出国材料办理渠道按学生类别区分：在校本科生及2023届、2024届本科毕业生在“翱翔教务系统”自助打印；2022届（含）以前本科毕业生在档案馆“学生自助打印区域”自助打印；其余毕业生通过档案馆官网“出国材料预约办理平台”预约办理，也可在每周一、周三值班时间到档案馆107室现场办理。",
-      "body_md": "## 概述\n档案馆暑假工作安排中，对中文成绩单及出国材料的办理渠道按学生类别作了区分。\n\n## 中文成绩单\n- 在校本科生及2023届、2024届本科毕业生：在“翱翔教务系统”自助打印。\n- 2022届（含）以前的本科毕业生：在档案馆“学生自助打印区域”自助打印。\n- 其余毕业生：在档案馆官网“出国材料预约办理平台”进行预约办理。\n\n## 出国材料\n- 在校本科生及2023届、2024届本科毕业生办理英文成绩单：在“翱翔教务系统”自助打印。\n- 其余毕业生办理出国材料：在档案馆官网“出国材料预约办理平台”进行预约办理。\n\n## 现场办理与咨询\n以上业务也可以在每周一、周三值班时间到档案馆107室现场办理，咨询电话88493280。\n\n## 预约步骤\n西北工业大学档案馆官网（http://dag.nwpu.edu.cn/）—档案办事大厅—学生窗口—出国材料预约办理。\n\n## 注意事项\n本安排依据学校暑假安排的通知要求，结合档案馆工作实际制定；具体以档案馆最新通知为准。\n\n## 补充说明\n不同年度暑假工作安排对办理渠道的表述存在差异：较早通知中，2022届（含）以前的本科毕业生在档案馆“学生自助打印区域”自助打印，其余毕业生通过“出国材料预约办理平台”预约办理；后续通知中，2022届（含）以前的本科毕业生、硕博毕业生可在档案馆“学生自助打印区域”自助打印或通过“档案远程服务利用平台”预约办理，继续（网络）教育毕业生通过“档案远程服务利用平台”预约办理。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。",
-      "aliases": [
-        "暑假成绩单打印",
-        "中文成绩单",
-        "成绩单办理",
-        "成绩单打印",
-        "成绩单自助打印",
-        "出国材料办理",
-        "英文成绩单"
-      ],
-      "tags": [
-        "档案",
-        "校园生活",
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 3,
-      "source_count": 3,
-      "created_at": "2026-11-15T17:21:39",
-      "updated_at": "2026-11-15T17:26:55"
     },
     {
       "id": "02640631df954579ab04352779d566c6",
@@ -58619,27 +58312,6 @@
       "source_count": 1,
       "created_at": "2026-11-15T17:23:03",
       "updated_at": "2026-11-15T17:23:03"
-    },
-    {
-      "id": "6547b2ec08a94a88b6f86a249c68da30",
-      "slug": "2025年暑假中文成绩单及出国材料办理",
-      "title": "2025年暑假中文成绩单及出国材料办理",
-      "summary": "档案馆2025年暑假期间中文成绩单与出国材料的办理渠道：按毕业届别分别在翱翔教务系统、档案馆自助打印区域或出国材料预约办理平台办理。",
-      "body_md": "## 概述\n档案馆2025年暑假安排中，明确了中文成绩单及出国材料的办理方式，按学生类别区分办理渠道。\n\n## 中文成绩单\n- 在校本科生及2023届（含）以后本科毕业生：在“翱翔教务系统”自助打印；\n- 2022届（含）以前的本科毕业生：在档案馆“学生自助打印区域”自助打印；\n- 其余毕业生：在档案馆官网“出国材料预约办理平台”进行预约办理。\n\n## 出国材料\n- 在校本科生及2023届（含）以后本科毕业生办理英文成绩单：在“翱翔教务系统”自助打印；\n- 其余毕业生办理出国材料：在档案馆官网“出国材料预约办理平台”进行预约办理。\n\n## 现场办理与咨询\n- 以上业务也可在每周一、周三值班时间到档案馆107室现场办理；\n- 咨询电话：029-88493280。\n\n## 预约步骤\n西北工业大学档案馆官网（http://dag.nwpu.edu.cn/）—档案办事大厅—学生窗口—出国材料预约办理。",
-      "aliases": [
-        "暑假成绩单办理",
-        "出国材料办理",
-        "英文成绩单打印"
-      ],
-      "tags": [
-        "档案",
-        "校园生活"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T17:23:06",
-      "updated_at": "2026-11-15T17:23:06"
     },
     {
       "id": "dddec1d7e16840f486622100b0ed0f46",
@@ -60818,28 +60490,6 @@
       "updated_at": "2026-11-15T17:32:53"
     },
     {
-      "id": "79871a789dd543979382b6e09145a70c",
-      "slug": "澳门保送生考核与录取",
-      "title": "澳门保送生考核与录取",
-      "summary": "学校对符合澳门保送生资格的报名学生进行面试考核，综合考查逻辑思维、语言表达、学习能力等基本素质，结合考核情况、综合素质、平时学习成绩及专业志愿择优录取；录取后按录取通知书指定时间报到，并参照《普通高等学校招生体检工作指导意见》参加体检，不符合要求者取消入学资格。",
-      "body_md": "## 概述\n学校将对符合澳门保送生资格的报名学生进行面试考核。\n\n## 考核内容\n综合考查学生的逻辑思维、语言表达、学习能力等基本素质。\n\n## 录取原则\n根据学生的考核情况和综合素质并结合考生平时学习成绩及专业志愿等，择优录取。\n\n## 入学与身体检查\n- 已被学校录取的学生请按照录取通知书指定的时间到学校报到，具体事宜届时参考《新生入学指南》。\n- 学生体检标准参照《普通高等学校招生体检工作指导意见》，对不符合入学体检要求者，取消入学资格。\n\n## 补充说明\n以上内容依据西北工业大学2024年澳门保送生招生简章整理，考核方式为面试，录取时综合考量考核情况、综合素质、平时学习成绩及专业志愿等因素。",
-      "aliases": [
-        "澳门保送生面试",
-        "澳门保送生录取办法",
-        "澳门保送生录取",
-        "澳门保送生入学体检"
-      ],
-      "tags": [
-        "招生",
-        "招生与入学"
-      ],
-      "status": "ready",
-      "version": 2,
-      "source_count": 2,
-      "created_at": "2026-11-15T17:32:53",
-      "updated_at": "2026-11-15T18:47:42"
-    },
-    {
       "id": "d6a77b75e5cd4af8a30b40e78120b10a",
       "slug": "澳门保送生招生专业与计划",
       "title": "澳门保送生招生专业与计划",
@@ -60889,38 +60539,9 @@
       ],
       "status": "ready",
       "version": 24,
-      "source_count": 24,
+      "source_count": 16,
       "created_at": "2026-11-15T17:32:56",
       "updated_at": "2026-11-15T18:54:17"
-    },
-    {
-      "id": "a6bae86458a64666a9745a91f5e03329",
-      "slug": "强基计划成绩查询与录取结果",
-      "title": "强基计划成绩查询与录取结果",
-      "summary": "考生须登录西北工业大学强基计划报名平台（https://bm.chsi.com.cn/jcxkzs/sch/10699）查询入围结果、成绩与录取结果，是否入围以平台结果为准；2021年入围结果亦通过该平台公布，入围考生需查看校测安排；2024年报名时间为4月9日至4月29日，考生须于6月10日至6月18日在平台确认参加",
-      "body_md": "## 概述\n录取标准公布后，考生可查询本人成绩和录取结果；入围结果同样通过报名平台查询，考生是否入围以报名平台查询结果为准。2021年、2022年、2023年、2024年强基计划录取标准公布后，考生均可登陆该平台查询成绩和录取结果；2021年、2024年强基计划校考入围结果亦通过该平台公布。\n\n## 报名时间与办法\n- 报名时间：4月9日至4月29日（2024年）\n- 报名平台：西北工业大学强基计划报名平台（网址：https://bm.chsi.com.cn/jcxkzs/sch/10699）\n- 考生须按要求准确、完整地完成网上报名，并须参加全国统一高考。\n\n## 志愿填报\n报考我校“强基计划”的考生不能兼报其他高校，每位考生可填报三个专业志愿。\n\n## 考生确认\n考生须于6月10日至6月18日在报名平台确认是否参加我校考核，并签署诚信承诺书。逾期未确认或未签署诚信承诺书者视为放弃参加考核及后续录取资格。我校将在确认参加考核的考生中根据入围校考办法确定入围名单。\n\n## 查询方式\n- 查询入口：西北工业大学强基计划报名平台\n- 平台网址：https://bm.chsi.com.cn/jcxkzs/sch/10699\n- 查询内容：入围结果、成绩和录取结果\n- 说明：请考生务必登录该平台查询入围结果，考生是否入围以报名平台查询结果为准\n\n## 时间节点\n即日起可登录平台查询（通知落款日期为2026年7月3日）。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。\n\n## 后续安排\n请入围考生及时查看西北工业大学本科招生信息网，了解后续校测安排。2021年入围考生可点击查看当年强基计划校测安排，如有调整以西北工业大学本科招生信息网发布为准。\n\n## 录取手续与后续安排\n- 我校将强基计划预录取名单报各省级招办审核，办理录取手续。\n- 被正式录取的考生不再参加生源所在省（区、市）后续高考志愿录取。\n- 未被录取的考生可正常参加生源所在省（区、市）后续各批次高考志愿录取。\n\n## 联系方式\n- 办公地点：西北工业大学友谊校区招生办公室\n- 联系电话：029-88460206\n- 邮箱：ao@nwpu.edu.cn\n- 邮编：710072\n\n## 补充说明\n本词条同时涵盖报名、考生确认、入围结果查询、成绩与录取结果查询以及入围后的校测安排信息，相关结果均以报名平台为准。\n\n据《西北工业大学2024年强基计划招生简章》，2024年报名时间为4月9日至4月29日，考生须在报名平台完成网上报名；报考考生不能兼报其他高校，每位考生可填报三个专业志愿；考生须于6月10日至6月18日在报名平台确认是否参加考核并签署诚信承诺书，逾期未确认或未签署者视为放弃参加考核及后续录取资格，学校在确认参加考核的考生中确定入围名单。\n\n新增来源《西北工业大学关于公布2024年强基计划校考入围分数线的通知》进一步明确：2024年校考入围结果须登录西北工业大学强基计划报名平台查询，是否入围以平台查询结果为准。\n\n另据《西北工业大学关于公布2024年强基计划录取标准的通知》，2024年强基计划录取标准公布后，考生可登陆同一报名平台查询成绩和录取结果，查询内容为成绩和录取结果，通知发布日期为2024年7月3日，即日起可查询。\n\n据《西北工业大学关于公布2023年强基计划录取标准的通知》，2023年强基计划录取标准公布后，考生可登陆西北工业大学强基计划报名平台（https://bm.chsi.com.cn/jcxkzs/sch/10699）查询本人成绩和录取结果，即日起可查询。\n\n据《西北工业大学关于公布2022年强基计划录取标准的通知》，2022年强基计划录取标准公布后，考生可登陆西北工业大学强基计划报名平台（https://bm.chsi.com.cn/jcxkzs/sch/10699）查询本人成绩和录取结果，查询时间为即日起，查询内容为成绩和录取结果。\n\n据《西北工业大学关于公布2021年强基计划录取标准的通知》，2021年强基计划录取标准公布后，考生可登陆西北工业大学强基计划报名平台（https://bm.chsi.com.cn/jcxkzs/sch/10699）查询成绩和录取结果；学校将强基计划预录取名单报各省级招办审核，办理录取手续，被正式录取的考生不再参加生源",
-      "aliases": [
-        "强基成绩查询",
-        "强基报名平台",
-        "强基录取查询",
-        "强基入围查询",
-        "强基校测安排",
-        "强基报名平台查询",
-        "强基计划报名平台",
-        "强基计划查分",
-        "强基计划成绩查询",
-        "强基报名时间"
-      ],
-      "tags": [
-        "招生与入学",
-        "学籍",
-        "奖助学金"
-      ],
-      "status": "ready",
-      "version": 11,
-      "source_count": 11,
-      "created_at": "2026-11-15T17:33:02",
-      "updated_at": "2026-11-15T18:53:13"
     },
     {
       "id": "825755c2e3ec4b0fbc83a8d061b3b851",
@@ -60947,7 +60568,7 @@
       ],
       "status": "ready",
       "version": 10,
-      "source_count": 10,
+      "source_count": 5,
       "created_at": "2026-11-15T17:33:06",
       "updated_at": "2026-11-15T18:53:16"
     },
@@ -61121,33 +60742,6 @@
       "updated_at": "2026-11-15T18:54:16"
     },
     {
-      "id": "952463e4dc5c47c1a00387ee011285fe",
-      "slug": "艺术类专业成绩要求与录取原则",
-      "title": "艺术类专业成绩要求与录取原则",
-      "summary": "西北工业大学艺术类专业要求统考成绩达所在省艺术类本科批次专业课同科类录取控制线且不低于统考总分75%，文化课达相应控制线；非平行志愿省份按综合分（专业400+文化600）择优录取，综合分相同依次比较专业统考、文化课及数学、语文、外语成绩。历年简章对陕西、河南、山西、山东、安徽等省规定第一志愿报考及分省录取规则，2015",
-      "body_md": "## 成绩要求\n1. **专业课成绩要求**：考生的高考美术学和设计学类专业基础课统考成绩须达到所在省艺术类相应本科批次专业课同科类录取控制分数线，且不低于统考成绩总分的75%（四舍五入取整）。\n2. **文化课成绩要求**：考生投档成绩须达到所在省艺术类相应本科批次文化课同科类录取控制分数线，且达到同科类普通本科第二批次录取控制分数线；对于实施高考综合改革及合并本科批次的省份，投档成绩须达到当地省级招生考试机构确定的艺术类专业本科文化课录取控制分数线。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。\n\n## 录取原则\n在各省级招生考试机构投档考生范围内，且符合报考条件和成绩要求的考生，按以下规则录取：\n1. 在我校所属批次实行**平行志愿**的省份，按省级招生考试机构投档规则择优录取。\n2. 在我校所属批次实行**非平行志愿**的省份，按综合分由高到低择优录取：\n\n综合分=（专业基础课成绩÷专业基础课满分）×400+（高考文化课成绩÷高考文化课满分）×600\n\n- 文理兼收（不分科类）的省份，按综合分从高到低不分文理统一排序，依据计划数择优录取；\n- 区分文理招生（严格区分科类）的省份，按综合分从高到低文、理（历史类、物理类）分别排序，依据计划数择优录取；\n- 综合分相同的情况下，优先录取专业基础课统考成绩高者；专业基础课统考成绩和高考文化课成绩均相同者，依次优先录取数学、语文、外语成绩高者。\n3. 实施过程中如与教育部、各省（市）艺术类专业招生政策不一致，以教育部、各省（市）艺术类专业招生政策为准。\n\n## 2019年分省录取规则（历史参考）\n2019年简章规定：陕西、河南、安徽、山东考生须按照第一志愿报考我校，且专业课和高考文化课成绩均达到当地艺术类本科合格线。\n1. **陕西、河南考生**：高考文化课成绩达到普通理科、文科本科第二批次线以上，分文理科按专业课成绩从高分到低分，专业课成绩相同时按文化课成绩及位次由高到低，择优录取。\n2. **山东考生**：高考文化课成绩达到山东省首次划定的文、理类本科普通批录取控制分数线以上，按专业课成绩从高分到低分，专业课成绩相同时按文化课成绩及位次由高到低，择优录取。\n3. **安徽考生**：高考文化课成绩达到普通理科、文科本科第二批次线以上，分文理科按照综合分从高分到低分，择优录取。综合分=专业成绩÷专业满分×700+文化成绩÷文化满分×300。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。\n\n## 2018年分省录取规则（历史参考）\n2018年简章规定：陕西、河南、山东、安徽考生按照第一志愿报考我校，且专业课和高考文化课成绩均达到当地艺术类本科合格线。\n1. **陕西考生**：高考文化课成绩达到普通理科本科第二批次线下10分（含10分）以上、普通文科本科第二批次线下20分（含20分）以上，分文理科按专业课成绩从高分到低分，择优录取。\n2. **河南、山东、安徽考生**：分文理科按综合成绩从高分到低分，择优录取。综合成绩＝文化课成绩×40%+专业课成绩×60%。\n3. 实施过程中如与教育部、各省艺术类专业招生政策不一致，以教育部、各省艺术类专业招生政策为准。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。\n\n## 2017年分省录取规则（历史参考）\n2017年简章规定：陕西、河南、山西、山东考生按照第一志愿报考我校，且专业课和高考文化课成绩均达到当地艺术类本科合格线。\n1. **陕西考生**：高考文化课成绩达到普通理科本科第二批次线下10分（含10分）以上、普通文科本科第二批次线下20分（含20分）以上，分文理科按专业课成绩从高分到低分，择优录取。\n2. **河南、山西、山东考生**：分文理科按综合成绩从高分到低分，择优录取。综合成绩＝文化课成绩×40%+专业课成绩×60%。\n3. 实施过程中如与教育部、各省艺术类专业招生政策不一致，以教育部、各省艺术类专业招生政策为准。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。\n\n## 2016年分省录取规则（历史参考）\n2016年简章规定：陕西、河南、山西、山东考生按照第一志愿报考我校，且考生专业课和高考文化课成绩均达到当地艺术类本科合格线。\n1. **陕西考生**：高考文化课成绩达到普通理科本科第二批次",
-      "aliases": [
-        "艺术类录取规则",
-        "艺术类综合分",
-        "艺术类成绩要求",
-        "艺术类录取原则",
-        "艺术类分数线",
-        "综合分计算",
-        "产品设计录取",
-        "艺术类综合成绩",
-        "艺术类录取分数线",
-        "产品设计录取分数线"
-      ],
-      "tags": [
-        "招生与入学"
-      ],
-      "status": "ready",
-      "version": 11,
-      "source_count": 11,
-      "created_at": "2026-11-15T17:33:24",
-      "updated_at": "2026-11-15T18:54:23"
-    },
-    {
       "id": "14e0b919cbd34a11a76a9ee120e2f0f7",
       "slug": "西北工业大学2026年本科招生章程要点",
       "title": "西北工业大学2026年本科招生章程要点",
@@ -61175,35 +60769,6 @@
       "source_count": 10,
       "created_at": "2026-11-15T17:33:31",
       "updated_at": "2026-11-15T17:53:57"
-    },
-    {
-      "id": "8f8b9b9e89f542d28e5857484afbdc33",
-      "slug": "本科招生录取规则",
-      "title": "本科招生录取规则",
-      "summary": "西北工业大学本科招生录取规则词条，涵盖分省招生计划与不超过1%的预留计划、顺序志愿120%与平行志愿105%的调档比例、分数优先且专业志愿不设级差的专业安排、同分科目比较顺序、专业调剂与退档、内蒙古“分数清”、江苏选测科目等级、政策性加分及国家专项、高校专项（“筑梦计划”）等各类专项；并补充2024年招生规模、生源质量",
-      "body_md": "## 概述\n西北工业大学本科招生录取工作受教育部统一领导，按照“学校负责、招办监督”的原则，在各省（区、市）级教育行政部门或招生考试机构组织下开展分省（区、市）招生录取工作。按理工类、文史类、艺术类分类录取；实行高考综合改革的省（区、市）按专业（专业组）设定的选考科目要求录取考生。\n\n## 招生计划\n- 面向全国招生，根据人才培养、办学条件等实际情况，统筹考虑各省（区、市）考生人数、区域协调发展及重点支持政策、城乡入学机会公平、历年计划安排等因素确定分省（区、市）招生计划，报教育部审批后由各省级招生主管部门向社会公布\n- 预留计划：不超过招生计划总数1%，主要用于生源质量调控及解决同分考生的录取问题，以集体决策、质量优先为原则投放使用\n- 2024年本科招生计划总规模4420名，实际录取4365名，另录取华侨港澳台学生23人，本年度共计录取本科新生4388人\n- 2024年招生计划按“年份 / 省市名称 / 计划类别名称 / 招生专业名称 / 招生计划数”列示，涉及北京、天津、河北、山西、内蒙古、辽宁等省市；计划类别包括普通类、中外合作办学、国家专项计划、高校专项计划、艺术类、少数民族预科\n- 示例数据：2024 北京 普通类 计算机类 5；2024 河北 普通类 航空航天类（航空） 12；2024 山西 普通类 自动化类 11；2024 内蒙古 少数民族预科 少数民族预科班 3；具体分专业计划数请以表格原文为准\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。\n\n## 分批次、分科类招生计划\n学校另按“省份 / 科类 / 批次 / 计划数”公布分批次、分科类招生计划，覆盖各省（含西藏班、新疆班）。\n- 涉及批次：一批（一批文史、一批理工、本一批、本科一批等）、提前批国防、提前批本硕、贫困专项（贫困专项、贫困专项文史、贫困专项理工）、筑梦计划、国家专项、提前批艺术（提前批艺术文、提前批艺术理、艺术综合）\n- 涉及科类：文史、理工、艺术（文）、艺术（理）、艺术（综合）\n- 计划数示例：陕西 一批理工 674、提前批本硕 35、筑梦计划 34、一批文史 27、提前批国防 19、贫困专项 19、提前批艺术文 3、提前批艺术理 2、贫困专项文史 2；河南 一批理工 193、贫困专项 32、提前批本硕 15、提前批国防 5、筑梦计划 5、一批文史 8、提前批艺术文 4、贫困专项文史 2、提前批艺术理 1；河北 一批理工 175、提前批本硕 15、贫困专项 6、一批文史 6、提前批国防 5、筑梦计划 1；安徽 一批理工 159、提前批本硕 10、筑梦计划 10、一批文史 8、贫困专项理工 7、提前批国防 6、贫困专项文史 1\n- 各省各批次计划数差异较大，具体以对应省份、科类、批次的计划数为准；该表数据来源为信息公开网发布的 PDF 文件\n\n## 分类录取与调档比例\n- 按理工类、文史类、艺术类分类录取；实行高考综合改革的省（区、市）按专业（专业组）设定的选考科目要求录取考生\n- 顺序志愿投档的批次：原则上不超过120%\n- 平行志愿投档的批次：原则上不超过105%\n- 具体情况按照与各省（区、市）招生考试机构协商方案为准\n- 2017年章程另载：根据各省（区、市）生源情况确定提档比例，提档比例严格控制在招生计划的120%以内\n\n## 专业安排\n- 在思想政治品德考核和身体健康状况检查合格、高考成绩符合提档要求的情况下，进档考生专业安排实行分数优先原则，从高分到低分排序后严格按专业志愿顺序安排专业，专业志愿之间不设级差\n- 投档成绩整数位相同时，按相关科目分数高低安排专业：\n  - 高考综合改革地区：依次比较数学、语文、外语\n  - 未实行高考综合改革地区，理工类：依次比较数学、理综、语文、外语\n  - 未实行高考综合改革地区，文史类：依次比较语文、文综、外语、数学\n- 内蒙古自治区考生按照“分数清”原则录取，对进档考生按投档分从高分到低分依次进行专业安排和录取，专业之间不设级差\n\n## 调剂与退档\n- 所填专业志愿都未被录取时：服从专业调剂者调剂到同科类（专业组）内未满额专业（北京、天津、吉林、黑龙江、上海、江苏、安徽、福建、江西、湖南、湖北、广东、广西、海南、甘肃考生只能在专业组内进行调剂）；不服从者予以退档\n- 中外合作办学、强基计",
-      "aliases": [
-        "录取规则",
-        "专业分配规则",
-        "调档比例",
-        "加分政策",
-        "专业安排规则",
-        "分数优先",
-        "专业安排",
-        "政策性加分",
-        "招生计划",
-        "预留计划"
-      ],
-      "tags": [
-        "招生与入学",
-        "学籍",
-        "校园生活"
-      ],
-      "status": "ready",
-      "version": 15,
-      "source_count": 15,
-      "created_at": "2026-11-15T17:33:31",
-      "updated_at": "2026-11-15T18:54:01"
     },
     {
       "id": "575395ddee9648518d190fbec4570436",
@@ -63148,28 +62713,6 @@
       "updated_at": "2026-11-15T18:53:13"
     },
     {
-      "id": "b3e5c2cf4f0e42dba8ddeb74425baa4a",
-      "slug": "高水平运动队志愿填报与录取",
-      "title": "高水平运动队志愿填报与录取",
-      "summary": "公示无异议的高水平运动队合格考生须按生源所在省级招生考试机构设立的高水平运动队批次填报志愿，学校按招生简章公布的录取办法录取；2019年简章另规定签订协议书及A、B、C三类优惠录取政策。",
-      "body_md": "## 概述\n针对高水平运动队招生测试合格考生的后续签约、志愿填报与录取要求。\n\n## 签订协议\n在体育专项测试的基础上，学校将根据各运动项目的需要，与测试合格的考生签订协议书。\n\n## 流程\n1. 公示无异议的合格考生须按生源所在省级招生考试机构设立的高水平运动队批次填报志愿。\n2. 凡签订协议书的高水平运动员，须按照生源所在省份设立的高水平运动队批次填报志愿（在未设立高水平运动队单独批次的省份则须第一志愿第一顺位或A顺位填报），否则将不予录取，并视为违约。\n3. 我校将按照《西北工业大学2023年高水平运动队招生简章》公布的录取办法予以录取。\n\n## 优惠政策（2019年简章）\n我校将根据考生参加我校体育测试项目及测试成绩确定优惠等级：\n\n- **A类**：体育测试合格的国家一级及以上等级运动员，为一级运动员（文化课单独考试）等级，需参加国家体育总局统一组织的运动训练、武术与民族传统体育专业单独招生文化课考试，并且成绩达到我校划定的文化课考试成绩合格分数线，可不参加高考（必须高考报名），即予以录取。\n- **B类**：体育测试合格的国家二级及以上（含二级）等级运动员中，体育测试成绩特别突出的考生，若其高考文化课成绩达到生源地2019年普通本科第二批次录取控制分数线的65%，即予以录取。\n- **C类**：体育测试合格的国家二级及以上（含二级）等级运动员中，体育测试成绩突出的考生，若高考成绩达到生源地2019年普通本科第二批次录取控制分数线，即予以录取。\n\n注：对于实施高考综合改革及合并本科批次的省份，按照教育部和各省相关规定执行。\n\n## 注意事项\n- 前提条件：公示无异议。\n- 志愿填报批次以生源所在省级招生考试机构设立的高水平运动队批次为准。\n- 录取办法以《西北工业大学2023年高水平运动队招生简章》公布内容为准。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。\n\n## 补充说明\n上述A、B、C三类优惠等级及具体分数线要求出自《西北工业大学2019年高水平运动队招生简章》，与2023年招生简章的录取办法可能存在差异，报考时请以当年最新招生简章为准。",
-      "aliases": [
-        "高水平运动队录取",
-        "运动队志愿填报",
-        "A类B类C类优惠",
-        "运动队签约"
-      ],
-      "tags": [
-        "招生与入学",
-        "奖助学金"
-      ],
-      "status": "ready",
-      "version": 3,
-      "source_count": 3,
-      "created_at": "2026-11-15T17:45:13",
-      "updated_at": "2026-11-15T18:51:15"
-    },
-    {
       "id": "3251bf7f679a44e6bf9c02284478bd82",
       "slug": "招生申诉渠道",
       "title": "招生申诉渠道",
@@ -63699,26 +63242,6 @@
       "updated_at": "2026-11-15T17:53:12"
     },
     {
-      "id": "efdf7749c574414f827ac5eb433bd967",
-      "slug": "招生录取不委托中介机构",
-      "title": "招生录取不委托中介机构",
-      "summary": "西北工业大学不委托任何中介机构或个人进行招生录取工作，相关工作不收取国家规定外的费用，并保留追究以学校名义非法招生宣传者责任的权利。",
-      "body_md": "## 概述\n西北工业大学2021年本科生招生章程第三十一条对招生录取工作的委托与收费作出规定。\n\n## 具体规定\n- 西北工业大学不委托任何中介机构或个人进行招生录取工作。\n- 相关工作不收取国家规定外的费用。\n- 以西北工业大学名义进行非法招生宣传等活动的中介机构或个人，学校保留依法追究其责任的权利。\n\n## 注意事项\n学生及家长如遇以学校名义开展的招生宣传或收费行为，可对照上述规定辨别。",
-      "aliases": [
-        "招生中介",
-        "招生收费",
-        "非法招生宣传"
-      ],
-      "tags": [
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T17:52:10",
-      "updated_at": "2026-11-15T17:52:10"
-    },
-    {
       "id": "b327e53d0a1b428ababb0a522a52ecf3",
       "slug": "招生章程施行与废止",
       "title": "招生章程施行与废止",
@@ -63760,83 +63283,6 @@
       "updated_at": "2026-11-15T17:52:23"
     },
     {
-      "id": "097212f2bfa94c28b79c7c119b353a1a",
-      "slug": "招生录取中介与收费风险提示",
-      "title": "招生录取中介与收费风险提示",
-      "summary": "西北工业大学不委托任何中介机构或个人进行招生录取工作，相关工作不收取国家规定外的费用，并保留追究以学校名义非法招生宣传者责任的权利。",
-      "body_md": "## 概述\n西北工业大学不委托任何中介机构或个人进行招生录取工作，相关工作不收取国家规定外的费用。\n\n## 注意事项\n- 以我校名义进行非法招生宣传等活动的中介机构或个人，我校保留依法追究其责任的权利。",
-      "aliases": [
-        "招生中介风险",
-        "招生不收费说明"
-      ],
-      "tags": [
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T17:53:12",
-      "updated_at": "2026-11-15T17:53:12"
-    },
-    {
-      "id": "a6faa6b28a4e4bac914734adc3eac4f1",
-      "slug": "2017年高水平艺术团合格考生名单",
-      "title": "2017年高水平艺术团合格考生名单",
-      "summary": "本词条汇总西北工业大学2017年高水平艺术团合格考生名单（61人，含报名号、姓名、性别、毕业/生源中学、测试项目、艺术测试成绩、文化课成绩与优惠等级），并补充2015年艺术特长生专业测试合格公告的项目范围与优惠等级说明；合格名单须经教育部阳光高考平台审核公布后确定。",
-      "body_md": "## 概述\n本词条为西北工业大学2017年高水平艺术团合格考生名单及优惠等级，来源为信息公开网（xxgk.nwpu.edu.cn），文档类型为数据名录，共列出61名合格考生。另据2016年高水平艺术团招生专业测试合格考生公告，学校公布合格考生后，还需按教育部要求上报教育部阳光高考平台，经平台审核公布后确定最终合格名单。\n\n## 名单字段\n名单逐条列出以下信息：序号、报名号、姓名、性别、毕业中学（生源中学）、测试项目（报考乐器项目）、艺术测试成绩（专业测试成绩）、文化课成绩、优惠等级。\n\n## 测试项目分布\n已有来源列出的测试项目包括：男低音、男高音、女低音、女高音、表演、舞蹈、民打、琵琶、笙、竹笛；新增来源所列考生涉及大号、大提琴、低音提琴、小提琴、圆号等项目。\n\n## 名单信息（新增来源所列）\n- 171069903000180 宋昕宇 男 庄河市高级中学 大号 75.7 198.5 二等\n- 171069903000061 吕佳音 女 西安交通大学附属中学分校 大提琴 78.7 268.5 二等\n- 171069903000183 杨陈渝虎 男 重庆市巴蜀中学校 低音提琴 91.0 335.5 一等\n- 171069903000055 郭振宇 男 西安市铁一中学 小提琴 92.3 345.5 二等\n- 171069903000184 李烨倩 女 西安交通大学附属中学分校 小提琴 83.7 325.5 二等\n- 171069903000150 陈天麦 男 北京市东直门中学 圆号 90.7 345.5 一等\n- 171069903000181 韩熠南 男 西安高新第一中学 圆号 82.0 345.0 二等\n\n## 优惠等级\n名单中优惠等级分为「一等」与「二等」两种。\n\n## 名单确定流程\n1. 根据教育部相关要求，学校后续将上报教育部阳光高考平台。\n2. 待阳光高考平台审核公布后，确定最终合格名单。\n\n## 补充说明\n两份来源对名单字段的称谓略有差异（如「毕业中学」与「生源中学」、「测试项目」与「报考乐器项目」、「艺术测试成绩」与「专业测试成绩」），所指信息一致。2016年公告中的合格名单并非最终结果，须以教育部阳光高考平台审核公布为准。\n\n另据《西北工业大学2015年艺术特长生招生专业测试合格公告》，2015年艺术特长生专业测试合格名单涵盖舞蹈、声乐、表演、主持、钢琴、圆号、西洋打击、小号、长号、古筝、民族打击乐、琵琶、笙、扬琴、中胡、阮、大提琴、低音提琴、小提琴、中提琴等项目，名单包含序号、考号、姓名、性别、毕业中学、测试项目、专业测试成绩、优惠等级等信息，优惠等级同样分为一等、二等；具体名单及各项成绩以公告原文为准。\n\n## 注意事项\n本名单为2017年数据，仅供查询历史信息使用；具体政策以学校当年正式文件为准。名单中的成绩与等级均为2017年数据，仅供查询核对，不代表其他年度政策。",
-      "aliases": [
-        "2017艺术团合格名单",
-        "高水平艺术团合格名单",
-        "艺术团测试合格名单",
-        "高水平艺术团合格考生",
-        "艺术团校考合格名单",
-        "艺术团合格名单",
-        "艺术特长生合格名单",
-        "艺术特长优惠等级"
-      ],
-      "tags": [
-        "奖助学金",
-        "校园生活",
-        "学籍",
-        "档案"
-      ],
-      "status": "ready",
-      "version": 5,
-      "source_count": 5,
-      "created_at": "2026-11-15T17:56:52",
-      "updated_at": "2026-11-15T17:57:51"
-    },
-    {
-      "id": "131bb09c8f144836b3214bf4836baec1",
-      "slug": "筑梦计划公示名单",
-      "title": "筑梦计划公示名单",
-      "summary": "西北工业大学信息公开网发布的筑梦计划（高校专项计划）公示名单，按报名号、姓名、生源省份、性别、毕业中学逐条列出公示学生信息；筑梦计划面向边远、原贫困、民族地区县及县以下高中农村学生，须同时满足高考报名、户籍、学籍三项条件，招收理工类及高考综合改革地区考生。另附2015—2023年招生简章要点、2016年选拔条件与分专业",
-      "body_md": "## 概述\n本词条对应西北工业大学信息公开网（xxgk.nwpu.edu.cn）发布的《筑梦计划公示名单》，文档类型为通知公告，面向全体。名单按「报名号 姓名 生源省份 性别 毕业中学」的格式逐条列出公示学生信息。\n\n“筑梦计划”为西北工业大学实施的高校专项计划（2015年称农村学生“筑梦计划”单独招生，2016年称农村学生单独招生“筑梦计划”），旨在促进教育公平，让更多勤奋好学的农村孩子共享优质高等教育的机会。主要招收边远地区、原贫困地区、民族地区等县（含县级市）及县以下高中勤奋好学、成绩优良、品行端正、自强不息的农村学生。招生只针对考生生源所在省（自治区、直辖市）指定的高校专项计划实施区域内的农村学生进行，具体实施区域由各省（自治区、直辖市）确定。\n\n## 报名条件\n申请报考考生须**同时**具备以下条件：\n1. 符合当年统一高考报名条件；\n2. 本人及父亲或母亲或法定监护人户籍地在实施区域的农村，本人具有当地连续3年以上户籍；\n3. 本人具有户籍所在县高中连续3年学籍并实际就读。\n\n2015年招生简章表述为：边远、贫困、民族等地区县（含县级市）及县以下高中勤奋好学、成绩优良的农村学生，具体实施区域以各省（区、市）公布为准；申请考生及其父母或法定监护人户籍地须在本省（区、市）实施区域的农村，本人须具有当地连续3年户籍和当地高中连续3年学籍并实际就读、符合2015年统一高考报名条件。\n\n2016年招生简章明确：申请考生须为勤奋好学、成绩优良、品行端正、自强不息的理工类考生，且同时具备上述三项条件（符合2016年统一高考报名条件）。\n\n2017年招生简章明确：申请考生须为勤奋好学、成绩优良、品行端正、自强不息的理工类考生（浙江省不分文理科），并同时具备上述三项条件。\n\n2018年招生简章明确：报考考生须为理工类考生（浙江、上海不分文理科）。2019年招生简章明确：报考考生须为理工类考生（浙江、上海不分文理科）。2020年招生简章进一步明确：报考考生须为理工类考生（高考综合改革省份不分文理科），且只针对考生生源所在省（自治区、直辖市）指定的高校专项计划实施区域内的农村学生。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。\n\n## 科类与选考要求\n- 招收理工类和高考综合改革地区考生。\n- 高考综合改革地区：“3+3”模式考生选考科目为必须选考物理；“3+1+2”模式考生首选科目为物理，无再选科目要求。\n- 2017年简章规定：浙江省考生可在我校招生办网站查看招生专业的选考科目要求，选考科目符合要求方可报考。\n- 2020年简章规定：高考综合改革省份考生须根据学校公布的各专业选考科目要求填报志愿；江苏省考生学业水平测试等级要求为BB，选考科目符合要求方可报考。\n- 2019年简章规定：浙江、上海、江苏考生须根据学校公布的各专业选考科目要求填报志愿，选考科目符合要求方可报考。\n- 2018年简章规定：浙江、上海考生须根据学校公布的各专业选考科目要求进行志愿填报，选考科目符合要求方可报考。\n\n## 名单内容\n公示名单以表格形式列出，字段包括：报名号、姓名、省份（生源省份）、性别、中学（毕业中学）。\n\n示例条目：\n- 报名号 161069902000030，余智浩，陕西，男，南郑中学\n- 报名号 161069902000039，曹旭，甘肃，男，灵台县第二中学\n- 报名号 161069902000090，蔡曼，安徽，女，萧县实验高级中学\n- 161069902000725，杨山虎，安徽，男，萧县实验高级中学\n- 161069902000731，孙一谦，陕西，男，汉中市陕飞一中\n- 161069902000733，孙新浩，陕西，男，南郑县高台中学\n- 161069902000744，白杨，四川，男，四川省江油中学\n- 161069902000754，马世通，陕西，男，陇县中学\n- 161069902000764，郝佑齐，安徽，男，安徽省砀山县第二中学\n- 161069902000765，常家豪，陕西，男，长武县中学\n\n## 名单字段说明\n每条记录依次包含：报名号、姓名、生源省份、性别、毕业中学。\n\n## 招生计划与专业\n2015年“筑梦计划”招生计划为本校年度本科招生规模的2%；招生专业为学校在考生所在省2015年投放计划的理工类和文史类",
-      "aliases": [
-        "筑梦计划入选名单",
-        "筑梦计划名单公示",
-        "筑梦计划",
-        "筑梦计划名单",
-        "筑梦计划公示",
-        "高校专项计划",
-        "高校专项",
-        "国家专项计划",
-        "专项招生",
-        "筑梦计划报名条件"
-      ],
-      "tags": [
-        "奖助学金",
-        "档案",
-        "招生与入学",
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 21,
-      "source_count": 21,
-      "created_at": "2026-11-15T17:57:06",
-      "updated_at": "2026-11-15T18:54:04"
-    },
-    {
       "id": "a9dc953dee674071b2ebaea6e0aa2130",
       "slug": "2016年高水平艺术团签约安排",
       "title": "2016年高水平艺术团签约安排",
@@ -63860,50 +63306,9 @@
       ],
       "status": "ready",
       "version": 3,
-      "source_count": 3,
+      "source_count": 2,
       "created_at": "2026-11-15T17:57:30",
       "updated_at": "2026-11-15T18:54:44"
-    },
-    {
-      "id": "9b9cf7b3855c48d2bb03c2639000518e",
-      "slug": "2015年艺术特长生专业测试合格标准",
-      "title": "2015年艺术特长生专业测试合格标准",
-      "summary": "西北工业大学2015年艺术特长生招生专业测试合格成绩不得低于80分（满分100分），由学校招生工作领导小组讨论确定。",
-      "body_md": "## 概述\n根据我校2015年艺术特长生招生简章及专业测试成绩，经学校招生工作领导小组讨论确定，考生专业测试合格成绩不得低于80分（满分100分）。\n\n## 合格标准\n- 专业测试合格成绩：不得低于80分\n- 满分：100分\n\n## 名单确定方式\n根据学校高水平艺术团建设实际情况，确定各项目合格考生名单及优惠等级。",
-      "aliases": [
-        "艺术特长生合格线",
-        "艺术特长专业测试分数线"
-      ],
-      "tags": [
-        "奖助学金",
-        "校园生活"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T17:57:47",
-      "updated_at": "2026-11-15T17:57:47"
-    },
-    {
-      "id": "f849a016fdcf455196664fbf2eedeb2e",
-      "slug": "2015年艺术特长生签约安排",
-      "title": "2015年艺术特长生签约安排",
-      "summary": "西北工业大学2015年艺术特长生专业测试合格考生须于1月24日9:00—12:00到友谊校区团委办公室签约，逾期视为放弃，可凭委托书代签。",
-      "body_md": "## 概述\n西北工业大学2015年艺术特长生招生专业测试合格考生需按规定时间到校签约，届时不再电话通知。\n\n## 时间节点\n- 签约时间：1月24日 9:00—12:00\n- 逾期不来签约视为放弃\n\n## 地点\n友谊校区团委办公室（东方红广场西侧爱生楼）\n\n## 代签要求\n如果考生本人不能来签约，可以代签，但必须出示：\n- 考生本人亲笔委托书\n- 考生本人身份证复印件（或户口本复印件）\n- 委托人身份证及身份证复印件（以便核实身份）\n\n## 委托书（模板）\n本人是西北工业大学2015年艺术特长生XXX，委托XXX（身份证：XXX）与西北工业大学签定《西北工业大学2015年招收艺术特长生协议书》。\n\n考生：xxx\n艺术专业：xxx\n联系电话：xxx\nXXXX年XX月XX日",
-      "aliases": [
-        "艺术特长生签约",
-        "特长生签约",
-        "签约通知"
-      ],
-      "tags": [
-        "校园生活",
-        "档案"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T17:57:55",
-      "updated_at": "2026-11-15T17:57:55"
     },
     {
       "id": "a10af7a45e4a44bd82b14f7b0dabdca8",
@@ -65142,46 +64547,6 @@
       "source_count": 1,
       "created_at": "2026-11-15T18:03:12",
       "updated_at": "2026-11-15T18:03:12"
-    },
-    {
-      "id": "abcda85ba1074bb7b8d86b7ce6e6f836",
-      "slug": "推免预报名申请材料",
-      "title": "推免预报名申请材料",
-      "summary": "文化遗产研究院推免预报名考生报名时需提供本科成绩单、学术科研成果与获奖证书、外语水平证明、社会实践证明及其他能力材料。",
-      "body_md": "## 概述\n考生报名文化遗产研究院推免预报名时需提供以下材料。\n\n## 材料清单\n1. 本科前三年成绩单、综合测评成绩单（加盖学校或院系教务部门公章）；\n2. 学术科研成果（公开发表的论文、出版的专著等）和获奖证书；\n3. 外语水平证明（大学英语四级、大学英语六级、托福、雅思、PETS等成绩单）；\n4. 参加社会实践、公益事业等证明；\n5. 其他可反映自身能力和水平的相关材料。\n\n## 注意事项\n若申请人弄虚作假、违反招生规定、存在有违学术道德，专业伦理、诚实守信等方面的不当行为，一经查实，立即取消其来我院的免试读研资格，并通报申请人所在学校。",
-      "aliases": [
-        "推免材料",
-        "预报名材料"
-      ],
-      "tags": [
-        "研究生招生",
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:03:32",
-      "updated_at": "2026-11-15T18:03:32"
-    },
-    {
-      "id": "606b1205e2df4d108185a6c0d1961af2",
-      "slug": "推免复试与系统确认",
-      "title": "推免复试与系统确认",
-      "summary": "推免预报名后学院进行初审并确定复试名单、发放复试通知，拟录取推免生须在教育部推免服务系统注册填报志愿并按时确认，先申请者优先确认。",
-      "body_md": "## 申请程序\n（一）报名：9月13日—9月22日，申请人登录“西北工业大学推免生预报名系统”(https://yjsjy.nwpu.edu.cn/zsbm/tmsgl)进行网上预报名。\n（二）复试：学院对推免生的报名信息进行初审，确定复试名单，向申请人发放复试通知。\n（三）考生参加复试，学院确定拟录取名单。\n（四）待教育部开通全国推免生报名系统后，被拟录取的推免生需登录“教育部推免服务系统”进行注册，并按照拟接收的专业填报相关志愿。届时，我院将在“教育部推免服务系统”中发放复试通知和拟录取通知，先申请者优先确认。未按拟接收专业填报志愿者及未在规定的时间内按要求接受并确认者，均视为自动放弃。\n（五）未进行预报名的同学在教育部开通全国推免生报名系统后可登录“教育部推免服务系统”进行报名。学院将根据接收指标剩余情况决定是否发放复试通知和组织复试，具体安排以学院的通知为准。\n\n## 注意事项\n请成功报名的学生务必加入推免复试QQ群（725634590），具体复试安排将在群内公布。",
-      "aliases": [
-        "推免复试",
-        "推免服务系统确认"
-      ],
-      "tags": [
-        "研究生招生",
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:03:32",
-      "updated_at": "2026-11-15T18:03:32"
     },
     {
       "id": "13975202d25a4bcebcf8bb4f26980a31",
@@ -77693,25 +77058,6 @@
       "updated_at": "2026-11-15T18:37:36"
     },
     {
-      "id": "a5a3295cf6ac470598535f005a4ea17a",
-      "slug": "力学与土木建筑学院入选学者名单",
-      "title": "力学与土木建筑学院入选学者名单",
-      "summary": "力学与土木建筑学院岳珠峰、乔吉超、温志勋、解忠良、龙旭、张凯、路宽、邓子辰8位学者入选年度科学影响力排行榜，其中岳珠峰、乔吉超另入选生涯科学影响力排行榜。",
-      "body_md": "## 年度科学影响力排行榜\n力学与土木建筑学院岳珠峰、乔吉超、温志勋、解忠良、龙旭、张凯、路宽、邓子辰（按全球排名顺序）8位学者入选“年度科学影响力排行榜”榜单。\n\n## 生涯科学影响力排行榜\n其中岳珠峰、乔吉超（按全球排名顺序）2名学者入选“生涯科学影响力排行榜”榜单。\n\n## 说明\n以上名单出自2024年9月发布的第七版《年度全球前2％顶尖科学家榜单》相关报道。",
-      "aliases": [
-        "学院8位入选学者",
-        "前2%榜单学院入选名单"
-      ],
-      "tags": [
-        "校园生活"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:25:22",
-      "updated_at": "2026-11-15T18:25:22"
-    },
-    {
       "id": "c59ab889f98941629eec2d442df03c27",
       "slug": "生命科学与技术学院组织师生观看庆祝中国共产党成立105周年大会",
       "title": "生命科学与技术学院组织师生观看庆祝中国共产党成立105周年大会",
@@ -78486,27 +77832,6 @@
         "招生座谈"
       ],
       "tags": [
-        "校园生活"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:25:50",
-      "updated_at": "2026-11-15T18:25:50"
-    },
-    {
-      "id": "2d415a090a24483aa714f9cf5a666514",
-      "slug": "2025年度招生工作获奖名单",
-      "title": "2025年度招生工作获奖名单",
-      "summary": "数学与统计学院2025年度招生工作获奖名单，含先进集体二等奖重庆市、先进集体优秀奖西安市，以及招生先锋奖和优秀招生大使个人名单。",
-      "body_md": "## 概述\n数学与统计学院2025年度招生工作获奖名单，附于校招生办公室来院研讨招生工作座谈会内容之后。\n\n## 获奖名单\n### 先进集体\n- 先进集体二等奖：重庆市\n- 先进集体优秀奖：西安市\n\n### 个人奖项\n- 招生先锋奖：林伟\n- 招生先锋奖：王振海\n\n### 优秀招生大使\n- 李彦吉\n- 肖华勇\n- 唐亚宁\n- 谢文贤\n- 安晓虹",
-      "aliases": [
-        "招生工作获奖",
-        "招生表彰名单",
-        "招生先锋奖"
-      ],
-      "tags": [
-        "奖助学金",
         "校园生活"
       ],
       "status": "ready",
@@ -80276,45 +79601,6 @@
       "updated_at": "2026-11-15T18:27:25"
     },
     {
-      "id": "d777c1907a6b45458cff70dc1976e576",
-      "slug": "华秦杯深圳赛区晋级名单",
-      "title": "华秦杯深圳赛区晋级名单",
-      "summary": "第三届“华秦杯”全球校友创新创业大赛（深圳赛区）决赛共6支团队晋级，成长组3支、种子组3支，将参加十月校庆周总决赛。",
-      "body_md": "## 概述\n第三届西北工业大学“华秦杯”全球校友创新创业大赛（深圳赛区）决赛经评委严格评审与综合打分，共有成长组3支团队、种子组3支团队成功晋级，将走向十月校庆周的总决赛舞台。\n\n## 晋级名单\n- 种子组：深圳赛博格机器人有限公司\n- 成长组：运得动力(深圳)有限公司\n- 种子组：灵络(深圳)智能科技有限公司\n- 成长组：广东四方威凯科技(集团)有限公司\n- 种子组：硅基记忆(深圳)科技有限公司\n- 成长组：深圳翱翔蔚蓝科技有限责任公司\n\n## 后续安排\n晋级团队将带着湾区的创新锐气，走向十月校庆周的总决赛舞台，与全球西工大校友创业者同台竞技。",
-      "aliases": [
-        "深圳赛区晋级团队",
-        "华秦杯决赛晋级"
-      ],
-      "tags": [
-        "创新创业"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:27:25",
-      "updated_at": "2026-11-15T18:27:25"
-    },
-    {
-      "id": "9bab000f1a4a430e98ac9e73839fdd25",
-      "slug": "柔性电子学院优秀教学研究奖获奖名单",
-      "title": "柔性电子学院优秀教学研究奖获奖名单",
-      "summary": "柔性电子学院2022—2025年四届优秀教学研究奖共12项获奖成果，均为校级，含一等奖4项、二等奖8项。",
-      "body_md": "## 概述\n柔性电子学院（School of Flexible Electronics）优秀教学研究奖获奖情况，来源为学院官网（sfe.nwpu.edu.cn），文档类别为「培养与课程」，面向本科生。\n\n## 获奖名单\n| 序号 | 奖项名称 | 项目名称 | 获奖等级 | 完成人 | 奖项级别 | 获奖年份 |\n| --- | --- | --- | --- | --- | --- | --- |\n| 1 | 第一届优秀教学研究奖 | 光固化 3D 打印教学实验设计与研究 | 二等奖 | 张彪 | 校级 | 2022 |\n| 2 | 第二届优秀教学研究奖 | 实验教育与 3D 打印合金：创新探索与学生培养 | 一等奖 | 徐茜 | 校级 | 2023 |\n| 3 | 第二届优秀教学研究奖 | 《柔性电子设计创新实验》课程建设驱动本研贯通培养模式教研成果 | 一等奖 | 王腾蛟 | 校级 | 2023 |\n| 4 | 第二届优秀教学研究奖 | 基于探究社区理论的高校融合课堂教学设计初探 | 一等奖 | 卢乾波 | 校级 | 2023 |\n| 5 | 第二届优秀教学研究奖 | 薛定谔方程的教学讨论 | 二等奖 | 罗小光 | 校级 | 2023 |\n| 6 | 第二届优秀教学研究奖 | 柔性电子学科中的课程思政建设路径 | 二等奖 | 韩楠楠 | 校级 | 2023 |\n| 7 | 第三届优秀教学研究奖 | 柔性无线驱动LED器件的教学实验设计与研究 | 二等奖 | 李鹏 | 校级 | 2024 |\n| 8 | 第三届优秀教学研究奖 | 有机荧光染料用于大肠杆菌的超分辨率成像实验 | 二等奖 | 冯涛 | 校级 | 2024 |\n| 9 | 第三届优秀教学研究奖 | 人工智能技术在高等教育人才培养中的角色与效能探索 | 二等奖 | 张悦周 | 校级 | 2024 |\n| 10 | 第四届优秀教学研究奖 | 跨学科、交叉学科、融合学科创新复合型人才培养研究 | 二等奖 | 刘小网 | 校级 | 2025 |\n| 11 | 第四届优秀教学研究奖 | “双碳”导向的半导体物理学课程的SMART教学改革 | 二等奖 | 冉晨鑫 | 校级 | 2025 |\n| 12 | 第四届优秀教学研究奖 | 知识图谱在有机电子实验教学中的应用——以“器件制备”模块为例 | 二等奖 | 王凯 | 校级 | 2025 |\n\n## 注意事项\n- 以上奖项级别均为校级。\n- 名单按届次与序号排列，年份为获奖年份。",
-      "aliases": [
-        "教学研究奖",
-        "优秀教学研究奖",
-        "教研奖"
-      ],
-      "tags": [
-        "校园生活"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:27:25",
-      "updated_at": "2026-11-15T18:27:25"
-    },
-    {
       "id": "2f5be41e0c6d48d5bbab29ba0e5ca598",
       "slug": "数智时代的公共管理学科建设论坛成功举办",
       "title": "数智时代的公共管理学科建设论坛成功举办",
@@ -80323,26 +79609,6 @@
       "aliases": [],
       "tags": [],
       "status": "needs_review",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:27:27",
-      "updated_at": "2026-11-15T18:27:27"
-    },
-    {
-      "id": "daa924a405674319b5817402f6756176",
-      "slug": "柔性电子学院教师荣誉名单",
-      "title": "柔性电子学院教师荣誉名单",
-      "summary": "柔性电子学院公布的教师荣誉名单，含于海东、邹还师、李鹏、刘小网、官操、孔龙等教师所获校级荣誉及对应年份。",
-      "body_md": "## 概述\n柔性电子学院（School of Flexible Electronics）教师荣誉名单，来源为学院官网（sfe.nwpu.edu.cn），发布日期 2026-03-10。\n\n## 荣誉名单\n| 序号 | 姓名 | 名称 | 等级 | 年份 |\n| --- | --- | --- | --- | --- |\n| 1 | 于海东 | 优秀本科生学业指导教师 | 校级 | 2023 |\n| 2 | 邹还师 | 研究生教育教学管理突出贡献奖 | 校级 | 2023 |\n| 3 | 李鹏 | 优秀本科生学业指导教师 | 校级 | 2024 |\n| 4 | 刘小网 | 2024-2025学年研究生最满意教师 | 校级 | 2025 |\n| 5 | 刘小网 | 2024-2025学年本科最满意教师 | 校级 | 2025 |\n| 6 | 官操 | 研究生青年优秀导师 | 校级 | 2025 |\n| 7 | 官操 | 优秀本科生学业指导教师 | 校级 | 2025 |\n| 8 | 孔龙 | 2025年本科生优秀实习队伍 | 校级 | 2025 |\n\n## 注意事项\n- 以上荣誉等级均为校级。\n- 名单信息以学院官网原文为准。",
-      "aliases": [
-        "教师荣誉",
-        "学院教师获奖名单",
-        "优秀教师名单"
-      ],
-      "tags": [
-        "校园生活"
-      ],
-      "status": "ready",
       "version": 1,
       "source_count": 1,
       "created_at": "2026-11-15T18:27:27",
@@ -83090,27 +82356,6 @@
         "学术志愿者培训",
         "国际学生志愿者培训会",
         "线上学术志愿者培训会"
-      ],
-      "tags": [
-        "校园生活",
-        "国际交流"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:29:40",
-      "updated_at": "2026-11-15T18:29:40"
-    },
-    {
-      "id": "245f7ce95b54416f9bd1b4008e14e070",
-      "slug": "学术志愿者实习考核与名单公布",
-      "title": "学术志愿者实习考核与名单公布",
-      "summary": "培训会后，各年级学术志愿者申请人须参加为期三个月的实习考核，学院根据实习期表现确定最终志愿者人选，于下学期初公布名单。",
-      "body_md": "## 概述\n国际教育学院线上学术志愿者培训会结束后，各年级学术志愿者申请人将进入实习考核环节。\n\n## 流程与时间节点\n1. 参加培训会：12月3日下午4：00线上学术志愿者培训会。\n2. 实习考核：培训会议结束后，各年级学术志愿者申请人参加为期三个月的实习考核。\n3. 确定人选：学院将根据学生实习期的表现确定最终志愿者人选。\n4. 名单公布：于下学期初公布名单。\n\n## 注意事项\n- 最终志愿者人选以实习期表现为依据。\n- 学院后续还将组织系列学术志愿者活动，不断加强国际学生学风建设。",
-      "aliases": [
-        "志愿者实习考核",
-        "学术志愿者选拔",
-        "志愿者名单公布"
       ],
       "tags": [
         "校园生活",
@@ -89052,27 +88297,6 @@
         "保研宣讲会",
         "推免政策宣讲会",
         "推免宣讲"
-      ],
-      "tags": [
-        "奖助学金",
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:36:47",
-      "updated_at": "2026-11-15T18:36:47"
-    },
-    {
-      "id": "f7812c8cdf604c27850463c166338b48",
-      "slug": "推免指标核算与申报要求",
-      "title": "推免指标核算与申报要求",
-      "summary": "宣讲会介绍推免政策中绩点排名、外语成绩、科研成果、学科竞赛、社会实践等指标的核算规则与申报要求，强调推免准备需贯穿大学全过程。",
-      "body_md": "## 概述\n宣讲会上，辅导员贺睿杰解读推免政策，介绍各项指标的核算规则与申报要求。\n\n## 涉及指标\n- 绩点排名\n- 外语成绩\n- 科研成果\n- 学科竞赛\n- 社会实践\n\n## 准备建议\n推免准备需要长期积累，应贯穿大学全过程。\n\n## 分年级建议\n- 2024级学生处于专业核心课学习的关键期，需扎实学好专业课程。\n- 2025级学生要树立长远发展观念，夯实专业基础，尽早明确发展目标。",
-      "aliases": [
-        "推免政策",
-        "保研指标",
-        "推免申报"
       ],
       "tags": [
         "奖助学金",
@@ -95922,26 +95146,6 @@
       "updated_at": "2026-11-15T18:45:17"
     },
     {
-      "id": "8c67bdf1948049e390aa4c18254c5ef2",
-      "slug": "香港中学文凭考试成绩要求与录取原则",
-      "title": "香港中学文凭考试成绩要求与录取原则",
-      "summary": "理科专业四核心科目最低须达3、3、4、A，文科须达3、3、3、A；录取按总分优先，同分时依次比较专业志愿顺序及指定科目成绩。",
-      "body_md": "## 成绩要求\n香港中学文凭考试四个核心科目，即中国语文、英国语文、数学、公民科最低须达到：\n- 理科专业：3、3、4、A\n- 文科专业：3、3、3、A\n\n## 录取原则\n对于符合要求的报名考生，学校将对香港地区中学文凭考试考生申请材料进行审核，根据香港中学文凭考试成绩按照总分优先，结合考生专业志愿、高中阶段学习经历等，择优录取。\n\n## 同分排序规则\n香港中学文凭考试总分相同时，专业志愿顺序优先；专业志愿顺序也相同时：\n- 理科考生依次按照数学、中国语文、英国语文成绩排序安排专业；\n- 文科考生依次按照中国语文、英国语文、数学成绩排序安排专业。",
-      "aliases": [
-        "HKDSE成绩要求",
-        "香港招生录取原则",
-        "核心科目要求"
-      ],
-      "tags": [
-        "招生与入学"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:45:17",
-      "updated_at": "2026-11-15T18:45:17"
-    },
-    {
       "id": "59554f4b8aae42978305f16c5a110d1e",
       "slug": "西北工业大学哈萨克斯坦分校启用",
       "title": "西北工业大学哈萨克斯坦分校启用",
@@ -97220,26 +96424,6 @@
       "updated_at": "2026-11-15T18:54:42"
     },
     {
-      "id": "b031134a9ea148a288a75c677ff44a57",
-      "slug": "外语类保送生选拔流程与录取原则",
-      "title": "外语类保送生选拔流程与录取原则",
-      "summary": "外语类保送生选拔含初审、考试确认、综合素质测试（笔试+面试）三个环节，按测试成绩从高到低择优录取，合格线60分。",
-      "body_md": "## 选拔流程\n\n### 1. 初审\n对在规定期限内申请且材料符合要求的考生进行初审，初审结果将于 2024 年 1 月 24 日在报名系统中公布。\n\n### 2. 考试确认\n初审通过的考生须登录报名系统完成考试确认。考试确认时间：2024 年 1 月 24 日 20:00 至 2024 年 1 月 31 日 20:00。未在规定时间内按要求完成考试确认的考生，视为自动放弃综合素质测试资格。\n\n### 3. 综合素质测试\n通过初审并完成考试确认的考生须到校参加综合素质测试，测试形式为笔试和面试，考试时间为 2024 年 3 月 9 日，地点为西北工业大学友谊校区，具体考试地点详见准考证。\n- 笔试：总分 100 分，时长 2 小时，主要考核学生的语言水平。\n- 面试：总分 100 分，时长 15 分钟以内，主要考核学生的综合素质。\n\n## 录取原则\n根据考生的综合素质测试成绩排序，综合素质测试成绩（满分 100 分）由笔试成绩（占 50%）、面试成绩（占 50%）组成，划定综合素质测试成绩合格线为 60 分。在合格线（含合格线）上的考生按照综合素质测试成绩从高到低进行排序，择优录取。\n\n## 联系方式\n- 外国语学院 029-88430907\n- 招生办公室 029-88460206\n- 咨询时间：工作日 8:00-12:00，14:00-17:30\n- 地址：西安市碑林区友谊西路127 号，邮编：710072\n- 网址：http://zsb.nwpu.edu.cn\n- 官方微信公众号：zsbnwpu",
-      "aliases": [
-        "保送生初审",
-        "综合素质测试",
-        "保送生录取"
-      ],
-      "tags": [
-        "招生与入学"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:47:17",
-      "updated_at": "2026-11-15T18:47:17"
-    },
-    {
       "id": "7751b846b28843aa8b91257c4193c2f5",
       "slug": "2024年强基计划招生对象与报名条件",
       "title": "2024年强基计划招生对象与报名条件",
@@ -97337,34 +96521,6 @@
       "source_count": 3,
       "created_at": "2026-11-15T18:47:30",
       "updated_at": "2026-11-15T18:50:25"
-    },
-    {
-      "id": "b84eeb1eb3e54108a90ac77fb010e9b7",
-      "slug": "筑梦计划招生专业与录取办法",
-      "title": "筑梦计划招生专业与录取办法",
-      "summary": "筑梦计划（高校专项）招收理工类和高考综合改革地区考生，招生计划不低于学校年度本科招生规模的2%，考生须先通过省级户籍、学籍资格审核，再由学校组织专家集体审核确定入选资格名单并在本科招生信息网公示（不同年度公示与查询时间有差异），入选考生须参加当年高考，投档分数达批次线以上者按分省分专业计划从高分到低分择优录取，入学可享",
-      "body_md": "## 招生专业及计划\n我校“筑梦计划”招收理工类和高考综合改革地区考生，招生计划按教育部核定的高校专项计划招生数执行，招生专业（类）为能源动力类、电子信息类、自动化类、海洋工程类、材料类、机械类、力学类、数学类、物理学类、化学类、管理科学与工程类、生物技术、生态学、建筑学等。\n\n我校2024年“筑梦计划”招生计划不低于学校年度本科招生规模的2%，最终各省招生专业（类）及计划以考生所在省级招生考试部门公布为准。\n\n我校将根据各省（区、市）入选资格考生人数，兼顾生源质量与区域分布的合理性，确定“筑梦计划”分省（区、市）分专业（类）招生计划，并通过我校本科招生信息网公布，并报送生源所在省级招生考试部门。录取时，我校可根据各省（区、市）入选资格考生报考情况及生源质量，对招生计划在省份间进行适当调整。\n\n## 审核与公示\n完成报名的考生需通过生源所在省级招生考试机构的户籍、学籍资格审核，审核通过后我校组织专家审核申请材料。我校依据申请人学业水平考试成绩及其他佐证材料组织专家集体审核，按招生计划的一定比例确定入选资格考生名单。入选资格考生名单将于**5月31日前**在我校本科招生信息网公示，同时报送各省级招生考试机构及教育部“阳光高考”平台等网站公示。\n\n以2017年为例，有关省（自治区、直辖市）于2017年5月15日前完成考生户籍、学籍资格审核并进行公示，不具有报名资格的考生我校不予初审；考生可在2017年5月30日后自行查询，不再另发书面通知。以2016年为例，名单在我校本科招生信息网公示，同时报送至各省级招生考试机构、教育部阳光高考平台网站和考生所在中学进行公示，考生可在2016年5月30日后自行查询，不再另发书面通知。\n\n> 注：不同来源说法不一致，请以学校最新官方通知为准。\n\n## 录取办法\n1. 公示无异议的入选资格考生须参加当年全国普通高等学校统一招生考试（如2024年、2019年、2017年、2016年），按生源所在省级招生考试机构有关规定填报志愿。\n2. 我校从高考投档分数达到生源省份（区、市）录取控制线以上的考生中，依据公布的分省分专业（类）招生计划，按照考生高考投档分数从高分到低分依次择优录取并分配专业（类）。\n3. 对于非高考综合改革省份，考生高考成绩须达到第一批次录取控制线以上；对于本科批次合并的省份及高考综合改革省份，录取批次控制线按相关省级招生考试机构确定的相应最低录取控制分数线执行。\n4. 对于综合改革试点省份，招生专业（类）选考科目要求与普通类一致，详见相应省份招生主管部门公布的我校招生专业（类）及选考科目范围。\n\n## 奖励帮困措施\n学校承诺“决不让一个学生因家庭经济困难而失学”。通过“筑梦计划”录取的优秀学生在新生报到时可乘坐“爱心直通车”（资助、车费）、通过“绿色通道”（缓交学费、小额无息借款），确保顺利入学。在校期间除可申请数十种奖学金外，还通过国家助学贷款、国家励志奖学金、国家助学金、吴亚军等专项助学金、学校助学金、勤工助学、减免学费等措施帮助家庭经济困难学生完成学业。\n\n## 监督机制\n如发现伪造、变造、篡改、假冒户籍学籍等虚假个人信息和提供虚假申请材料的考生，经查实后，均认定为在国家教育考试中作弊，取消高校专项计划报名和录取资格，已经录取的则取消入学资格或学籍。学校纪检监察部门负责监督“筑梦计划”全过程，监督电话：029-88493708。\n\n## 注意事项\n我校执行教育部、各省级招生考试部门关于高校专项计划合格考生的录取规定。本简章公布后，若相关政策有调整，将按调整后的政策执行。\n\n## 补充说明\n不同年度简章在公示时间等细节上存在差异（如5月31日前与6月30日前、2016年及2017年均为5月30日后可查询），请以学校当年发布的最新官方通知为准。\n\n## 联系方式\n- 地址：西安市友谊西路127号招生办公室，邮编：710072\n- 电话：029-88460206\n- 传真：029-88492310\n- 官方网站：http://zsb.nwpu.edu.cn\n- 官方微信：zsbnwpu\n\n所有信息均通过试点高校自主招生报名系统和西北工业大学本科招生信息网发布，不再另行通知，考生未能及时查询而影响考核或录取的，责任自负。",
-      "aliases": [
-        "筑梦计划录取",
-        "高校专项录取",
-        "筑梦计划招生计划",
-        "筑梦计划入选公示",
-        "入选资格公示",
-        "筑梦计划审核",
-        "爱心直通车",
-        "绿色通道",
-        "招生办联系方式",
-        "筑梦计划入选名单查询"
-      ],
-      "tags": [
-        "招生与入学",
-        "奖助学金"
-      ],
-      "status": "ready",
-      "version": 7,
-      "source_count": 7,
-      "created_at": "2026-11-15T18:47:32",
-      "updated_at": "2026-11-15T18:54:16"
     },
     {
       "id": "3b9145b9fd90421a979b0ca5423ce4c2",
@@ -97669,28 +96825,6 @@
       "updated_at": "2026-11-15T18:48:33"
     },
     {
-      "id": "c45197be8c3742aaa30df0a2f02ea8c6",
-      "slug": "台湾地区高中毕业生报名流程与录取安排",
-      "title": "台湾地区高中毕业生报名流程与录取安排",
-      "summary": "2022年3月1日至31日通过祖国大陆普通高校依据台湾学测成绩招生报名系统报名，4月20日前公示审核结果，5月中上旬公示拟录取名单，5月15日至19日进行录取确认。",
-      "body_md": "## 概述\n本词条说明西北工业大学2022年台湾地区高中毕业生的报名方式、材料、选拔程序与录取时间节点。\n\n## 报名时间与方式\n- 报名时间：2022 年 3 月 1 日至 31 日。\n- 报名方式：登录祖国（大陆）普通高校依据台湾地区学测成绩招收台湾高中毕业生报名系统（网址：https://www.gatzs.com.cn/z/tw/ ）进行报名。\n- 系统报名不收取考生报考费。\n\n## 报名材料\n系统要求上传个人证件、电子照片、学测成绩、考生诚信承诺书等基本材料，提交成绩查验授权书及其他相关材料。另须上传：\n1. 高中各学年学习成绩单扫描件（加盖学校公章）；\n2. 中学阶段课外活动、个人兴趣特长、获奖证书和其他相关证明材料扫描件；\n3. 个人陈述（包括对大学学习生活等方面的规划、未来职业理想、希望到西北工业大学深造的原因、家庭成员简介等，字数请控制在 1500 字以内）。\n\n## 志愿填报\n志愿填报采取平行志愿方式，考生可在报名截止前修改志愿，逾期不得修改。\n\n## 选拔程序\n- 资料审核：学校组织专家初审，并于 4 月 20 日前在报名系统进行公示。\n- 组织面试：获得面试资格者须按规定时间参加面试，面试时间和方式另行通知。\n\n## 录取原则与时间节点\n- 按宁缺勿滥原则，依据申请人成绩和招生计划按总分从高到低择优录取。\n- 拟录取名单于 5 月中上旬通过报名系统公示。\n- 考生须于 5 月 15 日至 19 日登录系统查询录取情况并进行录取确认，逾期未确认视为放弃录取资格，且不得参加征集志愿报名。\n- 征集志愿：5 月 21 日至 31 日进行补录，首轮已报名考生无需重新注册；征集志愿拟录取名单于 6 月 21 日公示，考生须于 6 月 21 日至 25 日查询并确认。\n- 正式录取通知书于 2022 年 7 月-8 月发放。\n\n## 联系方式\n- 招生办公室联系人：姚远，电话：029-88460206，地址：西安市碑林区友谊西路 127 号，邮政编码：710072。\n- 港澳台事务办公室联系人：张莹予，电话：029-88492812。\n- 监督电话：学校纪委办公室、监察处 029-88493708。",
-      "aliases": [
-        "台生报名时间",
-        "报名系统",
-        "录取确认",
-        "征集志愿"
-      ],
-      "tags": [
-        "招生",
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:48:43",
-      "updated_at": "2026-11-15T18:48:43"
-    },
-    {
       "id": "2760da8c6f4044ffa3b8d98529482b02",
       "slug": "西北工业大学2022年强基计划招生简章",
       "title": "西北工业大学2022年强基计划招生简章",
@@ -97717,27 +96851,6 @@
       "source_count": 1,
       "created_at": "2026-11-15T18:49:09",
       "updated_at": "2026-11-15T18:49:09"
-    },
-    {
-      "id": "7a9f1b8ca60e41f3a65fbee46a83f706",
-      "slug": "2022年高水平运动队签约与录取",
-      "title": "2022年高水平运动队签约与录取",
-      "summary": "西北工业大学与体育专项测试合格的考生签订协议书，按测试成绩确定A、B、C三类优惠等级；签订协议者须按生源省份高水平运动队批次填报志愿，否则不予录取并视为违约。",
-      "body_md": "## 签订协议\n在体育专项测试的基础上，学校将根据各运动项目的需要，与测试合格的考生签订协议书。\n凡签订协议书的高水平运动员，须按照生源所在省份设立的高水平运动队批次填报志愿，否则将不予录取，并视为违约。\n\n## 优惠政策\n学校将根据考生参加体育专项测试项目及测试成绩确定优惠等级：\n- A类：体育专项测试合格的国家一级及以上等级运动员，为一级运动员（文化课单独考试）等级，须参加国家体育总局统一组织的运动训练、武术与民族传统体育专业单独招生文化课考试，并且成绩达到学校划定的文化课考试成绩合格分数线，可不参加高考（必须高考报名），即予以录取。\n- B类：体育专项测试成绩特别突出的国家二级及以上等级运动员，若其高考文化课成绩达到生源地2022年普通本科第二批次录取控制分数线的65%，即予以录取。\n- C类：体育专项测试成绩突出的国家二级及以上等级运动员，若其高考文化课成绩达到生源地2022年普通本科第二批次录取控制分数线，即予以录取。\n\n注：对于实施高考综合改革及合并本科批次的省份，按照教育部和各省相关规定执行。\n\n## 复查与管理\n1. 新生入校三个月内，学校将对录取的高水平运动队新生进行材料复核和体育专业复测。凡发现弄虚作假者，将按教育部有关规定进行处理，直至取消入学资格。\n2. 学生在校期间，须认真参加并完成高水平运动队的训练和比赛，遵守运动队的各项规定。未能达到训练要求的，将依照学校相关管理规定予以处理。",
-      "aliases": [
-        "签约与录取",
-        "高水平运动队优惠政策",
-        "A类B类C类优惠"
-      ],
-      "tags": [
-        "奖助学金",
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:49:24",
-      "updated_at": "2026-11-15T18:49:24"
     },
     {
       "id": "9969c960bca744e392135a70e6f60748",
@@ -97785,26 +96898,6 @@
       "tags": [
         "招生",
         "档案"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:49:43",
-      "updated_at": "2026-11-15T18:49:43"
-    },
-    {
-      "id": "aa01e577cab5463386c9de7503fd7631",
-      "slug": "台湾地区高中毕业生选拔与录取",
-      "title": "台湾地区高中毕业生选拔与录取",
-      "summary": "学校审核材料后于4月20日前在本科招生信息网公示面试名单，按成绩和招生计划从高到低择优录取，正式录取通知书于2021年7月-8月发放。",
-      "body_md": "## 招生计划\n2021年招收台湾地区高中毕业生计划10人。申请者可选择6个专业作为专业志愿，录取时满足考生专业志愿；培养学制除建筑学五年制外，其余均为四年制。\n\n## 选拔程序\n- 资料审核：学校组织专家审核申请材料，并于4月20日前在学校本科招生信息网（http://zsb.nwpu.edu.cn）公示获得面试考核资格的申请者名单，公示期为5个工作日。\n- 组织面试：获得面试资格者须按规定时间参加面试，面试时间和方式另行通知。\n\n## 录取原则\n学校依据申请人成绩和学校招生计划按总分从高到低择优录取，宁缺毋滥。\n\n## 录取流程\n拟录取考生名单在学校本科招生信息网公示，公示期为5个工作日；公示无异议的学生信息须经教育部考试中心确认，并报送联招办审核，审核合格后方能办理相关录取手续。正式录取通知书将于2021年7月-8月发放。",
-      "aliases": [
-        "台生面试与录取",
-        "台湾学测生录取"
-      ],
-      "tags": [
-        "招生",
-        "学籍"
       ],
       "status": "ready",
       "version": 1,
@@ -97925,27 +97018,6 @@
       "updated_at": "2026-11-15T18:49:51"
     },
     {
-      "id": "b03a7b4e346c4750a70007db60f0f0c5",
-      "slug": "2021年高水平运动队签约与录取优惠",
-      "title": "2021年高水平运动队签约与录取优惠",
-      "summary": "学校与体育专项测试合格考生签订协议书，并按测试成绩确定A、B、C三类优惠等级，分别对应文化课单独考试、二本线65%和二本线录取要求。",
-      "body_md": "## 签订协议\n在体育专项测试的基础上，学校将根据各运动项目的需要，与测试合格的考生签订协议书。凡签订协议书的高水平运动员，须按照生源所在省份设立的高水平运动队批次填报志愿，否则将不予录取，并视为违约。\n\n## 优惠政策\n学校将根据考生参加体育专项测试项目及测试成绩确定优惠等级：\n\n- **A 类**：体育专项测试合格的国家一级及以上等级运动员，为一级运动员（文化课单独考试）等级，须参加国家体育总局统一组织的运动训练、武术与民族传统体育专业单独招生文化课考试，并且成绩达到学校划定的文化课考试成绩合格分数线，可不参加高考（必须高考报名），即予以录取。\n- **B 类**：体育专项测试成绩特别突出的考生，若其高考文化课成绩达到生源地 2021 年普通本科第二批次录取控制分数线的 65%，即予以录取。\n- **C 类**：体育专项测试成绩突出的考生，若其高考文化课成绩达到生源地 2021 年普通本科第二批次录取控制分数线，即予以录取。\n\n注：对于实施高考综合改革及合并本科批次的省份，按照教育部和各省相关规定执行。\n\n## 复查与管理\n新生入校三个月内，学校将对录取的高水平运动队新生进行材料复核和体育专业复测，凡发现弄虚作假者，将按教育部有关规定进行处理，直至取消入学资格。学生在校期间须认真参加并完成高水平运动队的训练和比赛，遵守运动队各项规定，未能达到训练要求的，将依照学校相关管理规定予以处理。",
-      "aliases": [
-        "运动队优惠政策",
-        "A类B类C类优惠",
-        "高水平运动队签约"
-      ],
-      "tags": [
-        "奖助学金",
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:49:52",
-      "updated_at": "2026-11-15T18:49:52"
-    },
-    {
       "id": "5da4bfa8c39a4bf291034f7d88786b02",
       "slug": "西北工业大学2021年省份分专业计划",
       "title": "西北工业大学2021年省份分专业计划",
@@ -98020,26 +97092,6 @@
       "source_count": 1,
       "created_at": "2026-11-15T18:49:59",
       "updated_at": "2026-11-15T18:49:59"
-    },
-    {
-      "id": "cad74224292c45429910290f14662c78",
-      "slug": "2020年第二学士学位选拔与录取",
-      "title": "2020年第二学士学位选拔与录取",
-      "summary": "2020年第二学士学位选拔含初审与笔试，笔试科目为政治、高等数学（各100分、各2小时），7月23日考试，按专业志愿优先、笔试成绩由高到低确定预录取名单。",
-      "body_md": "## 初审\n报名截止后，学校组织专家进行综合评审（对材料未按要求提交者不予审核），按照招生计划总规模不超过2倍比例择优确定参加笔试考核名单。初审结果将于2020年7月20日前在学校本科招生信息网上公布。初审合格考生登录报名系统打印准考证。\n\n## 笔试考核\n- 笔试科目：政治、高等数学（考试范围详见附件2考试大纲），满分各100分，考试时间各2小时。\n- 考试时间：2020年7月23日，上午9:30-11:30高等数学，下午15:00-17:00政治。\n- 具体事项请考生关注准考证注意事项及西北工业大学本科招生信息网公告。\n- 考生考试前须严格遵守学校本科招生信息网公布的有关2020年招生考试防疫要求。\n\n## 录取\n1. 学校依据分专业招生计划，遵循专业志愿优先的原则，按照笔试成绩由高到低顺序确定预录取名单并在本科招生信息网进行公示，公示无异议后发放录取通知书。\n2. 凡被录取的考生入学报到时需提供毕业证、学位证书原件，不能提供者学校将取消其入学资格。\n3. 新生报到后，参加学校统一组织的体检，体检不合格者，取消入学资格。\n\n## 其他要求\n- 申请材料必须真实有效，如发现伪造、变造、篡改、假冒户籍学籍等虚假个人信息和提供虚假申请材料，经查实后认定为作弊，取消报名和录取资格，并视情节轻重给予暂停参加各类国家教育考试1-3年的处理；已被录取或取得学籍的，取消其录取资格和学籍。\n- 监督和投诉电话：029-88493708。",
-      "aliases": [
-        "二学位笔试",
-        "第二学士学位录取"
-      ],
-      "tags": [
-        "学籍",
-        "招生入学"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:50:03",
-      "updated_at": "2026-11-15T18:50:03"
     },
     {
       "id": "f344c53f1ca747c98476fcd8e4a68d78",
@@ -98142,33 +97194,6 @@
       "source_count": 6,
       "created_at": "2026-11-15T18:50:38",
       "updated_at": "2026-11-15T18:54:36"
-    },
-    {
-      "id": "b06b3a04b937450994e508962602b69d",
-      "slug": "2019年自主招生考核与录取",
-      "title": "2019年自主招生考核与录取",
-      "summary": "该词条汇总西北工业大学2015年、2017年、2018年与2019年自主招生考核与录取信息：各年均面向初审合格考生组织考核，2015年、2017年、2018年考核为面试（分别于6月14日、6月12日、6月13日进行，前一日现场确认），2019年考核为体测和综合面试（均于6月12日在长安校区进行）；合格考生均须参加当年高",
-      "body_md": "## 资格初审\n对于已在阳光高考“特殊类型招生报名平台”完成报名的考生，我校将分学科组织专家对其申请材料进行初审。初审通过考生所提交的竞赛证书的名称、内容将在我校招生信息网站上详尽公示，公示无异议后获得考核资格并报送教育部“阳光高考”平台公示，考生可在 2019 年 4 月底自行查询，不再另发书面通知。通过我校资格初审的考生须在 5 月 15 日前登陆阳光高考“特殊类型招生报名平台”确认是否参加我校自主招生后续考核环节，没有完成确认的考生视为自动放弃，将不允许参加后续考核环节。\n\n## 考核程序\n我校对初审合格考生组织考核，考核过程全程录像。\n\n### 2019年考核形式\n考核形式为体测和综合面试，主要考察考生的学科特长、创新潜质、体质、逻辑思维能力、团队协作能力及写作与沟通能力等。\n\n#### 面试\n- 面试时间：2019 年 6 月 12 日\n- 面试地点：长安校区\n- 说明：面试的具体时间、地点及相关说明等详见报名系统中下载的准考证，请关注西北工业大学本科招生信息网发布的《2019 年自主招生测试考生须知》。\n\n#### 体测\n- 测试项目：体重指数（BMI）、肺活量、坐位体前屈、立定跳远、男生引体向上、女生1 分钟仰卧起坐，评分标准依据教育部印发的《国家学生体质健康标准(2014 年修订)》中高三毕业生评价指标执行。\n- 体测时间：2019 年 6 月 12 日\n- 体测地点：长安校区\n- 说明：体测的具体时间、地点及相关说明等详见报名系统中下载的准考证，体测结果作为自主招生资格认定的重要参考。\n\n### 2018年考核形式\n考核形式为面试，主要考察考生的学科特长、创新潜质、语言表达能力、逻辑思维能力及协调沟通能力等。符合报名条件D的考生需加试实际操作、制作技能等（需自带实物作品）。\n\n#### 现场确认\n- 时间：2018 年 6 月12 日（9:00-17:00）\n- 地点：西北工业大学友谊校区，研究生东馆319 室\n- 现场确认后发放面试资格证。\n\n#### 面试时间\n2018 年 6 月 13 日（具体时间及地点见面试资格证）。\n\n### 2017年考核形式\n考核形式为面试，主要考察考生的学科特长、创新潜质、语言表达能力、逻辑思维能力及协调沟通能力等。符合报名条件2的考生需加试实际操作（需自带实物作品）、制作技能等。\n\n#### 现场确认\n- 时间：2017 年 6 月 11 日（14:00-18:00）\n- 地点：西北工业大学友谊校区，研究生东馆319 室，现场确认后发放面试资格证。\n\n#### 面试\n- 时间：2017 年 6 月 12 日（具体时间及地点见面试资格证）。\n\n### 2015年考核形式\n考核形式为面试，主要考察考生的学科特长、创新潜质、语言表达能力、逻辑思维能力、协调沟通能力等。\n\n#### 现场确认\n- 时间：2015 年 6 月 13 日（14:00-18:00）\n- 地点：西北工业大学友谊校区，研究生东馆 319 室\n- 现场确认后发放面试资格证。\n\n#### 面试\n- 时间及地点：2015 年 6 月 14 日（具体时间及地点见面试资格证）。\n- 形式：学科特长考核+无领导小组讨论（创新意识等），每组学生面试时间 30 分钟。\n\n## 合格考生认定\n我校招生工作领导小组将依据考核结果，确定我校当年自主招生合格考生名单（2018年同时确定高考优惠等级），报考生所在省级招生主管机构备案，并在西北工业大学本科招生信息网和教育部阳光高考平台公示。2015年、2017年则由招生工作领导小组本着择优录取的原则确定合格人选名单及高考优惠等级。\n\n## 优惠政策与录取\n经认定的自主招生合格考生必须参加当年高考，且高考成绩达到生源地省份本科第一批次录取控制分数线上（对合并本科批次的省份，按相关省级教育行政部门或招生考试机构相关政策执行），按生源地省级招办（考试院）的统一安排和我校相关要求，在自主招生指定志愿位置填报公示专业对应的专业大类，可享受相应优惠政策。\n\n学校根据自主招生合格考生的自主招生志愿、高考成绩总分、经公示的优惠分值、入选专业和学校最终模拟投档线决定录取与否。学校最终模拟投档线由生源地省级招办按照第一批次本科招生所有高校在该省（区、市）最终确定的投档比例测算生成；对合并本科批次的省份，“第一批次",
-      "aliases": [
-        "自主招生面试",
-        "自主招生体测",
-        "自招考核",
-        "自招现场确认",
-        "自主招生优惠政策",
-        "自招优惠",
-        "自主招生录取优惠",
-        "自招优惠分值"
-      ],
-      "tags": [
-        "招生与入学",
-        "招生",
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 4,
-      "source_count": 4,
-      "created_at": "2026-11-15T18:50:44",
-      "updated_at": "2026-11-15T18:53:51"
     },
     {
       "id": "55523ee23e5b4924bc32d29f8fda58a2",
@@ -98605,25 +97630,6 @@
       "updated_at": "2026-11-15T18:52:56"
     },
     {
-      "id": "535a189106ca4c02810a7047513c0c03",
-      "slug": "筑梦计划考核与录取优惠",
-      "title": "筑梦计划考核与录取优惠",
-      "summary": "筑梦计划初审合格考生参加2015年6月16日数学、英语笔试，取得资格者高考成绩达模拟投档线下40分（江苏20分）且不低于当地一本线可按规定录取。",
-      "body_md": "## 考核程序\n我校对初审合格考生组织考核，考核形式为笔试。主要考察考生的学科特长，逻辑思维能力，语言表达能力等。\n\n- 笔试科目：数学和英语，考试时间均为2个小时。\n- 笔试时间：2015年6月16日（数学9:30-11:30，英语14:30-16:30）。\n- 考点：根据报名情况确定考点，届时请关注我校本科招生信息网公告。\n\n我校将依据考核结果，由我校招生工作领导小组本着择优录取的原则确定我校2015年“筑梦计划”合格人选名单及高考优惠等级，报考生所在省级招生主管机构备案，并在西北工业大学本科招生信息网和教育部“阳光高考”平台公示。\n\n## 优惠政策与录取\n取得我校“筑梦计划”资格的学生必须参加2015年高考，按生源地省级招办（考试院）的统一安排和我校要求填报农村学生单独招生计划志愿，可享受以下优惠政策：\n\n根据综合成绩排名（考核笔试成绩+初审成绩），达到我校在当地模拟投档线下40分（江苏20分，选考科目要求达到BB）且不得低于当地一本线，根据入选资格考生“筑梦计划”志愿、高考成绩总分、经公示的优惠分值、入选专业和学校模拟投档线决定录取与否。模拟投档线由生源地省级招办按照本科一批招生所有高校在该省（区、市）最终确定的投档比例测算生成。\n\n- 高考成绩达到我校在当地模拟提档线者，录取时保证志愿填报的第1个专业；\n- 高考成绩达到我校模拟投档线下40分（江苏省20分）以内者，录取时保证志愿填报的3个专业之一。\n\n## 监督与联系方式\n- 学校纪检监察部门负责监督“筑梦计划”全过程，监督电话：029-88493708。\n- 地址：西安市友谊西路127号招生办公室，邮编：710072；电话：029-88460206；传真：029-88492310；官方网站：http://zsb.nwpu.edu.cn。\n- 所有信息均通过试点高校自主招生报名系统和西北工业大学本科招生信息网发布，不再另行通知。",
-      "aliases": [
-        "筑梦计划笔试",
-        "筑梦计划优惠政策"
-      ],
-      "tags": [
-        "招生与入学"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:52:56",
-      "updated_at": "2026-11-15T18:52:56"
-    },
-    {
       "id": "75bf5493d4774e0d8a58708cc2969c2a",
       "slug": "2015年高水平运动员报名方式与现场确认",
       "title": "2015年高水平运动员报名方式与现场确认",
@@ -98632,26 +97638,6 @@
       "aliases": [
         "高水平运动员网上报名",
         "运动员测试现场确认"
-      ],
-      "tags": [
-        "招生",
-        "校园生活"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:52:58",
-      "updated_at": "2026-11-15T18:52:58"
-    },
-    {
-      "id": "18e252953bae4c848480451165e270f2",
-      "slug": "2015年高水平运动员测试安排与录取办法",
-      "title": "2015年高水平运动员测试安排与录取办法",
-      "summary": "2015年高水平运动员专项测试时间为2015年1月28日—29日上午，地点为长安校区翱翔体育馆、云天田径场及综合训练馆；测试合格的一级以上运动员（含一级）文化课考试时间为2015年1月30日。",
-      "body_md": "## 测试组织\n高水平运动员选拔和测试工作在学校招生领导小组领导下、在学校纪委监督下进行，学校成立高水平运动员测试专家组，针对考生的专项水平和综合素质等进行测试。\n\n## 专项测试安排\n- 时间：2015 年 1 月28 日—29 日上午\n- 地点：西北工业大学长安校区翱翔体育馆（篮球、排球、羽毛球）、云天田径场（田径）及综合训练馆（乒乓球）\n\n## 文化课考试\n测试合格的一级以上运动员（含一级）文化课考试时间为 2015 年 1 月 30 日，考场另行通知。\n\n## 录取办法\n在选拔测试的基础上，学校根据各运动项目的需要，综合考虑考生的体育测试成绩和学习成绩，按照教育部有关文件规定，与测试合格的考生签订协议书。凡签订协议书的高水平运动员，高考第一志愿(平行志愿第一顺位或 A 顺位)必须填报西北工业大学，我校将按照教育部有关规定予以录取。\n\n## 咨询方式\n- 招生办联系电话：029-88460206，88492310（传真）\n- 体育部联系人：高大海，联系电话：029-88494023，88493539\n- 咨询时间：8：30～11：00",
-      "aliases": [
-        "高水平运动员专项测试",
-        "运动员测试时间地点"
       ],
       "tags": [
         "招生",
@@ -98697,27 +97683,6 @@
       "source_count": 1,
       "created_at": "2026-11-15T18:53:25",
       "updated_at": "2026-11-15T18:53:25"
-    },
-    {
-      "id": "5e19b673798a43f994bdef5f5e89a135",
-      "slug": "高水平艺术团录取与志愿填报要求",
-      "title": "高水平艺术团录取与志愿填报要求",
-      "summary": "测试合格考生须签订协议书、参加省考（如有）、参加全国统一高考并按生源省份高水平艺术团批次填报志愿，否则不予录取并视为违约。",
-      "body_md": "## 概述\n参加西北工业大学高水平艺术团测试合格的考生，在高考录取时按教育部相关规定予以录取，但须满足以下要求。\n\n## 录取要求\n1. 自愿与我校签订《西北工业大学招收高水平艺术团协议书》，高考录取时根据教育部相关规定予以录取。\n2. 若所在省级招生考试机构有艺术特长统一测试（简称“省考”），考生必须参加省考并取得相应等级。\n3. 必须参加全国统一高考，须按照生源所在省份设立的高水平艺术团批次填报志愿（在未设立的省份则须第一志愿第一顺位或 A 顺位填报），否则将不予录取，并视为违约。\n4. 填报志愿时，所选专业为我校在生源省（市、区）投放招生计划的专业；若考生分数达到所获优惠等级规定的分数要求，我校按照该考生所填报的第一志愿专业录取。\n\n## 注意事项\n测试结果在 http://zsb.nwpu.edu.cn/ 公布。",
-      "aliases": [
-        "艺术团录取",
-        "艺术特长录取",
-        "高水平艺术团志愿填报"
-      ],
-      "tags": [
-        "奖助学金",
-        "学籍"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:54:12",
-      "updated_at": "2026-11-15T18:54:12"
     },
     {
       "id": "d76ebe148642462b9a26cd00b99fc2e3",
@@ -98830,27 +97795,6 @@
         "文特报名",
         "艺术特长生网上报名",
         "文特缴费"
-      ],
-      "tags": [
-        "招生",
-        "校园生活"
-      ],
-      "status": "ready",
-      "version": 1,
-      "source_count": 1,
-      "created_at": "2026-11-15T18:54:50",
-      "updated_at": "2026-11-15T18:54:50"
-    },
-    {
-      "id": "84297494961c43ce983ea53def4755dc",
-      "slug": "2015年艺术特长生考试与录取签约",
-      "title": "2015年艺术特长生考试与录取签约",
-      "summary": "2015年艺术特长生文化课考试于1月21日下午进行，专业测试1月23日上午开始，录取分一等、二等两种优惠等级并需签订协议书。",
-      "body_md": "## 文化课考试\n时间、地点：2015年1月21日下午（具体以准考证为准）。\n考试科目：数学、语文、英语。\n文化课测试合格名单将于2015年1月22日下午在西北工业大学招生信息网公布，文化课测试合格的考生方可参加艺术专业测试。\n\n## 艺术专业测试\n- 时间：2015年1月23日上午8:30开始。\n- 地点：西北工业大学长安校区（具体以22日公布信息为准）。\n- 内容：\n  1. 舞蹈类：表演自备舞蹈作品一个、即兴舞蹈、模仿、基本功、技巧展示。\n  2. 声乐类：演唱两首自选歌曲。\n  3. 表演主持类：主持——虚拟主持两个（主题自定、风格不同），即兴命题；表演——自备作品一个，即兴命题表演。\n  4. 器乐类：演奏自备乐曲一首，随机抽题试奏一首。\n\n## 录取及签约\n1. 录取优惠等级：文化课合格考生根据专业测试成绩确定以下两种等级之一择优录取。一等：测试成绩优秀者，高考分数达到当地一本线即予以录取；二等：测试成绩优良者，高考成绩达到我校在当地第一批次最终模拟投档线下20分以内且不低于第一批次录取控制分数线（江苏为10分）即予以录取。\n2. 测试合格的考生自愿与我校签订《西北工业大学招收艺术特长生协议书》，高考录取时根据教育部相关规定予以录取。\n3. 必须参加全国统一高考，且高考第一志愿（平行志愿第一志愿是指第一顺位或A顺位）必须填报西北工业大学（若所在省市区设置艺术特长生批次，须在该批次填报），否则不予录取并视为违约。\n4. 所选专业为我校在生源省（市、区）有招生计划的专业，按文化课成绩择优录取。\n\n## 注意事项\n- 专业测试时，所有考生自备乐器（钢琴除外）。舞蹈、声乐伴奏限MP3格式音频文件或CD伴奏光盘（不提供且不允许钢琴伴奏）。测试中，评委可视具体情况随时叫停。\n- 若所在省级招生考试机构有艺术特长生统一测试（“省考”），考生必须参加省考，合格者方可获得我校录取资格。\n- 录取的艺术特长生进校后即成为学校艺术团成员，须遵守《西北工业大学艺术特长生管理规定》，按时参加日常训练及演出比赛。\n\n## 联系方式\n电话：【招办】（029）88460206；【团委】（029）88430887。地址：西安市碑林区友谊西路127号西北工业大学，邮编：710072。",
-      "aliases": [
-        "文特考试",
-        "艺术特长生录取",
-        "文特签约"
       ],
       "tags": [
         "招生",
@@ -100717,7 +99661,7 @@
       "slug": "学校银行账户信息",
       "title": "学校银行账户信息",
       "summary": "西北工业大学开户银行信息及学费收费银行账户信息，含户名、账号与开户行。",
-      "body_md": "## 概述\n学校开户银行信息与学费收费银行账户信息。\n\n## 西北工业大学开户银行信息\n- 开户户名：西北工业大学\n- 银行账号：[已脱敏:银行卡/一卡通号]\n- 开户行：工行陕西省西安西工大支行\n\n## 学费收费银行账户信息\n- 户名：西北工业大学\n- 账号：611301130018000866283\n- 开户行：交行友谊西路支行",
+      "body_md": "## 概述\n学校开户银行信息与学费收费银行账户信息。\n\n## 西北工业大学开户银行信息\n- 开户户名：西北工业大学\n- 银行账号：[已脱敏:银行卡/一卡通号]\n- 开户行：工行陕西省西安西工大支行\n\n## 学费收费银行账户信息\n- 户名：西北工业大学\n- 账号：***\n- 开户行：交行友谊西路支行",
       "aliases": [
         "开户银行信息",
         "学费缴费账户",
@@ -100840,7 +99784,7 @@
       "slug": "学费收费与助学贷款账户",
       "title": "学费收费与助学贷款账户",
       "summary": "学校专用账户：学费收费银行账户为交行友谊西路支行，助学贷款账户为中行西工大支行济困助学专户。",
-      "body_md": "## 概述\n西北工业大学专用账户信息，包括学费收费银行账户与助学贷款账户。\n\n## 学费收费银行账户\n- 名称：西北工业大学\n- 开户行：交行友谊西路支行\n- 开户行行号：301791000186\n- 账号：611301130018000866283\n\n## 助学贷款账户\n- 名称：西北工业大学（资金性质：济困助学专户）\n- 开户行：中行西工大支行\n- 开户行行号：104791006018\n- 账号：102010169938\n\n> 来源：https://caiwu.nwpu.edu.cn/info/1023/2154.htm",
+      "body_md": "## 概述\n西北工业大学专用账户信息，包括学费收费银行账户与助学贷款账户。\n\n## 学费收费银行账户\n- 名称：西北工业大学\n- 开户行：交行友谊西路支行\n- 开户行行号：301791000186\n- 账号：***\n\n## 助学贷款账户\n- 名称：西北工业大学（资金性质：济困助学专户）\n- 开户行：中行西工大支行\n- 开户行行号：104791006018\n- 账号：102010169938\n\n> 来源：https://caiwu.nwpu.edu.cn/info/1023/2154.htm",
       "aliases": [
         "学费账户",
         "助学贷款账户",
@@ -122054,42 +120998,6 @@
       "section": "西北工业大学2015年本科招生章程",
       "quote": "地址：西安市友谊西路 127 号，710072 电话：029-88460206",
       "created_at": "2026-11-15T17:54:08"
-    },
-    {
-      "page_id": "9b9cf7b3855c48d2bb03c2639000518e",
-      "document_id": "b5bb55cca96e485d9c69745cdccd47cb",
-      "document_title": "西北工业大学2015年艺术特长生招生专业测试合格公告",
-      "source_file": "18e9d390beacdb2c6bc259e7f00c4ad5.md",
-      "section": "西北工业大学2015年艺术特长生招生专业测试合格公告",
-      "quote": "考生专业测试合格成绩不得低 于80 分 （满分100 分）",
-      "created_at": "2026-11-15T17:57:47"
-    },
-    {
-      "page_id": "a6faa6b28a4e4bac914734adc3eac4f1",
-      "document_id": "b5bb55cca96e485d9c69745cdccd47cb",
-      "document_title": "西北工业大学2015年艺术特长生招生专业测试合格公告",
-      "source_file": "18e9d390beacdb2c6bc259e7f00c4ad5.md",
-      "section": "西北工业大学2015年艺术特长生招生专业测试合格公告",
-      "quote": "确定各项目合格考生名单及优惠等级，现公告如下：",
-      "created_at": "2026-11-15T17:57:51"
-    },
-    {
-      "page_id": "f849a016fdcf455196664fbf2eedeb2e",
-      "document_id": "b5bb55cca96e485d9c69745cdccd47cb",
-      "document_title": "西北工业大学2015年艺术特长生招生专业测试合格公告",
-      "source_file": "18e9d390beacdb2c6bc259e7f00c4ad5.md",
-      "section": "西北工业大学2015年艺术特长生招生专业测试合格公告",
-      "quote": "合格考生于 1 月24 日 9:00 —12:00 时， 在我校友谊校区团 委办公室（东方红广场西侧爱生楼）签约，届时不再电话通知， 逾期不来签约视为放弃。",
-      "created_at": "2026-11-15T17:57:55"
-    },
-    {
-      "page_id": "13bcf995e76f48cc821e490173e5449a",
-      "document_id": "b5bb55cca96e485d9c69745cdccd47cb",
-      "document_title": "西北工业大学2015年艺术特长生招生专业测试合格公告",
-      "source_file": "18e9d390beacdb2c6bc259e7f00c4ad5.md",
-      "section": "西北工业大学2015年艺术特长生招生专业测试合格公告",
-      "quote": "根据教育部相关要求，我校后续将上报教育部阳光高考 平台，待阳光高考平台审核公布后，确定最终合格名单。",
-      "created_at": "2026-11-15T17:57:58"
     },
     {
       "page_id": "8f8b9b9e89f542d28e5857484afbdc33",
@@ -146631,7 +145539,7 @@
       "document_title": "增值税开票信息",
       "source_file": "b44d91188adbd4aad54d974264163214.md",
       "section": "增值税开票信息",
-      "quote": "学费收费银行账户信息 户 名：西北工业大学 账 号：611301130018000866283 开 户 行：交行友谊西路支行",
+      "quote": "学费收费银行账户信息 户 名：西北工业大学 账 号：*** 开 户 行：交行友谊西路支行",
       "created_at": "2026-11-15T18:56:30"
     },
     {
@@ -152112,32 +151020,12 @@
     },
     {
       "from_page_id": "747c4a5f0db743ed992a9b3797a23564",
-      "to_page_id": "4286336403e5469a80615b1603370a30",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "747c4a5f0db743ed992a9b3797a23564",
-      "to_page_id": "b94462b5e10e488d8373ba5800f6d8f0",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "4286336403e5469a80615b1603370a30",
-      "to_page_id": "747c4a5f0db743ed992a9b3797a23564",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "4286336403e5469a80615b1603370a30",
       "to_page_id": "b94462b5e10e488d8373ba5800f6d8f0",
       "relation": "related"
     },
     {
       "from_page_id": "b94462b5e10e488d8373ba5800f6d8f0",
       "to_page_id": "747c4a5f0db743ed992a9b3797a23564",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "b94462b5e10e488d8373ba5800f6d8f0",
-      "to_page_id": "4286336403e5469a80615b1603370a30",
       "relation": "related"
     },
     {
@@ -152158,26 +151046,6 @@
     {
       "from_page_id": "e7941fec94ad4af58b746011206400c3",
       "to_page_id": "8647005c62e641aa86b14957aa86c6c2",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "3ce9271d1e2c4caba83f5c7b0745578b",
-      "to_page_id": "e08e19d1e3c041c9a610885a4b876f37",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "e08e19d1e3c041c9a610885a4b876f37",
-      "to_page_id": "3ce9271d1e2c4caba83f5c7b0745578b",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "a5003909239f4187ba9876a8c5074f2d",
-      "to_page_id": "3ce9271d1e2c4caba83f5c7b0745578b",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "a5003909239f4187ba9876a8c5074f2d",
-      "to_page_id": "e08e19d1e3c041c9a610885a4b876f37",
       "relation": "related"
     },
     {
@@ -152626,28 +151494,8 @@
       "relation": "related"
     },
     {
-      "from_page_id": "f19149b43ae44adb9b06456b5195427b",
-      "to_page_id": "ad16eb93d8364cb4b1024aee5d41d26d",
-      "relation": "related"
-    },
-    {
       "from_page_id": "325e3c0a09e74bb595903f33819638f8",
       "to_page_id": "f19149b43ae44adb9b06456b5195427b",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "325e3c0a09e74bb595903f33819638f8",
-      "to_page_id": "ad16eb93d8364cb4b1024aee5d41d26d",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "ad16eb93d8364cb4b1024aee5d41d26d",
-      "to_page_id": "f19149b43ae44adb9b06456b5195427b",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "ad16eb93d8364cb4b1024aee5d41d26d",
-      "to_page_id": "325e3c0a09e74bb595903f33819638f8",
       "relation": "related"
     },
     {
@@ -152761,26 +151609,6 @@
       "relation": "related"
     },
     {
-      "from_page_id": "ad16eb93d8364cb4b1024aee5d41d26d",
-      "to_page_id": "db37ae402fda4607b867e7721a96b6d3",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "ad16eb93d8364cb4b1024aee5d41d26d",
-      "to_page_id": "73c41f7ceec645ba906219bbe20e2c48",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "db37ae402fda4607b867e7721a96b6d3",
-      "to_page_id": "73c41f7ceec645ba906219bbe20e2c48",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "73c41f7ceec645ba906219bbe20e2c48",
-      "to_page_id": "db37ae402fda4607b867e7721a96b6d3",
-      "relation": "related"
-    },
-    {
       "from_page_id": "1a036c618ea44b6ca29ba2b738ec13ea",
       "to_page_id": "b742e4e2ce9c4043a88cd5b3ca23f6c2",
       "relation": "related"
@@ -152818,16 +151646,6 @@
     {
       "from_page_id": "81c248f7a7724281bd1fd31b270a90b7",
       "to_page_id": "249339deb0954e4e854e9441c1b2d8cc",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "5b09e81250b049249363c583f99f9d8b",
-      "to_page_id": "bb4efdb659b4452e8f537ec9c5ba8732",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "bb4efdb659b4452e8f537ec9c5ba8732",
-      "to_page_id": "5b09e81250b049249363c583f99f9d8b",
       "relation": "related"
     },
     {
@@ -155136,22 +153954,7 @@
       "relation": "related"
     },
     {
-      "from_page_id": "e14b02aa77294c40b8f3acadac09f917",
-      "to_page_id": "5eaefab4656e466490dd23318b643997",
-      "relation": "related"
-    },
-    {
       "from_page_id": "4cd04aab044b4926a703793d02b622f9",
-      "to_page_id": "e14b02aa77294c40b8f3acadac09f917",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "4cd04aab044b4926a703793d02b622f9",
-      "to_page_id": "5eaefab4656e466490dd23318b643997",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "5eaefab4656e466490dd23318b643997",
       "to_page_id": "e14b02aa77294c40b8f3acadac09f917",
       "relation": "related"
     },
@@ -155251,11 +154054,6 @@
       "relation": "related"
     },
     {
-      "from_page_id": "ad16eb93d8364cb4b1024aee5d41d26d",
-      "to_page_id": "856df66e97a84922869c64db9fb069da",
-      "relation": "related"
-    },
-    {
       "from_page_id": "0e5f74ac1fd648a59961dbfd4a743a1e",
       "to_page_id": "dad20d41df9542f6b82107c7ffbfe826",
       "relation": "related"
@@ -155268,16 +154066,6 @@
     {
       "from_page_id": "fcbb2f77463740aa8d920b092f981e67",
       "to_page_id": "85e61d6c5af54877b725a915ff9091c2",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "e52cb64aa6f24982a2c53aded9167320",
-      "to_page_id": "85e61d6c5af54877b725a915ff9091c2",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "e52cb64aa6f24982a2c53aded9167320",
-      "to_page_id": "fcbb2f77463740aa8d920b092f981e67",
       "relation": "related"
     },
     {
@@ -155418,11 +154206,6 @@
     {
       "from_page_id": "5dad3fc12e9744c69038ddbcf01c6da2",
       "to_page_id": "fc318ae9ffd1435389fe01c33a67bece",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "507aa678d3da4cfaa8ecb42d4fea764a",
-      "to_page_id": "962ce27f46134f768d6bd819073cde4d",
       "relation": "related"
     },
     {
@@ -155801,28 +154584,8 @@
       "relation": "related"
     },
     {
-      "from_page_id": "8cc29f1a41e0467eb405c0bed1c69b67",
-      "to_page_id": "644cd972e8de4c5d907dac91f957f58d",
-      "relation": "related"
-    },
-    {
       "from_page_id": "1476d83ae73b47378bac243810f9b27b",
       "to_page_id": "8cc29f1a41e0467eb405c0bed1c69b67",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "1476d83ae73b47378bac243810f9b27b",
-      "to_page_id": "644cd972e8de4c5d907dac91f957f58d",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "644cd972e8de4c5d907dac91f957f58d",
-      "to_page_id": "8cc29f1a41e0467eb405c0bed1c69b67",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "644cd972e8de4c5d907dac91f957f58d",
-      "to_page_id": "1476d83ae73b47378bac243810f9b27b",
       "relation": "related"
     },
     {
@@ -155916,28 +154679,8 @@
       "relation": "related"
     },
     {
-      "from_page_id": "c582ef1b7ec746f89cc41571e49b1ac8",
-      "to_page_id": "02640631df954579ab04352779d566c6",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "c582ef1b7ec746f89cc41571e49b1ac8",
-      "to_page_id": "3ccb5de27b7a4220bff558a9644a7c92",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "02640631df954579ab04352779d566c6",
-      "to_page_id": "c582ef1b7ec746f89cc41571e49b1ac8",
-      "relation": "related"
-    },
-    {
       "from_page_id": "02640631df954579ab04352779d566c6",
       "to_page_id": "3ccb5de27b7a4220bff558a9644a7c92",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "3ccb5de27b7a4220bff558a9644a7c92",
-      "to_page_id": "c582ef1b7ec746f89cc41571e49b1ac8",
       "relation": "related"
     },
     {
@@ -156078,11 +154821,6 @@
     {
       "from_page_id": "1476d83ae73b47378bac243810f9b27b",
       "to_page_id": "3d3bb2058a624a3581ec471ea1e6534d",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "4a67fbd6c79843c2bd7e6675eeccf674",
-      "to_page_id": "6547b2ec08a94a88b6f86a249c68da30",
       "relation": "related"
     },
     {
@@ -156687,37 +155425,12 @@
     },
     {
       "from_page_id": "3223422a36e742e69f4973baac200f71",
-      "to_page_id": "79871a789dd543979382b6e09145a70c",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "3223422a36e742e69f4973baac200f71",
-      "to_page_id": "d6a77b75e5cd4af8a30b40e78120b10a",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "79871a789dd543979382b6e09145a70c",
-      "to_page_id": "3223422a36e742e69f4973baac200f71",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "79871a789dd543979382b6e09145a70c",
       "to_page_id": "d6a77b75e5cd4af8a30b40e78120b10a",
       "relation": "related"
     },
     {
       "from_page_id": "d6a77b75e5cd4af8a30b40e78120b10a",
       "to_page_id": "3223422a36e742e69f4973baac200f71",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "d6a77b75e5cd4af8a30b40e78120b10a",
-      "to_page_id": "79871a789dd543979382b6e09145a70c",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "a6bae86458a64666a9745a91f5e03329",
-      "to_page_id": "825755c2e3ec4b0fbc83a8d061b3b851",
       "relation": "related"
     },
     {
@@ -156766,38 +155479,8 @@
       "relation": "related"
     },
     {
-      "from_page_id": "d2067e35632a4d3bbdcb19cc2944a963",
-      "to_page_id": "952463e4dc5c47c1a00387ee011285fe",
-      "relation": "related"
-    },
-    {
       "from_page_id": "9fc9565fb5124b768c12c56e3943bc9c",
       "to_page_id": "d2067e35632a4d3bbdcb19cc2944a963",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "9fc9565fb5124b768c12c56e3943bc9c",
-      "to_page_id": "952463e4dc5c47c1a00387ee011285fe",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "952463e4dc5c47c1a00387ee011285fe",
-      "to_page_id": "9fc9565fb5124b768c12c56e3943bc9c",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "952463e4dc5c47c1a00387ee011285fe",
-      "to_page_id": "d2067e35632a4d3bbdcb19cc2944a963",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "14e0b919cbd34a11a76a9ee120e2f0f7",
-      "to_page_id": "8f8b9b9e89f542d28e5857484afbdc33",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "8f8b9b9e89f542d28e5857484afbdc33",
-      "to_page_id": "14e0b919cbd34a11a76a9ee120e2f0f7",
       "relation": "related"
     },
     {
@@ -157596,11 +156279,6 @@
       "relation": "related"
     },
     {
-      "from_page_id": "a6bae86458a64666a9745a91f5e03329",
-      "to_page_id": "8a9dddc1f4bc49d6988edef0923b86a4",
-      "relation": "related"
-    },
-    {
       "from_page_id": "a338d073c11547d29fce8514007dfd8c",
       "to_page_id": "3251bf7f679a44e6bf9c02284478bd82",
       "relation": "related"
@@ -157781,11 +156459,6 @@
       "relation": "related"
     },
     {
-      "from_page_id": "b94462b5e10e488d8373ba5800f6d8f0",
-      "to_page_id": "8f8b9b9e89f542d28e5857484afbdc33",
-      "relation": "related"
-    },
-    {
       "from_page_id": "14e0b919cbd34a11a76a9ee120e2f0f7",
       "to_page_id": "52bbf69f933f4242a13445d80f888778",
       "relation": "related"
@@ -157806,48 +156479,18 @@
       "relation": "related"
     },
     {
-      "from_page_id": "8f8b9b9e89f542d28e5857484afbdc33",
-      "to_page_id": "6a297748476f4182aeab079d8e5a78b5",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "6a297748476f4182aeab079d8e5a78b5",
-      "to_page_id": "8f8b9b9e89f542d28e5857484afbdc33",
-      "relation": "related"
-    },
-    {
       "from_page_id": "038fe492f9844fc8bff83e590c32b33f",
       "to_page_id": "52bbf69f933f4242a13445d80f888778",
       "relation": "related"
     },
     {
       "from_page_id": "cc5e5ef28ff04b4598226b5c25a9412f",
-      "to_page_id": "efdf7749c574414f827ac5eb433bd967",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "cc5e5ef28ff04b4598226b5c25a9412f",
-      "to_page_id": "b327e53d0a1b428ababb0a522a52ecf3",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "efdf7749c574414f827ac5eb433bd967",
-      "to_page_id": "cc5e5ef28ff04b4598226b5c25a9412f",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "efdf7749c574414f827ac5eb433bd967",
       "to_page_id": "b327e53d0a1b428ababb0a522a52ecf3",
       "relation": "related"
     },
     {
       "from_page_id": "b327e53d0a1b428ababb0a522a52ecf3",
       "to_page_id": "cc5e5ef28ff04b4598226b5c25a9412f",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "b327e53d0a1b428ababb0a522a52ecf3",
-      "to_page_id": "efdf7749c574414f827ac5eb433bd967",
       "relation": "related"
     },
     {
@@ -157856,52 +156499,7 @@
       "relation": "related"
     },
     {
-      "from_page_id": "8f8b9b9e89f542d28e5857484afbdc33",
-      "to_page_id": "a471bdf8ba2e46bf900683c79e7d0c30",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "d9f67820f071466fbe145d77dbb6870b",
-      "to_page_id": "8f8b9b9e89f542d28e5857484afbdc33",
-      "relation": "related"
-    },
-    {
       "from_page_id": "cc5e5ef28ff04b4598226b5c25a9412f",
-      "to_page_id": "097212f2bfa94c28b79c7c119b353a1a",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "cc5e5ef28ff04b4598226b5c25a9412f",
-      "to_page_id": "52bbf69f933f4242a13445d80f888778",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "097212f2bfa94c28b79c7c119b353a1a",
-      "to_page_id": "52bbf69f933f4242a13445d80f888778",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "52bbf69f933f4242a13445d80f888778",
-      "to_page_id": "097212f2bfa94c28b79c7c119b353a1a",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "a6faa6b28a4e4bac914734adc3eac4f1",
-      "to_page_id": "a9dc953dee674071b2ebaea6e0aa2130",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "a6faa6b28a4e4bac914734adc3eac4f1",
-      "to_page_id": "9b9cf7b3855c48d2bb03c2639000518e",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "13bcf995e76f48cc821e490173e5449a",
-      "to_page_id": "f849a016fdcf455196664fbf2eedeb2e",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "8f8b9b9e89f542d28e5857484afbdc33",
       "to_page_id": "52bbf69f933f4242a13445d80f888778",
       "relation": "related"
     },
@@ -158268,26 +156866,6 @@
     {
       "from_page_id": "103035568f0a44ed956bcdf339c68b48",
       "to_page_id": "19fc5ae7101e4184a40cbbcb8f550a91",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "3ce9271d1e2c4caba83f5c7b0745578b",
-      "to_page_id": "abcda85ba1074bb7b8d86b7ce6e6f836",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "3ce9271d1e2c4caba83f5c7b0745578b",
-      "to_page_id": "606b1205e2df4d108185a6c0d1961af2",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "abcda85ba1074bb7b8d86b7ce6e6f836",
-      "to_page_id": "606b1205e2df4d108185a6c0d1961af2",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "606b1205e2df4d108185a6c0d1961af2",
-      "to_page_id": "abcda85ba1074bb7b8d86b7ce6e6f836",
       "relation": "related"
     },
     {
@@ -162041,16 +160619,6 @@
       "relation": "related"
     },
     {
-      "from_page_id": "84a7f62c493146ed9cb1eb743dfa96a3",
-      "to_page_id": "a5a3295cf6ac470598535f005a4ea17a",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "a5a3295cf6ac470598535f005a4ea17a",
-      "to_page_id": "84a7f62c493146ed9cb1eb743dfa96a3",
-      "relation": "related"
-    },
-    {
       "from_page_id": "6f229a6c07d741d0a216c7352d4601a6",
       "to_page_id": "4edf0681866844028e6d36bd0fbf96c1",
       "relation": "related"
@@ -162143,16 +160711,6 @@
     {
       "from_page_id": "343876bc5b13428789368de27b6b094f",
       "to_page_id": "767f2ffd5c854b7d9b39f315bbdbb25b",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "c9886d6f98024522977a8984e2635674",
-      "to_page_id": "2d415a090a24483aa714f9cf5a666514",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "2d415a090a24483aa714f9cf5a666514",
-      "to_page_id": "c9886d6f98024522977a8984e2635674",
       "relation": "related"
     },
     {
@@ -162478,11 +161036,6 @@
     {
       "from_page_id": "e9cb1e87f53c4a67b3aa67f51f12deb1",
       "to_page_id": "a2ecd0b1a4aa4871ac4021e48f8b117c",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "aac16e55b9cf416b9a819ae903606775",
-      "to_page_id": "d777c1907a6b45458cff70dc1976e576",
       "relation": "related"
     },
     {
@@ -163098,16 +161651,6 @@
     {
       "from_page_id": "4e5cb8f78d554ed3a50c25fafe96a390",
       "to_page_id": "4c86b0bdebe14932a6243d055e149c41",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "fd9ce5d125b5482ba86220bb174a9165",
-      "to_page_id": "245f7ce95b54416f9bd1b4008e14e070",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "245f7ce95b54416f9bd1b4008e14e070",
-      "to_page_id": "fd9ce5d125b5482ba86220bb174a9165",
       "relation": "related"
     },
     {
@@ -164427,32 +162970,12 @@
     },
     {
       "from_page_id": "35473ce9ebb340b985a97edc51f31d10",
-      "to_page_id": "f7812c8cdf604c27850463c166338b48",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "35473ce9ebb340b985a97edc51f31d10",
-      "to_page_id": "710bb9c6afcc4c10a9b7e9afe105a601",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "f7812c8cdf604c27850463c166338b48",
-      "to_page_id": "35473ce9ebb340b985a97edc51f31d10",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "f7812c8cdf604c27850463c166338b48",
       "to_page_id": "710bb9c6afcc4c10a9b7e9afe105a601",
       "relation": "related"
     },
     {
       "from_page_id": "710bb9c6afcc4c10a9b7e9afe105a601",
       "to_page_id": "35473ce9ebb340b985a97edc51f31d10",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "710bb9c6afcc4c10a9b7e9afe105a601",
-      "to_page_id": "f7812c8cdf604c27850463c166338b48",
       "relation": "related"
     },
     {
@@ -166071,28 +164594,8 @@
       "relation": "related"
     },
     {
-      "from_page_id": "abc1175bb2104112a7c43b391fbf709f",
-      "to_page_id": "8c67bdf1948049e390aa4c18254c5ef2",
-      "relation": "related"
-    },
-    {
       "from_page_id": "b977a4774f5747ea8f3154f8da3856e1",
       "to_page_id": "abc1175bb2104112a7c43b391fbf709f",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "b977a4774f5747ea8f3154f8da3856e1",
-      "to_page_id": "8c67bdf1948049e390aa4c18254c5ef2",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "8c67bdf1948049e390aa4c18254c5ef2",
-      "to_page_id": "abc1175bb2104112a7c43b391fbf709f",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "8c67bdf1948049e390aa4c18254c5ef2",
-      "to_page_id": "b977a4774f5747ea8f3154f8da3856e1",
       "relation": "related"
     },
     {
@@ -166556,43 +165059,13 @@
       "relation": "related"
     },
     {
-      "from_page_id": "d4be1408dd09458c85580b51d3433f72",
-      "to_page_id": "b031134a9ea148a288a75c677ff44a57",
-      "relation": "related"
-    },
-    {
       "from_page_id": "9cd2fb46593045ebba0e3ad2c340cf81",
       "to_page_id": "d4be1408dd09458c85580b51d3433f72",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "9cd2fb46593045ebba0e3ad2c340cf81",
-      "to_page_id": "b031134a9ea148a288a75c677ff44a57",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "b031134a9ea148a288a75c677ff44a57",
-      "to_page_id": "d4be1408dd09458c85580b51d3433f72",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "b031134a9ea148a288a75c677ff44a57",
-      "to_page_id": "9cd2fb46593045ebba0e3ad2c340cf81",
       "relation": "related"
     },
     {
       "from_page_id": "aba5e607a4bd4b67b7f9ec38d56ad092",
       "to_page_id": "4528bffad81643469764150e9e237367",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "131bb09c8f144836b3214bf4836baec1",
-      "to_page_id": "b84eeb1eb3e54108a90ac77fb010e9b7",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "9cd2fb46593045ebba0e3ad2c340cf81",
-      "to_page_id": "b84eeb1eb3e54108a90ac77fb010e9b7",
       "relation": "related"
     },
     {
@@ -166602,11 +165075,6 @@
     },
     {
       "from_page_id": "b191208ee9884e85ae8c8c1ab2d34097",
-      "to_page_id": "7751b846b28843aa8b91257c4193c2f5",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "a6bae86458a64666a9745a91f5e03329",
       "to_page_id": "7751b846b28843aa8b91257c4193c2f5",
       "relation": "related"
     },
@@ -166632,11 +165100,6 @@
     },
     {
       "from_page_id": "d6a77b75e5cd4af8a30b40e78120b10a",
-      "to_page_id": "3b9145b9fd90421a979b0ca5423ce4c2",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "79871a789dd543979382b6e09145a70c",
       "to_page_id": "3b9145b9fd90421a979b0ca5423ce4c2",
       "relation": "related"
     },
@@ -166696,11 +165159,6 @@
       "relation": "related"
     },
     {
-      "from_page_id": "131bb09c8f144836b3214bf4836baec1",
-      "to_page_id": "5f1ed6baf27a4e4d969546595114038f",
-      "relation": "related"
-    },
-    {
       "from_page_id": "5f1ed6baf27a4e4d969546595114038f",
       "to_page_id": "39c3bc2ebe3a47eab8221cf4797d3d78",
       "relation": "related"
@@ -166713,21 +165171,6 @@
     {
       "from_page_id": "8b2337d11fb54fb9a878b3e2520a66ca",
       "to_page_id": "39c3bc2ebe3a47eab8221cf4797d3d78",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "131bb09c8f144836b3214bf4836baec1",
-      "to_page_id": "0e60c0460372478b9ca831b653b42fd1",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "0e60c0460372478b9ca831b653b42fd1",
-      "to_page_id": "131bb09c8f144836b3214bf4836baec1",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "9cd2fb46593045ebba0e3ad2c340cf81",
-      "to_page_id": "131bb09c8f144836b3214bf4836baec1",
       "relation": "related"
     },
     {
@@ -166766,62 +165209,12 @@
       "relation": "related"
     },
     {
-      "from_page_id": "c45197be8c3742aaa30df0a2f02ea8c6",
-      "to_page_id": "4e22a86875af4f6e9519f43057055142",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "f1b93f90c562421fb65ae9d780ba86ff",
-      "to_page_id": "7a9f1b8ca60e41f3a65fbee46a83f706",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "2707b728c8d248888f79b63b00739f18",
-      "to_page_id": "7a9f1b8ca60e41f3a65fbee46a83f706",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "13bcf995e76f48cc821e490173e5449a",
-      "to_page_id": "9969c960bca744e392135a70e6f60748",
-      "relation": "related"
-    },
-    {
       "from_page_id": "9016ba70d37c4a808830584a7c3aa5ba",
       "to_page_id": "f43dfad5aec14fe6adf3cffbce024747",
       "relation": "related"
     },
     {
-      "from_page_id": "9016ba70d37c4a808830584a7c3aa5ba",
-      "to_page_id": "aa01e577cab5463386c9de7503fd7631",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "f43dfad5aec14fe6adf3cffbce024747",
-      "to_page_id": "aa01e577cab5463386c9de7503fd7631",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "aa01e577cab5463386c9de7503fd7631",
-      "to_page_id": "f43dfad5aec14fe6adf3cffbce024747",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "2d96b7c4c03442f3aa91744496f34422",
-      "to_page_id": "b03a7b4e346c4750a70007db60f0f0c5",
-      "relation": "related"
-    },
-    {
       "from_page_id": "2707b728c8d248888f79b63b00739f18",
-      "to_page_id": "2d96b7c4c03442f3aa91744496f34422",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "2707b728c8d248888f79b63b00739f18",
-      "to_page_id": "b03a7b4e346c4750a70007db60f0f0c5",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "b03a7b4e346c4750a70007db60f0f0c5",
       "to_page_id": "2d96b7c4c03442f3aa91744496f34422",
       "relation": "related"
     },
@@ -166896,21 +165289,6 @@
       "relation": "related"
     },
     {
-      "from_page_id": "6f4ba42d79b145efb2dcb7675e829306",
-      "to_page_id": "cad74224292c45429910290f14662c78",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "13bcf995e76f48cc821e490173e5449a",
-      "to_page_id": "f344c53f1ca747c98476fcd8e4a68d78",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "b84eeb1eb3e54108a90ac77fb010e9b7",
-      "to_page_id": "131bb09c8f144836b3214bf4836baec1",
-      "relation": "related"
-    },
-    {
       "from_page_id": "f023998294614f2490968ee81db92f5a",
       "to_page_id": "8597456559cf42b2919c1b5083fa8f7b",
       "relation": "related"
@@ -166921,27 +165299,7 @@
       "relation": "related"
     },
     {
-      "from_page_id": "13bcf995e76f48cc821e490173e5449a",
-      "to_page_id": "f023998294614f2490968ee81db92f5a",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "8fb44403479b4882be64fab017e1b7db",
-      "to_page_id": "b06b3a04b937450994e508962602b69d",
-      "relation": "related"
-    },
-    {
       "from_page_id": "9cd2fb46593045ebba0e3ad2c340cf81",
-      "to_page_id": "8fb44403479b4882be64fab017e1b7db",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "9cd2fb46593045ebba0e3ad2c340cf81",
-      "to_page_id": "b06b3a04b937450994e508962602b69d",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "b06b3a04b937450994e508962602b69d",
       "to_page_id": "8fb44403479b4882be64fab017e1b7db",
       "relation": "related"
     },
@@ -166966,16 +165324,6 @@
       "relation": "related"
     },
     {
-      "from_page_id": "b3e5c2cf4f0e42dba8ddeb74425baa4a",
-      "to_page_id": "c9e727330da34e4891edbffc4e76f5f7",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "13bcf995e76f48cc821e490173e5449a",
-      "to_page_id": "c9e727330da34e4891edbffc4e76f5f7",
-      "relation": "related"
-    },
-    {
       "from_page_id": "d2a92a9c58074353a238fb1c303c79dc",
       "to_page_id": "9b8ad256539f448f96d201ffbc110c4b",
       "relation": "related"
@@ -166988,11 +165336,6 @@
     {
       "from_page_id": "7751b846b28843aa8b91257c4193c2f5",
       "to_page_id": "d2a92a9c58074353a238fb1c303c79dc",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "131bb09c8f144836b3214bf4836baec1",
-      "to_page_id": "0a43da9394824e99a84982eaaf218bb7",
       "relation": "related"
     },
     {
@@ -167017,16 +165360,6 @@
     },
     {
       "from_page_id": "da74ceb4f41d4f9885d808c7d08f14b8",
-      "to_page_id": "08d31a1d361a4793b1f1e5c490927b3d",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "b3e5c2cf4f0e42dba8ddeb74425baa4a",
-      "to_page_id": "da74ceb4f41d4f9885d808c7d08f14b8",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "b3e5c2cf4f0e42dba8ddeb74425baa4a",
       "to_page_id": "08d31a1d361a4793b1f1e5c490927b3d",
       "relation": "related"
     },
@@ -167071,17 +165404,7 @@
       "relation": "related"
     },
     {
-      "from_page_id": "13bcf995e76f48cc821e490173e5449a",
-      "to_page_id": "258a4feda1b045218e18cdb20c4ddeb7",
-      "relation": "related"
-    },
-    {
       "from_page_id": "8fb44403479b4882be64fab017e1b7db",
-      "to_page_id": "21d2c170ce8d45d0aca0e16c077f7520",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "b06b3a04b937450994e508962602b69d",
       "to_page_id": "21d2c170ce8d45d0aca0e16c077f7520",
       "relation": "related"
     },
@@ -167121,57 +165444,12 @@
       "relation": "related"
     },
     {
-      "from_page_id": "131bb09c8f144836b3214bf4836baec1",
-      "to_page_id": "e70ec756e61c4546ab829dd4a107024f",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "131bb09c8f144836b3214bf4836baec1",
-      "to_page_id": "893481464abe476594600c261182eb88",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "131bb09c8f144836b3214bf4836baec1",
-      "to_page_id": "535a189106ca4c02810a7047513c0c03",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "893481464abe476594600c261182eb88",
-      "to_page_id": "535a189106ca4c02810a7047513c0c03",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "535a189106ca4c02810a7047513c0c03",
-      "to_page_id": "893481464abe476594600c261182eb88",
-      "relation": "related"
-    },
-    {
       "from_page_id": "6d35635d916f4b30afce3ca4664065de",
-      "to_page_id": "75bf5493d4774e0d8a58708cc2969c2a",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "6d35635d916f4b30afce3ca4664065de",
-      "to_page_id": "18e252953bae4c848480451165e270f2",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "75bf5493d4774e0d8a58708cc2969c2a",
-      "to_page_id": "18e252953bae4c848480451165e270f2",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "18e252953bae4c848480451165e270f2",
       "to_page_id": "75bf5493d4774e0d8a58708cc2969c2a",
       "relation": "related"
     },
     {
       "from_page_id": "825755c2e3ec4b0fbc83a8d061b3b851",
-      "to_page_id": "52bbf69f933f4242a13445d80f888778",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "a6bae86458a64666a9745a91f5e03329",
       "to_page_id": "52bbf69f933f4242a13445d80f888778",
       "relation": "related"
     },
@@ -167183,21 +165461,6 @@
     {
       "from_page_id": "8b2337d11fb54fb9a878b3e2520a66ca",
       "to_page_id": "37e8bcd940604309857fa2b9df319cf5",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "5e19b673798a43f994bdef5f5e89a135",
-      "to_page_id": "d76ebe148642462b9a26cd00b99fc2e3",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "d76ebe148642462b9a26cd00b99fc2e3",
-      "to_page_id": "5e19b673798a43f994bdef5f5e89a135",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "52bbf69f933f4242a13445d80f888778",
-      "to_page_id": "5e19b673798a43f994bdef5f5e89a135",
       "relation": "related"
     },
     {
@@ -167227,21 +165490,6 @@
     },
     {
       "from_page_id": "6ae31711cc0d44e081b783de5a468933",
-      "to_page_id": "1db2f52b35d6489d99894b87de45f8d0",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "6ae31711cc0d44e081b783de5a468933",
-      "to_page_id": "84297494961c43ce983ea53def4755dc",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "1db2f52b35d6489d99894b87de45f8d0",
-      "to_page_id": "84297494961c43ce983ea53def4755dc",
-      "relation": "related"
-    },
-    {
-      "from_page_id": "84297494961c43ce983ea53def4755dc",
       "to_page_id": "1db2f52b35d6489d99894b87de45f8d0",
       "relation": "related"
     },
