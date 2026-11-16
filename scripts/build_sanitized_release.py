@@ -31,12 +31,7 @@ PHONE_SPACED = re.compile(r"(?<![0-9A-Za-z])1[3-9]\d(?:[\s-]?\d{4}){2}(?![0-9A-Z
 ID_CARD = re.compile(r"(?<![0-9A-Za-z])\d{17}[\dXx](?![0-9A-Za-z])")
 ID_SPACED = re.compile(r"(?<![0-9A-Za-z])\d{6}(?:[\s-]?\d{4}){2}[\s-]?\d{3}[\dXx](?![0-9A-Za-z])")
 EMAIL = re.compile(r"([A-Za-z0-9._%+-]+)@([A-Za-z0-9.-]+\.[A-Za-z]{2,})")
-CONTACT = re.compile(r"(联系人|负责人|咨询人|联系人电话)(\s*[：:]\s*)([\u4e00-\u9fa5]{2,4})")
 LONG_NUMBER = re.compile(r"(?<![0-9A-Za-z])\d{16,19}(?![0-9A-Za-z])")
-NAME_ROLE = re.compile(r"([\u4e00-\u9fa5]{2,3})(老师|辅导员|主任|科长|律师|教授|副教授)")
-ROLE_NAME = re.compile(r"(辅导员|班主任|老师|教授|副教授|院长|副院长|书记|主任|副主任|秘书|科长|处长|团委书记|学工主管)(?!工作|职责|队伍|办公室|助理|岗位|制度|培训|会议)([\u4e00-\u9fa5]{2,3})")
-CREDIT_LIST = re.compile(r"(审核|编辑|文字|图片|摄影|撰稿|作者|责编|排版|收集|校对)[：:]\s*([\u4e00-\u9fa5、，, ]{2,60})")
-PEOPLE_LIST = re.compile(r"(人员|成员|名单)[：:]\s*([\u4e00-\u9fa5、，, ]{2,60})")
 
 
 def sanitize(text: str) -> tuple[str, Counter]:
@@ -53,9 +48,6 @@ def sanitize(text: str) -> tuple[str, Counter]:
             return match.group(0)
         counts["email"] += 1
         return f"***@{domain}"
-    def contact(match: re.Match) -> str:
-        counts["name"] += 1
-        return f"{match.group(1)}{match.group(2)}***"
     def longnum(match: re.Match) -> str:
         counts["long_number"] += 1
         return "***"
@@ -68,21 +60,7 @@ def sanitize(text: str) -> tuple[str, Counter]:
     value = ID_SPACED.sub(idcard, value)
     value = ID_CARD.sub(idcard, value)
     value = EMAIL.sub(email, value)
-    value = CONTACT.sub(contact, value)
     value = LONG_NUMBER.sub(longnum, value)
-    def name_role(match: re.Match) -> str:
-        counts["name"] += 1
-        return f"***{match.group(2)}"
-    value = NAME_ROLE.sub(name_role, value)
-    def role_name(match: re.Match) -> str:
-        counts["name"] += 1
-        return f"{match.group(1)}***"
-    def credit_list(match: re.Match) -> str:
-        counts["name"] += 1
-        return f"{match.group(1)}：***"
-    value = ROLE_NAME.sub(role_name, value)
-    value = CREDIT_LIST.sub(credit_list, value)
-    value = PEOPLE_LIST.sub(credit_list, value)
     return value, counts
 
 

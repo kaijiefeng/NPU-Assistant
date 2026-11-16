@@ -19,8 +19,8 @@
 `scripts/build_sanitized_release.py` 生成可公开的 `wiki_seed.json` 与 `seed_docs/`：
 
 - 名单/成绩类文档整篇剔除；
-- 手机号、身份证号、个人邮箱、联系人/署名姓名打码；
-- 办公邮箱（`@nwpu.edu.cn`）保留；
+- 手机号、身份证号、个人邮箱、超长数字打码；
+- 办公邮箱（`@nwpu.edu.cn`）、办公座机与公开办公人员/联系人姓名保留（用于回答“找谁办/联系方式”）；
 - PDF/DOC/DOCX 等二进制原件不进入发布包。
 
 详见 [SOURCE-PROVENANCE-AUDIT.md](SOURCE-PROVENANCE-AUDIT.md)。
