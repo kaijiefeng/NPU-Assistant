@@ -1,6 +1,6 @@
 # NPU-Assistant 管理员与运维手册
 
-> 适用版本：v0.2.0（2026-11-09 发布）  
+> 适用版本：v0.2.1（2026-11-16 发布）  
 > 读者：辅导员、学院管理员、部署老师、值班运维  
 > 目标：**不需要深入开发经验**，按步骤完成日常管理、内容运营、机器人配置、备份与排障。  
 > 配套文档：客户使用手册 `frontend/manual/index.html`、产品总览 `frontend/manual/product.html`、开发手册 `docs/DEVELOPER.md`、路线图 `docs/ROADMAP.md`。
@@ -576,7 +576,7 @@ $env:NPU_PUBLIC_URL = "https://npu.example.edu.cn"
 
 ## 15. 版本与变更
 
-- 当前版本：`v0.2.0`（2026-11-09 发布）。
+- 当前版本：`v0.2.1`（2026-11-16 发布）。
 - 变更记录：`CHANGELOG.md`。
 - 下一版本：`v0.3.0` 内容治理与运营（审核发布/回滚、批量导入、主动推送、运营看板），见 `docs/ROADMAP.md`。
 - 升级前务必阅读对应版本的 CHANGELOG 与备份。

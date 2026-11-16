@@ -5,9 +5,26 @@
 
 把学生手册、奖助政策、办事指南交给 LLM **编译成结构化 Wiki 词条**；学生提问时通过「目录 / 别名 / 关键词 / LLM 选页」定位词条，再由 LLM 阅读词条作答，并给出**词条 + 原始文件章节**双层引用——答案可核对、词条可编辑、系统可离线演示。后端 FastAPI + SQLite，前端纯静态，无 Node 构建、无向量库。
 
-> 当前版本：**v0.2.0**（2026-11-09 发布）· 变更见 [CHANGELOG.md](CHANGELOG.md) · QA 数据集见 [docs/npu-handbook](docs/npu-handbook/README.md)
+> 当前版本：**v0.2.1**（2026-11-16 发布）· 变更见 [CHANGELOG.md](CHANGELOG.md) · QA 数据集见 [docs/npu-handbook](docs/npu-handbook/README.md)
 >
 > 📘 **学生 / 辅导员请直接看 [图文使用手册](frontend/manual/index.html)**（手机截图、动图、常见问题）；服务启动后也可访问 <http://127.0.0.1:8000/manual/index.html>
+
+
+## 🚀 最新发布：v0.2.1（2026-11-16）
+
+主题：**隐私优先的校园知识库整备版**。在 v0.2.0 的服务闭环之上，完成 2,500+ 篇公开文档的导入、脱敏与端到端验收；3,477 条词条下检索仍约 50 ms。
+
+### 本版更新公告
+
+- **隐私保护**：解析时即脱敏手机号、身份证号、个人邮箱与长数字；办公邮箱、`029-` 座机、办公人员姓名保留；名单/成绩类文档上传直接拒绝（400），存量 114 篇已清理；发布包 **0 个人信息**。
+- **知识库整备**：导入 2,500+ 篇公开文档，清理后 **2,486 篇文档 / 3,477 条词条 / 2,465 个源文件**；快照与源文件随仓库发布，空库启动自动导入。
+- **检索性能**：同规模关键词检索 **约 50 ms**（优化前约 7.9 s）；新增设置、页面、token 三层缓存，见 [docs/RETRIEVAL-PERFORMANCE.md](docs/RETRIEVAL-PERFORMANCE.md)。
+- **端到端验收**：交互覆盖 **114/114（100%）**，含移动端触摸场景；逐场景截图证据，RSI 门禁（7 个关键场景）纳入 CI。
+- **运维工具**：批量导入 `import_handbook_collect.py`、多 worker `job_worker.py`（原子任务抢占）、隐私复查 `audit_privacy.py`、存量清理 `redact_existing_data.py`。
+- **质量**：后端 **184 passed, 1 skipped**；桌面 + 移动端 E2E 在 `develop`/`master`/`release` 全绿。
+
+> 完整变更见 [CHANGELOG.md](CHANGELOG.md)；隐私规则见 [docs/PRIVACY.md](docs/PRIVACY.md)，来源审计见 [docs/SOURCE-PROVENANCE-AUDIT.md](docs/SOURCE-PROVENANCE-AUDIT.md)。
+
 
 ---
 

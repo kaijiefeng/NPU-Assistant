@@ -1,4 +1,4 @@
-# API 速览（LLM Wiki · v0.1.1）
+# API 速览（LLM Wiki · v0.2.1）
 
 > 本文件是接口的快速上手版本；**字段与行为的唯一事实源是 [WIKI-DESIGN.md](WIKI-DESIGN.md) §4 与 [CONTRACT.md](CONTRACT.md) §5**。启动服务后可访问交互式文档：
 >
@@ -45,7 +45,7 @@ Invoke-RestMethod http://127.0.0.1:8000/api/health
 ```jsonc
 // GET /api/health
 {
-  "status": "ok", "app": "NPU-Assistant", "version": "0.1.1",
+  "status": "ok", "app": "NPU-Assistant", "version": "0.2.1",
   "time": "2026-10-22T17:30:00",
   "knowledge_mode": "llm-wiki",
   "wiki_pages": 20,
@@ -423,7 +423,7 @@ Invoke-RestMethod -Method Post ("http://127.0.0.1:8000/api/bots/channels/" + $co
 ```jsonc
 // GET /api/mobile/access（节选）
 {
-  "app_version": "0.1.1",
+  "app_version": "0.2.1",
   "token_required": true,
   "preferred_url": "https://xxx.trycloudflare.com",
   "urls": [
