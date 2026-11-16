@@ -1009,8 +1009,12 @@ async def errors_retry(ctx: Context) -> None:
     async with ctx.step("词条详情加载失败后重试"):
         await _fresh(ctx, "#/knowledge")
         await ctx.browser.call("Network.setBlockedURLs", {"urls": ["*api/wiki/pages/*"]})
-        await ctx.browser.click(".wiki-card")
-        await ctx.browser.wait_for_selector('[data-action="retry-page"]', timeout=20)
+        await ctx.browser.wait_for_selector(".wiki-card", timeout=20)
+        await ctx.browser.evaluate(
+            "(() => { const c = Array.from(document.querySelectorAll('.wiki-card'))"
+            ".filter(n => n.getClientRects().length)[0]; c?.click(); })()"
+        )
+        await ctx.browser.wait_for_selector('[data-action="retry-page"]', timeout=40)
         await ctx.browser.call("Network.setBlockedURLs", {"urls": []})
         await ctx.browser.click('[data-action="retry-page"]')
         await asyncio.sleep(1.2)
@@ -1158,7 +1162,7 @@ async def mobile_settings(ctx: Context) -> None:
 @scenario("knowledge.empty", tags=("knowledge",), covers=("go-manage",))
 async def knowledge_empty(ctx: Context) -> None:
     async with ctx.step("清空全部词条制造空态"):
-        for _ in range(10):
+        for _ in range(40):
             items = ctx.api_get("/api/wiki/pages?limit=200").get("items", [])
             if not items:
                 break

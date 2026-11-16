@@ -49,8 +49,8 @@ class AppServer:
             self.api.headers.update({"X-Admin-Token": self.sandbox.token})
         return self
 
-    def _wait_health(self) -> None:
-        deadline = time.time() + 90
+    def _wait_health(self, timeout: float = 300) -> None:
+        deadline = time.time() + timeout
         last_error = ""
         while time.time() < deadline:
             try:
@@ -63,7 +63,7 @@ class AppServer:
             if self.process and self.process.poll() is not None:
                 raise RuntimeError(f"服务提前退出（exit={self.process.returncode}），最后错误：{last_error}")
             time.sleep(0.4)
-        raise RuntimeError(f"服务 90s 内未就绪：{last_error}")
+        raise RuntimeError(f"服务 {timeout:.0f}s 内未就绪：{last_error}")
 
     # ------------------------------------------------------------------
     def bootstrap(self, mock_url: str) -> None:

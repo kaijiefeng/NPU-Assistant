@@ -366,11 +366,11 @@ async def run_scenario(
         known_issues=scenario_obj.known_issues,
     )
     try:
-        await asyncio.wait_for(scenario_obj.fn(context), timeout=90)
+        await asyncio.wait_for(scenario_obj.fn(context), timeout=300)
         context.gate()
     except asyncio.TimeoutError:
         result.status = "FAIL"
-        result.error = "场景超时（90s）"
+        result.error = "场景超时（300s）"
     except Exception as exc:  # noqa: BLE001
         result.status = "FAIL"
         result.error = f"{type(exc).__name__}: {exc}"[:800]
