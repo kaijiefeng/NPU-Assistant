@@ -26,8 +26,10 @@ import {
   importUrl,
   listDocuments,
   listWikiPages,
+  getSettings,
   rebuildWiki,
   reindexDocument,
+  saveSettings,
   seedWiki,
   searchWiki,
   scanKnowledgeFolder,
@@ -889,25 +891,45 @@ function openEditPageModal(page, onSaved) {
 async function runScanDirectory() {
   const input = document.getElementById('scanDirPath');
   const path = (input?.value || '').trim();
-  if (!path) {
-    toast('请先填写要扫描的文件夹绝对路径', 'warning');
-    input?.focus();
-    return;
-  }
+  const mode = document.querySelector('input[name="scanDirMode"]:checked')?.value || 'skip';
   const button = document.getElementById('scanDirBtn');
   if (button) button.disabled = true;
   try {
-    const result = await scanKnowledgeFolder({ path, recursive: true });
+    const result = await scanKnowledgeFolder({ path, recursive: true, mode });
     toast(
       result.message || `已开始扫描 ${result.files || 0} 个文件`,
       result.truncated ? 'warning' : 'success',
       { duration: result.truncated ? 7000 : 4000 },
     );
+    if (path) {
+      // 记住本次目录作为默认（失败不影响扫描本身）
+      try {
+        await saveSettings({ knowledge_scan_dir: path });
+      } catch {
+        /* ignore */
+      }
+    }
     watchScanJob(result.job_id);
   } catch (err) {
     toast(err?.message || '扫描文件夹失败', 'error');
   } finally {
     if (button) button.disabled = false;
+  }
+}
+
+async function refreshScanDirHint() {
+  const hint = document.getElementById('scanDirHint');
+  if (!hint) return;
+  try {
+    const settings = await getSettings();
+    const saved = String(settings?.knowledge_scan_dir || '').trim();
+    if (!saved) return;
+    const span = hint.querySelector('span');
+    if (span) {
+      span.textContent = `默认扫描目录：${saved}（留空路径即扫描这里；输入其他目录并扫描成功后自动记住）。递归子目录（最多 4 层），仅管理员可用。`;
+    }
+  } catch {
+    /* 匿名 / 无 settings:write 权限时静默，保留默认提示 */
   }
 }
 
@@ -927,11 +949,14 @@ async function watchScanJob(jobId) {
     if (job.status === 'succeeded') {
       const result = job.result || {};
       const ok = Number(result.imported_count ?? (result.imported || []).length ?? 0);
+      const upd = Number(result.updated_count ?? (result.updated || []).length ?? 0);
+      const skip = Number(result.skipped_count ?? (result.skipped || []).length ?? 0);
       const bad = Number(result.failed_count ?? (result.failed || []).length ?? 0);
       const truncated = Boolean(result.truncated);
-      const base = bad
-        ? `扫描完成：成功收录 ${ok} 篇，失败 ${bad} 篇（结果见「任务与告警」）`
-        : `扫描完成：成功收录 ${ok} 篇`;
+      const parts = [`新收录 ${ok} 篇`];
+      if (upd) parts.push(`更新 ${upd} 篇`);
+      if (skip) parts.push(`跳过 ${skip} 篇`);
+      const base = `扫描完成：${parts.join('，')}${bad ? `，失败 ${bad} 篇（结果见「任务与告警」）` : ''}`;
       toast(
         truncated ? `${base}；文件超过单次上限，剩余请分批扫描` : base,
         bad || truncated ? 'warning' : 'success',
@@ -1908,12 +1933,16 @@ export function mountManage(root, context = {}) {
           </div>
           <p class="capture-hint" id="uploadHint">支持 md / txt / pdf / docx / xlsx / csv / json / html，单个文件 ≤ 20MB；上传后由 LLM 同步编译为 Wiki 词条。</p>
           <div class="capture-row scan-dir-row">
-            <input class="input" id="scanDirPath" placeholder="服务器文件夹绝对路径，如 D:\资料\学生手册" />
+            <input class="input" id="scanDirPath" placeholder="扫描目录；留空 = 默认扫描目录（仓库 scan/ 或上次保存的目录）" />
             <button class="btn btn-ghost capture-submit" type="button" data-action="scan-dir" id="scanDirBtn">${icon(
               'folder',
-            )}<span>扫描文件夹并收录</span></button>
+            )}<span>扫描并收录 / 更新</span></button>
           </div>
-          <p class="capture-hint">${icon('info')}<span>自动扫描该文件夹（含子目录，最多 4 层）中的文档并批量收录，无需逐个上传；仅管理员可用。</span></p>
+          <div class="capture-row scan-mode-row" role="radiogroup" aria-label="扫描模式">
+            <label class="scan-mode-item"><input type="radio" name="scanDirMode" value="skip" checked /><span>只导入新文件（同名 / 同内容跳过）</span></label>
+            <label class="scan-mode-item"><input type="radio" name="scanDirMode" value="update" /><span>更新已变更（同名内容变化 → 覆盖并重新编译）</span></label>
+          </div>
+          <p class="capture-hint" id="scanDirHint">${icon('info')}<span>留空路径即扫描默认目录（仓库 scan/）；填入其他目录并扫描成功后会自动记住。递归子目录（最多 4 层），仅管理员可用。</span></p>
           <div class="upload-queue" id="uploadQueue" hidden></div>
         </div>
       </div>
@@ -1978,6 +2007,7 @@ export function mountManage(root, context = {}) {
   setCaptureCollapsed(state.capture.collapsed);
   setCaptureMode('links');
   renderCaptureResults();
+  refreshScanDirHint();
 
   const switchManageTab = (tab) => {
     state.manageTab = ['capture', 'sources', 'pages'].includes(tab) ? tab : 'capture';

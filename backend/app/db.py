@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS documents (
     page_count   INTEGER NOT NULL DEFAULT 0,
     source_type  TEXT NOT NULL DEFAULT 'file',      -- file|url|text
     source_url   TEXT NOT NULL DEFAULT '',
+    content_hash TEXT NOT NULL DEFAULT '',             -- sha256 of source bytes ('' = legacy rows)
     created_at   TEXT NOT NULL,
     updated_at   TEXT NOT NULL
 );
@@ -467,6 +468,10 @@ def init_db() -> None:
         execute("ALTER TABLE documents ADD COLUMN source_type TEXT NOT NULL DEFAULT 'file'")
     if "source_url" not in columns:
         execute("ALTER TABLE documents ADD COLUMN source_url TEXT NOT NULL DEFAULT ''")
+    # Scan-dir dedupe/update: sha256 of the original upload bytes ('' = legacy rows).
+    if "content_hash" not in columns:
+        execute("ALTER TABLE documents ADD COLUMN content_hash TEXT NOT NULL DEFAULT ''")
+    execute("CREATE INDEX IF NOT EXISTS idx_documents_content_hash ON documents(content_hash)")
     # v0.2.0 freshness: publication / effective / expiry / verification dates.
     for column in (
         "published_at",

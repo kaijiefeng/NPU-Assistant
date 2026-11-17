@@ -60,6 +60,7 @@ EDITABLE_SETTINGS = {
     "crisis_hotlines",
     "crisis_keywords_extra",
     "crisis_notify_webhook",
+    "knowledge_scan_dir",
 }
 
 INT_SETTINGS = (

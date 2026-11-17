@@ -319,27 +319,38 @@ def _run_rebuild(payload: dict, job: dict) -> dict:
 
 
 def _run_scan_dir(payload: dict, job: dict) -> dict:
-    """扫描服务器本地文件夹并逐个收录（管理员指定目录 → 后台批量解析/编译）。"""
+    """扫描服务器本地文件夹并逐个收录/更新（管理员指定目录 → 后台批量解析/编译）。
+
+    ``mode``：``skip``（默认）只导入全新文件，同名/同内容一律跳过；
+    ``update`` 额外把「同名但内容已变化」的文件覆盖并重新编译。
+    """
     from . import ingest
 
     path = str(payload.get("path") or "").strip()
     recursive = bool(payload.get("recursive", True))
+    mode = "update" if str(payload.get("mode") or "skip").strip().lower() == "update" else "skip"
     _update(job["id"], progress=5, message="正在扫描文件夹")
     limit = max(1, int(config.SCAN_MAX_FILES))
     files = ingest.list_scan_files(path, recursive=recursive, max_files=limit + 1)
     truncated = len(files) > limit
     files = files[:limit]
+    empty_message = "该文件夹下没有可收录的文件（支持 md/txt/pdf/docx/doc/xlsx/csv/json/html）"
     if not files:
         return {
             "files": 0,
             "truncated": False,
+            "mode": mode,
             "imported": [],
+            "updated": [],
+            "skipped": [],
             "failed": [],
-            "message": "该文件夹下没有可收录的文件（支持 md/txt/pdf/docx/doc/xlsx/csv/json/html）",
+            "message": empty_message,
         }
     processed = {str(item) for item in (payload.get("processed") or []) if item}
     pending = [item for item in files if str(item) not in processed]
     imported: list[dict] = []
+    updated: list[dict] = []
+    skipped: list[dict] = []
     failed: list[dict] = []
     total = len(pending)
     for index, file_path in enumerate(pending, start=1):
@@ -349,41 +360,77 @@ def _run_scan_dir(payload: dict, job: dict) -> dict:
         _update(
             job["id"],
             progress=min(95, 5 + int(index * 90 / max(1, total))),
-            message=f"正在收录 {file_path.name}（{index}/{total}）",
+            message=f"正在处理 {file_path.name}（{index}/{total}，{mode}）",
         )
         try:
-            doc = ingest.ingest_upload(
-                filename=file_path.name,
-                data=file_path.read_bytes(),
-                title=None,
-                tags=[],
-            )
+            data = file_path.read_bytes()
+            digest = ingest.content_hash(data)
+            existing = ingest.match_existing_document(digest, file_path.name)
+            if existing is not None:
+                if str(existing.get("content_hash") or "") == digest:
+                    skipped.append(
+                        {
+                            "file": file_path.name,
+                            "document_id": existing.get("id"),
+                            "reason": "unchanged",
+                        }
+                    )
+                elif mode == "skip":
+                    skipped.append(
+                        {
+                            "file": file_path.name,
+                            "document_id": existing.get("id"),
+                            "reason": "name-exists",
+                        }
+                    )
+                else:
+                    result = ingest.update_document_content(str(existing["id"]), data)
+                    doc = result.get("document") or {}
+                    item = {
+                        "file": file_path.name,
+                        "document_id": doc.get("id"),
+                        "title": doc.get("title"),
+                        "status": doc.get("status"),
+                    }
+                    if str(doc.get("status") or "") == "failed":
+                        item["error"] = str(doc.get("error") or "")[:200]
+                        failed.append(item)
+                    else:
+                        updated.append(item)
+            else:
+                doc = ingest.ingest_upload(
+                    filename=file_path.name,
+                    data=data,
+                    title=None,
+                    tags=[],
+                )
+                item = {
+                    "file": file_path.name,
+                    "document_id": doc.get("id"),
+                    "title": doc.get("title"),
+                    "status": doc.get("status"),
+                }
+                if str(doc.get("status") or "") == "failed":
+                    item["error"] = str(doc.get("error") or "")[:200]
+                    failed.append(item)
+                else:
+                    imported.append(item)
         except Exception as exc:  # noqa: BLE001 - 单个文件失败不中断整批
             failed.append({"file": file_path.name, "error": str(exc)[:200]})
-            processed.add(str(file_path))
-            payload["processed"] = sorted(processed)
-            _update(job["id"], payload=db.to_json(payload))
-            continue
-        item = {
-            "file": file_path.name,
-            "document_id": doc.get("id"),
-            "title": doc.get("title"),
-            "status": doc.get("status"),
-        }
-        if str(doc.get("status") or "") == "failed":
-            item["error"] = str(doc.get("error") or "")[:200]
-            failed.append(item)
-        else:
-            imported.append(item)
         processed.add(str(file_path))
         payload["processed"] = sorted(processed)
         _update(job["id"], payload=db.to_json(payload))
     return {
         "files": len(files),
         "truncated": truncated,
+        "mode": mode,
         "imported": imported,
+        "updated": updated,
+        "skipped": skipped,
         "failed": failed,
         "imported_count": len(imported),
+        "updated_count": len(updated),
+        "skipped_count": len(skipped),
         "failed_count": len(failed),
     }
 

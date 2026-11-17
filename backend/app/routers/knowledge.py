@@ -224,10 +224,17 @@ def import_batch(payload: ImportBatchRequest) -> dict:
 
 
 class ScanDirRequest(BaseModel):
-    """``POST /knowledge/scan-dir`` 请求体：扫描服务器本地文件夹。"""
+    """``POST /knowledge/scan-dir`` 请求体：扫描服务器本地文件夹。
 
-    path: str | None = Field(default=None, description="服务器上的文件夹绝对路径")
+    ``path`` 留空时使用默认目录：settings 的 ``knowledge_scan_dir`` → 仓库 ``scan/``。
+    """
+
+    path: str | None = Field(default=None, description="服务器上的文件夹绝对路径；留空用默认扫描目录")
     recursive: bool = Field(default=True, description="是否递归子目录（默认 true）")
+    mode: str = Field(
+        default="skip",
+        description="skip=只导入新文件（同名/同内容跳过）；update=同名但内容变化的文件覆盖并重新编译",
+    )
 
 
 @router.post("/knowledge/scan-dir", status_code=202)
@@ -253,12 +260,20 @@ def scan_dir(payload: ScanDirRequest) -> dict:
             status_code=400,
             detail="该文件夹下没有可收录的文件（支持 md/txt/pdf/docx/doc/xlsx/csv/json/html）",
         )
+    mode = "update" if str(payload.mode or "").strip().lower() == "update" else "skip"
     job = jobs.create_job(
         "scan_dir",
-        {"path": str(payload.path or ""), "recursive": bool(payload.recursive)},
+        {
+            "path": str(payload.path or ""),
+            "recursive": bool(payload.recursive),
+            "mode": mode,
+        },
         created_by="admin",
     )
-    message = f"发现 {len(files)} 个可收录文件，已开始后台收录；进度可在「任务与告警」查看。"
+    message = (
+        f"发现 {len(files)} 个可收录文件，已开始后台收录（模式：{mode}）；"
+        "进度可在「任务与告警」查看。"
+    )
     if truncated:
         message = (
             f"该文件夹文件较多，本次先收录前 {len(files)} 个（上限 NPU_SCAN_MAX_FILES）；"

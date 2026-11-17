@@ -5169,6 +5169,21 @@ textarea.input {
 .capture-submit {
   flex: none;
 }
+.scan-mode-row {
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.scan-mode-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted, #5a6472);
+  cursor: pointer;
+}
+.scan-mode-item input {
+  accent-color: var(--primary, #0b3d91);
+}
 .capture-hint {
   display: flex;
   align-items: flex-start;

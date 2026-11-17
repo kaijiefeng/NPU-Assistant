@@ -21,6 +21,7 @@
 """
 from __future__ import annotations
 
+import hashlib
 import logging
 import os
 import re
@@ -109,6 +110,11 @@ def _stored_path(doc_id: str, ext: str) -> Path:
     return config.UPLOAD_DIR / f"{doc_id}{ext}"
 
 
+def content_hash(data: bytes) -> str:
+    """源文件内容的 sha256（扫描目录查重 / 更新判断的依据）。"""
+    return hashlib.sha256(data).hexdigest()
+
+
 def _ensure_supported(filename: str, data: bytes) -> str:
     ext = Path(filename).suffix.lower()
     if ext not in config.SUPPORTED_EXTS:
@@ -191,8 +197,9 @@ def _ingest_bytes(
     try:
         db.execute(
             "INSERT INTO documents(id, title, filename, stored_path, file_ext, size_bytes, status, "
-            "error, tags, char_count, page_count, source_type, source_url, created_at, updated_at) "
-            "VALUES(?, ?, ?, ?, ?, ?, 'processing', NULL, ?, 0, 0, ?, ?, ?, ?)",
+            "error, tags, char_count, page_count, source_type, source_url, content_hash, "
+            "created_at, updated_at) "
+            "VALUES(?, ?, ?, ?, ?, ?, 'processing', NULL, ?, 0, 0, ?, ?, ?, ?, ?)",
             (
                 doc_id,
                 requested_title or fallback_title,
@@ -203,6 +210,7 @@ def _ingest_bytes(
                 db.to_json(normalize_tags(tags)),
                 source_kind,
                 source_url_value,
+                content_hash(data),
                 timestamp,
                 timestamp,
             ),
@@ -416,6 +424,45 @@ def _is_inside(path: str | Path, root: str | Path) -> bool:
     return candidate_text == base_text or candidate_text.startswith(base_text + os.sep)
 
 
+def match_existing_document(digest: str, filename: str) -> dict | None:
+    """扫描目录查重：先按内容 sha256 精确匹配，再按文件名兜底（旧文档无 hash）。"""
+    if digest:
+        row = db.query_one(
+            "SELECT * FROM documents WHERE content_hash = ? "
+            "ORDER BY created_at, rowid LIMIT 1",
+            (digest,),
+        )
+        if row:
+            return row
+    name = str(filename or "").strip()
+    if name:
+        return db.query_one(
+            "SELECT * FROM documents WHERE filename = ? "
+            "ORDER BY created_at DESC, rowid DESC LIMIT 1",
+            (name,),
+        )
+    return None
+
+
+def update_document_content(doc_id: str, data: bytes) -> dict:
+    """用新内容覆盖已入库文档并重新解析/编译（扫描目录 update 模式）。
+
+    仅允许覆盖 ``uploads/`` 内的文件副本；返回结构与 :func:`reindex_document` 一致。
+    """
+    row = db.get_document(doc_id)
+    if not row:
+        raise ValueError("文档不存在或已被删除")
+    stored_path = Path(row.get("stored_path") or "")
+    if not stored_path.is_file() or not _is_inside(stored_path, config.UPLOAD_DIR):
+        raise ValueError("该文档的源文件副本不在上传目录内，无法就地更新，请删除后重新收录")
+    stored_path.write_bytes(data)
+    db.execute(
+        "UPDATE documents SET content_hash = ?, size_bytes = ?, updated_at = ? WHERE id = ?",
+        (content_hash(data), len(data), db.now(), doc_id),
+    )
+    return reindex_document(doc_id)
+
+
 def delete_document(doc_id: str) -> dict:
     """删除文档、其独占词条、共享词条来源与物理文件。
 
@@ -464,11 +511,16 @@ _SCAN_FILE_LIMIT = 200
 def resolve_scan_directory(path: str) -> Path:
     """校验并解析待扫描目录（必须存在、是目录、且不在磁盘根）。
 
-    若配置了 ``config.SCAN_ROOTS``，目录必须位于其中之一，避免管理员误扫整盘。
+    留空时的默认顺序：settings 里保存的 ``knowledge_scan_dir`` → 仓库一级
+    ``scan/`` 目录（不存在则自动创建）。若配置了 ``config.SCAN_ROOTS``，
+    目录必须位于其中之一，避免管理员误扫整盘。
     """
     raw = str(path or "").strip().strip('"').strip("'")
     if not raw:
-        raise ValueError("请填写要扫描的文件夹路径")
+        raw = str(db.get_setting("knowledge_scan_dir") or "").strip()
+    if not raw:
+        config.ensure_dirs()
+        raw = str(config.SCAN_DEFAULT_DIR)
     candidate = Path(raw).expanduser()
     try:
         candidate = candidate.resolve(strict=True)
