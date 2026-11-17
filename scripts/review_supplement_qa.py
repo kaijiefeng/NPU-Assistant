@@ -16,8 +16,8 @@ FILES = [
     "qa-supplement-ic4.jsonl",
     "qa-supplement-ic5.jsonl",
 ]
-OUT = ROOT / "docs/npu-handbook/qa-supplement-approved.jsonl"
-REPORT = ROOT / "docs/npu-handbook/SUPPLEMENT-APPROVED.md"
+OUT = ROOT / "sources/handbook/qa-supplement-approved.jsonl"
+REPORT = ROOT / "sources/handbook/SUPPLEMENT-APPROVED.md"
 
 
 def norm(text: str) -> str:
@@ -28,7 +28,7 @@ def main() -> int:
     rows = []
     seen = set()
     for filename in FILES:
-        path = ROOT / "docs/npu-handbook" / filename
+        path = ROOT / "sources/handbook" / filename
         for line in path.read_text(encoding="utf-8").splitlines():
             if not line.strip():
                 continue

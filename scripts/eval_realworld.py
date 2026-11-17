@@ -11,9 +11,9 @@ from pathlib import Path
 import httpx
 
 ROOT = Path(__file__).resolve().parent.parent
-GOLDEN = ROOT / "docs/eval/realworld_golden.json"
-REPORT_JSON = ROOT / "docs/eval/realworld-report.json"
-REPORT_MD = ROOT / "docs/eval/realworld-report.md"
+GOLDEN = ROOT / "sources/eval/realworld_golden.json"
+REPORT_JSON = ROOT / "sources/eval/realworld-report.json"
+REPORT_MD = ROOT / "sources/eval/realworld-report.md"
 
 
 def norm(text: str) -> str:

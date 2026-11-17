@@ -5,7 +5,7 @@
 
 把学生手册、奖助政策、办事指南交给 LLM **编译成结构化 Wiki 词条**；学生提问时通过「目录 / 别名 / 关键词 / LLM 选页」定位词条，再由 LLM 阅读词条作答，并给出**词条 + 原始文件章节**双层引用——答案可核对、词条可编辑、系统可离线演示。后端 FastAPI + SQLite，前端纯静态，无 Node 构建、无向量库。
 
-> 当前版本：**v0.2.1**（2026-11-16 发布）· 变更见 [CHANGELOG.md](CHANGELOG.md) · QA 数据集见 [docs/npu-handbook](docs/npu-handbook/README.md)
+> 当前版本：**v0.2.1**（2026-11-16 发布）· 变更见 [CHANGELOG.md](CHANGELOG.md) · QA 数据集见 [sources/handbook](sources/handbook/README.md)
 >
 > 📘 **学生 / 辅导员请直接看 [图文使用手册](frontend/manual/index.html)**（手机截图、动图、常见问题）；服务启动后也可访问 <http://127.0.0.1:8000/manual/index.html>
 
@@ -134,7 +134,7 @@ python -m venv .venv
 | **学生 / 辅导员（使用）** | 📘 [图文使用手册](frontend/manual/index.html) · [产品能力总览](frontend/manual/product.html) |
 | **学院管理员 / 部署老师** | [管理员与运维手册](docs/ADMIN-OPS.md)（部署、令牌、模型、收录运营、备份、排障）· [机器人接入](docs/BOT-INTEGRATION.md) · [移动端运维](docs/MOBILE-OPS.md) |
 | **开发 / 交接** | [开发手册](docs/DEVELOPER.md)（目录结构、数据模型、测试）· [架构设计](docs/ARCHITECTURE.md) · [Wiki 设计](docs/WIKI-DESIGN.md) · [API 速览](docs/API.md) |
-| **评审 / 演示** | [5 分钟演示脚本](docs/DEMO.md) · [路线图](docs/ROADMAP.md) · [QA 数据集](docs/npu-handbook/README.md) · [完整文档导航](docs/README.md) |
+| **评审 / 演示** | [5 分钟演示脚本](docs/DEMO.md) · [路线图](docs/ROADMAP.md) · [QA 数据集](sources/handbook/README.md) · [完整文档导航](docs/README.md) |
 
 技术原理一句话：**源文件 → LLM 编译词条 → 导航选页 → 词条阅读作答 → 双层引用**；与经典 RAG 的区别是**只需一个 LLM**、不用 embedding / 向量库 / rerank，知识被编译成人类可读、可编辑的词条，引用可逐字回溯到源文件章节；再叠加**反馈驱动的 RSI 闭环**（缺口 → 补料 → 重编译 → 时效治理），知识库随使用自我富集，而不是逐渐过期。设计细节见 [docs/WIKI-DESIGN.md](docs/WIKI-DESIGN.md)。
 

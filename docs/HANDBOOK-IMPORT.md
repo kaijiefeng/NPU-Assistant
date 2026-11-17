@@ -40,4 +40,4 @@
 .\\.venv\\Scripts\\python.exe scripts\\handbook_import_report.py
 ```
 
-导入脚本按文件去重、跳过已入库；进度记录在 `docs/npu-handbook/collect/imported-app.jsonl`。
+导入脚本按文件去重、跳过已入库；进度记录在 `sources/handbook/collect/imported-app.jsonl`。

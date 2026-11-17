@@ -8,10 +8,10 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCES = ROOT / "docs/npu-handbook/sources.json"
-CORPUS = ROOT / "docs/npu-handbook/corpus"
-OUT = ROOT / "docs/npu-handbook/qa-candidates.jsonl"
-REPORT = ROOT / "docs/npu-handbook/QA-CANDIDATES.md"
+SOURCES = ROOT / "sources/handbook/sources.json"
+CORPUS = ROOT / "sources/handbook/corpus"
+OUT = ROOT / "sources/handbook/qa-candidates.jsonl"
+REPORT = ROOT / "sources/handbook/QA-CANDIDATES.md"
 MAX_PER_DOC = 15
 TARGET = 400
 

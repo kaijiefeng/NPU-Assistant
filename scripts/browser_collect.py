@@ -10,7 +10,7 @@
 边界：
 * 只渲染公开页面，不登录、不输入验证码、不点击任何授权按钮；遇验证码/登录墙直接跳过；
 * 同域限速、单站限量、URL 去重，复用 ``handbook_collect`` 的清单与分类逻辑；
-* 仅作为 httpx 采集的补充，产出仍写入 ``docs/npu-handbook/collect/``。
+* 仅作为 httpx 采集的补充，产出仍写入 ``sources/handbook/collect/``。
 
 用法::
 

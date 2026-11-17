@@ -2,7 +2,7 @@
 
 这是与自动同步源分开的**人工队列**。自动同步只处理允许的公开列表页（当前仅研究生院）；下列条目因 WAF、页面结构、扫描件或附件限制，需人工在浏览器中打开/下载后导入。
 
-机器可读清单：[`docs/campus-seed/manual-queue.json`](campus-seed/manual-queue.json)（23 条，P0/P1/P2）；本轮分流结果：[`manual-queue-results.json`](campus-seed/manual-queue-results.json)。
+机器可读清单：[`sources/campus-seed/manual-queue.json`](../sources/campus-seed/manual-queue.json)（23 条，P0/P1/P2）；本轮分流结果：[`manual-queue-results.json`](../sources/campus-seed/manual-queue-results.json)。
 
 ## 〇、本轮分流结果（2026-10-26）
 

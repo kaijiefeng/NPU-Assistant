@@ -6,7 +6,7 @@ The GitHub Actions release workflow uses this script to:
 1. verify that a release tag (``v0.2.1``) matches ``APP_VERSION`` in
    ``backend/app/config.py``;
 2. extract the matching section from ``CHANGELOG.md`` (application release) or
-   a dataset card under ``docs/npu-handbook/release/`` (dataset release), so the
+   a dataset card under ``sources/handbook/release/`` (dataset release), so the
    GitHub Release body stays in sync with the repository.
 
 Exit codes:
@@ -27,7 +27,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CHANGELOG_PATH = ROOT / "CHANGELOG.md"
 CONFIG_PATH = ROOT / "backend" / "app" / "config.py"
-DATASET_RELEASE_DIR = ROOT / "docs" / "npu-handbook" / "release"
+DATASET_RELEASE_DIR = ROOT / "sources" / "handbook" / "release"
 
 VERSION_PATTERN = r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?"
 # ``## v0.2.0`` followed by a space, end of line, an em dash or a parenthesis.

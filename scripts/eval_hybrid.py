@@ -2,9 +2,9 @@
 
 运行前先启动服务：scripts/run.ps1 -Port 8000
 默认会：
-1. 对 docs/eval/hybrid_golden.json 的本地题调用 /api/wiki/search 与 /api/chat；
+1. 对 sources/eval/hybrid_golden.json 的本地题调用 /api/wiki/search 与 /api/chat；
 2. 对远程题调用 app.services.remote_search（不写库）；
-3. 输出 docs/eval/hybrid-report.json / .md。
+3. 输出 sources/eval/hybrid-report.json / .md。
 
 评测不会修改知识库；聊天会话在评测后删除。
 """
@@ -25,9 +25,9 @@ sys.path.insert(0, str(ROOT / "backend"))
 
 from app.services import remote_search  # noqa: E402
 
-GOLDEN_PATH = ROOT / "docs/eval/hybrid_golden.json"
-REPORT_JSON = ROOT / "docs/eval/hybrid-report.json"
-REPORT_MD = ROOT / "docs/eval/hybrid-report.md"
+GOLDEN_PATH = ROOT / "sources/eval/hybrid_golden.json"
+REPORT_JSON = ROOT / "sources/eval/hybrid-report.json"
+REPORT_MD = ROOT / "sources/eval/hybrid-report.md"
 DB_PATH = ROOT / "backend/data/app.db"
 
 

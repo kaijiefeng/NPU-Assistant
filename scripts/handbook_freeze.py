@@ -8,12 +8,12 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CAND = ROOT / "docs/npu-handbook/qa-candidates.jsonl"
-PILOT = ROOT / "docs/npu-handbook/qa-pilot.jsonl"
-NEG = ROOT / "docs/npu-handbook/qa-pilot-negative.jsonl"
-OUT = ROOT / "docs/npu-handbook/qa-dataset.jsonl"
-NEG_OUT = ROOT / "docs/npu-handbook/qa-dataset-negative.jsonl"
-REPORT = ROOT / "docs/npu-handbook/DATASET.md"
+CAND = ROOT / "sources/handbook/qa-candidates.jsonl"
+PILOT = ROOT / "sources/handbook/qa-pilot.jsonl"
+NEG = ROOT / "sources/handbook/qa-pilot-negative.jsonl"
+OUT = ROOT / "sources/handbook/qa-dataset.jsonl"
+NEG_OUT = ROOT / "sources/handbook/qa-dataset-negative.jsonl"
+REPORT = ROOT / "sources/handbook/DATASET.md"
 TARGET = 300
 
 

@@ -11,7 +11,7 @@
 |---|---:|---|
 | 采集清单（collect/manifest.jsonl） | 2,504 | 每条有 `url`、`site`、`collected_at`；站点 64 个，63 个 `*.nwpu.edu.cn` + `www.saac.gov.cn` |
 | 网页导入（documents.source_url） | 92 | `source_url` 为 `https://` 学校站点或微信公众号公开文章 |
-| 原始本地文件 | 9 | 7 篇在 `docs/campus-seed/manifest` 有公开下载 URL + 下载页；《本科生学籍管理办法》对应信息公开页面 `https://xxgk.nwpu.edu.cn/info/1541/5921.htm`；《校园卡管理办法》文档标注为计划财务部公开 PDF，元数据缺 URL |
+| 原始本地文件 | 9 | 7 篇在 `sources/campus-seed/manifest` 有公开下载 URL + 下载页；《本科生学籍管理办法》对应信息公开页面 `https://xxgk.nwpu.edu.cn/info/1541/5921.htm`；《校园卡管理办法》文档标注为计划财务部公开 PDF，元数据缺 URL |
 | 文本收录（人工摘录） | 13 | 标签“真实数据/校园公开资料”，由官方页面清洗摘录，无单独 URL |
 
 检查项：没有 `login` / `sso` / `vpn` / `file://` / `localhost` 链接；没有非公开网盘或内网地址。
@@ -48,7 +48,7 @@
 | 发布文档 | 2,486 |
 | 发布词条 | 3,477 |
 | 发布来源锚点 | 4,838 |
-| 源文件（`backend/data/seed_docs/`） | 2,465 个 md |
+| 源文件（`sources/seed/`） | 2,465 个 md |
 | 快照（`backend/data/wiki_seed.json`） | 12.6 MB |
 | 名单类文档 | 114 篇已删除 |
 | 二进制原件 | 12 篇（无个人信息）保留在本机，不进发布包 |

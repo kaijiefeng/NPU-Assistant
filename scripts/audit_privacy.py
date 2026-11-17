@@ -78,7 +78,7 @@ def main() -> int:
             page_stats["personal_email"] += info["personal_email"]
     list_titles = [p["title"] for p in seed["pages"] if LIST.search(p.get("title") or "")]
 
-    sources = scan_dir(ROOT / "backend/data/seed_docs")
+    sources = scan_dir(ROOT / "sources/seed")
 
     con = sqlite3.connect(f"file:{ROOT / 'backend/data/app.db'}?mode=ro", uri=True)
     con.row_factory = sqlite3.Row

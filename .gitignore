@@ -14,9 +14,13 @@ backend/data/app.db
 backend/data/app.db-*
 backend/data/uploads/*
 !backend/data/uploads/.gitkeep
-backend/data/seed_docs/*.pdf
+sources/seed/*.pdf
 backups/
 *.log
+
+# --- Default scan directory (user drop-in files, never committed) ---
+scan/*
+!scan/.gitkeep
 
 # --- Env / secrets ---
 .env
@@ -36,8 +40,11 @@ backend/data/job_staging/
 # --- Local tooling / scratch ---
 .trae-html-share-packages/
 .screenshots/
-docs/npu-handbook/collect/inbox/
-docs/npu-handbook/collect/session/
+sources/handbook/collect/inbox/
+sources/handbook/collect/session/
 .artifacts/
 
-docs/npu-handbook/collect/imported-app.jsonl
+sources/handbook/collect/imported-app.jsonl
+
+# --- ZCode internal ---
+.zcode/

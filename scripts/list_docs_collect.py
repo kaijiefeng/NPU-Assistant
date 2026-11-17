@@ -8,7 +8,7 @@
 2. 逐条抓详情页，优先下载其中的 PDF（``*.pdf`` / ``download.jsp`` / ``__local``），
    ``pypdf`` 提取正文；没有 PDF 时退回 ``importer.extract_article`` 提取 HTML 正文；
 3. 标题优先用列表页的链接文字（比 PDF 首页更像制度名）；
-4. 统一做个人信息脱敏，写入 ``docs/npu-handbook/collect/corpus/`` 与 ``manifest.jsonl``。
+4. 统一做个人信息脱敏，写入 ``sources/handbook/collect/corpus/`` 与 ``manifest.jsonl``。
 
 用法::
 

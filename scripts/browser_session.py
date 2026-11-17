@@ -34,7 +34,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 import browser_collect as bc  # noqa: E402
 
-SESSION_DIR = ROOT / "docs" / "npu-handbook" / "collect" / "session"
+SESSION_DIR = ROOT / "sources" / "handbook" / "collect" / "session"
 CMD_FILE = SESSION_DIR / "cmd.txt"
 PAGES_DIR = SESSION_DIR / "pages"
 PDF_DIR = SESSION_DIR / "pdfs"

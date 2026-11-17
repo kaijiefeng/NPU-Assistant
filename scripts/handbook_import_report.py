@@ -14,7 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "backend" / "data" / "app.db"
-RESUME = ROOT / "docs" / "npu-handbook" / "collect" / "imported-app.jsonl"
+RESUME = ROOT / "sources" / "handbook" / "collect" / "imported-app.jsonl"
 OUT = ROOT / "docs" / "HANDBOOK-IMPORT.md"
 
 
@@ -97,7 +97,7 @@ def main() -> int:
         ".\\\\.venv\\\\Scripts\\\\python.exe scripts\\\\handbook_import_report.py",
         "```",
         "",
-        "导入脚本按文件去重、跳过已入库；进度记录在 `docs/npu-handbook/collect/imported-app.jsonl`。",
+        "导入脚本按文件去重、跳过已入库；进度记录在 `sources/handbook/collect/imported-app.jsonl`。",
     ]
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"已生成 {OUT.relative_to(ROOT)}：词条 {pages}，文档 {docs}，队列 {jobs}")

@@ -8,10 +8,10 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
-QA = ROOT / "docs/npu-handbook/qa-pilot.jsonl"
-NEG = ROOT / "docs/npu-handbook/qa-pilot-negative.jsonl"
-CORPUS = ROOT / "docs/npu-handbook/corpus"
-REPORT = ROOT / "docs/npu-handbook/QA-CHECK.md"
+QA = ROOT / "sources/handbook/qa-pilot.jsonl"
+NEG = ROOT / "sources/handbook/qa-pilot-negative.jsonl"
+CORPUS = ROOT / "sources/handbook/corpus"
+REPORT = ROOT / "sources/handbook/QA-CHECK.md"
 ALLOWED = {"nwpu.edu.cn", "mp.weixin.qq.com"}
 
 

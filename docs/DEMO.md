@@ -250,4 +250,4 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 - 抽查真实问答：研究生课程调课、博士后进站材料、知识产权声明，均返回真实 PDF/DOCX 来源与原文摘录。
 - 负样本：扫描版 PDF 无文本时系统明确提示；需要时走本地 OCR 流程。PPT/PPTX 按约定暂不实现。
 - 测试：`backend/tests/test_parsing.py` 使用真实 `.doc/.docx/.pdf` 样本回归；全量 pytest **126 passed**。
-- 清单与来源：[CAMPUS-SEED.md](CAMPUS-SEED.md)、[campus-seed/manifest.json](campus-seed/manifest.json)；文件本体在 `backend/data/campus_seed/files/`（gitignored）。
+- 清单与来源：[CAMPUS-SEED.md](CAMPUS-SEED.md)、[campus-seed/manifest.json](../sources/campus-seed/manifest.json)；文件本体在 `backend/data/campus_seed/files/`（gitignored）。

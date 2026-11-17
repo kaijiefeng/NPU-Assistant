@@ -23,9 +23,16 @@ FRONTEND_DIR = REPO_DIR / "frontend"
 DATA_DIR = Path(os.environ.get("NPU_DATA_DIR", BASE_DIR / "data"))
 UPLOAD_DIR = DATA_DIR / "uploads"
 JOB_STAGING_DIR = DATA_DIR / "job_staging"
-# Seed documents are versioned content shipped with the repo, so they stay in
-# the backend directory even when NPU_DATA_DIR points at a temporary/test dir.
-SEED_DOCS_DIR = Path(os.environ.get("NPU_SEED_DOCS_DIR", BASE_DIR / "data" / "seed_docs"))
+# Seed documents are versioned content shipped with the repo (sources/seed at
+# the repository root) so they stay independent of NPU_DATA_DIR.  Deployments
+# upgraded from <= v0.2.1 keep working: if the new location is absent but the
+# legacy backend/data/seed_docs exists, fall back to it.
+_SEED_DOCS_NEW = REPO_DIR / "sources" / "seed"
+_SEED_DOCS_LEGACY = BASE_DIR / "data" / "seed_docs"
+SEED_DOCS_DIR = Path(
+    os.environ.get("NPU_SEED_DOCS_DIR")
+    or (_SEED_DOCS_NEW if _SEED_DOCS_NEW.is_dir() or not _SEED_DOCS_LEGACY.is_dir() else _SEED_DOCS_LEGACY)
+)
 DB_PATH = Path(os.environ.get("NPU_DB_PATH", DATA_DIR / "app.db"))
 # Prebuilt wiki snapshot (compiled offline with a real LLM, committed to the
 # repo) so the product can boot without any API key.
@@ -102,6 +109,8 @@ SUPPORTED_EXTS = {".md", ".markdown", ".txt", ".pdf", ".docx", ".doc", ".xlsx", 
 # 默认允许任意存在的目录（仅管理员可用）；生产环境建议用 NPU_SCAN_ROOTS 限定根目录。
 SCAN_MAX_FILES = int(os.environ.get("NPU_SCAN_MAX_FILES", "200"))
 SCAN_MAX_DEPTH = int(os.environ.get("NPU_SCAN_MAX_DEPTH", "4"))
+# 默认扫描目录：界面留空时扫描这里；随仓库提供，内容不进版本库（见 .gitignore）。
+SCAN_DEFAULT_DIR = Path(os.environ.get("NPU_SCAN_DIR", REPO_DIR / "scan"))
 SCAN_ROOTS = [
     os.path.abspath(item.strip())
     for item in os.environ.get("NPU_SCAN_ROOTS", "").split(os.pathsep)
@@ -200,5 +209,5 @@ OBSOLETE_SETTINGS = {"retrieval_top_k", "retrieval_min_score"}
 
 
 def ensure_dirs() -> None:
-    for path in (DATA_DIR, UPLOAD_DIR, SEED_DOCS_DIR, JOB_STAGING_DIR):
+    for path in (DATA_DIR, UPLOAD_DIR, SEED_DOCS_DIR, JOB_STAGING_DIR, SCAN_DEFAULT_DIR):
         path.mkdir(parents=True, exist_ok=True)

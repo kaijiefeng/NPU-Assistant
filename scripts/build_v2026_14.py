@@ -7,12 +7,12 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
-BASE = ROOT / "docs/npu-handbook/qa-dataset-v2026.13.jsonl"
-SUPP = ROOT / "docs/npu-handbook/qa-supplement-ic17-approved.jsonl"
-NEG = ROOT / "docs/npu-handbook/qa-dataset-negative-v2026.13.jsonl"
-OUT = ROOT / "docs/npu-handbook/qa-dataset-v2026.14.jsonl"
-NEG_OUT = ROOT / "docs/npu-handbook/qa-dataset-negative-v2026.14.jsonl"
-REPORT = ROOT / "docs/npu-handbook/DATASET-V2026.14.md"
+BASE = ROOT / "sources/handbook/qa-dataset-v2026.13.jsonl"
+SUPP = ROOT / "sources/handbook/qa-supplement-ic17-approved.jsonl"
+NEG = ROOT / "sources/handbook/qa-dataset-negative-v2026.13.jsonl"
+OUT = ROOT / "sources/handbook/qa-dataset-v2026.14.jsonl"
+NEG_OUT = ROOT / "sources/handbook/qa-dataset-negative-v2026.14.jsonl"
+REPORT = ROOT / "sources/handbook/DATASET-V2026.14.md"
 
 
 def norm(text: str) -> str:
@@ -49,7 +49,7 @@ def main() -> int:
         for row in neg:
             handle.write(json.dumps(row, ensure_ascii=False) + "\n")
 
-    corpus = norm("\n".join(path.read_text(encoding="utf-8") for path in (ROOT / "docs/npu-handbook/corpus").glob("*.md")))
+    corpus = norm("\n".join(path.read_text(encoding="utf-8") for path in (ROOT / "sources/handbook/corpus").glob("*.md")))
     issues = []
     for row in rows:
         source = row.get("source") or {}

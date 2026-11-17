@@ -1,6 +1,6 @@
 """人工队列分流：互联网抓取 → 自动下载 → 标记人工接管。
 
-对 docs/campus-seed/manual-queue.json 中的每条：
+对 sources/campus-seed/manual-queue.json 中的每条：
 1. 先尝试直接抓公开页面/正文；正文够长则直接导入（互联网抓取）。
 2. 页面内嵌 PDF/附件则自动下载；PDF 有文本则导入，扫描件保存后标记 needs_ocr。
 3. 403/412、验证码、正文过短且无附件 → 标记 needs_browser / needs_captcha，
@@ -30,8 +30,8 @@ sys.path.insert(0, str(ROOT / "backend"))
 from app.services import importer, ingest  # noqa: E402
 from app import db  # noqa: E402
 
-QUEUE_PATH = ROOT / "docs/campus-seed/manual-queue.json"
-RESULTS_PATH = ROOT / "docs/campus-seed/manual-queue-results.json"
+QUEUE_PATH = ROOT / "sources/campus-seed/manual-queue.json"
+RESULTS_PATH = ROOT / "sources/campus-seed/manual-queue-results.json"
 FILES_DIR = ROOT / "backend/data/campus_manual/files"
 UA = "NPU-Assistant campus-sync/0.1"
 CAPTCHA_MARKERS = ("验证码", "captcha", "人机验证", "安全验证")

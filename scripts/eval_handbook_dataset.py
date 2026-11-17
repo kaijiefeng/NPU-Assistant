@@ -13,11 +13,11 @@ from pathlib import Path
 import httpx
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA = ROOT / "docs/npu-handbook/qa-dataset.jsonl"
-NEG = ROOT / "docs/npu-handbook/qa-dataset-negative.jsonl"
+DATA = ROOT / "sources/handbook/qa-dataset.jsonl"
+NEG = ROOT / "sources/handbook/qa-dataset-negative.jsonl"
 DB = ROOT / "backend/data/app.db"
-REPORT_JSON = ROOT / "docs/npu-handbook/M6-REPORT.json"
-REPORT_MD = ROOT / "docs/npu-handbook/M6-REPORT.md"
+REPORT_JSON = ROOT / "sources/handbook/M6-REPORT.json"
+REPORT_MD = ROOT / "sources/handbook/M6-REPORT.md"
 
 
 def norm(text: str) -> str:

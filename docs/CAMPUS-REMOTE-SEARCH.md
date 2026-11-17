@@ -142,7 +142,7 @@ query
 
 ## 九、混合检索评测
 
-见 [eval/HYBRID-TEST-PLAN.md](eval/HYBRID-TEST-PLAN.md)；首轮本地有效召回 100%，远程受搜狗反爬影响。
+见 [eval/HYBRID-TEST-PLAN.md](../sources/eval/HYBRID-TEST-PLAN.md)；首轮本地有效召回 100%，远程受搜狗反爬影响。
 
 ## 十、合规说明
 

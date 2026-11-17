@@ -8,10 +8,10 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCES = ROOT / "docs/npu-handbook/sources.json"
-CORPUS = ROOT / "docs/npu-handbook/corpus"
-OUT = ROOT / "docs/npu-handbook/qa-pilot.jsonl"
-REPORT = ROOT / "docs/npu-handbook/QA-PILOT.md"
+SOURCES = ROOT / "sources/handbook/sources.json"
+CORPUS = ROOT / "sources/handbook/corpus"
+OUT = ROOT / "sources/handbook/qa-pilot.jsonl"
+REPORT = ROOT / "sources/handbook/QA-PILOT.md"
 
 # (question, answer, category, doc_id, quote_hint)
 
@@ -195,7 +195,7 @@ def main() -> int:
         lines += ["", "## 未生成", ""]
         for error in errors:
             lines.append(f"- #{error['index']} {error['question']}：{error['error']}")
-    (ROOT / "docs/npu-handbook/QA-PILOT.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (ROOT / "sources/handbook/QA-PILOT.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(json.dumps({"records": len(records), "errors": errors, "categories": categories}, ensure_ascii=False, indent=2))
     return 0 if not errors else 1
 

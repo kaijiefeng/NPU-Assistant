@@ -9,11 +9,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "backend/data/app.db"
-CORPUS = ROOT / "docs/npu-handbook/corpus"
-OUT = ROOT / "docs/npu-handbook/qa-dataset.jsonl"
-NEG = ROOT / "docs/npu-handbook/qa-pilot-negative.jsonl"
-NEG_OUT = ROOT / "docs/npu-handbook/qa-dataset-negative.jsonl"
-REPORT = ROOT / "docs/npu-handbook/DATASET.md"
+CORPUS = ROOT / "sources/handbook/corpus"
+OUT = ROOT / "sources/handbook/qa-dataset.jsonl"
+NEG = ROOT / "sources/handbook/qa-pilot-negative.jsonl"
+NEG_OUT = ROOT / "sources/handbook/qa-dataset-negative.jsonl"
+REPORT = ROOT / "sources/handbook/DATASET.md"
 TARGET = 300
 
 

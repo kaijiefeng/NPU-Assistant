@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""把 `docs/npu-handbook/collect/` 采集语料批量导入应用知识库。
+"""把 `sources/handbook/collect/` 采集语料批量导入应用知识库。
 
 采集语料共 2500+ 篇官方公开文档，默认**不混入**精选 Wiki 快照；本脚本提供可控的
 分批导入：按文档类型/主题筛选、跳过已入库、限流、断点续传，导入后由应用异步编译成词条。
@@ -14,7 +14,7 @@
     # 3) 指定服务地址与管理令牌（启用令牌时）
     .\\.venv\\Scripts\\python.exe scripts\\import_handbook_collect.py --apply --base-url http://127.0.0.1:8000 --token ***
 
-产物：`docs/npu-handbook/collect/imported-app.jsonl`（每行一个已提交文件，便于断点续传）。
+产物：`sources/handbook/collect/imported-app.jsonl`（每行一个已提交文件，便于断点续传）。
 """
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ from pathlib import Path
 import httpx
 
 ROOT = Path(__file__).resolve().parent.parent
-COLLECT = ROOT / "docs" / "npu-handbook" / "collect"
+COLLECT = ROOT / "sources" / "handbook" / "collect"
 MANIFEST = COLLECT / "manifest.jsonl"
 RESUME = COLLECT / "imported-app.jsonl"
 

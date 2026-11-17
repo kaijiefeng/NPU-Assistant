@@ -5,7 +5,7 @@
 
 * 同源 BFS，只抓 HTML 导航页与详情页，默认只允许指定路径前缀；
 * 详情页（``/info/``）提取正文；页面里的 PDF/DOCX/XLSX 附件下载并解析文本；
-* 统一去重、限速、个人信息脱敏，写入 ``docs/npu-handbook/collect/``。
+* 统一去重、限速、个人信息脱敏，写入 ``sources/handbook/collect/``。
 
 用法::
 

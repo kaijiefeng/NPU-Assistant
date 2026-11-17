@@ -49,7 +49,7 @@
 | **Lead** | `docs/CONTRACT.md`、`docs/WIKI-DESIGN.md`、`backend/app/{main,config,db}.py`、`backend/app/routers/system.py`、`scripts/`、`.gitignore`、`.env.example`、`backend/data/wiki_seed.json`（生成物） |
 | **wiki-core** | `backend/app/services/{wiki_builder,wiki_nav,text_utils}.py`、`backend/app/services/{counselor,ingest}.py`、`backend/app/routers/{wiki,knowledge}.py` |
 | **web-ui** | `frontend/**` |
-| **qa-docs** | `backend/tests/**`、`README.md`、`docs/{ARCHITECTURE,API,DEMO,BOT-INTEGRATION}.md`、`backend/data/seed_docs/**` |
+| **qa-docs** | `backend/tests/**`、`README.md`、`docs/{ARCHITECTURE,API,DEMO,BOT-INTEGRATION}.md`、`sources/seed/**` |
 | **backend-core / kb-rag / bot-gateway（已完成，暂停）** | 其既有文件不再改动；如确需改动，先通知 Lead |
 
 纪律：

@@ -7,7 +7,7 @@
 * 按站点限速（默认同域 0.6s 一次）、遵守 robots.txt；
 * 以 URL 去重，可断点续采（manifest.jsonl 同时充当进度文件）；
 * 详情页正文复用 ``services.importer.extract_article``（与线上「快速收录」同一套提取逻辑）；
-* 采集结果独立存放于 ``docs/npu-handbook/collect/``，不污染既有 114 篇精选语料。
+* 采集结果独立存放于 ``sources/handbook/collect/``，不污染既有 114 篇精选语料。
 
 用法::
 
@@ -40,7 +40,7 @@ import httpx
 from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT_DIR = ROOT / "docs" / "npu-handbook" / "collect"
+OUT_DIR = ROOT / "sources" / "handbook" / "collect"
 CORPUS_DIR = OUT_DIR / "corpus"
 MANIFEST = OUT_DIR / "manifest.jsonl"
 SHARD_DIR = OUT_DIR / "manual-shards"
@@ -49,7 +49,7 @@ SEEDS = OUT_DIR / "seeds.json"
 DISCOVERED = OUT_DIR / "discovered.json"
 REPORT = OUT_DIR / "COLLECTION-REPORT.md"
 COVERAGE_CSV = OUT_DIR / "coverage.csv"
-EXISTING_CORPUS = ROOT / "docs" / "npu-handbook" / "corpus.json"
+EXISTING_CORPUS = ROOT / "sources" / "handbook" / "corpus.json"
 
 sys.path.insert(0, str(ROOT / "backend"))
 from app.services import campus_sync as cs  # noqa: E402
@@ -847,7 +847,7 @@ def audit() -> int:
         "# 资料完整性与完备性审计",
         "",
         f"- 生成时间：{datetime.now().astimezone().isoformat(timespec='seconds')}",
-        f"- 审计对象：`docs/npu-handbook/collect/` 共 **{len(rows)}** 篇（{len(sites)} 个站点）",
+        f"- 审计对象：`sources/handbook/collect/` 共 **{len(rows)}** 篇（{len(sites)} 个站点）",
         f"- 对照清单：{len(results)} 项「学生手册/校园知识库应覆盖内容」",
         f"- 结果：**已覆盖 {len(results) - len(missing)} 项（{(len(results) - len(missing)) / len(results):.0%}）**，"
         f"完全未命中 **{len(missing)} 项**，仅 1–2 篇佐证的薄弱项 **{len(weak)} 项**，"

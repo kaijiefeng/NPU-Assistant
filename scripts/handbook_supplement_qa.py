@@ -9,9 +9,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "backend/data/app.db"
-CORPUS = ROOT / "docs/npu-handbook/corpus"
-OUT = ROOT / "docs/npu-handbook/qa-supplement.jsonl"
-REPORT = ROOT / "docs/npu-handbook/SUPPLEMENT.md"
+CORPUS = ROOT / "sources/handbook/corpus"
+OUT = ROOT / "sources/handbook/qa-supplement.jsonl"
+REPORT = ROOT / "sources/handbook/SUPPLEMENT.md"
 
 
 def norm(text: str) -> str:

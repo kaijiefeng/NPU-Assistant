@@ -9,9 +9,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "backend/data/app.db"
-CORPUS = ROOT / "docs/npu-handbook/corpus"
-OUT = ROOT / "docs/npu-handbook/qa-supplement-ic22.jsonl"
-REPORT = ROOT / "docs/npu-handbook/SUPPLEMENT-IC22.md"
+CORPUS = ROOT / "sources/handbook/corpus"
+OUT = ROOT / "sources/handbook/qa-supplement-ic22.jsonl"
+REPORT = ROOT / "sources/handbook/SUPPLEMENT-IC22.md"
 
 
 def norm(text: str) -> str:
@@ -36,7 +36,7 @@ def main() -> int:
     con.close()
     records = []
     seen = set()
-    for existing in (ROOT / "docs/npu-handbook/qa-supplement-ic.jsonl", ROOT / "docs/npu-handbook/qa-supplement-ic2.jsonl", ROOT / "docs/npu-handbook/qa-supplement-ic3.jsonl", ROOT / "docs/npu-handbook/qa-supplement-ic4.jsonl", ROOT / "docs/npu-handbook/qa-supplement-ic5.jsonl", ROOT / "docs/npu-handbook/qa-supplement-ic6.jsonl", ROOT / "docs/npu-handbook/qa-supplement-ic7.jsonl", ROOT / "docs/npu-handbook/qa-supplement-ic8.jsonl", ROOT / "docs/npu-handbook/qa-supplement-ic9.jsonl", ROOT / "docs/npu-handbook/qa-supplement-ic10.jsonl", ROOT / "docs/npu-handbook/qa-supplement-ic11.jsonl", ROOT / "docs/npu-handbook/qa-supplement-ic12.jsonl"):
+    for existing in (ROOT / "sources/handbook/qa-supplement-ic.jsonl", ROOT / "sources/handbook/qa-supplement-ic2.jsonl", ROOT / "sources/handbook/qa-supplement-ic3.jsonl", ROOT / "sources/handbook/qa-supplement-ic4.jsonl", ROOT / "sources/handbook/qa-supplement-ic5.jsonl", ROOT / "sources/handbook/qa-supplement-ic6.jsonl", ROOT / "sources/handbook/qa-supplement-ic7.jsonl", ROOT / "sources/handbook/qa-supplement-ic8.jsonl", ROOT / "sources/handbook/qa-supplement-ic9.jsonl", ROOT / "sources/handbook/qa-supplement-ic10.jsonl", ROOT / "sources/handbook/qa-supplement-ic11.jsonl", ROOT / "sources/handbook/qa-supplement-ic12.jsonl"):
         if existing.exists():
             for line in existing.read_text(encoding="utf-8").splitlines():
                 if line.strip():

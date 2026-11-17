@@ -52,8 +52,8 @@
 
 | 文档 | 内容 |
 |------|------|
-| [NPU 学生手册数据集](npu-handbook/README.md) | 数据集、版本、指标 |
-| [评测报告](eval/) | 真实问题、覆盖矩阵、检索评测 |
+| [NPU 学生手册数据集](../sources/handbook/README.md) | 数据集、版本、指标 |
+| [评测报告](../sources/eval/) | 真实问题、覆盖矩阵、检索评测 |
 | [校园内容计划](CAMPUS-CONTENT-PLAN.md) | 内容领域与更新方案 |
 | [人工下载队列](CAMPUS-MANUAL-QUEUE.md) | WAF/扫描件的人工收录清单 |
 

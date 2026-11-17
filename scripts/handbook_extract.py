@@ -16,8 +16,8 @@ sys.path.insert(0, str(ROOT / "backend"))
 from app.services import parsing  # noqa: E402
 
 DB = ROOT / "backend/data/app.db"
-SOURCES = ROOT / "docs/npu-handbook/sources.json"
-OUT = ROOT / "docs/npu-handbook/corpus"
+SOURCES = ROOT / "sources/handbook/sources.json"
+OUT = ROOT / "sources/handbook/corpus"
 
 
 def clean(text: str) -> str:
@@ -104,7 +104,7 @@ def main() -> int:
             )
         except Exception as exc:
             print(f"skip {doc.get('title')}: {exc}")
-    (ROOT / "docs/npu-handbook/corpus.json").write_text(
+    (ROOT / "sources/handbook/corpus.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     print(json.dumps({"corpus_files": len(manifest), "chars": sum(x["chars"] for x in manifest)}, ensure_ascii=False))

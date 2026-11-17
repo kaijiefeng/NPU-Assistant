@@ -23,8 +23,8 @@ sys.path.insert(0, str(ROOT / "backend"))
 from app import db  # noqa: E402
 from app.services import ingest  # noqa: E402
 
-QUEUE_PATH = ROOT / "docs/campus-seed/manual-queue.json"
-RESULTS_PATH = ROOT / "docs/campus-seed/manual-queue-results.json"
+QUEUE_PATH = ROOT / "sources/campus-seed/manual-queue.json"
+RESULTS_PATH = ROOT / "sources/campus-seed/manual-queue-results.json"
 OCR_DIR = ROOT / "backend/data/campus_manual/ocr"
 TAGS = ["真实数据", "校园公开资料", "人工队列", "OCR"]
 

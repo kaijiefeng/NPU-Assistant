@@ -355,7 +355,7 @@ QQ/微信/控制台事件
 
 - `COMPILE_SYSTEM_PROMPT`：要求只输出 JSON 数组，字段 `title/aliases/summary/tags/body_md/source_section/source_quote/related_titles`。
 - `MERGE_SYSTEM_PROMPT`：合并新旧来源，冲突时用引用块提示“以最新官方通知为准”。
-- 改提示词会影响所有词条；改完需回归 `docs/npu-handbook` 评测集，并考虑全部重建。
+- 改提示词会影响所有词条；改完需回归 `sources/handbook` 评测集，并考虑全部重建。
 
 ### 9.3 校验与兜底
 
@@ -406,7 +406,7 @@ cd backend
 
 ### 10.4 评测集
 
-- `docs/npu-handbook/release/v2026.21/`：479 可答 + 10 不可答。
+- `sources/handbook/release/v2026.21/`：479 可答 + 10 不可答。
 - 指标：检索 100% / 引用 100% / 拒答 100%。
 - 改导航/提示词/编译逻辑后必须回归；不要为了新功能牺牲拒答率。
 
@@ -496,7 +496,7 @@ cd backend
 
 ### 13.6 改导航/编译逻辑
 
-1. 先跑基线评测（`docs/npu-handbook`）。
+1. 先跑基线评测（`sources/handbook`）。
 2. 改 `wiki_nav` / `wiki_builder` / 提示词。
 3. 跑 pytest + 评测集；对比检索/引用/拒答指标。
 4. 需要时重建 `wiki_seed.json`。
@@ -636,7 +636,7 @@ cd backend
 4. 打开 **Actions → Release** 确认 Release 已创建。工作流会先校验 tag 与
    `APP_VERSION` 一致，再读取 CHANGELOG 章节作为正文。
 5. 发布后同步脚本不管的位置：根 `README.md` 与 `frontend/manual/product.html`
-   的版本号、`docs/ROADMAP.md` 的状态、`docs/npu-handbook/README.md` 的数据集清单。
+   的版本号、`docs/ROADMAP.md` 的状态、`sources/handbook/README.md` 的数据集清单。
 6. 部署后验证 `/api/health`（`version`）、首页、一次问答、一次上传。
 
 脚本参数：`-SkipTests`（不推荐）、`-SkipPush`（只打本地 tag）、
@@ -667,11 +667,11 @@ git tag dataset-v2026.22
 git push origin dataset-v2026.22
 ```
 
-工作流读取 `docs/npu-handbook/release/v2026.22/dataset-card.md` 作为正文（可带
+工作流读取 `sources/handbook/release/v2026.22/dataset-card.md` 作为正文（可带
 YAML front matter）；没有 dataset card 时回退到 GitHub 自动生成的 notes。数据集
 Release 使用 `--latest=false`，不会抢应用版本的 Latest 标记。tag 必须打在包含
 `.github/workflows/release.yml` 的提交上；发布后同步
-`docs/npu-handbook/README.md` 的 release 目录清单与 `CHANGELOG.md` 的数据集章节。
+`sources/handbook/README.md` 的 release 目录清单与 `CHANGELOG.md` 的数据集章节。
 
 ### 17.4 补发 / 重发
 

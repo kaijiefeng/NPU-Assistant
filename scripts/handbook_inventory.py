@@ -1,9 +1,9 @@
 """M2：生成 NPU 学生手册数据集来源盘点。
 
 读取当前 documents，按类别归类，输出：
-- docs/npu-handbook/sources.json
-- docs/npu-handbook/coverage.csv
-- docs/npu-handbook/INVENTORY.md
+- sources/handbook/sources.json
+- sources/handbook/coverage.csv
+- sources/handbook/INVENTORY.md
 """
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "backend/data/app.db"
-OUT = ROOT / "docs/npu-handbook"
+OUT = ROOT / "sources/handbook"
 
 CATEGORIES = [
     ("学籍管理", ("学籍", "注册", "转专业", "休学", "复学", "退学", "保留学籍", "降级")),
