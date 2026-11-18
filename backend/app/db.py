@@ -223,6 +223,25 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     updated_at       TEXT NOT NULL DEFAULT ''
 );
 
+CREATE TABLE IF NOT EXISTS ops_tasks (
+    id            TEXT PRIMARY KEY,
+    title         TEXT NOT NULL,
+    error_input   TEXT NOT NULL,
+    status        TEXT NOT NULL DEFAULT 'analyzing',
+    -- analyzing|planned|executing|done|failed|cancelled
+    analysis      TEXT NOT NULL DEFAULT '{}',  -- LLM 定位/方案/测试方案 JSON
+    plan          TEXT NOT NULL DEFAULT '[]',  -- LLM 修改清单 [{path,action,content}]
+    worktree_dir  TEXT NOT NULL DEFAULT '',
+    branch        TEXT NOT NULL DEFAULT '',
+    pr_url        TEXT NOT NULL DEFAULT '',
+    log           TEXT NOT NULL DEFAULT '',    -- 追加式执行日志（前端实时渲染）
+    test_summary  TEXT NOT NULL DEFAULT '',    -- 最近一轮测试结果摘要
+    created_by    TEXT NOT NULL DEFAULT '',
+    created_at    TEXT NOT NULL,
+    updated_at    TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_ops_tasks_status ON ops_tasks(status, created_at);
+
 -- ---------------------------------------------------------------------------
 -- v0.2.0 handoff + crisis
 -- ---------------------------------------------------------------------------

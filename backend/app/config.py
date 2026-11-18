@@ -111,6 +111,10 @@ SCAN_MAX_FILES = int(os.environ.get("NPU_SCAN_MAX_FILES", "200"))
 SCAN_MAX_DEPTH = int(os.environ.get("NPU_SCAN_MAX_DEPTH", "4"))
 # 默认扫描目录：界面留空时扫描这里；随仓库提供，内容不进版本库（见 .gitignore）。
 SCAN_DEFAULT_DIR = Path(os.environ.get("NPU_SCAN_DIR", REPO_DIR / "scan"))
+# 运维 Agent 工作树统一管理目录（每个任务一个 git worktree，结束后清理）。
+WORKTREE_DIR = Path(os.environ.get("NPU_WORKTREE_DIR", REPO_DIR / ".worktrees"))
+# 推送修复分支时的可选代理（如 http://127.0.0.1:7890）；空 = 不加代理。
+GIT_PROXY = os.environ.get("NPU_GIT_PROXY", "").strip()
 SCAN_ROOTS = [
     os.path.abspath(item.strip())
     for item in os.environ.get("NPU_SCAN_ROOTS", "").split(os.pathsep)

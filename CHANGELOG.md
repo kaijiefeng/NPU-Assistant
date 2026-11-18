@@ -2,9 +2,17 @@
 
 本文件记录 NPU-Assistant 的发布版本。版本号遵循语义化版本：`主版本.次版本.修订号`。
 
-## v0.2.2 — 开发中（源文件剥离 + 扫描目录一键编译）
+## v0.2.2 — 开发中（源文件剥离 + 扫描目录一键编译 + RSI 完善）
 
-主题：**源文件与说明文档剥离，扫描目录一键导入 / 更新**。
+主题：**源文件与说明文档剥离，扫描目录一键导入 / 更新，RSI 闭环自动化**。
+
+RSI 三项新能力：
+
+- 缺口 AI 备选：服务台缺口一键"AI 找备选"——白名单源检索（官网+公众号）+ LLM 裁决相关性，候选写入缺口卡片，逐条一键收录（import_url）并自动关联缺口（status → linked）；LLM 不可用时降级为原始候选直出；
+- 订阅发现：管理员订阅通知列表页（`subscriptions` 表），一键检查发现新内容（通用同源链接提取 + robots 闸门 + 已收录/已忽略去重 + 未处理条目跨轮保留），LLM 逐条概括供挑选，确认后一键收录；
+- 运维 Agent（仅超级管理员，`ops:manage`）：粘贴报错 → LLM 定位/修复方案/测试方案（planned 待许可）→ 批准后在统一目录 `.worktrees/<task>` 的一次性 git 工作树内 LLM 生成修改并写盘 → 定向+全量 pytest（可选 rsi_verify 端到端）→ 推送分支（NPU_GIT_PROXY 可选）/ gh pr create 或 compare 链接 → 清理工作树 → 站内告警通知；失败保留工作树供人工接管；subprocess 白名单 git/pytest/gh，修改路径限定工作树内。
+
+目录与扫描（前序批次）：
 
 - 目录剥离：新增一级目录 `sources/`（`handbook` ← docs/npu-handbook、`seed` ← backend/data/seed_docs、`campus-seed`、`eval`），`docs/` 只保留说明文档与截图 / RSI 证据；`SEED_DOCS_DIR` 默认指向 `sources/seed`，旧路径自动回退兼容；
 - 扫描查重：`documents` 新增 `content_hash`（源内容 sha256，兼容旧库迁移），重复扫描不再重复入库；

@@ -26,6 +26,7 @@ from starlette.requests import Request
 
 from . import config, db
 from .routers import auth as auth_router
+from .routers import ops as ops_router
 from .routers import bots, chat, handoff, insights, jobs as jobs_router, knowledge, mobile, models, system, wiki
 from .security import authenticate_request
 from .services import auth as auth_service, jobs as jobs_service, qq_gateway
@@ -281,6 +282,7 @@ def create_app() -> FastAPI:
     app.include_router(chat.router, prefix=API_PREFIX)
     app.include_router(handoff.router, prefix=API_PREFIX)
     app.include_router(insights.router, prefix=API_PREFIX)
+    app.include_router(ops_router.router, prefix=API_PREFIX)
     app.include_router(knowledge.router, prefix=API_PREFIX)
     app.include_router(wiki.router, prefix=API_PREFIX)
     app.include_router(models.router, prefix=API_PREFIX)

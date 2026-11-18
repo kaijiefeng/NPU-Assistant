@@ -33,6 +33,8 @@ JOB_TYPES = {
     "scan_dir",
     "gap_suggest",
     "subscription_check",
+    "ops_analyze",
+    "ops_execute",
 }
 ACTIVE_STATUSES = {"queued", "running"}
 TERMINAL_STATUSES = {"succeeded", "failed", "cancelled"}
@@ -464,6 +466,39 @@ def _run_subscription_check(payload: dict, job: dict) -> dict:
     return result
 
 
+def _run_ops_analyze(payload: dict, job: dict) -> dict:
+    """运维 Agent 分析：LLM 定位问题并生成方案，结束进入待许可。"""
+    from . import ops_agent
+
+    task_id = str(payload.get("task_id") or "")
+    _update(job["id"], progress=15, message="LLM 分析报错中")
+    result = ops_agent.analyze(task_id)
+    _update(job["id"], progress=100, message="分析完成，等待管理员许可")
+    return {"task_id": task_id, "status": result.get("status")}
+
+
+def _run_ops_execute(payload: dict, job: dict) -> dict:
+    """运维 Agent 执行：工作树修复 → 测试 → 推送 → 清理。"""
+    from . import ops_agent
+
+    task_id = str(payload.get("task_id") or "")
+    run_e2e = bool(payload.get("run_e2e"))
+    _update(job["id"], progress=5, message="开始执行修复流水线")
+    result = ops_agent.execute(task_id, run_e2e=run_e2e)
+    if result.get("status") == "failed":
+        log_tail = "\n".join((result.get("log") or "").splitlines()[-3:])
+        raise ValueError(
+            f"运维任务执行失败（工作树已保留供人工接管）：{result.get('test_summary') or '详见任务日志'}"
+            f"｜日志尾部：{log_tail}"
+        )
+    _update(job["id"], progress=100, message=result.get("status") or "完成")
+    return {
+        "task_id": task_id,
+        "status": result.get("status"),
+        "pr_url": result.get("pr_url") or "",
+    }
+
+
 _DEFAULT_HANDLERS = {
     "ingest_upload": _run_ingest_upload,
     "reindex": _run_reindex,
@@ -471,6 +506,8 @@ _DEFAULT_HANDLERS = {
     "scan_dir": _run_scan_dir,
     "gap_suggest": _run_gap_suggest,
     "subscription_check": _run_subscription_check,
+    "ops_analyze": _run_ops_analyze,
+    "ops_execute": _run_ops_execute,
 }
 
 

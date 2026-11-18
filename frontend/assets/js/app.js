@@ -30,6 +30,12 @@ const ROUTES = {
     load: () => import('./views/ops-hub.js'),
     permission: 'insights:read',
   },
+  'ops-agent': {
+    title: '运维 Agent',
+    subtitle: '报错驱动的自动修复（仅超级管理员）',
+    load: () => import('./views/ops-agent.js'),
+    permission: 'ops:manage',
+  },
   settings: {
     title: '设置',
     subtitle: '助手、模型、机器人与成员',

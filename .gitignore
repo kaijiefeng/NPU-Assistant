@@ -48,3 +48,6 @@ sources/handbook/collect/imported-app.jsonl
 
 # --- ZCode internal ---
 .zcode/
+
+# --- Ops agent worktrees (per-task git worktrees) ---
+.worktrees/

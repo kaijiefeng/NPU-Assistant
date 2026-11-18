@@ -6959,3 +6959,22 @@ body {
 .sub-discovery-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .sub-discovery-main a { font-weight: 600; color: var(--ink); word-break: break-all; }
 .sub-discovery-main .muted { font-size: 12px; }
+.ops-agent-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 900px) { .ops-agent-layout { grid-template-columns: 1fr; } }
+.ops-task-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; max-height: 60vh; overflow: auto; }
+.ops-task-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  text-align: left; padding: 8px 10px; border: 1px solid var(--border-weak, #eef0f3);
+  border-radius: 8px; background: var(--card, #fff); cursor: pointer;
+}
+.ops-task-item.is-active { border-color: var(--primary, #0b3d91); }
+.ops-task-title { font-size: 13px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ops-block { margin-top: 12px; }
+.ops-block h4 { margin: 0 0 4px; font-size: 13px; color: var(--muted, #5a6472); }
+.ops-block p, .ops-block li { font-size: 13.5px; line-height: 1.6; }
+.ops-approve { margin-top: 12px; padding: 10px; border: 1px dashed var(--border, #e3e6eb); border-radius: 8px; }
+.ops-log {
+  margin: 6px 0 0; padding: 10px; max-height: 320px; overflow: auto;
+  background: var(--bg, #f6f7f9); border: 1px solid var(--border-weak, #eef0f3);
+  border-radius: 8px; font-size: 12px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;
+}

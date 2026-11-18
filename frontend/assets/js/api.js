@@ -523,3 +523,16 @@ export const deleteBotChannel = (id) => del(`/bots/channels/${encodeURIComponent
 export const testBotChannel = (id, body) =>
   post(`/bots/channels/${encodeURIComponent(id)}/test`, body);
 export const listBotLogs = (limit = 50) => get('/bots/logs', { limit });
+
+/* ------------------------------------------------------------------ */
+/* 运维 Agent（v0.3.0 开发中，仅超级管理员）                             */
+/* ------------------------------------------------------------------ */
+export const listOpsTasks = (params = {}) => get('/ops/agent/tasks', params);
+export const getOpsTask = (id) => get(`/ops/agent/tasks/${encodeURIComponent(id)}`);
+export const createOpsTask = (payload) => post('/ops/agent/tasks', payload);
+export const approveOpsTask = (id, payload = {}) =>
+  post(`/ops/agent/tasks/${encodeURIComponent(id)}/approve`, payload);
+export const cancelOpsTask = (id, payload = {}) =>
+  post(`/ops/agent/tasks/${encodeURIComponent(id)}/cancel`, payload);
+export const cleanupOpsTask = (id, payload = {}) =>
+  post(`/ops/agent/tasks/${encodeURIComponent(id)}/cleanup`, payload);
