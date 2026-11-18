@@ -207,3 +207,49 @@ def test_token_mode_requires_admin_header(client, monkeypatch, sandbox_repo):
 def test_short_error_input_rejected(client):
     response = client.post("/api/ops/agent/tasks", json={"error_input": "太短"})
     assert response.status_code == 400
+
+
+def test_analyze_rejects_terminal_states(client, monkeypatch, sandbox_repo):
+    """done/cancelled 任务不允许被迟到的分析 job 复活。"""
+    from app.services import ops_agent
+
+    task = ops_agent.create_task(ERROR_INPUT)
+    for status in ("done", "cancelled"):
+        ops_agent._save(task["id"], status=status)
+        with pytest.raises(ValueError, match="不允许"):
+            ops_agent.analyze(task["id"])
+        assert ops_agent.get_task(task["id"])["status"] == status
+
+
+def test_safe_path_rejects_escape(client, monkeypatch, sandbox_repo):
+    from app.services import ops_agent
+
+    worktree = sandbox_repo
+    for bad in ("../../etc/passwd", "/etc/passwd", "a/../../b.md"):
+        with pytest.raises(ops_agent.OpsError, match="非法路径|越出工作树"):
+            ops_agent._safe_path(worktree, bad)
+    assert ops_agent._safe_path(worktree, "backend/app/x.py").is_absolute()
+
+
+def test_recover_interrupted_recovers_executing_tasks(client, monkeypatch, sandbox_repo):
+    """服务重启回收：executing 的运维任务置 failed 并保留工作树信息。"""
+    from app import db as app_db
+    from app.services import jobs, ops_agent
+
+    task = ops_agent.create_task(ERROR_INPUT)
+    ops_agent._save(task["id"], status="executing", worktree_dir=r"E:\tmp\wt-placeholder")
+    ops_agent._log(task["id"], "执行中…")
+    recovered = jobs.recover_interrupted()
+    assert recovered >= 0
+    detail = ops_agent.get_task(task["id"])
+    assert detail["status"] == "failed", detail
+    assert "服务重启" in detail["test_summary"]
+    assert "人工接管" in detail["log"]
+
+
+def test_targeted_args_extracts_paths_from_chinese_plan(client, monkeypatch, sandbox_repo):
+    from app.services import ops_agent
+
+    task = {"analysis": {"test_plan": ["运行 tests/test_wallet.py 验证充值", "跑全量回归"]}}
+    args = ops_agent._targeted_args(task)
+    assert args == ["tests/test_wallet.py"], args

@@ -234,6 +234,27 @@ def recover_interrupted() -> int:
             ("服务重启导致编译中断，请重新编译该文档", timestamp),
         )
         logger.warning("已把 %s 篇中断文档从 processing 回收为 failed", stuck_count)
+    # 运维 Agent 的 executing 任务同理：重启后无 worker 续跑，回收为 failed 保留工作树
+    executing = db.query_one("SELECT COUNT(*) AS n FROM ops_tasks WHERE status = 'executing'")
+    executing_count = int((executing or {}).get("n") or 0)
+    if executing_count:
+        from . import ops_agent
+
+        rows = db.query("SELECT id FROM ops_tasks WHERE status = 'executing'")
+        for row in rows:
+            ops_agent._log(row["id"], "服务重启导致执行中断；任务已回收为 failed，工作树保留供人工接管。")
+        db.execute(
+            "UPDATE ops_tasks SET status = 'failed', "
+            "test_summary = '服务重启导致执行中断', updated_at = ? WHERE status = 'executing'",
+            (timestamp,),
+        )
+        alerts.create_alert(
+            "运维任务因服务重启中断",
+            level="warning",
+            category="ops",
+            detail=f"{executing_count} 个执行中的运维修复任务被中断，工作树已保留供人工接管或清理。",
+            source="ops",
+        )
     return count
 
 

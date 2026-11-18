@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import threading
 from dataclasses import dataclass
 from urllib.parse import urljoin, urlsplit
 
@@ -64,6 +65,8 @@ def _extract_links(html: str, list_url: str) -> list[LinkItem]:
 
 
 _robots = RobotsCache(_USER_AGENT)
+# 同一订阅的 discoveries JSON 是"读-改-写"结构；检查 job 与收录/忽略并发时串行化
+_SUB_WRITE_LOCK = threading.Lock()
 
 
 # ---------------------------------------------------------------------------
@@ -170,42 +173,49 @@ def check_subscription(sub_id: str) -> dict:
         logger.exception("订阅列表页解析失败：%s", sub["url"])
         return finish("parse-failed", [], f"列表页解析失败：{exc}")
 
-    known = existing_source_urls()
-    ignored = set(sub["ignored_urls"])
-    previous = {
-        item.get("url"): item for item in sub["discoveries"] if isinstance(item, dict)
-    }
-    # 上一轮遗留：已收录（出现在 source_url）的条目清掉，未处理的保留
-    carried = [d for url, d in previous.items() if url and url not in known]
+    # 合并写回在进程内锁内进行：避免与并发的收录/忽略（读-改-写）互相覆盖。
+    # 锁内重新读取最新 discoveries/ignored_urls 作为合并基准。
+    with _SUB_WRITE_LOCK:
+        latest = _get_subscription(sub_id)
+        known = existing_source_urls()
+        ignored = set(latest["ignored_urls"])
+        previous = {
+            item.get("url"): item for item in latest["discoveries"] if isinstance(item, dict)
+        }
+        # 上一轮遗留：已收录（出现在 source_url）的条目清掉，未处理的保留
+        carried = [d for url, d in previous.items() if url and url not in known]
 
-    fresh = [
-        item
-        for item in items
-        if item.url not in known and item.url not in ignored and item.url not in previous
-    ][:_MAX_DISCOVERIES]
-    if not fresh:
-        merged = carried[:_MAX_DISCOVERIES]
-        return finish(
-            "ok", merged, f"本轮没有新内容；待挑选 {len(merged)} 条" if merged else "本轮没有发现新内容"
+        fresh = [
+            item
+            for item in items
+            if item.url not in known and item.url not in ignored and item.url not in previous
+        ][:_MAX_DISCOVERIES]
+        if not fresh:
+            merged = carried[:_MAX_DISCOVERIES]
+            return finish(
+                "ok",
+                merged,
+                f"本轮没有新内容；待挑选 {len(merged)} 条" if merged else "本轮没有发现新内容",
+            )
+
+        summaries = _summarize(fresh)
+        new_entries = [
+            {
+                "url": item.url,
+                "title": summaries.get(item.url, {}).get("title") or item.title or item.url,
+                "date": item.date or "",
+                "summary": summaries.get(item.url, {}).get("summary") or "",
+                "collected": False,
+            }
+            for item in fresh
+        ]
+        merged = (carried + new_entries)[:_MAX_DISCOVERIES]
+        result = finish(
+            "ok",
+            merged,
+            f"发现 {len(new_entries)} 条新内容；待挑选 {len(merged)} 条",
         )
 
-    summaries = _summarize(fresh)
-    new_entries = [
-        {
-            "url": item.url,
-            "title": summaries.get(item.url, {}).get("title") or item.title or item.url,
-            "date": item.date or "",
-            "summary": summaries.get(item.url, {}).get("summary") or "",
-            "collected": False,
-        }
-        for item in fresh
-    ]
-    merged = (carried + new_entries)[:_MAX_DISCOVERIES]
-    result = finish(
-        "ok",
-        merged,
-        f"发现 {len(new_entries)} 条新内容；待挑选 {len(merged)} 条",
-    )
     logger.info("订阅 %s 发现 %d 条新内容", sub["name"] or sub["url"], len(new_entries))
     return result
 
@@ -225,14 +235,15 @@ def ignore_discovery(sub_id: str, url: str) -> dict:
     """忽略一条发现：本轮不再展示，且后续检查不再重复提示。"""
     sub = _get_subscription(sub_id)
     clean_url = str(url or "").strip()
-    _drop_discovery(sub_id, clean_url)
-    ignored = list(sub["ignored_urls"])
-    if clean_url and clean_url not in ignored:
-        ignored.append(clean_url)
-        db.execute(
-            "UPDATE subscriptions SET ignored_urls = ?, updated_at = ? WHERE id = ?",
-            (json.dumps(ignored[:200], ensure_ascii=False), db.now(), sub_id),
-        )
+    with _SUB_WRITE_LOCK:
+        _drop_discovery(sub_id, clean_url)
+        ignored = list(_get_subscription(sub_id)["ignored_urls"])
+        if clean_url and clean_url not in ignored:
+            ignored.append(clean_url)
+            db.execute(
+                "UPDATE subscriptions SET ignored_urls = ?, updated_at = ? WHERE id = ?",
+                (json.dumps(ignored[:200], ensure_ascii=False), db.now(), sub_id),
+            )
     return {"ok": True, "subscription_id": sub_id}
 
 
@@ -250,10 +261,16 @@ def _drop_discovery(sub_id: str, url: str) -> None:
 
 
 def _summarize(items: list) -> dict[str, dict]:
-    """对前若干条抓正文并让 LLM 概括；失败条目回退为标题即摘要。"""
+    """对前若干条抓正文并让 LLM 概括；失败条目回退为标题即摘要。
+
+    详情页抓取同样受 robots 约束（与列表页一致的合规闸门）。
+    """
     summaries: dict[str, dict] = {}
     corpus: list[dict] = []
     for item in items[:_SUMMARY_BATCH]:
+        if not _robots.allowed(item.url):
+            logger.info("订阅发现详情页被 robots 禁止抓取，仅用列表页标题：%s", item.url)
+            continue
         try:
             fetched = importer.fetch_url(item.url)
             article = importer.extract_article(

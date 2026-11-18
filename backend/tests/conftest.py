@@ -68,6 +68,7 @@ MUTABLE_TABLES = (
     "answer_feedback",
     "knowledge_gaps",
     "subscriptions",
+    "ops_tasks",
     "wiki_links",
     "wiki_sources",
     "wiki_builds",

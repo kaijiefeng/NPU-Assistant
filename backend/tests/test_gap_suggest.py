@@ -140,3 +140,29 @@ def test_suggest_endpoint_runs_job(client, monkeypatch):
 
     missing = client.post("/api/insights/gaps/不存在/suggest", json={})
     assert missing.status_code == 404
+
+
+def test_suggest_drops_non_http_candidates(client, monkeypatch):
+    """javascript: 等伪协议候选应被丢弃，不得入库或渲染为链接。"""
+    from app.services import gap_suggest, remote_search
+
+    gap_id = _make_gap()
+    fake = {
+        "results": [
+            {"source": "s", "title": "伪协议", "url": "javascript:alert(1)", "snippet": "x"},
+            {"source": "s", "title": "正常候选", "url": "https://ic.nwpu.edu.cn/ok", "snippet": "ok"},
+        ],
+        "errors": [],
+    }
+    monkeypatch.setattr(remote_search, "search_all", lambda query, **kwargs: fake)
+    monkeypatch.setattr(
+        gap_suggest.llm,
+        "chat",
+        lambda messages, **kwargs: {
+            "content": '[{"index":0,"relevant":true,"reason":"r"},{"index":1,"relevant":true,"reason":"r"}]',
+            "fallback": False,
+        },
+    )
+    result = gap_suggest.suggest_for_gap(gap_id)
+    assert result["candidates"] == 1, result
+    assert all(s["url"].startswith("https://") for s in result["suggestions"]), result

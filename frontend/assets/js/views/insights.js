@@ -41,6 +41,7 @@ const state = {
   handoffs: [],
   crisis: [],
   subscriptions: [],
+  subChecking: '',
   loading: false,
   authRequired: false,
   gapSuggesting: '',
@@ -271,7 +272,9 @@ function subscriptionsHtml() {
         <div class="gap-card-actions">
           <button class="btn btn-xs btn-primary" type="button" data-action="sub-check" data-id="${esc(
             sub.id,
-          )}">${icon('refresh')}<span>立即检查</span></button>
+          )}" ${state.subChecking === sub.id ? 'disabled' : ''}>${icon(
+            'refresh',
+          )}<span>${state.subChecking === sub.id ? '检查中…' : '立即检查'}</span></button>
           <button class="btn btn-xs btn-ghost" type="button" data-action="sub-toggle" data-id="${esc(
             sub.id,
           )}" data-enabled="${sub.enabled ? '1' : '0'}"><span>${sub.enabled ? '停用' : '启用'}</span></button>
@@ -718,6 +721,8 @@ export function mount(root) {
   }
 
   async function runSubCheck(subId) {
+    state.subChecking = subId;
+    render();
     try {
       const started = await checkSubscription(subId);
       toast(started.message || '订阅检查已开始', 'info');
@@ -732,6 +737,7 @@ export function mount(root) {
         }
         if (job && ['succeeded', 'failed', 'cancelled'].includes(job.status)) break;
       }
+      state.subChecking = '';
       if (job && job.status === 'succeeded') {
         toast(job.result?.message || '订阅检查完成', 'info', { duration: 6000 });
       } else {
@@ -739,6 +745,8 @@ export function mount(root) {
       }
       await load();
     } catch (err) {
+      state.subChecking = '';
+      render();
       toast(err?.message || '订阅检查失败', 'error');
     }
   }

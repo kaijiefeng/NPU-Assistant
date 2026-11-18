@@ -125,8 +125,14 @@ def create_task(error_input: str, title: str = "", created_by: str = "") -> dict
 
 
 def analyze(task_id: str) -> dict:
-    """LLM 定位问题并生成修复/测试方案；结束进入 ``planned`` 等待许可。"""
+    """LLM 定位问题并生成修复/测试方案；结束进入 ``planned`` 等待许可。
+
+    状态守卫：``executing`` / ``done`` / ``cancelled`` 不允许（重）分析——
+    防止迟到/重试的分析 job 把已取消或已完成的任务复活。
+    """
     task = _get_task(task_id)
+    if task["status"] in {"executing", "done", "cancelled"}:
+        raise ValueError(f"任务当前状态为 {task['status']}，不允许（重新）分析")
     _save(task_id, status="analyzing")
     _log(task_id, "LLM 正在分析报错…")
     messages = [
@@ -389,13 +395,15 @@ def _apply_fix(task: dict, worktree: Path) -> list[dict]:
 
 
 def _targeted_args(task: dict) -> list[str]:
+    """从测试方案文本里提取 tests/ 下的 .py 路径（按词拆分，容忍中文描述）。"""
     test_plan = (task.get("analysis") or {}).get("test_plan") or []
-    files = [
-        token.replace("\\", "/").split(" ")[0].strip()
-        for token in test_plan
-        if "tests/" in token
-    ]
-    return [f for f in files if f.endswith(".py")][:6]
+    files: list[str] = []
+    for token in test_plan:
+        for word in str(token).replace("\\", "/").replace("（", " ").replace("）", " ").split():
+            word = word.strip(",;。、\"'`")
+            if "tests/" in word and word.endswith(".py") and word not in files:
+                files.append(word)
+    return files[:6]
 
 
 def _run_pytest(worktree: Path, args: list[str]) -> tuple[int, str]:

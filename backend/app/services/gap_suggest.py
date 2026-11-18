@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
+from urllib.parse import urlsplit
 
 from .. import db
 from . import importer, insights, llm, remote_search
@@ -35,7 +36,7 @@ def suggest_for_gap(gap_id: str) -> dict:
         raise ValueError("该缺口没有可检索的问题文本")
 
     search = remote_search.search_all(question, limit=_MAX_CANDIDATES)
-    candidates = [c for c in (search.get("results") or []) if (c.get("url") or "").strip()]
+    candidates = [c for c in (search.get("results") or []) if _safe_candidate_url(c.get("url"))]
     errors = [str(e) for e in (search.get("errors") or [])][:3]
 
     response = llm.chat(
@@ -86,6 +87,15 @@ def _get_gap(gap_id: str) -> dict:
     if not row:
         raise ValueError("知识缺口不存在")
     return row
+
+
+def _safe_candidate_url(url: str) -> bool:
+    """候选 URL 必须是 http(s)，防止 javascript: 等伪协议入库后被渲染为链接。"""
+    value = str(url or "").strip()
+    if not value:
+        return False
+    scheme = urlsplit(value).scheme.lower()
+    return scheme in {"http", "https"}
 
 
 def _verdict_messages(question: str, candidates: list[dict]) -> list[dict]:
