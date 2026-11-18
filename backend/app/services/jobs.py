@@ -26,7 +26,7 @@ from . import alerts
 
 logger = logging.getLogger("npu-assistant")
 
-JOB_TYPES = {"ingest_upload", "reindex", "rebuild", "scan_dir"}
+JOB_TYPES = {"ingest_upload", "reindex", "rebuild", "scan_dir", "gap_suggest"}
 ACTIVE_STATUSES = {"queued", "running"}
 TERMINAL_STATUSES = {"succeeded", "failed", "cancelled"}
 
@@ -435,11 +435,23 @@ def _run_scan_dir(payload: dict, job: dict) -> dict:
     }
 
 
+def _run_gap_suggest(payload: dict, job: dict) -> dict:
+    """知识缺口 AI 备选：白名单源检索 + LLM 裁决，结果写回缺口 suggestions。"""
+    from . import gap_suggest
+
+    gap_id = str(payload.get("gap_id") or "")
+    _update(job["id"], progress=10, message="正在检索白名单源")
+    result = gap_suggest.suggest_for_gap(gap_id)
+    _update(job["id"], progress=100, message="完成")
+    return result
+
+
 _DEFAULT_HANDLERS = {
     "ingest_upload": _run_ingest_upload,
     "reindex": _run_reindex,
     "rebuild": _run_rebuild,
     "scan_dir": _run_scan_dir,
+    "gap_suggest": _run_gap_suggest,
 }
 
 

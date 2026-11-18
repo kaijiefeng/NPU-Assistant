@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from ..security import require_admin_token
-from ..services import insights
+from ..services import insights, jobs
 
 logger = logging.getLogger("npu-assistant")
 
@@ -111,6 +111,50 @@ def get_gap(gap_id: str) -> dict:
         return insights.get_gap(gap_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+class GapSuggestRequest(BaseModel):
+    """``POST /insights/gaps/{id}/suggest`` 请求体（预留参数，当前为空）。"""
+
+
+class GapCollectRequest(BaseModel):
+    url: str
+    title: str = ""
+
+
+@router.post(
+    "/insights/gaps/{gap_id}/suggest",
+    status_code=202,
+    dependencies=[Depends(require_admin_token)],
+)
+def suggest_for_gap(gap_id: str, payload: GapSuggestRequest | None = None) -> dict:
+    """AI 找备选：白名单源检索 + LLM 裁决，候选写回缺口（异步任务）。"""
+    from ..services import gap_suggest
+
+    try:
+        insights.get_gap(gap_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    job = jobs.create_job("gap_suggest", {"gap_id": gap_id}, created_by="admin")
+    return {
+        "job_id": job["id"],
+        "status": "queued",
+        "message": "已开始检索白名单源并由 AI 裁决备选，结果稍后显示在缺口卡片中。",
+    }
+
+
+@router.post(
+    "/insights/gaps/{gap_id}/collect",
+    dependencies=[Depends(require_admin_token)],
+)
+def collect_gap_suggestion(gap_id: str, payload: GapCollectRequest) -> dict:
+    """一键收录备选链接并关联缺口（status → linked）。"""
+    from ..services import gap_suggest
+
+    try:
+        return gap_suggest.collect_suggestion(gap_id, payload.url, payload.title)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post(

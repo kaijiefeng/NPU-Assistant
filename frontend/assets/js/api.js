@@ -345,6 +345,10 @@ export const listGaps = (params = {}) => get('/insights/gaps', params);
 export const getGap = (id) => get(`/insights/gaps/${encodeURIComponent(id)}`);
 export const linkGap = (id, payload) =>
   post(`/insights/gaps/${encodeURIComponent(id)}/link`, payload);
+export const suggestForGap = (id, payload = {}) =>
+  post(`/insights/gaps/${encodeURIComponent(id)}/suggest`, payload);
+export const collectGapSuggestion = (id, payload) =>
+  post(`/insights/gaps/${encodeURIComponent(id)}/collect`, payload);
 export const resolveGap = (id, payload = {}) =>
   post(`/insights/gaps/${encodeURIComponent(id)}/resolve`, payload);
 export const ignoreGap = (id, payload = {}) =>

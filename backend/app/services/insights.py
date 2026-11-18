@@ -369,6 +369,7 @@ def update_feedback_status(feedback_id: str, status: str, handled_by: str = "") 
 
 def _row_to_gap(row: dict, *, detail: bool = False) -> dict:
     reasons = db.from_json(row.get("reasons"), [])
+    suggestions = db.from_json(row.get("suggestions"), [])
     item = {
         "id": row["id"],
         "question": row.get("question") or "",
@@ -381,6 +382,8 @@ def _row_to_gap(row: dict, *, detail: bool = False) -> dict:
         "last_seen_at": row.get("last_seen_at"),
         "linked_page_id": row.get("linked_page_id"),
         "linked_document_id": row.get("linked_document_id"),
+        "suggestions": suggestions if isinstance(suggestions, list) else [],
+        "suggested_at": row.get("suggested_at"),
         "assignee_id": row.get("assignee_id"),
         "note": row.get("note") or "",
         "sample_message_id": row.get("sample_message_id"),

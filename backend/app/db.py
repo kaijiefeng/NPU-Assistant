@@ -200,6 +200,8 @@ CREATE TABLE IF NOT EXISTS knowledge_gaps (
     priority           INTEGER NOT NULL DEFAULT 0,  -- 0 normal, 1 high
     linked_page_id     TEXT,
     linked_document_id TEXT,
+    suggestions        TEXT NOT NULL DEFAULT '[]', -- AI 备选链接（gap_suggest 生成）
+    suggested_at       TEXT,
     assignee_id        TEXT,
     note               TEXT NOT NULL DEFAULT '',
     created_at         TEXT NOT NULL,
@@ -535,7 +537,14 @@ def init_db() -> None:
                 f"ALTER TABLE wiki_pages ADD COLUMN {column} TEXT NOT NULL DEFAULT {default}"
             )
 
-    # 5) Drop settings that only existed for BM25 retrieval.
+    # 5) RSI gap AI suggestions: candidate links proposed by LLM-driven search.
+    gap_columns = _column_names("knowledge_gaps")
+    if "suggestions" not in gap_columns:
+        execute("ALTER TABLE knowledge_gaps ADD COLUMN suggestions TEXT NOT NULL DEFAULT '[]'")
+    if "suggested_at" not in gap_columns:
+        execute("ALTER TABLE knowledge_gaps ADD COLUMN suggested_at TEXT")
+
+    # 6) Drop settings that only existed for BM25 retrieval.
     for key in config.OBSOLETE_SETTINGS:
         execute("DELETE FROM settings WHERE key = ?", (key,))
 

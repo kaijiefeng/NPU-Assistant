@@ -6,8 +6,10 @@
  */
 import {
   claimHandoff,
+  collectGapSuggestion,
   getFreshness,
   getInsightsOverview,
+  getJob,
   ignoreGap,
   listCrisisEvents,
   listFeedback,
@@ -16,6 +18,7 @@ import {
   replyHandoff,
   resolveGap,
   resolveHandoff,
+  suggestForGap,
   updateCrisisStatus,
   updateFeedbackStatus,
 } from '../api.js';
@@ -32,6 +35,7 @@ const state = {
   crisis: [],
   loading: false,
   authRequired: false,
+  gapSuggesting: '',
 };
 
 const HANDOFF_STATUS = {
@@ -179,7 +183,13 @@ function gapCardHtml(gap) {
         ? `<p class="muted" style="margin:8px 0 0">备注：${esc(gap.note)}</p>`
         : ''
     }
+    ${gapSuggestionsHtml(gap)}
     <div class="gap-card-actions">
+      <button class="btn btn-xs btn-ghost" type="button" data-action="gap-suggest" data-id="${esc(
+        gap.id,
+      )}" ${state.gapSuggesting === gap.id ? 'disabled' : ''}>${icon(
+        'search',
+      )}<span>${state.gapSuggesting === gap.id ? 'AI 检索中…' : 'AI 找备选'}</span></button>
       <button class="btn btn-xs btn-ghost" type="button" data-action="gap-copy" data-question="${esc(
         gap.question,
       )}">${icon('copy')}<span>复制问题</span></button>
@@ -191,6 +201,26 @@ function gapCardHtml(gap) {
       )}">${icon('x')}<span>忽略</span></button>
     </div>
   </div>`;
+}
+
+function gapSuggestionsHtml(gap) {
+  const suggestions = gap.suggestions || [];
+  if (!suggestions.length) return '';
+  const items = suggestions
+    .map(
+      (item, index) => `
+      <div class="gap-suggestion">
+        <div class="gap-suggestion-main">
+          <a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${esc(item.title || item.url)}</a>
+          <span class="muted">${esc(item.source || '')}${item.reason ? ` · ${esc(item.reason)}` : ''}</span>
+        </div>
+        <button class="btn btn-xs btn-primary" type="button" data-action="gap-collect" data-id="${esc(
+          gap.id,
+        )}" data-index="${index}">${icon('download')}<span>一键收录</span></button>
+      </div>`,
+    )
+    .join('');
+  return `<div class="gap-suggestions"><p class="muted" style="margin:8px 0 4px">AI 备选（${suggestions.length} 条，来自白名单官网/公众号）：</p>${items}</div>`;
 }
 
 function gapsHtml() {
@@ -551,6 +581,60 @@ export function mount(root) {
     }
   }
 
+  async function runGapSuggest(gapId) {
+    state.gapSuggesting = gapId;
+    render();
+    try {
+      const started = await suggestForGap(gapId);
+      toast(started.message || 'AI 备选检索已开始', 'info');
+      let job = null;
+      for (let i = 0; i < 90; i += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        try {
+          job = await getJob(started.job_id);
+        } catch (err) {
+          if (err?.status === 401) break;
+          continue;
+        }
+        if (job && ['succeeded', 'failed', 'cancelled'].includes(job.status)) break;
+      }
+      state.gapSuggesting = '';
+      if (job && job.status === 'succeeded') {
+        const count = (job.result?.suggestions || []).length;
+        toast(
+          count
+            ? `AI 找到 ${count} 条备选，请确认后一键收录`
+            : 'AI 未找到相关备选，可手动补资料或关联词条',
+          count ? 'success' : 'info',
+          { duration: 6000 },
+        );
+      } else {
+        toast(job?.error || 'AI 备选任务失败或被取消', 'error', { duration: 6000 });
+      }
+      await load();
+    } catch (err) {
+      state.gapSuggesting = '';
+      render();
+      toast(err?.message || 'AI 找备选失败', 'error');
+    }
+  }
+
+  async function runGapCollect(gapId, index) {
+    const gap = state.gaps.find((g) => g.id === gapId);
+    const item = (gap?.suggestions || [])[index];
+    if (!item?.url) return;
+    try {
+      const result = await collectGapSuggestion(gapId, { url: item.url, title: item.title });
+      toast(
+        result.duplicated ? '该链接已收录过，缺口已关联到现有文档' : '收录成功，缺口已关联词条来源',
+        'success',
+      );
+      await load();
+    } catch (err) {
+      toast(err?.message || '收录失败', 'error');
+    }
+  }
+
   page.addEventListener('click', (event) => {
     const trigger = event.target.closest('[data-action]');
     if (!trigger) return;
@@ -589,6 +673,12 @@ export function mount(root) {
           }),
           '危机事件已更新',
         );
+        break;
+      case 'gap-suggest':
+        runGapSuggest(trigger.dataset.id);
+        break;
+      case 'gap-collect':
+        runGapCollect(trigger.dataset.id, Number(trigger.dataset.index || 0));
         break;
       case 'gap-resolve':
         runAction(resolveGap(trigger.dataset.id, { note: '服务台标记已解决' }), '缺口已标记解决');
