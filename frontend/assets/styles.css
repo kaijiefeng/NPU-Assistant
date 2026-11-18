@@ -6978,3 +6978,246 @@ body {
   background: var(--bg, #f6f7f9); border: 1px solid var(--border-weak, #eef0f3);
   border-radius: 8px; font-size: 12px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;
 }
+
+/* ==================== 右侧常驻管理助手面板 ==================== */
+/* 壳层主区改为 row：主视图 + 面板；面板不随路由切换销毁（app.js 只替换 #view） */
+.shell-main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+}
+
+.agent-toggle.is-active {
+  color: #fff;
+  background: var(--npu-blue-600);
+}
+
+.agent-panel {
+  width: 384px;
+  max-width: 44vw;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--bg);
+  border-left: 1px solid var(--line);
+}
+
+.agent-panel[hidden] {
+  display: none;
+}
+
+.agent-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+
+.agent-head-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.agent-head-title .i {
+  width: 20px;
+  height: 20px;
+  color: var(--npu-blue-600);
+  flex-shrink: 0;
+}
+
+.agent-head-title strong {
+  display: block;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.agent-head-title span {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.agent-head-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.agent-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overscroll-behavior: contain;
+}
+
+.agent-empty {
+  margin: auto 0;
+  padding: 18px 6px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.agent-empty ul {
+  margin: 8px 0;
+  padding-left: 18px;
+}
+
+.agent-empty li {
+  margin: 4px 0;
+}
+
+.agent-empty-note {
+  font-size: 12px;
+  color: var(--muted-2);
+}
+
+.agent-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agent-msg.is-user {
+  align-items: flex-end;
+}
+
+.agent-bubble {
+  max-width: 92%;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.agent-msg.is-user .agent-bubble {
+  background: var(--npu-blue-600);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.agent-msg.is-assistant .agent-bubble {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 4px;
+  color: var(--text);
+}
+
+.agent-bubble code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--npu-blue-50);
+  color: var(--npu-blue-700);
+}
+
+.agent-typing {
+  color: var(--muted);
+}
+
+.agent-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agent-step {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--muted);
+  min-width: 0;
+}
+
+.agent-step-mark {
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.agent-step-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--npu-blue-700);
+  flex-shrink: 0;
+}
+
+.agent-step-summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-step.is-pending .agent-step-mark {
+  color: var(--amber);
+}
+
+.agent-step.is-error {
+  border-color: var(--red);
+  background: var(--red-bg);
+}
+
+.agent-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--card);
+  border-top: 1px solid var(--line);
+}
+
+.agent-composer textarea {
+  flex: 1;
+  resize: none;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  color: var(--text);
+  max-height: 120px;
+  min-height: 38px;
+}
+
+.agent-composer textarea:focus-visible {
+  outline: 2px solid var(--npu-blue-400);
+  outline-offset: 1px;
+}
+
+.agent-send {
+  padding: 9px 11px;
+  flex-shrink: 0;
+}
+
+/* 窄屏：面板改为右侧抽屉浮层，不挤压主内容 */
+@media (max-width: 1023px) {
+  .agent-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(92vw, 384px);
+    max-width: none;
+    z-index: 60;
+    box-shadow: var(--shadow-lg);
+  }
+}

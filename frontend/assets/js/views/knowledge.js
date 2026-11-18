@@ -2217,7 +2217,7 @@ export function mount(root, context = {}) {
       </form>
       ${
         context?.canManage
-          ? `<a class="btn btn-ghost btn-sm browse-manage-link" href="#/knowledge?manage=1">${icon(
+          ? `<a class="btn btn-ghost btn-sm browse-manage-link" href="#/kb-admin">${icon(
               'database',
             )}<span>内容管理</span></a>`
           : ''
@@ -2262,7 +2262,7 @@ export function mount(root, context = {}) {
         renderPages();
         break;
       case 'go-manage':
-        location.hash = '#/knowledge?manage=1';
+        location.hash = '#/kb-admin';
         break;
       case 'retry':
         loadPages();

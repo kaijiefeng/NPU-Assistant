@@ -1,11 +1,13 @@
 /**
  * app.js — SPA 壳层：hash 路由、全局导航、服务健康状态、错误兜底。
  *
- * 四个一级入口（#/chat #/knowledge #/ops #/settings）按需动态导入；
- * 运营与设置由 hub 视图聚合原有子页面，旧路由自动重定向。
+ * 五个一级入口（#/chat #/knowledge #/kb-admin #/ops #/settings）按需动态导入；
+ * 知识库管理、运维管理与设置由 hub 视图聚合原有子页面，旧路由自动重定向。
+ * 右侧「管理助手」面板（agent-panel.js）挂在壳层，页内切换时常驻。
  */
 import { getAuthMe, getHealth, setCsrfToken, setUnauthorizedHandler } from './api.js';
 import { esc, icon, toast } from './ui.js';
+import { initAgentPanel, refreshAgentPanel } from './agent-panel.js';
 
 const ROUTES = {
   login: {
@@ -24,17 +26,17 @@ const ROUTES = {
     subtitle: '浏览、收录与维护校园知识',
     load: () => import('./views/knowledge.js'),
   },
-  ops: {
-    title: '运营',
-    subtitle: '服务台、任务告警与审计',
-    load: () => import('./views/ops-hub.js'),
+  'kb-admin': {
+    title: '知识库管理',
+    subtitle: '收录资料、词条维护与服务台',
+    load: () => import('./views/kb-admin.js'),
     permission: 'insights:read',
   },
-  'ops-agent': {
-    title: '运维 Agent',
-    subtitle: '报错驱动的自动修复（仅超级管理员）',
-    load: () => import('./views/ops-agent.js'),
-    permission: 'ops:manage',
+  ops: {
+    title: '运维管理',
+    subtitle: '任务告警、运维 Agent 与审计',
+    load: () => import('./views/ops-hub.js'),
+    permission: 'insights:read',
   },
   settings: {
     title: '设置',
@@ -45,9 +47,10 @@ const ROUTES = {
 };
 
 const LEGACY_VIEWS = {
-  manage: '#/knowledge?manage=1',
-  insights: '#/ops?tab=desk',
+  manage: '#/kb-admin?tab=content',
+  insights: '#/kb-admin?tab=desk',
   jobs: '#/ops?tab=jobs',
+  'ops-agent': '#/ops?tab=agent',
   models: '#/settings?tab=models',
   bots: '#/settings?tab=bots',
   team: '#/settings?tab=members',
@@ -174,6 +177,12 @@ async function renderRoute() {
   }
   const viewName = ROUTES[requested] ? requested : DEFAULT_VIEW;
 
+  // 旧入口：知识库浏览页的管理模式已拆到独立的「知识库管理」页
+  if (viewName === 'knowledge' && query.get('manage') === '1') {
+    location.replace('#/kb-admin?tab=content');
+    return;
+  }
+
   if (requested !== viewName) {
     toast(`页面「${requested}」不存在，已返回对话页`, 'warning', { title: '路由提示' });
     location.replace(`#/${viewName}`);
@@ -225,10 +234,7 @@ async function renderRoute() {
   try {
     const module = await route.load();
     if (token !== renderToken) return;
-    let mountName = route.mountName || 'mount';
-    if (viewName === 'knowledge' && can('content:write') && query.get('manage') === '1') {
-      mountName = 'mountManage';
-    }
+    const mountName = route.mountName || 'mount';
     const mountFn = typeof module[mountName] === 'function' ? module[mountName] : module.mount;
     const cleanup = mountFn
       ? mountFn(dom.view, { query, canManage: can('content:write') })
@@ -406,8 +412,10 @@ async function boot() {
   bindUnauthorizedGuide();
   registerServiceWorker();
   await ensureAuth();
+  initAgentPanel(authState);
   window.addEventListener('npu-auth-changed', async () => {
     await ensureAuth(true);
+    refreshAgentPanel(authState);
     renderRoute();
   });
   // 无论是否有 hash 都要启动健康轮询（首访无 hash 会重定向到对话页）

@@ -91,6 +91,8 @@ const PROTECTED_GET_PREFIXES = [
   // 后台任务 / 告警：上传后的任务进度轮询也需要令牌，否则会 401 误报「需要登录」
   '/jobs',
   '/alerts',
+  // 管理助手面板的工具清单
+  '/agent',
 ];
 
 // 只有这三个登录入口不需要 CSRF（登录前还没有会话）；/auth/password 等写操作必须带
@@ -536,3 +538,72 @@ export const cancelOpsTask = (id, payload = {}) =>
   post(`/ops/agent/tasks/${encodeURIComponent(id)}/cancel`, payload);
 export const cleanupOpsTask = (id, payload = {}) =>
   post(`/ops/agent/tasks/${encodeURIComponent(id)}/cleanup`, payload);
+
+/* ------------------------------------------------------------------ */
+/* 管理助手（右侧常驻 Agent 面板）                                      */
+/* ------------------------------------------------------------------ */
+export const listAgentTools = () => get('/agent/tools');
+
+/** SSE 流式管理助手对话；返回 done 事件的完整结果（reply/steps）。 */
+export async function sendAgentStream(payload, { onTool, onToolResult, onDelta, signal } = {}) {
+  const headers = withAdminToken({ 'Content-Type': 'application/json' });
+  if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+  const response = await fetch(`${API_BASE}/agent/chat`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload),
+    signal,
+  });
+  if (!response.ok) {
+    let data = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+    const detail = extractDetail(data, response.status);
+    if (response.status === 401) notifyUnauthorized(detail);
+    throw new ApiError(detail, { status: response.status, detail, payload: data });
+  }
+  if (!response.body) throw new ApiError('浏览器不支持流式响应', { status: 0 });
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+  let done = null;
+  const dispatch = (block) => {
+    let event = 'message';
+    const dataLines = [];
+    for (const line of block.split('\n')) {
+      if (line.startsWith('event:')) event = line.slice(6).trim();
+      else if (line.startsWith('data:')) dataLines.push(line.slice(5).trimStart());
+    }
+    if (!dataLines.length) return;
+    let data = null;
+    try {
+      data = JSON.parse(dataLines.join('\n'));
+    } catch {
+      return;
+    }
+    if (event === 'tool') onTool?.(data);
+    else if (event === 'tool_result') onToolResult?.(data);
+    else if (event === 'delta') onDelta?.(String(data?.text || ''));
+    else if (event === 'error') {
+      throw new ApiError(String(data?.detail || '管理助手响应失败'), { status: 0 });
+    } else if (event === 'done') done = data;
+  };
+  while (true) {
+    const { value, done: finished } = await reader.read();
+    buffer += decoder.decode(value || new Uint8Array(), { stream: !finished });
+    let index = buffer.indexOf('\n\n');
+    while (index >= 0) {
+      const block = buffer.slice(0, index);
+      buffer = buffer.slice(index + 2);
+      if (block.trim()) dispatch(block);
+      index = buffer.indexOf('\n\n');
+    }
+    if (finished) break;
+  }
+  if (buffer.trim()) dispatch(buffer);
+  if (!done) throw new ApiError('管理助手响应意外中断，请重试', { status: 0 });
+  return done;
+}

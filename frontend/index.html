@@ -59,13 +59,13 @@
         </div>
         <div class="nav-group">
           <span class="nav-group-label">管理</span>
-          <a class="nav-item" href="#/ops" data-view="ops">
-            <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-sparkles"></use></svg></span>
-            <span class="nav-label">运营</span>
+          <a class="nav-item" href="#/kb-admin" data-view="kb-admin">
+            <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-database"></use></svg></span>
+            <span class="nav-label">知识库管理</span>
           </a>
-          <a class="nav-item" href="#/ops-agent" data-view="ops-agent" hidden>
+          <a class="nav-item" href="#/ops" data-view="ops">
             <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-terminal"></use></svg></span>
-            <span class="nav-label">运维 Agent</span>
+            <span class="nav-label">运维管理</span>
           </a>
           <a class="nav-item" href="#/settings" data-view="settings">
             <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-settings"></use></svg></span>
@@ -109,13 +109,44 @@
           <p id="pageSubtitle">向辅导员数字分身提问</p>
         </div>
         <div class="topbar-actions" id="topbarActions"></div>
+        <button class="icon-btn agent-toggle" id="agentToggle" type="button" aria-label="打开管理助手" aria-expanded="false" aria-controls="agentPanel" hidden>
+          <svg class="i" aria-hidden="true"><use href="#i-sparkles"></use></svg>
+        </button>
       </header>
-      <main class="view" id="view" tabindex="-1">
-        <div class="boot-screen">
-          <div class="spinner spinner-lg" aria-hidden="true"></div>
-          <p>正在加载页面…</p>
-        </div>
-      </main>
+      <div class="shell-main">
+        <main class="view" id="view" tabindex="-1">
+          <div class="boot-screen">
+            <div class="spinner spinner-lg" aria-hidden="true"></div>
+            <p>正在加载页面…</p>
+          </div>
+        </main>
+        <aside class="agent-panel" id="agentPanel" hidden aria-label="管理助手">
+          <header class="agent-head">
+            <div class="agent-head-title">
+              <svg class="i" aria-hidden="true"><use href="#i-sparkles"></use></svg>
+              <div>
+                <strong>管理助手</strong>
+                <span>自然语言管理知识库与运维</span>
+              </div>
+            </div>
+            <div class="agent-head-actions">
+              <button class="icon-btn" id="agentClear" type="button" aria-label="清空对话" title="清空对话">
+                <svg class="i" aria-hidden="true"><use href="#i-trash"></use></svg>
+              </button>
+              <button class="icon-btn" id="agentClose" type="button" aria-label="收起管理助手" title="收起">
+                <svg class="i" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+              </button>
+            </div>
+          </header>
+          <div class="agent-body" id="agentBody"></div>
+          <form class="agent-composer" id="agentForm">
+            <textarea id="agentInput" rows="2" placeholder="例如：现在有多少未处理的知识缺口？" aria-label="向管理助手提问"></textarea>
+            <button class="btn btn-primary agent-send" id="agentSend" type="submit" aria-label="发送">
+              <svg class="i" aria-hidden="true"><use href="#i-send"></use></svg>
+            </button>
+          </form>
+        </aside>
+      </div>
     </div>
   </div>
 
