@@ -349,6 +349,17 @@ export const suggestForGap = (id, payload = {}) =>
   post(`/insights/gaps/${encodeURIComponent(id)}/suggest`, payload);
 export const collectGapSuggestion = (id, payload) =>
   post(`/insights/gaps/${encodeURIComponent(id)}/collect`, payload);
+export const listSubscriptions = () => get('/insights/subscriptions');
+export const createSubscription = (payload) => post('/insights/subscriptions', payload);
+export const deleteSubscription = (id) => del(`/insights/subscriptions/${encodeURIComponent(id)}`);
+export const toggleSubscription = (id, payload) =>
+  post(`/insights/subscriptions/${encodeURIComponent(id)}/toggle`, payload);
+export const checkSubscription = (id) =>
+  post(`/insights/subscriptions/${encodeURIComponent(id)}/check`, {});
+export const collectSubscription = (id, payload) =>
+  post(`/insights/subscriptions/${encodeURIComponent(id)}/collect`, payload);
+export const ignoreSubscription = (id, payload) =>
+  post(`/insights/subscriptions/${encodeURIComponent(id)}/ignore`, payload);
 export const resolveGap = (id, payload = {}) =>
   post(`/insights/gaps/${encodeURIComponent(id)}/resolve`, payload);
 export const ignoreGap = (id, payload = {}) =>

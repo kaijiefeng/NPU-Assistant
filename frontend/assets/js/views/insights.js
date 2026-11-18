@@ -6,19 +6,26 @@
  */
 import {
   claimHandoff,
+  checkSubscription,
   collectGapSuggestion,
+  collectSubscription,
+  createSubscription,
+  deleteSubscription,
   getFreshness,
   getInsightsOverview,
   getJob,
   ignoreGap,
+  ignoreSubscription,
   listCrisisEvents,
   listFeedback,
   listGaps,
   listHandoffs,
+  listSubscriptions,
   replyHandoff,
   resolveGap,
   resolveHandoff,
   suggestForGap,
+  toggleSubscription,
   updateCrisisStatus,
   updateFeedbackStatus,
 } from '../api.js';
@@ -33,6 +40,7 @@ const state = {
   freshness: null,
   handoffs: [],
   crisis: [],
+  subscriptions: [],
   loading: false,
   authRequired: false,
   gapSuggesting: '',
@@ -107,6 +115,7 @@ function tabsHtml() {
     ['gaps', `知识缺口${state.gaps.length ? ` (${state.gaps.length})` : ''}`],
     ['feedback', `反馈${state.feedback.length ? ` (${state.feedback.length})` : ''}`],
     ['freshness', '时效'],
+    ['subscriptions', '订阅发现'],
   ];
   return `<div class="insights-tabs">${tabs
     .map(
@@ -221,6 +230,76 @@ function gapSuggestionsHtml(gap) {
     )
     .join('');
   return `<div class="gap-suggestions"><p class="muted" style="margin:8px 0 4px">AI 备选（${suggestions.length} 条，来自白名单官网/公众号）：</p>${items}</div>`;
+}
+
+function subscriptionsHtml() {
+  const rows = state.subscriptions
+    .map((sub) => {
+      const discoveries = sub.discoveries || [];
+      const discoveryHtml = discoveries.length
+        ? `<div class="sub-discoveries">${discoveries
+            .map(
+              (item) => `<div class="sub-discovery">
+            <div class="sub-discovery-main">
+              <a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${esc(item.title || item.url)}</a>
+              <span class="muted">${esc(item.summary || '')}${item.date ? ` · ${esc(item.date)}` : ''}</span>
+            </div>
+            <button class="btn btn-xs btn-primary" type="button" data-action="sub-collect" data-id="${esc(
+              sub.id,
+            )}" data-url="${esc(item.url)}" data-title="${esc(item.title || '')}">${icon(
+              'download',
+            )}<span>一键收录</span></button>
+            <button class="btn btn-xs btn-ghost" type="button" data-action="sub-ignore" data-id="${esc(
+              sub.id,
+            )}" data-url="${esc(item.url)}">忽略</button>
+          </div>`,
+            )
+            .join('')}</div>`
+        : '';
+      return `<div class="sub-card">
+        <div class="sub-card-head">
+          <div>
+            <div class="gap-card-title">${esc(sub.name || sub.url)}</div>
+            <div class="gap-card-meta">
+              ${esc(sub.url)} · 最近检查 ${esc(fmtRelative(sub.last_checked_at) || '从未')}
+              ${sub.last_status ? ` · 状态：${esc(sub.last_status)}` : ''}
+            </div>
+          </div>
+          <span class="badge">${sub.enabled ? '启用' : '停用'}</span>
+        </div>
+        ${discoveryHtml}
+        <div class="gap-card-actions">
+          <button class="btn btn-xs btn-primary" type="button" data-action="sub-check" data-id="${esc(
+            sub.id,
+          )}">${icon('refresh')}<span>立即检查</span></button>
+          <button class="btn btn-xs btn-ghost" type="button" data-action="sub-toggle" data-id="${esc(
+            sub.id,
+          )}" data-enabled="${sub.enabled ? '1' : '0'}"><span>${sub.enabled ? '停用' : '启用'}</span></button>
+          <button class="btn btn-xs btn-ghost" type="button" data-action="sub-delete" data-id="${esc(
+            sub.id,
+          )}">${icon('x')}<span>删除订阅</span></button>
+        </div>
+      </div>`;
+    })
+    .join('');
+  return `<section class="card">
+    <div class="card-head">
+      <h3>${icon('rss')} 订阅发现</h3>
+    </div>
+    <p class="muted" style="margin:0 0 10px">
+      订阅通知列表页，一键检查新内容；AI 概括每条内容供你挑选，确认后才入库（仅公开可抓取页面，robots 禁抓自动跳过）。
+    </p>
+    <div class="capture-row" style="margin-bottom:14px">
+      <input class="input" id="subName" placeholder="订阅名称（可留空，默认用域名）" style="max-width:220px" />
+      <input class="input" id="subUrl" placeholder="列表页 URL，如 https://xxx.edu.cn/notify/" />
+      <button class="btn btn-primary" type="button" data-action="sub-add">${icon('plus')}<span>添加订阅</span></button>
+    </div>
+    ${
+      state.subscriptions.length
+        ? `<div class="gap-list">${rows}</div>`
+        : `<p class="muted">还没有订阅。粘贴学院/部门通知列表页地址添加。</p>`
+    }
+  </section>`;
 }
 
 function gapsHtml() {
@@ -512,6 +591,7 @@ function bodyHtml() {
   if (state.tab === 'gaps') return gapsHtml();
   if (state.tab === 'feedback') return feedbackHtml();
   if (state.tab === 'freshness') return freshnessHtml();
+  if (state.tab === 'subscriptions') return subscriptionsHtml();
   return overviewHtml();
 }
 
@@ -544,13 +624,14 @@ export function mount(root) {
     state.authRequired = false;
     render();
     try {
-      const [overview, gaps, feedback, fresh, handoffs, crisis] = await Promise.all([
+      const [overview, gaps, feedback, fresh, handoffs, crisis, subscriptions] = await Promise.all([
         getInsightsOverview(state.days),
         listGaps({ status: 'open', days: 30, limit: 50 }),
         listFeedback({ days: 30, limit: 50 }),
         getFreshness(30),
         listHandoffs({ days: 30, limit: 100 }),
         listCrisisEvents({ limit: 50 }),
+        listSubscriptions(),
       ]);
       if (!alive) return;
       state.overview = overview;
@@ -559,6 +640,7 @@ export function mount(root) {
       state.freshness = fresh;
       state.handoffs = handoffs.items || [];
       state.crisis = crisis.items || [];
+      state.subscriptions = subscriptions.items || [];
     } catch (err) {
       if (!alive) return;
       if (err?.status === 401) state.authRequired = true;
@@ -635,6 +717,50 @@ export function mount(root) {
     }
   }
 
+  async function runSubCheck(subId) {
+    try {
+      const started = await checkSubscription(subId);
+      toast(started.message || '订阅检查已开始', 'info');
+      let job = null;
+      for (let i = 0; i < 90; i += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        try {
+          job = await getJob(started.job_id);
+        } catch (err) {
+          if (err?.status === 401) break;
+          continue;
+        }
+        if (job && ['succeeded', 'failed', 'cancelled'].includes(job.status)) break;
+      }
+      if (job && job.status === 'succeeded') {
+        toast(job.result?.message || '订阅检查完成', 'info', { duration: 6000 });
+      } else {
+        toast(job?.error || '订阅检查失败或被取消', 'error', { duration: 6000 });
+      }
+      await load();
+    } catch (err) {
+      toast(err?.message || '订阅检查失败', 'error');
+    }
+  }
+
+  async function runSubAdd() {
+    const nameInput = document.getElementById('subName');
+    const urlInput = document.getElementById('subUrl');
+    const url = (urlInput?.value || '').trim();
+    if (!url) {
+      toast('请填写订阅的列表页 URL', 'warning');
+      urlInput?.focus();
+      return;
+    }
+    try {
+      await createSubscription({ name: (nameInput?.value || '').trim(), url });
+      toast('订阅已添加，点「立即检查」发现新内容', 'success');
+      await load();
+    } catch (err) {
+      toast(err?.message || '添加订阅失败', 'error');
+    }
+  }
+
   page.addEventListener('click', (event) => {
     const trigger = event.target.closest('[data-action]');
     if (!trigger) return;
@@ -679,6 +805,33 @@ export function mount(root) {
         break;
       case 'gap-collect':
         runGapCollect(trigger.dataset.id, Number(trigger.dataset.index || 0));
+        break;
+      case 'sub-add':
+        runSubAdd();
+        break;
+      case 'sub-check':
+        runSubCheck(trigger.dataset.id);
+        break;
+      case 'sub-toggle':
+        runAction(
+          toggleSubscription(trigger.dataset.id, { enabled: trigger.dataset.enabled !== '1' }),
+          trigger.dataset.enabled === '1' ? '订阅已停用' : '订阅已启用',
+        );
+        break;
+      case 'sub-delete':
+        runAction(deleteSubscription(trigger.dataset.id), '订阅已删除');
+        break;
+      case 'sub-collect':
+        runAction(
+          collectSubscription(trigger.dataset.id, {
+            url: trigger.dataset.url,
+            title: trigger.dataset.title || '',
+          }),
+          '收录成功，已从发现列表移除',
+        );
+        break;
+      case 'sub-ignore':
+        runAction(ignoreSubscription(trigger.dataset.id, { url: trigger.dataset.url }), '已忽略该条');
         break;
       case 'gap-resolve':
         runAction(resolveGap(trigger.dataset.id, { note: '服务台标记已解决' }), '缺口已标记解决');

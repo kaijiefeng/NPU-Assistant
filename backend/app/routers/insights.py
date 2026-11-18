@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from ..security import require_admin_token
-from ..services import insights, jobs
+from ..services import discovery, insights, jobs
 
 logger = logging.getLogger("npu-assistant")
 
@@ -120,6 +120,102 @@ class GapSuggestRequest(BaseModel):
 class GapCollectRequest(BaseModel):
     url: str
     title: str = ""
+
+
+class SubscriptionCreateRequest(BaseModel):
+    name: str = ""
+    url: str
+
+
+class SubscriptionToggleRequest(BaseModel):
+    enabled: bool
+
+
+class SubscriptionCollectRequest(BaseModel):
+    url: str
+    title: str = ""
+
+
+@router.get("/insights/subscriptions", dependencies=[Depends(require_admin_token)])
+def list_subscriptions() -> dict:
+    return discovery.list_subscriptions()
+
+
+@router.post(
+    "/insights/subscriptions",
+    status_code=201,
+    dependencies=[Depends(require_admin_token)],
+)
+def create_subscription(payload: SubscriptionCreateRequest) -> dict:
+    try:
+        return discovery.create_subscription(payload.name, payload.url)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.delete(
+    "/insights/subscriptions/{sub_id}",
+    dependencies=[Depends(require_admin_token)],
+)
+def delete_subscription(sub_id: str) -> dict:
+    try:
+        return discovery.delete_subscription(sub_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post(
+    "/insights/subscriptions/{sub_id}/toggle",
+    dependencies=[Depends(require_admin_token)],
+)
+def toggle_subscription(sub_id: str, payload: SubscriptionToggleRequest) -> dict:
+    try:
+        return discovery.toggle_subscription(sub_id, payload.enabled)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post(
+    "/insights/subscriptions/{sub_id}/check",
+    status_code=202,
+    dependencies=[Depends(require_admin_token)],
+)
+def check_subscription(sub_id: str) -> dict:
+    """立即检查订阅：抓列表页发现新内容（异步任务，结果写回订阅卡片）。"""
+    try:
+        discovery.get_subscription(sub_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    job = jobs.create_job(
+        "subscription_check", {"subscription_id": sub_id}, created_by="admin"
+    )
+    return {
+        "job_id": job["id"],
+        "status": "queued",
+        "message": "已开始检查订阅，发现的新内容稍后显示在订阅卡片中。",
+    }
+
+
+@router.post(
+    "/insights/subscriptions/{sub_id}/collect",
+    dependencies=[Depends(require_admin_token)],
+)
+def collect_subscription_discovery(sub_id: str, payload: SubscriptionCollectRequest) -> dict:
+    try:
+        return discovery.collect_discovery(sub_id, payload.url, payload.title)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post(
+    "/insights/subscriptions/{sub_id}/ignore",
+    dependencies=[Depends(require_admin_token)],
+)
+def ignore_subscription_discovery(sub_id: str, payload: SubscriptionCollectRequest) -> dict:
+    try:
+        return discovery.ignore_discovery(sub_id, payload.url)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post(

@@ -6950,3 +6950,12 @@ body {
   0%, 49% { opacity: 1; }
   50%, 100% { opacity: 0; }
 }
+.sub-card { border: 1px solid var(--border-weak, #eef0f3); border-radius: 10px; padding: 12px; }
+.sub-card + .sub-card { margin-top: 10px; }
+.sub-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.sub-discoveries { margin-top: 8px; }
+.sub-discovery { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; }
+.sub-discovery + .sub-discovery { border-top: 1px solid var(--border-weak, #eef0f3); }
+.sub-discovery-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sub-discovery-main a { font-weight: 600; color: var(--ink); word-break: break-all; }
+.sub-discovery-main .muted { font-size: 12px; }

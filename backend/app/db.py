@@ -210,6 +210,19 @@ CREATE TABLE IF NOT EXISTS knowledge_gaps (
 CREATE INDEX IF NOT EXISTS idx_gaps_status ON knowledge_gaps(status, last_seen_at);
 CREATE INDEX IF NOT EXISTS idx_gaps_key ON knowledge_gaps(normalized_key);
 
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id               TEXT PRIMARY KEY,
+    name             TEXT NOT NULL,
+    url              TEXT NOT NULL UNIQUE,
+    enabled          INTEGER NOT NULL DEFAULT 1,
+    last_checked_at  TEXT,
+    last_status      TEXT NOT NULL DEFAULT '',   -- ok|robots-disallowed|fetch-failed|parse-failed
+    discoveries      TEXT NOT NULL DEFAULT '[]', -- 本轮发现的新内容（待管理员挑选）
+    ignored_urls     TEXT NOT NULL DEFAULT '[]', -- 已忽略、后续不再提示的链接
+    created_at       TEXT NOT NULL,
+    updated_at       TEXT NOT NULL DEFAULT ''
+);
+
 -- ---------------------------------------------------------------------------
 -- v0.2.0 handoff + crisis
 -- ---------------------------------------------------------------------------

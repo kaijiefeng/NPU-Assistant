@@ -67,6 +67,7 @@ MUTABLE_TABLES = (
     "handoff_requests",
     "answer_feedback",
     "knowledge_gaps",
+    "subscriptions",
     "wiki_links",
     "wiki_sources",
     "wiki_builds",

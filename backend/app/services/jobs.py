@@ -26,7 +26,14 @@ from . import alerts
 
 logger = logging.getLogger("npu-assistant")
 
-JOB_TYPES = {"ingest_upload", "reindex", "rebuild", "scan_dir", "gap_suggest"}
+JOB_TYPES = {
+    "ingest_upload",
+    "reindex",
+    "rebuild",
+    "scan_dir",
+    "gap_suggest",
+    "subscription_check",
+}
 ACTIVE_STATUSES = {"queued", "running"}
 TERMINAL_STATUSES = {"succeeded", "failed", "cancelled"}
 
@@ -446,12 +453,24 @@ def _run_gap_suggest(payload: dict, job: dict) -> dict:
     return result
 
 
+def _run_subscription_check(payload: dict, job: dict) -> dict:
+    """订阅检查：抓列表页发现新内容，结果写回订阅 discoveries。"""
+    from . import discovery
+
+    sub_id = str(payload.get("subscription_id") or "")
+    _update(job["id"], progress=10, message="正在抓取订阅列表页")
+    result = discovery.check_subscription(sub_id)
+    _update(job["id"], progress=100, message=result.get("message") or "完成")
+    return result
+
+
 _DEFAULT_HANDLERS = {
     "ingest_upload": _run_ingest_upload,
     "reindex": _run_reindex,
     "rebuild": _run_rebuild,
     "scan_dir": _run_scan_dir,
     "gap_suggest": _run_gap_suggest,
+    "subscription_check": _run_subscription_check,
 }
 
 
