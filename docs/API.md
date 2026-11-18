@@ -438,3 +438,17 @@ Invoke-RestMethod -Method Post ("http://127.0.0.1:8000/api/bots/channels/" + $co
 - 二维码只编码 URL，不含管理令牌；手机扫码后仍需在「设置 → 移动访问与安全」登录（若服务端启用了令牌）。
 - 临时隧道地址每次启动都会变化，仅用于演示/临时访问；生产请使用命名 Cloudflare Tunnel / Nginx 反代，并设置 `NPU_PUBLIC_URL` 固定地址。
 - 可用环境变量：`NPU_PUBLIC_URL`、`NPU_CLOUDFLARED`、`NPU_TUNNEL_TIMEOUT`（默认 30s）。
+
+## 10. 管理 Agent（右侧常驻面板）
+
+面向管理端的全站对话助手：把知识库收录/重建、服务台缺口与订阅、任务告警、运维 Agent 等页面接口封装为 tools，由 LLM 决定调用（提示词 + JSON 协议，非 function calling）。
+
+| 接口 | 鉴权 | 说明 |
+|---|---|---|
+| `POST /api/agent/chat` | 任意登录账号（open 模式放行） | SSE 流式对话。请求 `{"message": "...", "history": [{"role","content"}]}`；事件序列 `tool`（工具开始）→ `tool_result`（`{name, ok, summary}`）→ `delta`（`{text}` 回答）→ `done`（`{reply, steps}`）；15s 无消息发 `: ping` 保活 |
+| `GET /api/agent/tools` | 同上 | 当前账号可用的工具清单（`{name, description, permission, write, dangerous}`），按角色权限过滤 |
+
+- **权限模型**：对话接口要求 `insights:read`（所有角色满足）；每个工具声明自己的权限键，执行时按调用者角色校验（`viewer` 只见查询类，`ops:*` 仅超级管理员），Agent 不越权代理。写工具全部记审计（`agent.tool.<name>`）。
+- **高危确认**：删除文档 / 全量重建 / 批准运维修复标记 `dangerous`，系统提示词要求模型先向用户复述并取得明确同意后才调用。
+- **长任务**：扫描目录、重编、找备选、订阅检查、运维修复等返回 `job_id`，模型用 `get_job` 工具轮询。
+- **降级**：LLM 不可用（熔断/超时）时返回固定话术，不暴露内部错误。

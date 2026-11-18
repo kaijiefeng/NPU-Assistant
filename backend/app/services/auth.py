@@ -126,6 +126,10 @@ def permission_for_request(method: str, path: str) -> str:
         return "handoff:read" if method in SAFE_METHODS else "handoff:write"
     if path.startswith("/api/insights"):
         return "insights:read" if method in SAFE_METHODS else "insights:write"
+    if path.startswith("/api/agent"):
+        # 管理助手对话：任意登录账号可发起；工具执行时的权限闸在
+        # services/agent_tools.call_tool 按调用者角色逐工具校验
+        return "insights:read"
     if path.startswith("/api/models"):
         return "model:write"
     if path.startswith("/api/bots"):
