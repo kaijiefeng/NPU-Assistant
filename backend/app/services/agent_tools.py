@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import threading
 from dataclasses import dataclass
 from typing import Callable
@@ -20,6 +21,9 @@ from .. import db
 from . import alerts, auth, discovery, importer, ingest, insights, jobs, ops_agent, wiki_builder
 
 logger = logging.getLogger("npu-assistant")
+
+# 与 main.py 的 INTERNAL_PATH_RE 同款：错误信息回给模型/前端前抹掉本机路径
+INTERNAL_PATH_RE = re.compile(r"[A-Za-z]:\\[^\s\"']+")
 
 
 @dataclass(frozen=True)
@@ -69,24 +73,52 @@ def call_tool(name: str, args: dict, principal: dict) -> dict:
     if not auth.has_permission(str((principal or {}).get("role") or ""), spec.permission):
         return {"error": f"权限不足：当前角色无法执行 {spec.name}（需要 {spec.permission}）"}
     clean_args = args if isinstance(args, dict) else {}
+    # 高危工具的服务端确认门：无论提示词怎么说，首次调用一律拦下，必须显式带 confirm
+    if spec.dangerous and not _bool(clean_args, "confirm", False):
+        return {
+            "need_confirm": True,
+            "message": (
+                f"{spec.name} 是高危操作。请先用 reply 向用户复述以下参数并询问是否执行，"
+                '用户明确同意后再带 {"confirm": true} 重新调用本工具；不同意则放弃。'
+            ),
+            "args": clean_args,
+        }
     try:
         result = spec.handler(clean_args, principal)
         if not isinstance(result, dict):
             result = {"ok": bool(result)}
     except ValueError as exc:
-        return {"error": str(exc)}
+        _audit_tool(spec, principal, clean_args, ok=False, detail=str(exc))
+        return {"error": _clean_error(str(exc))}
     except Exception as exc:  # noqa: BLE001 - 工具失败反馈给模型而不是打断对话
         logger.exception("Agent 工具 %s 执行失败", spec.name)
-        return {"error": f"工具执行失败：{exc}"}
+        _audit_tool(spec, principal, clean_args, ok=False, detail=str(exc))
+        return {"error": _clean_error(f"工具执行失败：{exc}")}
     if spec.write:
+        _audit_tool(spec, principal, clean_args, ok=True)
+    return result
+
+
+def _audit_tool(spec: ToolSpec, principal: dict, args: dict, *, ok: bool, detail: str = "") -> None:
+    """写工具的成败都留痕（失败尝试同样可追溯），异常永不外抛。"""
+    payload = json.dumps(args, ensure_ascii=False)[:300]
+    if detail:
+        payload = f"{payload} error={_clean_error(detail)[:120]}"
+    try:
         auth.record_audit(
             principal,
             f"agent.tool.{spec.name}",
             target_type="agent_tool",
             target_id=spec.name,
-            detail=json.dumps(clean_args, ensure_ascii=False)[:300],
+            detail=payload,
+            status_code=200 if ok else 400,
         )
-    return result
+    except Exception:  # noqa: BLE001
+        logger.debug("agent 工具审计写入失败", exc_info=True)
+
+
+def _clean_error(message: str) -> str:
+    return INTERNAL_PATH_RE.sub("<path>", str(message))[:300]
 
 
 # ---------------------------------------------------------------------------
@@ -95,6 +127,16 @@ def call_tool(name: str, args: dict, principal: dict) -> dict:
 def _str(args: dict, key: str, default: str = "") -> str:
     value = args.get(key)
     return default if value is None else str(value).strip()
+
+
+def _bool(args: dict, key: str, default: bool = False) -> bool:
+    """布尔参数解析：模型传 "false"/"0"/"true" 等字符串时按语义处理。"""
+    value = args.get(key, default)
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"true", "1", "yes", "y", "是"}
+    return bool(value)
 
 
 def _limit(args: dict, default: int = 20, hi: int = 50) -> int:
@@ -366,7 +408,7 @@ def _scan_dir(args: dict, principal: dict) -> dict:
     from .. import config
 
     path = _str(args, "path")
-    recursive = args.get("recursive", True) is not False
+    recursive = _bool(args, "recursive", True)
     mode = "update" if _str(args, "mode").lower() == "update" else "skip"
     listed = ingest.list_scan_files(path, recursive=recursive, max_files=int(config.SCAN_MAX_FILES) + 1)
     if not listed:
@@ -561,7 +603,9 @@ def _subscription_delete(args: dict, principal: dict) -> dict:
     write=True,
 )
 def _subscription_toggle(args: dict, principal: dict) -> dict:
-    return discovery.toggle_subscription(_str(args, "subscription_id"), bool(args.get("enabled")))
+    if "enabled" not in args:
+        raise ValueError("缺少 enabled 参数（true 启用 / false 停用）")
+    return discovery.toggle_subscription(_str(args, "subscription_id"), _bool(args, "enabled", False))
 
 
 @tool(
@@ -660,7 +704,7 @@ def _ops_task_approve(args: dict, principal: dict) -> dict:
     task = ops_agent.approve(task_id)
     job = jobs.create_job(
         "ops_execute",
-        {"task_id": task_id, "run_e2e": bool(args.get("run_e2e"))},
+        {"task_id": task_id, "run_e2e": _bool(args, "run_e2e", False)},
         created_by=_principal_name(principal),
         max_attempts=1,
     )

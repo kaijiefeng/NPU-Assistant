@@ -170,7 +170,7 @@ async def main() -> None:
 
             for name, path, needle in [
                 ("knowledge", "#/knowledge", "知识库"),
-                ("manage", "#/knowledge?manage=1", "收录资料"),
+                ("manage", "#/kb-admin", "词条维护"),
                 ("models", "#/settings?tab=models", "模型"),
                 ("bots", "#/settings?tab=bots", "机器人"),
                 ("settings", "#/settings", "助手设置"),
@@ -184,11 +184,11 @@ async def main() -> None:
                 await shot(name)
                 print(f"[PASS] {name} 页面渲染正常（已截图）")
 
-            # 旧书签兼容：内容管理自动落到知识库管理模式
+            # 旧书签兼容：#/manage 自动落到知识库管理页
             await goto("#/manage")
             text = await cdp.evaluate("document.body.innerText") or ""
-            if "收录资料" not in text:
-                raise SystemExit("旧路由 #/manage 未重定向到知识库管理模式")
+            if "词条维护" not in text:
+                raise SystemExit("旧路由 #/manage 未重定向到知识库管理页")
             print("[PASS] 旧路由 #/manage 重定向正常")
 
             # 聚合页内切换：设置 → 模型 → 我的账号；运营 → 任务与告警

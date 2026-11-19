@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from typing import Callable
 
 from . import llm
@@ -42,8 +43,9 @@ def _system_prompt(role: str) -> str:
         "1. 每次只输出一个 JSON 对象，不要输出其他文字或代码块围栏：\n"
         '   - 需要信息/操作：{"tool": "工具名", "args": {参数: 值}}\n'
         '   - 可以回答用户了：{"reply": "面向管理员的中文回答"}\n'
-        "2. 标记 dangerous 的工具（删除、全量重建、批准修复等）执行前必须先用 reply "
-        "向用户复述将要做什么并等明确同意，除非用户本轮已经明确要求。\n"
+        "2. 标记 dangerous 的工具（删除、全量重建、批准修复等）首次调用会返回 need_confirm："
+        "此时改用 reply 向用户复述将要执行的操作和参数，等用户明确同意后，"
+        '带 "confirm": true 重新调用同一工具；用户不同意就放弃并说明。\n'
         "3. 参数不明确时先用查询工具获取（如先 list_gaps 拿 gap_id 再 gap_suggest），不要编造 ID。\n"
         "4. 工具返回 job_id 的长任务，向用户说明已提交后台，需要结果时再调 get_job 查询。\n"
         "5. 工具返回 error 时向用户说明原因或换一个做法，不要原样重试同一个失败调用。\n"
@@ -116,7 +118,7 @@ def run_agent_chat(
         response = llm.chat(messages, temperature=0.2, max_tokens=1400)
         if response.get("fallback"):
             logger.warning("管理助手 LLM 不可用：%s", response.get("error"))
-            return {"reply": _FALLBACK_REPLY, "steps": steps, "error": response.get("error")}
+            return {"reply": _FALLBACK_REPLY, "steps": steps}
         content = str(response.get("content") or "")
         parsed = _extract_json(content, dict) or {}
 
@@ -144,13 +146,16 @@ def run_agent_chat(
 
         reply = parsed.get("reply")
         reply = str(reply) if reply is not None and str(reply).strip() else content
-        reply = reply.strip()
-        if reply.startswith("```"):  # 模型偶发围栏兜底
-            reply = reply.strip("`").lstrip("json").strip()
+        reply = re.sub(r"^```(?:json)?\s*|\s*```$", "", str(reply).strip()).strip()
+        if not reply:
+            reply = "（这轮没有生成内容，请换个说法再试。）"
         emit("delta", {"text": reply})
         return {"reply": reply, "steps": steps}
 
     return {
-        "reply": "这轮用到的工具步骤较多，我先停在这里。可以换个更具体的说法，或让我分步执行。",
+        "reply": (
+            f"这轮已执行 {len(steps)} 步操作，达到单轮工具调用上限，我先停在这里。"
+            "可以换个更具体的说法，或让我分步执行。"
+        ),
         "steps": steps,
     }

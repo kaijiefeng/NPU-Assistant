@@ -28,7 +28,7 @@ const ROUTES = {
   },
   'kb-admin': {
     title: '知识库管理',
-    subtitle: '收录资料、词条维护与服务台',
+    subtitle: '词条维护、源文件与服务台',
     load: () => import('./views/kb-admin.js'),
     permission: 'insights:read',
   },

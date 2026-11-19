@@ -6,7 +6,7 @@
  * 未登录且非演示模式时整体隐藏，不打扰公开页访客。
  */
 import { sendAgentStream, uploadDocument } from './api.js';
-import { esc } from './ui.js';
+import { esc, toast } from './ui.js';
 
 const HISTORY_KEY = 'npu_agent_history';
 const OPEN_KEY = 'npu_agent_open';
@@ -22,6 +22,7 @@ const state = {
   sending: false,
   uploading: false,
   canUpload: false,
+  uploadCard: null, // 上传进行中的独立展示卡（不与回答 draft 混排）
   messages: [], // {role:'user'|'assistant', content, steps:[{name, ok, summary}]}
   controller: null,
 };
@@ -68,6 +69,10 @@ export function initAgentPanel(authState) {
   });
   dom.attach?.addEventListener('click', () => {
     if (!state.canUpload || state.uploading) return;
+    if (state.sending) {
+      toast('请等当前回答完成后再上传文件', 'warning');
+      return;
+    }
     dom.files?.click();
   });
   dom.files?.addEventListener('change', () => {
@@ -134,7 +139,7 @@ function persist() {
 }
 
 function clearHistory() {
-  if (state.sending) return;
+  if (state.sending || state.uploading) return;
   state.messages = [];
   persist();
   render();
@@ -156,7 +161,9 @@ function stepHtml(step) {
 
 function render(draft = null) {
   if (!dom.body) return;
-  const items = draft ? [...state.messages, draft] : state.messages;
+  const items = [...state.messages];
+  if (state.uploadCard) items.push(state.uploadCard);
+  if (draft) items.push(draft);
   if (!items.length) {
     dom.body.innerHTML = `<div class="agent-empty">
       <p>我是管理助手，可以直接代你查询和操作：</p>
@@ -204,19 +211,20 @@ async function handleUploads(files) {
   if (state.uploading || !state.canUpload) return;
   state.uploading = true;
   dom.attach && (dom.attach.disabled = true);
-  const card = { role: 'assistant', content: '', steps: [] };
-  render(card);
+  state.uploadCard = { role: 'assistant', content: '', steps: [] };
+  const card = state.uploadCard;
+  render();
   const uploaded = [];
   for (const file of files) {
     const step = { name: `上传 ${file.name}`, pending: true, ok: undefined, summary: '0%' };
     card.steps.push(step);
-    render(card);
+    render();
     try {
       const result = await uploadDocument(file, {
         asyncMode: true,
         onProgress: (percent) => {
           step.summary = `${percent}%`;
-          render(card);
+          render();
         },
       });
       step.pending = false;
@@ -228,7 +236,7 @@ async function handleUploads(files) {
       step.ok = false;
       step.summary = String(err?.message || '上传失败').slice(0, 120);
     }
-    render(card);
+    render();
   }
   state.messages.push({
     role: 'assistant',
@@ -240,6 +248,7 @@ async function handleUploads(files) {
     })),
   });
   persist();
+  state.uploadCard = null;
   state.uploading = false;
   dom.attach && (dom.attach.disabled = false);
   render();
@@ -256,7 +265,7 @@ async function handleUploads(files) {
 /* 发送                                                                */
 /* ------------------------------------------------------------------ */
 async function send() {
-  if (state.sending || !state.available) return;
+  if (state.sending || !state.available || state.uploading) return;
   const text = String(dom.input?.value || '').trim().slice(0, MAX_INPUT);
   if (!text) return;
   dom.input.value = '';
@@ -264,7 +273,11 @@ async function send() {
 }
 
 async function submitText(text) {
-  if (state.sending || !state.available) return;
+  if (state.sending || !state.available) {
+    // 忙碌时把文本交还输入框，由用户稍后发送，避免静默丢失
+    if (dom.input && !dom.input.value.trim()) dom.input.value = text;
+    return;
+  }
   state.messages.push({ role: 'user', content: text });
   persist();
   render();

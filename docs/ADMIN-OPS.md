@@ -611,12 +611,9 @@ $env:NPU_PUBLIC_URL = "https://npu.example.edu.cn"
 | `NPU_URL_IMPORT_ALLOW_PRIVATE` | `0` | URL 收录是否允许私网/回环地址（内网资料才临时开启） |
 | `NPU_URL_IMPORT_MAX_BYTES` | `8388608` | URL 抓取响应大小上限（默认 8MB，可调） |
 | `NPU_URL_IMPORT_MAX_URLS` | `5` | 批量收录单次链接上限 |
-| `NPU_SCAN_DIR` | 仓库 `scan/` | 默认扫描目录（界面留空路径时使用；也可在设置里存 `knowledge_scan_dir`） |
-| `NPU_SCAN_ROOTS` | 空（不限制） | 允许扫描的根目录白名单（os.pathsep 分隔）；生产环境建议配置 |
+| `NPU_SCAN_DIR` | 仓库 `scan/` | 默认扫描目录（留空路径时使用；也可在设置里存 `knowledge_scan_dir`） |
+| `NPU_SCAN_ROOTS` | 空（不限制） | 管理助手「扫描目录」允许扫描的根目录白名单（os.pathsep 分隔）；为空时允许任意存在的文件夹（仅管理员可用），生产环境建议显式限定 |
 | `NPU_SCAN_MAX_FILES` / `NPU_SCAN_MAX_DEPTH` | `200` / `4` | 单次扫描文件数与目录深度上限 |
-| `NPU_SCAN_ROOTS` | 空 | 管理助手「扫描目录」允许扫描的根目录白名单（多个用路径分隔符）；为空时允许任意存在的文件夹（仅管理员可用），生产环境建议显式限定 |
-| `NPU_SCAN_MAX_FILES` | `200` | 单次文件夹扫描最多收录的文件数 |
-| `NPU_SCAN_MAX_DEPTH` | `4` | 文件夹扫描的目录深度上限 |
 
 ### 16.1 重新生成预编译 Wiki 快照（会消耗 LLM Token）
 
@@ -635,7 +632,7 @@ $env:NPU_SEED_MODEL="deepseek-chat"                    # 可选
 
 「管理助手」面板挂在壳层、**默认展开**，切换页面不会关闭；右上角 ✨ 可收起/展开。对所有登录账号可见（未登录的公开访客看不到）。
 
-**能做什么**：把管理页面的接口封装成约 35 个工具，由大模型理解你的话后调用——
+**能做什么**：把管理页面的接口封装成约 40 个工具，由大模型理解你的话后调用——
 
 | 类别 | 示例说法 | 背后的工具 |
 |------|----------|------------|

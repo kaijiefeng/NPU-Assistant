@@ -445,10 +445,10 @@ Invoke-RestMethod -Method Post ("http://127.0.0.1:8000/api/bots/channels/" + $co
 
 | 接口 | 鉴权 | 说明 |
 |---|---|---|
-| `POST /api/agent/chat` | 任意登录账号（open 模式放行） | SSE 流式对话。请求 `{"message": "...", "history": [{"role","content"}]}`；事件序列 `tool`（工具开始）→ `tool_result`（`{name, ok, summary}`）→ `delta`（`{text}` 回答）→ `done`（`{reply, steps}`）；15s 无消息发 `: ping` 保活 |
-| `GET /api/agent/tools` | 同上 | 当前账号可用的工具清单（`{name, description, permission, write, dangerous}`），按角色权限过滤 |
+| `POST /api/agent/chat` | 任意登录账号（open 模式放行） | SSE 流式对话。请求 `{"message": "...", "history": [{"role","content"}]}`（message ≤4000 字，超出或为空 400）；事件序列 `tool`（工具开始）→ `tool_result`（`{name, ok, summary}`）→ `delta`（`{text}` 回答）→ `done`（`{reply, steps}`，不含内部错误信息）；任一步失败发 `error`（`{detail}`）后结束；15s 无消息发 `: ping` 保活；限流 20 次/分钟/IP（429） |
+| `GET /api/agent/tools` | 同上 | 当前账号可用的工具清单（外层 `{items: [{name, description, permission, write, dangerous}], total}`），按角色权限过滤 |
 
-- **权限模型**：对话接口要求 `insights:read`（所有角色满足）；每个工具声明自己的权限键，执行时按调用者角色校验（`viewer` 只见查询类，`ops:*` 仅超级管理员），Agent 不越权代理。写工具全部记审计（`agent.tool.<name>`）。
-- **高危确认**：删除文档 / 全量重建 / 批准运维修复标记 `dangerous`，系统提示词要求模型先向用户复述并取得明确同意后才调用。
+- **权限模型**：对话接口要求 `insights:read`（所有角色满足；open 演示模式下等同超级管理员，全部工具可用）；每个工具声明自己的权限键，执行时按调用者角色校验（`viewer` 只见查询类，`ops:*` 仅超级管理员），Agent 不越权代理。写工具全部记审计（`agent.tool.<name>`，含失败尝试）。
+- **高危确认**：删除文档 / 全量重建 / 批准运维修复标记 `dangerous`，服务端设确认门——首次调用返回 `{"need_confirm": true}`，模型复述参数并取得用户同意后带 `"confirm": true` 重调才真正执行。
 - **长任务**：扫描目录、重编、找备选、订阅检查、运维修复等返回 `job_id`，模型用 `get_job` 工具轮询。
 - **降级**：LLM 不可用（熔断/超时）时返回固定话术，不暴露内部错误。

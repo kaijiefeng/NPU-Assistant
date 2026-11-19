@@ -32,7 +32,7 @@ class AgentChatRequest(BaseModel):
     history: list[AgentChatMessage] = Field(default_factory=list, description="最近的对话历史（前端回传）")
 
 
-@router.get("/agent/tools", dependencies=[Depends(require_admin_token)])
+@router.get("/agent/tools")
 def list_agent_tools(principal: dict = Depends(require_admin_token)) -> dict:
     """当前账号可用的管理工具清单（面板展示与自检用）。"""
     specs = agent_tools.tools_for(str(principal.get("role") or ""))

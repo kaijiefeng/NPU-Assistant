@@ -63,6 +63,7 @@ BODY_LIMITS = {
 DEFAULT_BODY_LIMIT = config.MAX_UPLOAD_BYTES + 2 * 1024 * 1024
 CHAT_RATE_LIMIT = 30  # requests per minute per client IP
 LOGIN_RATE_LIMIT = 10
+AGENT_RATE_LIMIT = 20  # 管理助手：每轮最多 7 次 LLM 调用，阈值收紧
 _chat_hits: dict[str, list[float]] = {}
 _chat_hits_lock = threading.Lock()
 INTERNAL_PATH_RE = re.compile(r"[A-Za-z]:\\[^\s\"']+")
@@ -256,6 +257,12 @@ def create_app() -> FastAPI:
         if path == "/api/auth/login" and method == "POST" and _login_rate_limited(client_host):
             return JSONResponse(
                 status_code=429, content={"detail": "登录尝试过于频繁，请稍后再试"}
+            )
+        if path == "/api/agent/chat" and method == "POST" and _chat_rate_limited(
+            client_host, limit=AGENT_RATE_LIMIT, bucket="agent"
+        ):
+            return JSONResponse(
+                status_code=429, content={"detail": "助手请求过于频繁，请稍后再试"}
             )
         response = await call_next(request)
         if principal and is_write and not path.startswith("/api/auth"):

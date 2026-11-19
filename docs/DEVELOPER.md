@@ -272,8 +272,10 @@ QQ/微信/控制台事件
 - `api.js`：统一 `fetch`，自动带 `X-Admin-Token`；401 提示；上传用 XHR 进度。
 - `ui.js`：图标、toast、确认弹窗、空态、loading。
 - `views/chat.js`：会话、消息、引用折叠、历史抽屉、重试。
-- `views/knowledge.js`：知识库浏览 + 内容管理（收录/源文件/词条维护，`?manage=1` 进入管理）。
-- `views/ops-hub.js`：运营聚合（服务台 / 任务与告警 / 审计日志）。
+- `views/knowledge.js`：知识库浏览（`mount`）+ 词条维护/源文件管理（`mountManage`，由 kb-admin 聚合页挂载；收录走右侧管理助手）。
+- `views/kb-admin.js`：知识库管理聚合（内容管理 + 服务台）。
+- `views/ops-hub.js`：运维管理聚合（任务与告警 / 审计日志）。
+- `agent-panel.js`：右侧常驻管理助手面板（SSE 对话 + 工具步骤 + 附件上传）。
 - `views/settings-hub.js`：设置聚合（助手设置 / 模型 / 机器人 / 成员与权限 / 我的账号）。
 - `views/models.js`：Provider/模型双 Tab。
 - `views/bots.js`：通道/调试/日志。

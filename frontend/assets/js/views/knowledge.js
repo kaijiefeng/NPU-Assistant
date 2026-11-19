@@ -27,12 +27,10 @@ import {
   listDocuments,
   listWikiPages,
   getSettings,
-  rebuildWiki,
   reindexDocument,
   saveSettings,
   seedWiki,
   searchWiki,
-  scanKnowledgeFolder,
   updateWikiPage,
   uploadDocument,
   verifyWikiPage,
@@ -40,7 +38,6 @@ import {
 import {
   badge,
   confirmDialog,
-  copyText,
   emptyHtml,
   errorHtml,
   esc,
@@ -91,7 +88,7 @@ const BUILD_STATUS = {
 const state = {
   tab: 'pages',
   readOnly: true,
-  manageTab: 'capture',
+  manageTab: 'pages',
   wikiStats: null,
   kStats: null,
   info: null,
@@ -111,14 +108,6 @@ const state = {
   uploadTimer: 0,
   build: null,
   buildTimer: 0,
-  capture: {
-    mode: 'links',
-    collapsed: false,
-    importingLinks: false,
-    importingText: false,
-    linkResults: [],
-    textResult: null,
-  },
 };
 
 function uid() {
@@ -361,17 +350,6 @@ async function loadDocs({ silent = false } = {}) {
 async function loadSystemInfo() {
   try {
     state.info = await getSystemInfo();
-    const hint = document.getElementById('uploadHint');
-    if (hint) {
-      const preferred = ['.md', '.txt', '.pdf', '.docx', '.doc', '.xlsx', '.csv', '.json', '.html'];
-      const available = new Set(
-        (state.info?.supported_exts || FALLBACK_EXTS).map((ext) => String(ext).toLowerCase()),
-      );
-      const labels = preferred.filter((ext) => available.has(ext)).map((ext) => ext.replace('.', '').toUpperCase());
-      hint.textContent = `支持 ${labels.join(' / ')} 等格式，单个 ≤ ${
-        state.info?.max_upload_mb || 20
-      }MB；上传后在后台编译为 Wiki 词条，可继续操作。`;
-    }
     const fileInput = document.getElementById('fileInput');
     if (fileInput) fileInput.accept = (state.info?.supported_exts || FALLBACK_EXTS).join(',');
   } catch {
@@ -889,93 +867,6 @@ function openEditPageModal(page, onSaved) {
 /* ------------------------------------------------------------------ */
 /* 源文件 Tab：上传                                                    */
 /* ------------------------------------------------------------------ */
-async function runScanDirectory() {
-  const input = document.getElementById('scanDirPath');
-  const path = (input?.value || '').trim();
-  const mode = document.querySelector('input[name="scanDirMode"]:checked')?.value || 'skip';
-  const button = document.getElementById('scanDirBtn');
-  if (button) button.disabled = true;
-  try {
-    const result = await scanKnowledgeFolder({ path, recursive: true, mode });
-    toast(
-      result.message || `已开始扫描 ${result.files || 0} 个文件`,
-      result.truncated ? 'warning' : 'success',
-      { duration: result.truncated ? 7000 : 4000 },
-    );
-    if (path) {
-      // 记住本次目录作为默认（失败不影响扫描本身）
-      try {
-        await saveSettings({ knowledge_scan_dir: path });
-      } catch {
-        /* ignore */
-      }
-    }
-    watchScanJob(result.job_id);
-  } catch (err) {
-    toast(err?.message || '扫描文件夹失败', 'error');
-  } finally {
-    if (button) button.disabled = false;
-  }
-}
-
-async function refreshScanDirHint() {
-  const hint = document.getElementById('scanDirHint');
-  if (!hint) return;
-  try {
-    const settings = await getSettings();
-    const saved = String(settings?.knowledge_scan_dir || '').trim();
-    if (!saved) return;
-    const span = hint.querySelector('span');
-    if (span) {
-      span.textContent = `默认扫描目录：${saved}（留空路径即扫描这里；输入其他目录并扫描成功后自动记住）。递归子目录（最多 4 层），仅管理员可用。`;
-    }
-  } catch {
-    /* 匿名 / 无 settings:write 权限时静默，保留默认提示 */
-  }
-}
-
-async function watchScanJob(jobId) {
-  if (!jobId) return;
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < 30 * 60 * 1000) {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    let job;
-    try {
-      job = await getJob(jobId);
-    } catch (err) {
-      if (err?.status === 401) return; // 全局会提示登录
-      continue;
-    }
-    if (!job) continue;
-    if (job.status === 'succeeded') {
-      const result = job.result || {};
-      const ok = Number(result.imported_count ?? (result.imported || []).length ?? 0);
-      const upd = Number(result.updated_count ?? (result.updated || []).length ?? 0);
-      const skip = Number(result.skipped_count ?? (result.skipped || []).length ?? 0);
-      const bad = Number(result.failed_count ?? (result.failed || []).length ?? 0);
-      const truncated = Boolean(result.truncated);
-      const parts = [`新收录 ${ok} 篇`];
-      if (upd) parts.push(`更新 ${upd} 篇`);
-      if (skip) parts.push(`跳过 ${skip} 篇`);
-      const base = `扫描完成：${parts.join('，')}${bad ? `，失败 ${bad} 篇（结果见「任务与告警」）` : ''}`;
-      toast(
-        truncated ? `${base}；文件超过单次上限，剩余请分批扫描` : base,
-        bad || truncated ? 'warning' : 'success',
-        { duration: truncated ? 8000 : 5000 },
-      );
-      loadDocs({ silent: true });
-      loadStats();
-      loadTree();
-      return;
-    }
-    if (job.status === 'failed' || job.status === 'cancelled') {
-      toast(job.error || '扫描任务失败或被取消', 'error', { duration: 6000 });
-      return;
-    }
-  }
-  toast('扫描仍在后台进行，可稍后到「任务与告警」查看进度', 'info');
-}
-
 function uploadItemHtml(item) {
   const toneClass =
     item.status === 'uploading'
@@ -1327,97 +1218,6 @@ function stopBuildPolling() {
   }
 }
 
-function renderBuildBanner() {
-  const holder = document.getElementById('buildBanner');
-  if (!holder) return;
-  const build = state.build;
-  if (!build) {
-    holder.hidden = true;
-    holder.innerHTML = '';
-    return;
-  }
-  holder.hidden = false;
-  const meta = BUILD_STATUS[build.status] || { label: build.status || '处理中', tone: 'slate' };
-  const running = build.status === 'running' || build.status === 'pending';
-  const parts = [];
-  if (build.model) parts.push(esc(build.model));
-  if (build.pages_created !== undefined) parts.push(`新增 ${fmtNumber(build.pages_created)}`);
-  if (build.pages_updated !== undefined) parts.push(`更新 ${fmtNumber(build.pages_updated)}`);
-  if (build.pages_removed !== undefined) parts.push(`删除 ${fmtNumber(build.pages_removed)}`);
-  holder.innerHTML = `<div class="build-banner ${
-    running ? 'is-running' : build.status === 'failed' ? 'is-failed' : 'is-done'
-  }">
-    ${running ? spinnerHtml() : icon(build.status === 'failed' ? 'alert' : 'check')}
-    <div class="build-banner-main">
-      <strong>全部重建：${esc(meta.label)}</strong>
-      <span>${parts.join(' · ') || '正在重新编译全部源文件，请稍候…'}</span>
-      ${build.error ? `<span class="build-error">${esc(build.error)}</span>` : ''}
-    </div>
-    ${running ? '' : `<button class="btn btn-sm btn-ghost" type="button" data-action="dismiss-build">关闭</button>`}
-  </div>`;
-}
-
-function pollBuild(buildId) {
-  stopBuildPolling();
-  let attempts = 0;
-  state.buildTimer = window.setInterval(async () => {
-    attempts += 1;
-    if (attempts > 240) {
-      stopBuildPolling();
-      state.build = { ...(state.build || {}), status: 'failed', error: '构建轮询超时，请稍后刷新查看结果。' };
-      renderBuildBanner();
-      return;
-    }
-    try {
-      const build = await getWikiBuild(buildId);
-      state.build = build || state.build;
-      renderBuildBanner();
-      const status = build?.status;
-      if (status && status !== 'running' && status !== 'pending') {
-        stopBuildPolling();
-        if (status === 'failed') toast(build?.error || '全部重建失败', 'error');
-        else toast('全部重建完成，Wiki 词条已更新', 'success');
-        refreshWiki({ silent: true });
-      }
-    } catch (err) {
-      if (attempts > 20) {
-        stopBuildPolling();
-        state.build = { ...(state.build || {}), status: 'failed', error: err?.message || '构建状态查询失败' };
-        renderBuildBanner();
-      }
-    }
-  }, 2500);
-}
-
-async function runRebuildAll(button) {
-  setButtonBusy(button, true, '提交中…');
-  try {
-    const result = await rebuildWiki({});
-    const buildId = result?.build_id || result?.id;
-    state.build = {
-      id: buildId,
-      status: result?.status || 'running',
-      pages_created: 0,
-      pages_updated: 0,
-      pages_removed: 0,
-    };
-    renderBuildBanner();
-    toast('已提交全部重建任务，编译期间可继续其他操作', 'info');
-    if (buildId) pollBuild(buildId);
-    else {
-      state.build = { ...state.build, status: 'failed', error: '接口未返回 build_id，无法轮询状态' };
-      renderBuildBanner();
-    }
-  } catch (err) {
-    toast(err?.message || '提交重建任务失败', 'error');
-  } finally {
-    setButtonBusy(button, false);
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* 源文件操作                                                          */
-/* ------------------------------------------------------------------ */
 async function reindexDoc(id, button) {
   setButtonBusy(button, true, '编译中…');
   try {
@@ -1557,322 +1357,6 @@ function parseCaptureUrls(text) {
   return { entries: unique.slice(0, 5), truncated, urls: unique.slice(0, 5).filter((e) => e.valid).map((e) => e.url) };
 }
 
-function importPageChips(pages) {
-  if (!Array.isArray(pages) || !pages.length) return '';
-  return `<div class="capture-pages">${pages
-    .filter((page) => page && page.id)
-    .map(
-      (page) =>
-        `<button class="tag-chip is-link" type="button" data-action="open-page" data-id="${esc(
-          page.id,
-        )}">${icon('chevron-right')}${esc(page.title || '查看词条')}</button>`,
-    )
-    .join('')}</div>`;
-}
-
-function linkResultHtml(item) {
-  const meta = {
-    pending: { icon: 'clock', cls: 'is-pending', text: item.message || '等待收录' },
-    fetching: { icon: 'sparkles', cls: 'is-fetching', text: item.message || '抓取正文 / 编译词条中…' },
-    success: { icon: 'check', cls: 'is-success', text: item.message || '已收录' },
-    duplicated: { icon: 'copy', cls: 'is-duplicated', text: item.message || '已收录过，跳过编译' },
-    error: { icon: 'alert', cls: 'is-error', text: item.message || '收录失败' },
-  }[item.status] || { icon: 'clock', cls: 'is-pending', text: '' };
-  const iconHtml =
-    item.status === 'fetching'
-      ? '<span class="spinner spinner-xs" aria-hidden="true"></span>'
-      : icon(meta.icon);
-  const copyBtn = item.url
-    ? `<button class="icon-btn capture-copy" type="button" data-action="copy-capture-url" data-url="${esc(
-        item.url,
-      )}" title="复制链接" aria-label="复制链接">${icon('copy')}</button>`
-    : '';
-  const fallbackBtn =
-    item.sizeLimit && item.status === 'error'
-      ? `<button class="link-btn capture-text-fallback" type="button" data-action="use-text-import">${icon('text')}改用文本收录</button>`
-      : '';
-  return `<div class="capture-result-item ${meta.cls}">
-    <span class="capture-result-icon">${iconHtml}</span>
-    <div class="capture-result-main">
-      <span class="capture-result-url" title="${esc(item.url || '')}">${esc(item.url || '')}</span>
-      <span class="capture-result-msg">${esc(meta.text)}</span>
-      ${item.title ? `<span class="capture-result-doc">源文件：${esc(item.title)}</span>` : ''}
-      ${fallbackBtn}
-      ${importPageChips(item.pages)}
-    </div>
-    ${copyBtn}
-  </div>`;
-}
-
-function renderCaptureResults() {
-  const linkHolder = document.getElementById('captureLinkResults');
-  if (linkHolder) {
-    linkHolder.innerHTML = state.capture.linkResults.length
-      ? state.capture.linkResults.map(linkResultHtml).join('')
-      : '';
-  }
-  const textHolder = document.getElementById('captureTextResults');
-  if (textHolder) {
-    const result = state.capture.textResult;
-    if (!result) {
-      textHolder.innerHTML = '';
-    } else if (result.status === 'fetching') {
-      textHolder.innerHTML = `<div class="capture-result-item is-fetching"><span class="capture-result-icon"><span class="spinner spinner-xs"></span></span><div class="capture-result-main"><span class="capture-result-msg">正在编译词条，请稍候…</span></div></div>`;
-    } else if (result.status === 'success' || result.status === 'duplicated') {
-      textHolder.innerHTML = `<div class="capture-result-item ${result.status === 'duplicated' ? 'is-duplicated' : 'is-success'}">
-        <span class="capture-result-icon">${icon(result.status === 'duplicated' ? 'copy' : 'check')}</span>
-        <div class="capture-result-main">
-          <span class="capture-result-msg">${esc(result.message)}</span>
-          ${result.title ? `<span class="capture-result-doc">源文件：${esc(result.title)}</span>` : ''}
-          ${importPageChips(result.pages)}
-        </div>
-      </div>`;
-    } else {
-      textHolder.innerHTML = `<div class="capture-result-item is-error"><span class="capture-result-icon">${icon(
-        'alert',
-      )}</span><div class="capture-result-main"><span class="capture-result-msg">${esc(
-        result.message || '收录失败',
-      )}</span>${
-        result.sizeLimit
-          ? `<button class="link-btn capture-text-fallback" type="button" data-action="use-text-import">${icon('text')}改用文本收录</button>`
-          : ''
-      }</div></div>`;
-    }
-  }
-}
-
-const IMPORT_SIZE_HINT = '可改用「文本」收录粘贴正文，或联系管理员调大 NPU_URL_IMPORT_MAX_BYTES';
-
-function importErrorInfo(err) {
-  const raw = typeof err === 'string' ? err : err?.message || '';
-  const status = typeof err === 'object' && err ? err.status : 0;
-  if (status === 404 || status === 405) {
-    return { message: '收录接口暂不可用（后端可能仍在部署），请稍后重试或直接上传文件', sizeLimit: false };
-  }
-  // 网页抓取上限（默认 8MB）超限时给出可执行的替代方案；后端 detail 已含环境变量名则不重复追加
-  if (/过大|MAX_BYTES|抓取上限|上限/i.test(raw)) {
-    const hint = /NPU_URL_IMPORT_MAX_BYTES/i.test(raw) ? '' : `；${IMPORT_SIZE_HINT}`;
-    return { message: `${raw || '网页内容过大，抓取失败'}${hint}`, sizeLimit: true };
-  }
-  return { message: raw || '收录失败', sizeLimit: false };
-}
-
-function importErrorMessage(err) {
-  return importErrorInfo(err).message;
-}
-
-function normalizeSingleImport(data) {
-  const document = data?.document || {};
-  const pages = Array.isArray(data?.pages) ? data.pages : [];
-  const duplicated = Boolean(data?.duplicated);
-  const failed = String(document.status || '').toLowerCase() === 'failed';
-  return {
-    status: failed ? 'error' : duplicated ? 'duplicated' : 'success',
-    title: document.title || '',
-    pages,
-    message: failed
-      ? `收录后编译失败：${document.error || '请到「源文件」查看原因并重新编译'}`
-      : duplicated
-        ? `已收录过，跳过编译${pages.length ? ` · 现有 ${pages.length} 个词条` : ''}`
-        : `已收录《${document.title || '新资料'}》${pages.length ? ` · 生成 ${pages.length} 个词条` : ''}`,
-  };
-}
-
-async function runImportLinks(button) {
-  if (state.capture.importingLinks) return;
-  const urlsInput = document.getElementById('captureUrls');
-  const tagsInput = document.getElementById('captureUrlTags');
-  const parsed = parseCaptureUrls(urlsInput?.value || '');
-  if (!parsed.entries.length) {
-    toast('请粘贴至少一个网页链接（一行一个，可带标题）', 'warning');
-    urlsInput?.focus();
-    return;
-  }
-  if (parsed.truncated) {
-    toast(`一次最多收录 5 条链接，已截断后面的 ${parsed.truncated} 条`, 'warning');
-  }
-  const tags = parseTagsInput(tagsInput?.value);
-  const invalidEntries = parsed.entries.filter((entry) => !entry.valid);
-  const validEntries = parsed.entries.filter((entry) => entry.valid);
-  const invalidResult = (entry) => ({
-    url: entry.raw || '（无法识别）',
-    status: 'error',
-    message: '不是有效的 http(s) 链接，请检查后重试',
-    pages: [],
-  });
-  state.capture.importingLinks = true;
-  state.capture.linkResults = parsed.entries.map((entry) =>
-    entry.valid
-      ? {
-          url: entry.url,
-          status: 'fetching',
-          message:
-            validEntries.length === 1 ? '抓取正文 / 编译词条中…' : '排队收录中（抓取 → 编译词条）…',
-          pages: [],
-        }
-      : invalidResult(entry),
-  );
-  renderCaptureResults();
-  if (!validEntries.length) {
-    state.capture.importingLinks = false;
-    toast('未识别到有效链接：请粘贴 http(s) 开头的网页地址', 'error');
-    return;
-  }
-  setButtonBusy(button, true, '收录中…');
-  try {
-    let resultByUrl = new Map();
-    if (validEntries.length === 1) {
-      const data = await importUrl({ url: validEntries[0].url, ...(tags.length ? { tags } : {}) });
-      const normalized = normalizeSingleImport(data);
-      resultByUrl.set(validEntries[0].url, { url: validEntries[0].url, ...normalized });
-    } else {
-      const urls = validEntries.map((entry) => entry.url);
-      const data = await importBatch({ urls, ...(tags.length ? { tags } : {}) });
-      const items = Array.isArray(data?.items) ? data.items : [];
-      validEntries.forEach((entry, index) => {
-        const item = items[index] || items.find((candidate) => candidate?.url === entry.url) || {};
-        if (item.ok === false || item.error) {
-          const info = importErrorInfo(item.error || '收录失败');
-          resultByUrl.set(entry.url, {
-            url: entry.url,
-            status: 'error',
-            message: info.message,
-            sizeLimit: info.sizeLimit,
-            pages: [],
-          });
-          return;
-        }
-        const pages = Array.isArray(item.pages) ? item.pages : [];
-        resultByUrl.set(entry.url, {
-          url: entry.url,
-          status: item.duplicated ? 'duplicated' : 'success',
-          title: item.document_title || item.title || '',
-          pages,
-          message: item.duplicated
-            ? '已收录过，跳过编译'
-            : `已收录${pages.length ? ` · 生成 ${pages.length} 个词条` : ''}`,
-        });
-      });
-    }
-    state.capture.linkResults = parsed.entries.map((entry) =>
-      entry.valid ? resultByUrl.get(entry.url) || { url: entry.url, status: 'error', message: '未返回结果', pages: [] } : invalidResult(entry),
-    );
-    const okCount = state.capture.linkResults.filter((item) => item.status === 'success').length;
-    const dupCount = state.capture.linkResults.filter((item) => item.status === 'duplicated').length;
-    const failCount = state.capture.linkResults.filter((item) => item.status === 'error').length;
-    if (okCount) {
-      toast(
-        `链接收录完成：新增 ${okCount} 条${dupCount ? `，重复 ${dupCount} 条` : ''}${failCount ? `，失败 ${failCount} 条` : ''}`,
-        'success',
-      );
-    } else if (dupCount) {
-      toast(`所选链接均已收录过（${dupCount} 条），未重复编译`, 'info');
-    } else {
-      toast('链接收录失败，请查看逐条原因', 'error');
-    }
-    if (invalidEntries.length) {
-      toast(`有 ${invalidEntries.length} 行不是有效链接，已跳过`, 'info');
-    }
-    if (state.capture.linkResults.some((item) => item.sizeLimit)) {
-      toast('有链接抓取超限，可点「改用文本收录」粘贴正文', 'warning', { duration: 7000 });
-    }
-    if (okCount || dupCount) {
-      if (urlsInput) urlsInput.value = '';
-      refreshWiki({ silent: true });
-    }
-  } catch (err) {
-    const info = importErrorInfo(err);
-    state.capture.linkResults = state.capture.linkResults.map((item) => ({
-      ...item,
-      status: 'error',
-      message: item.status === 'error' ? item.message : info.message,
-      sizeLimit: info.sizeLimit,
-    }));
-    toast(info.message, 'error');
-  } finally {
-    state.capture.importingLinks = false;
-    setButtonBusy(button, false);
-    renderCaptureResults();
-  }
-}
-
-async function runImportText(button) {
-  if (state.capture.importingText) return;
-  const titleInput = document.getElementById('captureTitle');
-  const textInput = document.getElementById('captureText');
-  const tagsInput = document.getElementById('captureTextTags');
-  const text = String(textInput?.value || '').trim();
-  const title = String(titleInput?.value || '').trim();
-  const tags = parseTagsInput(tagsInput?.value);
-  if (text.length < 30) {
-    toast('正文至少 30 字，请粘贴完整通知内容', 'warning');
-    textInput?.focus();
-    return;
-  }
-  if (text.length > 200000) {
-    toast('正文超过 200000 字上限，请拆分后收录', 'error');
-    return;
-  }
-  state.capture.importingText = true;
-  state.capture.textResult = { status: 'fetching' };
-  renderCaptureResults();
-  setButtonBusy(button, true, '编译中…');
-  try {
-    const data = await importText({ title, text, ...(tags.length ? { tags } : {}) });
-    const normalized = normalizeSingleImport(data);
-    state.capture.textResult = { ...normalized };
-    toast(
-      normalized.status === 'duplicated' ? '该文本资料已收录过，跳过编译' : `文本收录成功${normalized.pages.length ? `，生成 ${normalized.pages.length} 个词条` : ''}`,
-      normalized.status === 'duplicated' ? 'info' : 'success',
-    );
-    if (textInput) textInput.value = '';
-    if (titleInput) titleInput.value = '';
-    refreshWiki({ silent: true });
-  } catch (err) {
-    const info = importErrorInfo(err);
-    state.capture.textResult = { status: 'error', message: info.message, sizeLimit: info.sizeLimit };
-    toast(info.message, 'error');
-  } finally {
-    state.capture.importingText = false;
-    setButtonBusy(button, false);
-    renderCaptureResults();
-  }
-}
-
-function setCaptureMode(mode) {
-  const next = ['links', 'text', 'file'].includes(mode) ? mode : 'links';
-  state.capture.mode = next;
-  const panels = {
-    links: document.getElementById('captureLinksPanel'),
-    text: document.getElementById('captureTextPanel'),
-    file: document.getElementById('captureFilePanel'),
-  };
-  Object.entries(panels).forEach(([key, panel]) => {
-    if (panel) panel.hidden = key !== next;
-  });
-  document.querySelectorAll('.capture-tab').forEach((tab) => {
-    const active = tab.dataset.mode === next;
-    tab.classList.toggle('is-active', active);
-    tab.setAttribute('aria-selected', active ? 'true' : 'false');
-  });
-}
-
-function setCaptureCollapsed(collapsed) {
-  state.capture.collapsed = Boolean(collapsed);
-  const card = document.getElementById('quickCapture');
-  const body = document.getElementById('quickCaptureBody');
-  const toggle = document.querySelector('[data-action="toggle-capture"]');
-  if (card) card.classList.toggle('is-collapsed', state.capture.collapsed);
-  if (body) body.hidden = state.capture.collapsed;
-  if (toggle) toggle.setAttribute('aria-expanded', state.capture.collapsed ? 'false' : 'true');
-  try {
-    localStorage.setItem('npu.capture.collapsed', state.capture.collapsed ? '1' : '0');
-  } catch {
-    /* ignore */
-  }
-}
-
-
 /* ------------------------------------------------------------------ */
 /* 视图入口                                                            */
 /* ------------------------------------------------------------------ */
@@ -1882,6 +1366,8 @@ export function mountManage(root, context = {}) {
   state.readOnly = false;
   state.manageTab = 'pages';
   state.tab = 'pages';
+  state.docsFilter = '';
+  state.docsShown = DOCS_PAGE_SIZE;
   state.search = { query: '', running: false, result: null, error: '' };
   state.build = null;
   stopBuildPolling();
@@ -1936,13 +1422,11 @@ export function mountManage(root, context = {}) {
 
   const page = root.querySelector('.manage-page');
   const managePanels = {
-    capture: root.querySelector('#manageCapturePanel'),
     sources: root.querySelector('#manageSourcesPanel'),
     pages: root.querySelector('#managePagesPanel'),
   };
   const searchForm = root.querySelector('#wikiSearchForm');
   const searchInput = root.querySelector('#wikiSearchInput');
-  const dropzone = root.querySelector('#dropzone');
   const fileInput = root.querySelector('#fileInput');
 
   /* 源文件过滤：本地过滤即输即筛（渲染已分页，大数据量不卡） */
@@ -1970,36 +1454,9 @@ export function mountManage(root, context = {}) {
 
   /* 上传交互 */
   const pickFile = () => fileInput?.click();
-  dropzone?.addEventListener('click', pickFile);
-  dropzone?.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      pickFile();
-    }
-  });
   fileInput?.addEventListener('change', () => {
     handleFiles(fileInput.files);
     fileInput.value = '';
-  });
-  ['dragenter', 'dragover'].forEach((type) => {
-    dropzone?.addEventListener(type, (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      dropzone.classList.add('is-dragover');
-    });
-  });
-  ['dragleave', 'dragend'].forEach((type) => {
-    dropzone?.addEventListener(type, (event) => {
-      event.preventDefault();
-      if (event.relatedTarget && dropzone.contains(event.relatedTarget)) return;
-      dropzone.classList.remove('is-dragover');
-    });
-  });
-  dropzone?.addEventListener('drop', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dropzone.classList.remove('is-dragover');
-    if (event.dataTransfer?.files?.length) handleFiles(event.dataTransfer.files);
   });
 
   /* 搜索 */

@@ -203,3 +203,83 @@ def test_agent_chat_sse_tool_events(client, monkeypatch):
         text = "".join(response.iter_text())
     assert "event: tool" in text and "event: tool_result" in text
     assert '"name": "system_stats"' in text
+
+
+def test_agent_chat_sse_no_internal_error_leak(client, monkeypatch):
+    """LLM 不可用时 done 事件只含降级话术与步骤，不外发内部错误信息。"""
+    _patch_llm(monkeypatch, [{"content": "", "fallback": True, "error": "连接 https://llm.internal/api 超时"}])
+    with client.stream("POST", "/api/agent/chat", json={"message": "hi", "history": []}) as response:
+        text = "".join(response.iter_text())
+    assert "模型暂时不可用" in text
+    assert "llm.internal" not in text
+
+
+# ---------------------------------------------------------------------------
+# 高危确认门 / 错误脱敏 / 布尔解析（独立审阅修复回归）
+# ---------------------------------------------------------------------------
+def test_dangerous_tool_confirm_gate():
+    first = agent_tools.call_tool("delete_document", {"document_id": "d1"}, SUPER)
+    assert first.get("need_confirm") is True
+    assert "复述" in first["message"]
+    # 未执行：不留成功审计
+    assert not db.query("SELECT * FROM audit_log WHERE action = 'agent.tool.delete_document'")
+
+    # 带 confirm 后过闸进入 handler（文档不存在 → 业务错误，且失败尝试留痕）
+    second = agent_tools.call_tool("delete_document", {"document_id": "d1", "confirm": True}, SUPER)
+    assert second.get("error") == "源文件不存在"
+    rows = db.query("SELECT * FROM audit_log WHERE action = 'agent.tool.delete_document'")
+    assert len(rows) == 1 and rows[0]["status_code"] == 400
+
+
+def test_tool_error_sanitizes_local_paths(monkeypatch):
+    def boom(_job_id: str):
+        raise ValueError("不是文件夹：C:\\Users\\fkj92\\secret\\data")
+
+    monkeypatch.setattr(agent_tools.jobs, "get_job", boom)
+    result = agent_tools.call_tool("get_job", {"job_id": "x"}, SUPER)
+    assert result.get("error") and "C:\\Users" not in result["error"]
+    assert "<path>" in result["error"]
+
+
+def test_bool_argument_parsing():
+    from app.services.agent_tools import _bool
+
+    assert _bool({"x": "false"}, "x", True) is False
+    assert _bool({"x": "true"}, "x", False) is True
+    assert _bool({"x": "0"}, "x", True) is False
+    assert _bool({}, "x", True) is True
+    assert _bool({}, "x", False) is False
+
+
+def test_agent_loop_handles_confirm_flow(monkeypatch):
+    """模型先调高危工具 → 收到 need_confirm → 复述确认 → 用户同意后带 confirm 重调。"""
+    # 第一轮：工具调用被确认门拦下，模型转为向用户复述确认
+    _patch_llm(
+        monkeypatch,
+        [
+            {"content": json.dumps({"tool": "delete_document", "args": {"document_id": "d1"}}), "fallback": False},
+            {"content": json.dumps({"reply": "将删除《d1》，确认执行吗？"}), "fallback": False},
+        ],
+    )
+    first = agent_chat.run_agent_chat([], "删掉 d1", SUPER)
+    assert first["reply"].startswith("将删除")
+    assert first["steps"] == [
+        {"name": "delete_document", "ok": True, "summary": first["steps"][0]["summary"]}
+    ]
+    assert "need_confirm" in first["steps"][0]["summary"] or "高危" in first["steps"][0]["summary"]
+
+    # 第二轮：用户同意，模型带 confirm 重调（文档不存在 → 业务错误回报）
+    _patch_llm(
+        monkeypatch,
+        [
+            {"content": json.dumps({"tool": "delete_document", "args": {"document_id": "d1", "confirm": True}}), "fallback": False},
+            {"content": json.dumps({"reply": "该文档不存在，无需删除。"}), "fallback": False},
+        ],
+    )
+    history = [
+        {"role": "user", "content": "删掉 d1"},
+        {"role": "assistant", "content": first["reply"]},
+    ]
+    second = agent_chat.run_agent_chat(history, "确认", SUPER)
+    assert second["reply"].startswith("该文档不存在")
+    assert second["steps"][0]["ok"] is False

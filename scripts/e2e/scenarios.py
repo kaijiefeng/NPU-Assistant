@@ -60,7 +60,7 @@ async def bootstrap_routes(ctx: Context) -> None:
         await ctx.expect_text("知识库")
     async with ctx.step("旧路由 #/manage 重定向"):
         await _goto(ctx, "#/manage")
-        await ctx.expect_text("收录资料")
+        await ctx.expect_text("词条维护")
     async with ctx.step("未知路由回落到对话"):
         await _goto(ctx, "#/not-exist")
         await ctx.expect_text("向辅导员数字分身提问")
@@ -115,9 +115,9 @@ async def knowledge_upload(ctx: Context) -> None:
     sample = ctx.sandbox.root / "fixtures" / "E2E上传样例.md"
     sample.parent.mkdir(parents=True, exist_ok=True)
     sample.write_text("# E2E 上传样例\n\n" + "这是一段用于验证上传链路的沙箱文本。" * 20, encoding="utf-8")
-    async with ctx.step("进入收录资料"):
-        await _goto(ctx, "#/knowledge?manage=1")
-        await ctx.expect_text("收录资料")
+    async with ctx.step("进入源文件页"):
+        await _goto(ctx, "#/kb-admin?tab=sources")
+        await ctx.expect_text("源文件")
     async with ctx.step("选择文件并上传"):
         await ctx.browser.set_files("#fileInput", [sample])
         await asyncio.sleep(1.0)
@@ -262,12 +262,10 @@ async def knowledge_scan_and_delete(ctx: Context) -> None:
     (folder / "扫描样例.md").write_text(
         "# 扫描样例\n\n" + "这是扫描文件夹场景写入的沙箱文档。" * 20, encoding="utf-8"
     )
-    async with ctx.step("填写扫描目录并开始扫描"):
-        await _goto(ctx, "#/knowledge?manage=1")
-        await ctx.browser.click('[data-action="capture-mode"][data-mode="file"]')
-        await ctx.browser.wait_for_selector("#scanDirPath", timeout=15)
-        await ctx.browser.type("#scanDirPath", str(folder))
-        await ctx.browser.click("#scanDirBtn")
+    async with ctx.step("填写扫描目录并开始扫描（与管理助手同款 API）"):
+        await _goto(ctx, "#/kb-admin")
+        resp = ctx.server.api.post("/api/knowledge/scan-dir", json={"path": str(folder)})
+        ctx.expect(resp.status_code == 202, f"扫描任务提交失败：{resp.status_code}")
         await asyncio.sleep(1.2)
     async with ctx.step("等待扫描任务产出文档"):
         deadline = time.time() + 60
@@ -316,26 +314,16 @@ async def token_settings_redaction(ctx: Context) -> None:
 @scenario(
     "knowledge.more",
     tags=("knowledge",),
-    covers=("toggle-capture", "capture-mode", "import-text", "refresh-pages", "filter-tag", "doc-pages", "reindex", "seed"),
+    covers=("import-text", "refresh-pages", "filter-tag", "doc-pages", "reindex", "seed"),
 )
 async def knowledge_more(ctx: Context) -> None:
-    async with ctx.step("收起/展开快速收录"):
-        await _fresh(ctx, "#/knowledge?manage=1")
-        await ctx.browser.click('[data-action="manage-tab"][data-tab="capture"]')
-        await ctx.browser.wait_for_selector('[data-action="toggle-capture"]', timeout=10)
-        await ctx.browser.click('[data-action="toggle-capture"]')
-        await asyncio.sleep(0.4)
-        await ctx.browser.click('[data-action="toggle-capture"]')
-    async with ctx.step("文本收录"):
-        await ctx.browser.click('[data-action="capture-mode"][data-mode="text"]')
-        await ctx.browser.type("#captureTitle", "E2E 文本收录样例")
-        await ctx.browser.type("#captureText", "这是一段用于验证文本收录链路的沙箱内容。" * 12)
-        await ctx.browser.click("#importTextBtn")
-        await asyncio.sleep(2.0)
-        result_text = await ctx.browser.evaluate(
-            "document.getElementById('captureTextResults')?.innerText || ''"
-        ) or ""
-        ctx.expect(bool(result_text.strip()), "文本收录后没有结果反馈")
+    async with ctx.step("文本收录（与管理助手同款 API）"):
+        await _fresh(ctx, "#/kb-admin")
+        resp = ctx.server.api.post(
+            "/api/knowledge/import/text",
+            json={"title": "E2E 文本收录样例", "text": "这是一段用于验证文本收录链路的沙箱内容。" * 12},
+        )
+        ctx.expect(resp.status_code == 201, f"文本收录失败：{resp.status_code}")
     async with ctx.step("切到词条列表并刷新"):
         await ctx.browser.click('[data-action="manage-tab"][data-tab="pages"]')
         await ctx.browser.wait_for_selector('[data-action="refresh-pages"]', timeout=10)
@@ -346,18 +334,18 @@ async def knowledge_more(ctx: Context) -> None:
         await ctx.browser.click('[data-action="filter-tag"]')
         await asyncio.sleep(0.8)
     async with ctx.step("导入预编译快照"):
-        await _goto(ctx, "#/knowledge?manage=1")
+        await _goto(ctx, "#/kb-admin")
         await ctx.browser.click('[data-action="manage-tab"][data-tab="sources"]')
         await ctx.browser.wait_for_selector('[data-action="seed"]', timeout=15)
         await ctx.browser.click('[data-action="seed"]')
         await asyncio.sleep(1.5)
     async with ctx.step("源文件详情与重编译"):
-        await _goto(ctx, "#/knowledge?manage=1")
+        await _goto(ctx, "#/kb-admin")
         await ctx.browser.click('[data-action="manage-tab"][data-tab="sources"]')
         await ctx.browser.wait_for_selector('[data-action="doc-pages"]', timeout=15)
         await ctx.browser.click('[data-action="doc-pages"]')
         await asyncio.sleep(0.8)
-        await _goto(ctx, "#/knowledge?manage=1")
+        await _goto(ctx, "#/kb-admin")
         await ctx.browser.click('[data-action="manage-tab"][data-tab="sources"]')
         await ctx.browser.wait_for_selector('[data-action="reindex"]', timeout=15)
         await ctx.browser.click('[data-action="reindex"]')
@@ -729,16 +717,16 @@ async def settings_account(ctx: Context) -> None:
 @scenario(
     "knowledge.extra",
     tags=("knowledge",),
-    covers=("edit-page", "import-links", "doc-download", "rebuild-all", "clear-uploads", "copy-capture-url", "dismiss-build", "delete-page"),
+    covers=("edit-page", "doc-download", "clear-uploads", "delete-page"),
 )
 async def knowledge_extra(ctx: Context) -> None:
     async with ctx.step("编辑词条"):
-        await _fresh(ctx, "#/knowledge?manage=1")
+        await _fresh(ctx, "#/kb-admin")
         await ctx.browser.click('[data-action="manage-tab"][data-tab="pages"]')
         await ctx.browser.wait_for_selector(".wiki-card", timeout=20)
         await ctx.browser.click(".wiki-card")
         if not await ctx.browser.wait_for_selector('[data-action="edit-page"]', timeout=8):
-            await _fresh(ctx, "#/knowledge?manage=1")
+            await _fresh(ctx, "#/kb-admin")
             await ctx.browser.click('[data-action="manage-tab"][data-tab="pages"]')
             await ctx.browser.wait_for_selector(".wiki-card", timeout=20)
             await ctx.browser.evaluate(
@@ -751,7 +739,7 @@ async def knowledge_extra(ctx: Context) -> None:
                 ".filter(n => n.getClientRects().length); items[0]?.click(); })()"
             )
         if not await ctx.browser.wait_for_selector('[data-action="edit-page"]', timeout=8):
-            await _fresh(ctx, "#/knowledge?manage=1")
+            await _fresh(ctx, "#/kb-admin")
             await ctx.browser.click('[data-action="manage-tab"][data-tab="pages"]')
             await ctx.browser.wait_for_selector(".wiki-card", timeout=20)
             await ctx.browser.click(".wiki-card")
@@ -761,36 +749,22 @@ async def knowledge_extra(ctx: Context) -> None:
         await ctx.browser.type("form textarea", "E2E 编辑后的正文内容。" * 5)
         await _modal_submit(ctx)
         await asyncio.sleep(1.2)
-    async with ctx.step("链接收录（本地手册页）"):
-        await _fresh(ctx, "#/knowledge?manage=1")
-        await ctx.browser.click('[data-action="capture-mode"][data-mode="links"]')
-        await ctx.browser.type(
-            "#captureUrls", f"{ctx.server.base_url}/manual/product.html"
+    async with ctx.step("链接收录（本地手册页，与管理助手同款 API）"):
+        resp = ctx.server.api.post(
+            "/api/knowledge/import/url",
+            json={"url": f"{ctx.server.base_url}/manual/product.html"},
         )
-        await ctx.browser.click("#importLinksBtn")
-        await asyncio.sleep(2.0)
-        result = await ctx.browser.evaluate(
-            "document.getElementById('captureLinkResults')?.innerText || ''"
-        ) or ""
-        ctx.expect(bool(result.strip()), "链接收录没有结果反馈")
-        if await ctx.browser.wait_for_selector('[data-action="copy-capture-url"]', timeout=8):
-            await ctx.browser.click('[data-action="copy-capture-url"]')
+        ctx.expect(resp.status_code in (200, 201), f"链接收录失败：{resp.status_code}")
     async with ctx.step("下载源文件"):
         await ctx.browser.click('[data-action="manage-tab"][data-tab="sources"]')
         if not await ctx.browser.wait_for_selector('[data-action="doc-download"]', timeout=8):
-            await _fresh(ctx, "#/knowledge?manage=1")
+            await _fresh(ctx, "#/kb-admin")
             await ctx.browser.click('[data-action="manage-tab"][data-tab="sources"]')
         await ctx.browser.wait_for_selector('[data-action="doc-download"]', timeout=20)
         await ctx.browser.click('[data-action="doc-download"]')
         await asyncio.sleep(1.0)
-    async with ctx.step("全部重建"):
-        await ctx.browser.click('[data-action="rebuild-all"]')
-        await _confirm(ctx)
-        await asyncio.sleep(2.0)
-        if await ctx.browser.wait_for_selector('[data-action="dismiss-build"]', timeout=8):
-            await ctx.browser.click('[data-action="dismiss-build"]')
     async with ctx.step("删除一个词条"):
-        await _fresh(ctx, "#/knowledge?manage=1")
+        await _fresh(ctx, "#/kb-admin")
         await ctx.browser.click('[data-action="manage-tab"][data-tab="pages"]')
         await ctx.browser.wait_for_selector(".wiki-card", timeout=20)
         await ctx.browser.evaluate(
@@ -813,11 +787,8 @@ async def knowledge_extra(ctx: Context) -> None:
         sample = ctx.sandbox.root / "fixtures" / "E2E清空队列.md"
         sample.parent.mkdir(parents=True, exist_ok=True)
         sample.write_text("# 清空队列\n\n" + "沙箱内容。" * 30, encoding="utf-8")
-        await ctx.browser.click('[data-action="manage-tab"][data-tab="capture"]')
-        if not await ctx.browser.wait_for_selector('[data-action="capture-mode"][data-mode="file"]', timeout=5):
-            await ctx.browser.click('[data-action="toggle-capture"]')
-        await ctx.browser.wait_for_selector('[data-action="capture-mode"][data-mode="file"]', timeout=10)
-        await ctx.browser.click('[data-action="capture-mode"][data-mode="file"]')
+        await ctx.browser.click('[data-action="manage-tab"][data-tab="sources"]')
+        await ctx.browser.wait_for_selector("#fileInput", timeout=10)
         await ctx.browser.set_files("#fileInput", [sample])
         await asyncio.sleep(2.5)
         await ctx.browser.click('[data-action="clear-uploads"]')
@@ -1129,9 +1100,8 @@ async def mobile_manage(ctx: Context) -> None:
         sample.parent.mkdir(parents=True, exist_ok=True)
         sample.write_text("# 移动端上传\n\n" + "移动端上传验证内容。" * 20, encoding="utf-8")
         await ctx.browser.set_viewport(390, 844, mobile=True)
-        await _fresh(ctx, "#/knowledge?manage=1")
-        await ctx.browser.tap('[data-action="manage-tab"][data-tab="capture"]')
-        await ctx.browser.tap('[data-action="capture-mode"][data-mode="file"]')
+        await _fresh(ctx, "#/kb-admin?tab=sources")
+        await ctx.browser.wait_for_selector("#fileInput", timeout=10)
         await ctx.browser.set_files("#fileInput", [sample])
         await asyncio.sleep(1.5)
         deadline = time.time() + 40
@@ -1176,10 +1146,10 @@ async def knowledge_empty(ctx: Context) -> None:
         await ctx.browser.click('[data-testid="go-manage"]')
         await asyncio.sleep(1.0)
         hash_value = await ctx.browser.evaluate("location.hash") or ""
-        ctx.expect("manage=1" in hash_value, f"未跳转到内容管理（hash={hash_value}）")
+        ctx.expect("kb-admin" in hash_value, f"未跳转到知识库管理（hash={hash_value}）")
 
 
-@scenario("links.oversize", tags=("knowledge",), covers=("use-text-import",), allow_errors=("400", "Failed to load resource"))
+@scenario("links.oversize", tags=("knowledge",), covers=("import-url-oversize",), allow_errors=("400", "Failed to load resource"))
 async def links_oversize(ctx: Context) -> None:
     import threading
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -1200,18 +1170,9 @@ async def links_oversize(ctx: Context) -> None:
     threading.Thread(target=server.serve_forever, daemon=True).start()
     url = f"http://127.0.0.1:{server.server_port}/oversize.html"
     try:
-        async with ctx.step("导入超限网页触发降级"):
-            await _fresh(ctx, "#/knowledge?manage=1")
-            await ctx.browser.click('[data-action="capture-mode"][data-mode="links"]')
-            await ctx.browser.type("#captureUrls", url)
-            await ctx.browser.click("#importLinksBtn")
-            await ctx.browser.wait_for_selector('[data-action="use-text-import"]', timeout=40)
-            await ctx.browser.click('[data-action="use-text-import"]')
-            await asyncio.sleep(1.0)
-            mode = await ctx.browser.evaluate(
-                "(() => { const a = document.getElementById('captureText');"
-                " return Boolean(a && a.getClientRects().length); })()"
-            )
-            ctx.expect(bool(mode), "点击改用文本收录后未切换到文本面板")
+        async with ctx.step("导入超限网页触发拒绝"):
+            await _fresh(ctx, "#/kb-admin")
+            resp = ctx.server.api.post("/api/knowledge/import/url", json={"url": url})
+            ctx.expect(resp.status_code == 400, f"超限链接应返回 400，实际 {resp.status_code}")
     finally:
         server.shutdown()
