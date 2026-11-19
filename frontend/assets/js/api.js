@@ -557,6 +557,14 @@ export const deleteAgentConversation = (id) =>
 export const rewindAgentConversation = (id, messageId) =>
   post(`/agent/conversations/${encodeURIComponent(id)}/rewind`, { message_id: messageId });
 
+/* 管理助手定时任务（自动补资料） */
+export const listAgentSchedules = () => get('/agent/schedules', undefined, { skipAuthToast: true });
+export const createAgentSchedule = (body) => post('/agent/schedules', body);
+export const updateAgentSchedule = (id, body) =>
+  request('PATCH', `/agent/schedules/${encodeURIComponent(id)}`, { body });
+export const deleteAgentSchedule = (id) => del(`/agent/schedules/${encodeURIComponent(id)}`);
+export const runAgentSchedule = (id) => post(`/agent/schedules/${encodeURIComponent(id)}/run`);
+
 /** SSE 流式管理助手对话；返回 done 事件的完整结果（reply/steps）。 */
 export async function sendAgentStream(payload, { onTool, onToolResult, onDelta, signal } = {}) {
   const headers = withAdminToken({ 'Content-Type': 'application/json' });

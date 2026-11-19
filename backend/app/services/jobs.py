@@ -33,6 +33,7 @@ JOB_TYPES = {
     "scan_dir",
     "gap_suggest",
     "subscription_check",
+    "agent_prompt",
     "ops_analyze",
     "ops_execute",
 }
@@ -476,6 +477,18 @@ def _run_gap_suggest(payload: dict, job: dict) -> dict:
     return result
 
 
+def _run_agent_prompt(payload: dict, job: dict) -> dict:
+    """定时指令：把预设 prompt 交给管理助手执行一轮（结果落会话+通知）。"""
+    from . import scheduler
+
+    schedule_id = str(payload.get("schedule_id") or "")
+    if not schedule_id:
+        raise RuntimeError("缺少 schedule_id")
+    _update(job["id"], progress=20, message="正在执行预设指令")
+    result = scheduler.run_agent_prompt(schedule_id)
+    return dict(result)
+
+
 def _run_subscription_check(payload: dict, job: dict) -> dict:
     """订阅检查：抓列表页发现新内容，结果写回订阅 discoveries。"""
     from . import discovery
@@ -527,6 +540,7 @@ _DEFAULT_HANDLERS = {
     "scan_dir": _run_scan_dir,
     "gap_suggest": _run_gap_suggest,
     "subscription_check": _run_subscription_check,
+    "agent_prompt": _run_agent_prompt,
     "ops_analyze": _run_ops_analyze,
     "ops_execute": _run_ops_execute,
 }

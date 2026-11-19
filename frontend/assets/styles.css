@@ -7367,3 +7367,41 @@ body {
   background: var(--npu-blue-50);
   color: var(--npu-blue-700);
 }
+
+/* ==================== 管理助手：定时任务抽屉 ==================== */
+.agent-conv.is-muted {
+  opacity: 0.55;
+}
+
+.agent-conv .icon-btn {
+  flex-shrink: 0;
+}
+
+.agent-conv-meta {
+  max-width: 100%;
+}
+
+.agent-sched-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  margin-top: 8px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+}
+
+.agent-sched-form .input {
+  flex: 1 1 120px;
+  min-width: 0;
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+.agent-sched-form textarea {
+  flex-basis: 100%;
+}
+
+.agent-sched-form .btn {
+  flex-shrink: 0;
+}

@@ -404,6 +404,23 @@ CREATE TABLE IF NOT EXISTS agent_messages (
     FOREIGN KEY (conversation_id) REFERENCES agent_conversations(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_agent_messages_conv ON agent_messages(conversation_id, created_at);
+
+CREATE TABLE IF NOT EXISTS agent_schedules (
+    id               TEXT PRIMARY KEY,
+    name             TEXT NOT NULL DEFAULT '',
+    kind             TEXT NOT NULL,                    -- subscription_check_all|gap_suggest_all|agent_prompt
+    config           TEXT NOT NULL DEFAULT '{}',
+    interval_minutes INTEGER NOT NULL DEFAULT 60,
+    enabled          INTEGER NOT NULL DEFAULT 1,
+    last_run_at      TEXT NOT NULL DEFAULT '',
+    next_run_at      TEXT NOT NULL DEFAULT '',
+    last_status      TEXT NOT NULL DEFAULT '',
+    last_error       TEXT NOT NULL DEFAULT '',
+    created_by       TEXT NOT NULL DEFAULT '',
+    created_at       TEXT NOT NULL,
+    updated_at       TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_agent_schedules_due ON agent_schedules(enabled, next_run_at);
 """
 
 

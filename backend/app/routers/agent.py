@@ -16,8 +16,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from ..security import require_admin_token
-from ..services import agent_chat, agent_sessions, agent_tools
+from ..security import require_admin_token, require_permission
+from ..services import agent_chat, agent_sessions, agent_tools, scheduler
 
 logger = logging.getLogger("npu-assistant")
 
@@ -91,6 +91,69 @@ def rewind_conversation(
         raise HTTPException(status_code=400, detail="缺少 message_id")
     try:
         return agent_sessions.truncate_from(conversation_id, message_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+# ---------------------------------------------------------------------------
+# 定时任务（写操作收紧到 content:write）
+# ---------------------------------------------------------------------------
+@router.get("/agent/schedules")
+def list_schedules(principal: dict = Depends(require_admin_token)) -> dict:
+    return {**scheduler.list_schedules(), "kinds": dict(scheduler.SCHEDULE_KINDS)}
+
+
+@router.post("/agent/schedules", status_code=201)
+def create_schedule(
+    payload: dict, principal: dict = Depends(require_permission("content:write"))
+) -> dict:
+    try:
+        return scheduler.create_schedule(
+            str(payload.get("name") or ""),
+            str(payload.get("kind") or ""),
+            payload.get("config") if isinstance(payload.get("config"), dict) else {},
+            int(payload.get("interval_minutes") or 60),
+            created_by=str(principal.get("username") or ""),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.patch("/agent/schedules/{schedule_id}")
+def update_schedule(
+    schedule_id: str,
+    payload: dict,
+    principal: dict = Depends(require_permission("content:write")),
+) -> dict:
+    try:
+        return scheduler.update_schedule(
+            schedule_id,
+            name=payload.get("name"),
+            config=payload.get("config") if isinstance(payload.get("config"), dict) else None,
+            interval_minutes=payload.get("interval_minutes"),
+            enabled=payload.get("enabled"),
+        )
+    except ValueError as exc:
+        status = 404 if "不存在" in str(exc) else 400
+        raise HTTPException(status_code=status, detail=str(exc)) from exc
+
+
+@router.delete("/agent/schedules/{schedule_id}")
+def delete_schedule(
+    schedule_id: str, principal: dict = Depends(require_permission("content:write"))
+) -> dict:
+    try:
+        return scheduler.delete_schedule(schedule_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/agent/schedules/{schedule_id}/run")
+def run_schedule(
+    schedule_id: str, principal: dict = Depends(require_permission("content:write"))
+) -> dict:
+    try:
+        return scheduler.run_now(schedule_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

@@ -30,7 +30,7 @@ from .routers import auth as auth_router
 from .routers import ops as ops_router
 from .routers import bots, chat, handoff, insights, jobs as jobs_router, knowledge, mobile, models, system, wiki
 from .security import authenticate_request
-from .services import auth as auth_service, jobs as jobs_service, qq_gateway
+from .services import auth as auth_service, jobs as jobs_service, qq_gateway, scheduler
 
 logger = logging.getLogger("npu-assistant")
 
@@ -170,11 +170,13 @@ async def lifespan(_: FastAPI):
     logger.info("NPU-Assistant 已启动 | data=%s", config.DATA_DIR)
     _warn_bot_links_unreachable()
     jobs_service.start_worker()
+    scheduler.start_scheduler()
     # QQ 开放平台官方机器人：主动建立 WebSocket 网关连接（无需公网回调）。
     await qq_gateway.gateway.startup()
     try:
         yield
     finally:
+        scheduler.stop_scheduler()
         jobs_service.stop_worker()
         await qq_gateway.gateway.shutdown()
 

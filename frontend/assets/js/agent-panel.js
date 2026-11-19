@@ -6,11 +6,16 @@
  * 持久化（/api/agent/conversations），本地只记住当前会话 ID 与开合状态。
  */
 import {
+  createAgentSchedule,
   deleteAgentConversation,
+  deleteAgentSchedule,
   getAgentConversation,
   listAgentConversations,
+  listAgentSchedules,
   rewindAgentConversation,
+  runAgentSchedule,
   sendAgentStream,
+  updateAgentSchedule,
   uploadDocument,
 } from './api.js';
 import { confirmDialog, esc, toast } from './ui.js';
@@ -31,6 +36,9 @@ const state = {
   conversationId: '',
   conversations: [],
   drawerOpen: false,
+  drawerMode: 'conversations', // conversations | schedules
+  schedules: [],
+  canManage: false,
   controller: null,
 };
 
@@ -52,9 +60,11 @@ export function initAgentPanel(authState) {
   dom.attach = document.getElementById('agentAttach');
   dom.files = document.getElementById('agentFiles');
   dom.historyBtn = document.getElementById('agentHistory');
+  dom.schedBtn = document.getElementById('agentSched');
   dom.newBtn = document.getElementById('agentNew');
   dom.drawer = document.getElementById('agentDrawer');
   dom.drawerClose = document.getElementById('agentDrawerClose');
+  dom.drawerTitle = document.getElementById('agentDrawerTitle');
   dom.convList = document.getElementById('agentConvList');
   if (!dom.root || !dom.toggle || !dom.form) return;
   state.ready = true;
@@ -93,10 +103,15 @@ export function initAgentPanel(authState) {
     dom.files.value = '';
     if (picked.length) void handleUploads(picked);
   });
-  dom.historyBtn?.addEventListener('click', () => setDrawer(!state.drawerOpen));
+  dom.historyBtn?.addEventListener('click', () =>
+    setDrawer(!state.drawerOpen || state.drawerMode !== 'conversations', 'conversations'),
+  );
+  dom.schedBtn?.addEventListener('click', () =>
+    setDrawer(!state.drawerOpen || state.drawerMode !== 'schedules', 'schedules'),
+  );
   dom.newBtn?.addEventListener('click', newConversation);
   dom.drawerClose?.addEventListener('click', () => setDrawer(false));
-  // 抽屉内交互（打开/删除会话）
+  // 抽屉内交互：会话（打开/删除）与定时任务（启停/立即运行/删除）
   dom.convList?.addEventListener('click', (event) => {
     const opener = event.target.closest('[data-conv-open]');
     if (opener) {
@@ -104,7 +119,23 @@ export function initAgentPanel(authState) {
       return;
     }
     const remover = event.target.closest('[data-conv-delete]');
-    if (remover) void removeConversation(remover.dataset.convDelete);
+    if (remover && !remover.dataset.schedDelete) {
+      void removeConversation(remover.dataset.convDelete);
+      return;
+    }
+    handleSchedClick(event);
+  });
+  // 定时任务新建表单
+  dom.convList?.addEventListener('submit', (event) => {
+    if (event.target.id !== 'agentSchedForm') return;
+    event.preventDefault();
+    void createScheduleFromForm(event.target);
+  });
+  // agent_prompt 类型才显示预设指令输入框
+  dom.convList?.addEventListener('change', (event) => {
+    if (event.target.name !== 'kind') return;
+    const promptBox = event.target.form?.querySelector('[name="prompt"]');
+    if (promptBox) promptBox.hidden = event.target.value !== 'agent_prompt';
   });
   // 消息区：从这里重问（回滚）
   dom.body.addEventListener('click', (event) => {
@@ -125,6 +156,9 @@ export function refreshAgentPanel(authState) {
     authState?.open_mode || perms.includes('*') || perms.includes('content:write'),
   );
   if (dom.attach) dom.attach.hidden = !(state.available && state.canUpload);
+  // 定时任务管理需要内容写权限（与后端 require_permission("content:write") 对齐）
+  state.canManage = state.canUpload;
+  if (dom.schedBtn) dom.schedBtn.hidden = !(state.available && state.canManage);
   dom.toggle.hidden = !state.available;
   if (!state.available) {
     dom.root.hidden = true;
@@ -239,17 +273,26 @@ async function removeConversation(id) {
   }
 }
 
-function setDrawer(open) {
+function setDrawer(open, mode = state.drawerMode) {
+  state.drawerMode = mode;
   state.drawerOpen = open;
   if (dom.drawer) dom.drawer.hidden = !open;
+  if (dom.drawerTitle) {
+    dom.drawerTitle.textContent = mode === 'schedules' ? '定时任务' : '会话历史';
+  }
   if (open) {
-    void loadConversations({ silent: true });
+    if (mode === 'schedules') void loadSchedules({ silent: true });
+    else void loadConversations({ silent: true });
     renderDrawer();
   }
 }
 
 function renderDrawer() {
   if (!dom.convList) return;
+  if (state.drawerMode === 'schedules') {
+    renderSchedules();
+    return;
+  }
   if (!state.conversations.length) {
     dom.convList.innerHTML = `<p class="agent-empty-note">还没有历史会话；新对话会自动保存。</p>`;
     return;
@@ -269,6 +312,160 @@ function renderDrawer() {
       </div>`,
     )
     .join('');
+}
+
+/* ------------------------------------------------------------------ */
+/* 定时任务（自动补资料）                                                */
+/* ------------------------------------------------------------------ */
+const KIND_LABEL = {
+  subscription_check_all: '订阅全量检查',
+  gap_suggest_all: '缺口批量找备选',
+  agent_prompt: '定时执行指令',
+};
+
+function _intervalLabel(minutes) {
+  const value = Number(minutes) || 60;
+  if (value % 1440 === 0) return `每 ${value / 1440} 天`;
+  if (value % 60 === 0) return `每 ${value / 60} 小时`;
+  return `每 ${value} 分钟`;
+}
+
+async function loadSchedules({ silent = false } = {}) {
+  try {
+    const data = await listAgentSchedules();
+    state.schedules = Array.isArray(data?.items) ? data.items : [];
+    renderDrawer();
+  } catch (err) {
+    if (!silent) toast(err?.message || '定时任务加载失败', 'error');
+  }
+}
+
+function renderSchedules() {
+  const rows = state.schedules
+    .map((item) => {
+      const status = item.last_error
+        ? `上次失败：${esc(item.last_error)}`
+        : esc(item.last_status || '尚未运行');
+      const prompt = item.kind === 'agent_prompt' ? esc(String((item.config || {}).prompt || '')) : '';
+      return `<div class="agent-conv ${item.enabled ? '' : 'is-muted'}">
+        <div class="agent-conv-main">
+          <span class="agent-conv-title">${esc(item.name)} · ${esc(
+            KIND_LABEL[item.kind] || item.kind,
+          )}</span>
+          <span class="agent-conv-meta">${esc(_intervalLabel(item.interval_minutes))} · ${status}${
+            prompt ? ` · 指令：${prompt}` : ''
+          }</span>
+        </div>
+        <button class="icon-btn" type="button" data-sched-toggle="${esc(item.id)}" aria-label="${
+          item.enabled ? '停用' : '启用'
+        }" title="${item.enabled ? '停用' : '启用'}">
+          <svg class="i" aria-hidden="true"><use href="#i-power"></use></svg>
+        </button>
+        <button class="icon-btn" type="button" data-sched-run="${esc(item.id)}" aria-label="立即运行" title="立即运行">
+          <svg class="i" aria-hidden="true"><use href="#i-play"></use></svg>
+        </button>
+        <button class="icon-btn" type="button" data-sched-delete="${esc(item.id)}" aria-label="删除" title="删除">
+          <svg class="i" aria-hidden="true"><use href="#i-trash"></use></svg>
+        </button>
+      </div>`;
+    })
+    .join('');
+  const form = state.canManage
+    ? `<form id="agentSchedForm" class="agent-sched-form">
+        <input class="input" name="name" placeholder="名称（如：每天检查订阅）" required />
+        <select class="input" name="kind" aria-label="任务类型">
+          <option value="subscription_check_all">订阅全量检查</option>
+          <option value="gap_suggest_all">缺口批量找备选</option>
+          <option value="agent_prompt">定时执行指令</option>
+        </select>
+        <input class="input" name="interval" type="number" min="15" max="10080" value="360" required aria-label="间隔分钟" />
+        <textarea class="input" name="prompt" rows="2" hidden
+          placeholder="预设指令，如：检查订阅发现的新内容，把与奖学金相关的收录并汇报"></textarea>
+        <button class="btn btn-primary btn-sm" type="submit">创建定时任务</button>
+      </form>`
+    : '';
+  dom.convList.innerHTML =
+    rows ||
+    `<p class="agent-empty-note">还没有定时任务。可配置：订阅自动检查、缺口自动找备选、定时让助手执行一段指令。</p>${form}`;
+  if (rows && form) dom.convList.insertAdjacentHTML('beforeend', form);
+}
+
+function handleSchedClick(event) {
+  const toggle = event.target.closest('[data-sched-toggle]');
+  if (toggle) {
+    void toggleSchedule(toggle.dataset.schedToggle);
+    return;
+  }
+  const runner = event.target.closest('[data-sched-run]');
+  if (runner) {
+    void runScheduleNow(runner.dataset.schedRun, runner);
+    return;
+  }
+  const remover = event.target.closest('[data-sched-delete]');
+  if (remover) void removeSchedule(remover.dataset.schedDelete);
+}
+
+async function toggleSchedule(id) {
+  const item = state.schedules.find((entry) => entry.id === id);
+  if (!item) return;
+  try {
+    await updateAgentSchedule(id, { enabled: !item.enabled });
+    await loadSchedules({ silent: true });
+  } catch (err) {
+    toast(err?.message || '操作失败', 'error');
+  }
+}
+
+async function runScheduleNow(id, trigger) {
+  if (trigger) trigger.disabled = true;
+  try {
+    const result = await runAgentSchedule(id);
+    toast(result?.result || '已触发一次执行', 'success');
+    await loadSchedules({ silent: true });
+  } catch (err) {
+    toast(err?.message || '触发失败', 'error');
+  } finally {
+    if (trigger) trigger.disabled = false;
+  }
+}
+
+async function removeSchedule(id) {
+  const item = state.schedules.find((entry) => entry.id === id);
+  const ok = await confirmDialog({
+    title: '删除定时任务',
+    message: `确定删除「${item?.name || '该任务'}」吗？`,
+    confirmText: '删除',
+    danger: true,
+  });
+  if (!ok) return;
+  try {
+    await deleteAgentSchedule(id);
+    await loadSchedules({ silent: true });
+  } catch (err) {
+    toast(err?.message || '删除失败', 'error');
+  }
+}
+
+async function createScheduleFromForm(form) {
+  const data = new FormData(form);
+  const kind = String(data.get('kind') || '');
+  const body = {
+    name: String(data.get('name') || '').trim(),
+    kind,
+    interval_minutes: Number(data.get('interval')) || 360,
+  };
+  if (kind === 'agent_prompt') body.config = { prompt: String(data.get('prompt') || '').trim() };
+  if (kind === 'gap_suggest_all') body.config = { limit: 10 };
+  try {
+    await createAgentSchedule(body);
+    toast('定时任务已创建', 'success');
+    form.reset();
+    const promptBox = form.querySelector('[name="prompt"]');
+    if (promptBox) promptBox.hidden = true;
+    await loadSchedules({ silent: true });
+  } catch (err) {
+    toast(err?.message || '创建失败', 'error');
+  }
 }
 
 async function rewindFrom(messageId) {

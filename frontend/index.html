@@ -130,6 +130,9 @@
               </div>
             </div>
             <div class="agent-head-actions">
+              <button class="icon-btn" id="agentSched" type="button" aria-label="定时任务" title="定时任务（自动补资料）">
+                <svg class="i" aria-hidden="true"><use href="#i-clock"></use></svg>
+              </button>
               <button class="icon-btn" id="agentHistory" type="button" aria-label="会话历史" title="会话历史">
                 <svg class="i" aria-hidden="true"><use href="#i-history"></use></svg>
               </button>
@@ -146,8 +149,8 @@
           </header>
           <div class="agent-drawer" id="agentDrawer" hidden>
             <div class="agent-drawer-head">
-              <strong>会话历史</strong>
-              <button class="icon-btn" id="agentDrawerClose" type="button" aria-label="关闭会话历史">
+              <strong id="agentDrawerTitle">会话历史</strong>
+              <button class="icon-btn" id="agentDrawerClose" type="button" aria-label="关闭">
                 <svg class="i" aria-hidden="true"><use href="#i-x"></use></svg>
               </button>
             </div>

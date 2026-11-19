@@ -57,6 +57,7 @@ if str(BACKEND_DIR) not in sys.path:
 
 # 删除顺序必须是「子表在前、父表在后」，否则会触发外键约束
 MUTABLE_TABLES = (
+    "agent_schedules",
     "agent_messages",
     "agent_conversations",
     "audit_log",
