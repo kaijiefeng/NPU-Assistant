@@ -193,10 +193,17 @@ function bodyHtml() {
   return state.tab === 'alerts' ? alertsHtml() : jobsHtml();
 }
 
-export function mount(root) {
+export function mount(root, options = {}) {
   let alive = true;
+  // 外部投射模式：由 hub 子导航控制「任务/告警」，隐藏内部标题卡与 tab
+  const embed = options?.query?.get('embed') === '1';
+  const requested = options?.query?.get('tab');
+  state.tab = requested === 'alerts' ? 'alerts' : 'jobs';
   root.innerHTML = `<div class="insights-page" id="jobsPage">
-    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    ${
+      embed
+        ? `<div class="hub-embed-bar"><span>${icon('clock')} 后台编译进度、失败重试与服务健康告警</span><button class="btn btn-ghost btn-sm" type="button" data-action="jobs-reload">${icon('refresh')}<span>刷新</span></button></div>`
+        : `<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div>
         <h3 style="margin:0">${icon('clock')} 任务与告警</h3>
         <p class="muted" style="margin:4px 0 0">后台编译进度、失败重试与服务健康告警。</p>
@@ -204,8 +211,9 @@ export function mount(root) {
       <button class="btn btn-ghost btn-sm" type="button" data-action="jobs-reload">${icon(
         'refresh',
       )}<span>刷新</span></button>
-    </div>
-    <div id="jobsTabs"></div>
+    </div>`
+    }
+    <div id="jobsTabs"${embed ? ' hidden' : ''}></div>
     <div id="jobsBody"></div>
   </div>`;
   const page = root.querySelector('#jobsPage');

@@ -1,47 +1,92 @@
 /**
- * views/kb-admin.js — 知识库管理聚合页
+ * views/kb-admin.js — 知识库管理（macOS 设置页式布局）
  *
- * 内容管理（收录资料/源文件/词条维护，复用 knowledge.js mountManage）+
- * 服务台（缺口/AI 找备选/订阅发现/反馈，复用 insights.js）。
- * 子视图按角色显示入口，切换不销毁彼此状态以外的全局内容。
+ * 左侧分组子导航（内容管理 / 服务台），右侧内容区。子页面以「外部投射」
+ * 模式挂载（隐藏各自内部 tab，由本页子导航控制当前页）——整个应用层级
+ * 始终只有两级：全局侧栏 + 页内子导航，不再是 tab 套 tab。
  */
 import { getAuthMe } from '../api.js';
 import { esc, loadingHtml, toast } from '../ui.js';
 
-const TABS = [
-  { key: 'content', label: '内容管理', permission: 'content:write' },
-  { key: 'desk', label: '服务台', permission: 'insights:read' },
+function deskItem(key, label) {
+  return {
+    key,
+    label,
+    permission: 'insights:read',
+    module: () => import('./insights.js'),
+    query: { section: key, embed: '1' },
+  };
+}
+
+const GROUPS = [
+  {
+    label: '内容管理',
+    items: [
+      {
+        key: 'pages',
+        label: '词条维护',
+        permission: 'content:write',
+        module: () => import('./knowledge.js'),
+        mountName: 'mountManage',
+        query: { tab: 'pages', embed: '1' },
+      },
+      {
+        key: 'sources',
+        label: '源文件',
+        permission: 'content:write',
+        module: () => import('./knowledge.js'),
+        mountName: 'mountManage',
+        query: { tab: 'sources', embed: '1' },
+      },
+    ],
+  },
+  {
+    label: '服务台',
+    items: [
+      deskItem('overview', '概览'),
+      deskItem('handoffs', '待人工'),
+      deskItem('crisis', '危机'),
+      deskItem('gaps', '知识缺口'),
+      deskItem('feedback', '反馈'),
+      deskItem('freshness', '时效'),
+      deskItem('subscriptions', '订阅发现'),
+    ],
+  },
 ];
 
-const LOADERS = {
-  content: () => import('./knowledge.js'),
-  desk: () => import('./insights.js'),
-};
-
-// 内容管理入口复用 knowledge.js 的 mountManage（收录/源文件/词条维护三段）
-const MOUNT_NAMES = { content: 'mountManage', desk: 'mount' };
-
-function allowedTabs(me) {
+function allowedGroups(me) {
   const perms = me?.permissions || [];
   const open = Boolean(me?.open_mode);
-  return TABS.filter((tab) => open || perms.includes('*') || perms.includes(tab.permission));
+  return GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter(
+      (item) => open || perms.includes('*') || perms.includes(item.permission),
+    ),
+  })).filter((group) => group.items.length);
 }
 
-function tabsHtml(tabs, current) {
-  return `<div class="seg-tabs hub-tabs" role="tablist" aria-label="知识库管理">
-    ${tabs
-      .map(
-        (tab) =>
-          `<button class="seg-tab ${tab.key === current ? 'is-active' : ''}" type="button" role="tab" aria-selected="${
-            tab.key === current
-          }" data-kb-tab="${tab.key}">${esc(tab.label)}</button>`,
-      )
-      .join('')}
-  </div>`;
+function navHtml(groups, current) {
+  return groups
+    .map(
+      (group) => `<div class="hub-nav-group">
+        <span class="hub-nav-label">${esc(group.label)}</span>
+        ${group.items
+          .map(
+            (item) =>
+              `<button class="hub-nav-item ${
+                item.key === current ? 'is-active' : ''
+              }" type="button" data-hub-item="${esc(item.key)}" aria-current="${
+                item.key === current ? 'page' : 'false'
+              }">${esc(item.label)}</button>`,
+          )
+          .join('')}
+      </div>`,
+    )
+    .join('');
 }
 
-function writeHash(tab) {
-  const hash = tab === 'content' ? '#/kb-admin' : `#/kb-admin?tab=${tab}`;
+function writeHash(key) {
+  const hash = key === 'pages' ? '#/kb-admin' : `#/kb-admin?tab=${key}`;
   history.replaceState(null, '', hash);
 }
 
@@ -50,34 +95,41 @@ export async function mount(root, options = {}) {
   let current = null;
   let cleanup = null;
 
-  root.innerHTML = `<div class="page hub-page" id="kbAdminHub">
-    ${loadingHtml('正在加载知识库管理…')}
+  root.innerHTML = `<div class="page hub-page settings-shell" id="kbAdminHub">
+    <aside class="hub-subnav" id="kbSubnav">${loadingHtml('加载中…', 'state-compact')}</aside>
+    <div class="hub-content" id="kbContent">${loadingHtml('正在加载知识库管理…')}</div>
   </div>`;
-  const shell = root.querySelector('#kbAdminHub');
+  const nav = root.querySelector('#kbSubnav');
+  const content = root.querySelector('#kbContent');
 
   let me = null;
   try {
     me = await getAuthMe();
   } catch (err) {
     if (!alive) return undefined;
-    shell.innerHTML = `<div class="state state-error"><h3>无法加载知识库管理入口</h3><p>${esc(
+    nav.innerHTML = '';
+    content.innerHTML = `<div class="state state-error"><h3>无法加载知识库管理</h3><p>${esc(
       err?.message || '请稍后重试',
     )}</p></div>`;
     return undefined;
   }
   if (!alive) return undefined;
 
-  const tabs = allowedTabs(me);
-  if (!tabs.length) {
-    shell.innerHTML = `<div class="state state-empty"><h3>当前账号没有知识库管理权限</h3><p>请联系超级管理员调整角色。</p></div>`;
+  const groups = allowedGroups(me);
+  if (!groups.length) {
+    nav.innerHTML = '';
+    content.innerHTML = `<div class="state state-empty"><h3>当前账号没有知识库管理权限</h3><p>请联系超级管理员调整角色。</p></div>`;
     return undefined;
   }
 
+  const allItems = groups.flatMap((group) => group.items);
   const requested = options.query?.get('tab');
-  current = tabs.some((tab) => tab.key === requested) ? requested : tabs[0].key;
+  current = allItems.some((item) => item.key === requested) ? requested : allItems[0].key;
+  nav.innerHTML = navHtml(groups, current);
 
-  async function switchTab(tab, { updateHash = true } = {}) {
-    if (!tabs.some((item) => item.key === tab)) return;
+  async function switchItem(key, { updateHash = true } = {}) {
+    const item = allItems.find((entry) => entry.key === key);
+    if (!item) return;
     if (typeof cleanup === 'function') {
       try {
         cleanup();
@@ -86,33 +138,40 @@ export async function mount(root, options = {}) {
       }
     }
     cleanup = null;
-    current = tab;
-    if (updateHash) writeHash(tab);
-
-    shell.innerHTML = `<div id="kbTabs">${tabsHtml(tabs, current)}</div>
-      <div class="hub-body" id="kbBody">${loadingHtml('正在加载…')}</div>`;
-    const body = shell.querySelector('#kbBody');
-    shell.querySelectorAll('[data-kb-tab]').forEach((button) => {
-      button.addEventListener('click', () => switchTab(button.dataset.kbTab));
+    current = key;
+    if (updateHash) writeHash(key);
+    nav.querySelectorAll('[data-hub-item]').forEach((button) => {
+      const active = button.dataset.hubItem === key;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-current', active ? 'page' : 'false');
     });
+    content.innerHTML = loadingHtml('正在加载…');
 
     try {
-      const module = await LOADERS[tab]();
-      if (!alive || current !== tab) return;
-      const mountName = MOUNT_NAMES[tab] || 'mount';
+      const module = await item.module();
+      if (!alive || current !== key) return;
+      const mountName = item.mountName || 'mount';
       const mountFn = typeof module[mountName] === 'function' ? module[mountName] : module.mount;
-      const result = mountFn?.(body, { query: new URLSearchParams(), canManage: tab === 'content' });
+      const result = mountFn?.(content, {
+        query: new URLSearchParams(item.query || {}),
+        canManage: true,
+      });
       cleanup = typeof result === 'function' ? result : null;
     } catch (err) {
-      if (!alive || current !== tab) return;
-      body.innerHTML = `<div class="state state-error"><h3>页面加载失败</h3><p>${esc(
+      if (!alive || current !== key) return;
+      content.innerHTML = `<div class="state state-error"><h3>页面加载失败</h3><p>${esc(
         err?.message || '请稍后重试',
       )}</p></div>`;
       toast(err?.message || '知识库管理子页面加载失败', 'error');
     }
   }
 
-  await switchTab(current, { updateHash: false });
+  nav.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-hub-item]');
+    if (button) void switchItem(button.dataset.hubItem);
+  });
+
+  await switchItem(current, { updateHash: false });
 
   return () => {
     alive = false;

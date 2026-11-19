@@ -1363,8 +1363,11 @@ function parseCaptureUrls(text) {
 export function mountManage(root, context = {}) {
   let alive = true;
   const initialPageId = context?.query?.get('page') || '';
+  // 外部投射模式：由 kb-admin 子导航控制「词条维护/源文件」，隐藏内部 tab 与顶栏
+  const embed = context?.query?.get('embed') === '1';
+  const requestedTab = context?.query?.get('tab');
   state.readOnly = false;
-  state.manageTab = 'pages';
+  state.manageTab = ['pages', 'sources'].includes(requestedTab) ? requestedTab : 'pages';
   state.tab = 'pages';
   state.docsFilter = '';
   state.docsShown = DOCS_PAGE_SIZE;
@@ -1373,13 +1376,17 @@ export function mountManage(root, context = {}) {
   stopBuildPolling();
 
   root.innerHTML = `<div class="page manage-page">
-    <div class="manage-topbar">
+    ${
+      embed
+        ? ''
+        : `<div class="manage-topbar">
       <div class="manage-tabs" role="tablist" aria-label="内容管理">
         <button class="seg-tab is-active" type="button" role="tab" aria-selected="true" data-action="manage-tab" data-tab="pages">词条维护</button>
         <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="manage-tab" data-tab="sources">源文件</button>
       </div>
       <a class="btn btn-ghost btn-sm" href="#/knowledge">${icon('book')}<span>浏览模式</span></a>
-    </div>
+    </div>`
+    }
 
     <section class="manage-panel" id="manageSourcesPanel" hidden>
       <section class="stats-grid manage-stats" id="wikiStats" aria-label="Wiki 统计"></section>
@@ -1450,7 +1457,7 @@ export function mountManage(root, context = {}) {
     if (state.manageTab === 'sources' && !state.docsLoaded && !state.docsError) loadDocs();
     if (state.manageTab === 'pages' && !state.pagesLoaded) loadPages();
   };
-  switchManageTab('pages');
+  switchManageTab(state.manageTab || 'pages');
 
   /* 上传交互 */
   const pickFile = () => fileInput?.click();

@@ -270,6 +270,16 @@ function closeSidebar() {
 
 function bindShell() {
   dom.menuBtn?.addEventListener('click', () => {
+    // 桌面端：折叠 / 展开为图标窄栏；窄屏：仍为抽屉开关
+    if (window.innerWidth >= 1024) {
+      const collapsed = document.body.classList.toggle('sidebar-collapsed');
+      try {
+        localStorage.setItem('npu.sidebar.collapsed', collapsed ? '1' : '0');
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
     if (dom.sidebar.classList.contains('is-open')) closeSidebar();
     else openSidebar();
   });
@@ -407,6 +417,13 @@ function registerServiceWorker() {
 /* 启动                                                                */
 /* ------------------------------------------------------------------ */
 async function boot() {
+  try {
+    if (localStorage.getItem('npu.sidebar.collapsed') === '1') {
+      document.body.classList.add('sidebar-collapsed');
+    }
+  } catch {
+    /* ignore */
+  }
   bindShell();
   bindGlobalErrorHandlers();
   bindUnauthorizedGuide();

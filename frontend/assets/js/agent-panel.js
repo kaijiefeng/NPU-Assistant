@@ -55,10 +55,11 @@ export function initAgentPanel(authState) {
   dom.form = document.getElementById('agentForm');
   dom.input = document.getElementById('agentInput');
   dom.send = document.getElementById('agentSend');
-  dom.clear = document.getElementById('agentClear');
   dom.close = document.getElementById('agentClose');
   dom.attach = document.getElementById('agentAttach');
   dom.files = document.getElementById('agentFiles');
+  dom.resize = document.getElementById('agentResize');
+  dom.expand = document.getElementById('agentExpand');
   dom.historyBtn = document.getElementById('agentHistory');
   dom.schedBtn = document.getElementById('agentSched');
   dom.newBtn = document.getElementById('agentNew');
@@ -79,7 +80,6 @@ export function initAgentPanel(authState) {
 
   dom.toggle.addEventListener('click', () => setOpen(!state.open));
   dom.close?.addEventListener('click', () => setOpen(false));
-  dom.clear?.addEventListener('click', clearHistory);
   dom.form.addEventListener('submit', (event) => {
     event.preventDefault();
     void send();
@@ -103,6 +103,51 @@ export function initAgentPanel(authState) {
     dom.files.value = '';
     if (picked.length) void handleUploads(picked);
   });
+  // 面板宽度可拖拽调节（320–720px，双击复位），状态记忆
+  try {
+    const savedWidth = parseInt(localStorage.getItem('npu.agent_width') || '', 10);
+    if (savedWidth >= 320) dom.root.style.width = `${Math.min(savedWidth, 720)}px`;
+  } catch {
+    /* ignore */
+  }
+  let resizing = false;
+  dom.resize?.addEventListener('pointerdown', (event) => {
+    if (window.innerWidth < 1024) return;
+    resizing = true;
+    document.body.classList.add('agent-resizing');
+    dom.resize.setPointerCapture?.(event.pointerId);
+    event.preventDefault();
+  });
+  window.addEventListener('pointermove', (event) => {
+    if (!resizing) return;
+    const width = Math.max(320, Math.min(720, window.innerWidth - event.clientX));
+    dom.root.style.width = `${width}px`;
+  });
+  window.addEventListener('pointerup', () => {
+    if (!resizing) return;
+    resizing = false;
+    document.body.classList.remove('agent-resizing');
+    try {
+      localStorage.setItem('npu.agent_width', String(parseInt(dom.root.style.width, 10) || 384));
+    } catch {
+      /* ignore */
+    }
+  });
+  dom.resize?.addEventListener('dblclick', () => {
+    dom.root.style.width = '';
+    try {
+      localStorage.removeItem('npu.agent_width');
+    } catch {
+      /* ignore */
+    }
+  });
+  dom.expand?.addEventListener('click', () => {
+    document.body.classList.toggle('agent-fullscreen');
+    const full = document.body.classList.contains('agent-fullscreen');
+    dom.expand.title = full ? '还原' : '全屏 / 还原';
+    render();
+  });
+
   dom.historyBtn?.addEventListener('click', () =>
     setDrawer(!state.drawerOpen || state.drawerMode !== 'conversations', 'conversations'),
   );
@@ -488,11 +533,6 @@ async function rewindFrom(messageId) {
   } catch (err) {
     toast(err?.message || '回滚失败', 'error');
   }
-}
-
-function clearHistory() {
-  if (state.sending || state.uploading) return;
-  newConversation();
 }
 
 /* ------------------------------------------------------------------ */

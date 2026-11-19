@@ -598,10 +598,16 @@ function bodyHtml() {
   return overviewHtml();
 }
 
-export function mount(root) {
+export function mount(root, options = {}) {
   let alive = true;
+  // 外部投射模式：由 hub 子导航控制页面，不再渲染内部 tab 与标题卡
+  const embed = options?.query?.get('embed') === '1';
+  state.tab = options?.query?.get('section') || 'overview';
   root.innerHTML = `<div class="insights-page" id="insightsPage">
-    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    ${
+      embed
+        ? `<div class="hub-embed-bar"><span>${icon('sparkles')} 学生反馈 → 知识缺口 → 补资料 → 回答变好（最近 30 天）</span><button class="btn btn-ghost btn-sm" type="button" data-action="insights-reload">${icon('refresh')}<span>刷新</span></button></div>`
+        : `<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div>
         <h3 style="margin:0">${icon('sparkles')} 服务台</h3>
         <p class="muted" style="margin:4px 0 0">学生反馈 → 知识缺口 → 补资料 → 回答变好。数据按最近 30 天统计。</p>
@@ -609,8 +615,9 @@ export function mount(root) {
       <button class="btn btn-ghost btn-sm" type="button" data-action="insights-reload">${icon(
         'refresh',
       )}<span>刷新</span></button>
-    </div>
-    <div id="insightsTabs"></div>
+    </div>`
+    }
+    <div id="insightsTabs"${embed ? ' hidden' : ''}></div>
     <div id="insightsBody"></div>
   </div>`;
   const page = root.querySelector('#insightsPage');

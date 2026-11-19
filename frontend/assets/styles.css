@@ -7842,3 +7842,241 @@ select.input {
     background: #f6f6f8;
   }
 }
+
+/* ================================================================== */
+/* 布局重规划：集中视野 / 两级层级 / 可调节子界面                        */
+/* 参考 ChatGPT·Claude·Cursor 式集中工作区：内容列限宽居中，导航两级。   */
+/* ================================================================== */
+
+/* 内容列限宽居中：超宽屏不再满铺，视线聚焦 */
+.view > .page {
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+}
+.view > .chat-page,
+.view > .knowledge-page {
+  max-width: 1320px;
+}
+
+/* ------------------------------ 页内子导航（macOS 设置页式） ------------------------------ */
+.settings-shell {
+  display: grid;
+  grid-template-columns: 208px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.hub-subnav {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 6px 0 20px;
+}
+.hub-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hub-nav-label {
+  padding: 0 10px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--muted-2);
+  text-transform: uppercase;
+}
+.hub-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.14s var(--ease), color 0.14s var(--ease);
+}
+.hub-nav-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--ink);
+}
+.hub-nav-item.is-active {
+  background: rgba(10, 132, 255, 0.16);
+  color: var(--ink);
+  font-weight: 600;
+}
+.hub-content {
+  min-width: 0;
+}
+.hub-embed-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.hub-embed-bar > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.hub-embed-bar .i {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 960px) {
+  .settings-shell {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .hub-subnav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 2px 0 6px;
+  }
+  .hub-subnav::-webkit-scrollbar {
+    display: none;
+  }
+  .hub-nav-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+  .hub-nav-label {
+    display: none;
+  }
+  .hub-nav-item {
+    white-space: nowrap;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 999px;
+    padding: 6px 12px;
+  }
+}
+
+/* ------------------------------ 全局侧栏：可折叠为图标窄栏（桌面） ------------------------------ */
+.menu-btn {
+  display: inline-flex;
+}
+@media (min-width: 1024px) {
+  body.sidebar-collapsed .sidebar {
+    width: 78px;
+    padding: 16px 10px 14px;
+  }
+  body.sidebar-collapsed .shell {
+    margin-left: 78px;
+  }
+  body.sidebar-collapsed .brand {
+    justify-content: center;
+    padding: 6px 0 14px;
+  }
+  body.sidebar-collapsed .brand-text,
+  body.sidebar-collapsed .sidebar-close,
+  body.sidebar-collapsed .nav-group-label,
+  body.sidebar-collapsed .nav-label,
+  body.sidebar-collapsed .nav-desc,
+  body.sidebar-collapsed .nav-account-text,
+  body.sidebar-collapsed .health-line span:not(.health-dot),
+  body.sidebar-collapsed .sidebar-manual {
+    display: none;
+  }
+  body.sidebar-collapsed .nav-item {
+    grid-template-columns: 1fr;
+    grid-template-areas: "ico";
+    justify-items: center;
+    padding: 9px 0;
+  }
+  body.sidebar-collapsed .sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  body.sidebar-collapsed .health-line {
+    justify-content: center;
+  }
+}
+
+/* ------------------------------ 管理助手：拖拽调宽 / 全屏 ------------------------------ */
+.shell-main {
+  position: relative;
+}
+.agent-panel {
+  position: relative;
+  max-width: 60vw;
+}
+.agent-resize {
+  position: absolute;
+  left: -4px;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 6;
+  touch-action: none;
+}
+.agent-resize::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: transparent;
+  transition: background 0.15s var(--ease);
+}
+.agent-resize:hover::after,
+body.agent-resizing .agent-resize::after {
+  background: var(--npu-blue-400);
+}
+body.agent-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+body.agent-resizing .agent-panel {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: var(--card);
+}
+.agent-head-title span {
+  display: none; /* 收起标题区的副标题，减少视觉噪音 */
+}
+body.agent-fullscreen .agent-panel {
+  position: absolute;
+  inset: 0;
+  width: auto !important;
+  max-width: none;
+  z-index: 40;
+  border-left: 0;
+}
+body.agent-fullscreen main.view {
+  visibility: hidden;
+}
+@media (max-width: 1023px) {
+  .agent-resize {
+    display: none;
+  }
+  body.agent-fullscreen .agent-panel {
+    position: fixed;
+  }
+}

@@ -121,6 +121,7 @@
           </div>
         </main>
         <aside class="agent-panel" id="agentPanel" hidden aria-label="管理助手">
+          <div class="agent-resize" id="agentResize" aria-hidden="true" title="拖动调节宽度，双击复位"></div>
           <header class="agent-head">
             <div class="agent-head-title">
               <svg class="i" aria-hidden="true"><use href="#i-sparkles"></use></svg>
@@ -130,6 +131,9 @@
               </div>
             </div>
             <div class="agent-head-actions">
+              <button class="icon-btn" id="agentExpand" type="button" aria-label="全屏" title="全屏 / 还原">
+                <svg class="i" aria-hidden="true"><use href="#i-external"></use></svg>
+              </button>
               <button class="icon-btn" id="agentSched" type="button" aria-label="定时任务" title="定时任务（自动补资料）">
                 <svg class="i" aria-hidden="true"><use href="#i-clock"></use></svg>
               </button>
@@ -138,9 +142,6 @@
               </button>
               <button class="icon-btn" id="agentNew" type="button" aria-label="新会话" title="新会话">
                 <svg class="i" aria-hidden="true"><use href="#i-plus"></use></svg>
-              </button>
-              <button class="icon-btn" id="agentClear" type="button" aria-label="清空当前对话" title="清空当前对话（另开新会话）">
-                <svg class="i" aria-hidden="true"><use href="#i-trash"></use></svg>
               </button>
               <button class="icon-btn" id="agentClose" type="button" aria-label="收起管理助手" title="收起">
                 <svg class="i" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
