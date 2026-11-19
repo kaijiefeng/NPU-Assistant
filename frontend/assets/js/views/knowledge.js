@@ -4,8 +4,8 @@
  * 双 Tab：
  *  - 词条：/api/wiki/search 导航搜索（method/分数）、标签筛选、词条卡片、详情抽屉
  *          （body_html、别名/标签、来源锚点、相关词条、编辑/删除）；
- *  - 源文件：拖拽上传（LLM 同步编译）、文档表格（状态/词条数）、单篇重建、删除、
- *            导入预编译快照、全部重建（轮询 /api/wiki/builds/{id}）。
+ *  - 源文件：上传（后台编译）、文档表格（状态/词条数，分页渲染 + 关键词过滤）、
+ *            单篇重编、删除、导入预编译快照。收录链接/文本/文件改走右侧管理助手。
  *
  * 接口：/api/wiki/*、/api/knowledge/*
  */
@@ -347,6 +347,7 @@ async function loadDocs({ silent = false } = {}) {
     state.docs = Array.isArray(data?.items) ? data.items : [];
     state.docsError = '';
     state.docsLoaded = true;
+    state.docsShown = DOCS_PAGE_SIZE;
     renderDocs();
     renderStats();
   } catch (err) {
@@ -1170,8 +1171,10 @@ async function handleFiles(fileList) {
 }
 
 /* ------------------------------------------------------------------ */
-/* 源文件表格                                                          */
+/* 源文件表格（分页渲染 + 本地关键词过滤，大数据量不卡顿）             */
 /* ------------------------------------------------------------------ */
+const DOCS_PAGE_SIZE = 60;
+
 function renderDocs() {
   const holder = document.getElementById('docsBody');
   if (!holder) return;
@@ -1193,12 +1196,26 @@ function renderDocs() {
     });
     return;
   }
+  const keyword = String(state.docsFilter || '').trim().toLowerCase();
+  const filtered = keyword
+    ? state.docs.filter((doc) =>
+        `${doc.title || ''}\n${doc.filename || ''}`.toLowerCase().includes(keyword),
+      )
+    : state.docs;
+  if (!filtered.length) {
+    holder.innerHTML = `<div class="state state-empty state-compact">${icon('search')}<p>没有匹配「${esc(
+      state.docsFilter,
+    )}」的源文件</p></div>`;
+    return;
+  }
+  const shown = filtered.slice(0, state.docsShown || DOCS_PAGE_SIZE);
+  const remaining = filtered.length - shown.length;
   holder.innerHTML = `<div class="table-wrap">
     <table class="table docs-table">
       <thead><tr>
         <th>源文件</th><th>来源</th><th>类型</th><th>状态</th><th>词条数</th><th>大小</th><th>更新时间</th><th class="th-actions">操作</th>
       </tr></thead>
-      <tbody>${state.docs
+      <tbody>${shown
         .map((doc) => {
           const ext = doc.file_ext || extOf(doc.filename);
           const errorLine = doc.error
@@ -1242,9 +1259,16 @@ function renderDocs() {
         .join('')}</tbody>
     </table>
   </div>
+  ${
+    remaining > 0
+      ? `<div class="docs-more"><button class="btn btn-ghost btn-sm" type="button" data-action="docs-more">${icon(
+          'chevron-down',
+        )}<span>加载更多（已显示 ${shown.length} / ${filtered.length}）</span></button></div>`
+      : ''
+  }
   <p class="table-note">${icon(
     'info',
-  )} 上传后同步调用 LLM 编译词条；失败时展示错误原因，可点击「重新编译」重试。</p>`;
+  )} 上传后由后台任务编译词条；失败时展示错误原因，可点击「重新编译」重试。</p>`;
 }
 
 async function openDocPages(docId) {
@@ -1856,7 +1880,7 @@ export function mountManage(root, context = {}) {
   let alive = true;
   const initialPageId = context?.query?.get('page') || '';
   state.readOnly = false;
-  state.manageTab = 'capture';
+  state.manageTab = 'pages';
   state.tab = 'pages';
   state.search = { query: '', running: false, result: null, error: '' };
   state.build = null;
@@ -1865,89 +1889,11 @@ export function mountManage(root, context = {}) {
   root.innerHTML = `<div class="page manage-page">
     <div class="manage-topbar">
       <div class="manage-tabs" role="tablist" aria-label="内容管理">
-        <button class="seg-tab is-active" type="button" role="tab" aria-selected="true" data-action="manage-tab" data-tab="capture">收录资料</button>
+        <button class="seg-tab is-active" type="button" role="tab" aria-selected="true" data-action="manage-tab" data-tab="pages">词条维护</button>
         <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="manage-tab" data-tab="sources">源文件</button>
-        <button class="seg-tab" type="button" role="tab" aria-selected="false" data-action="manage-tab" data-tab="pages">词条维护</button>
       </div>
       <a class="btn btn-ghost btn-sm" href="#/knowledge">${icon('book')}<span>浏览模式</span></a>
     </div>
-
-    <section class="manage-panel" id="manageCapturePanel">
-    <section class="card quick-capture" id="quickCapture">
-      <header class="quick-capture-head">
-        <div class="quick-capture-title">
-          <span class="quick-capture-icon">${icon('plus')}</span>
-          <div>
-            <h2>快速收录</h2>
-            <p>粘贴链接或文字，或上传文件；LLM 自动编译为 Wiki 词条</p>
-          </div>
-        </div>
-        <button class="icon-btn quick-capture-toggle" type="button" data-action="toggle-capture" aria-expanded="true" aria-controls="quickCaptureBody" title="收起 / 展开快速收录">
-          ${icon('chevron-down')}
-        </button>
-      </header>
-      <div class="quick-capture-body" id="quickCaptureBody">
-        <div class="capture-tabs" role="tablist" aria-label="收录方式">
-          <button class="capture-tab is-active" type="button" role="tab" aria-selected="true" data-action="capture-mode" data-mode="links">${icon(
-            'link',
-          )}<span>链接</span></button>
-          <button class="capture-tab" type="button" role="tab" aria-selected="false" data-action="capture-mode" data-mode="text">${icon(
-            'message',
-          )}<span>文本</span></button>
-          <button class="capture-tab" type="button" role="tab" aria-selected="false" data-action="capture-mode" data-mode="file">${icon(
-            'upload',
-          )}<span>文件</span></button>
-        </div>
-
-        <div class="capture-panel" id="captureLinksPanel">
-          <textarea class="input capture-textarea" id="captureUrls" rows="3" placeholder="一行一个链接，最多 5 个&#10;例如：https://mp.weixin.qq.com/s/xxxx"></textarea>
-          <div class="capture-row">
-            <input class="input" id="captureUrlTags" placeholder="标签（可选，逗号分隔）" />
-            <button class="btn btn-primary capture-submit" type="button" data-action="import-links" id="importLinksBtn">${icon(
-              'link',
-            )}<span>收录链接</span></button>
-          </div>
-          <p class="capture-hint">${icon('info')}<span>微信 / QQ 可直接把链接转发给机器人（需管理员）；手机访问请到「设置 → 移动访问与安全」扫码，再在手机上粘贴链接即可。</span></p>
-          <div class="capture-results" id="captureLinkResults"></div>
-        </div>
-
-        <div class="capture-panel" id="captureTextPanel" hidden>
-          <input class="input" id="captureTitle" maxlength="120" placeholder="标题（可选，留空取正文首行）" />
-          <textarea class="input capture-textarea" id="captureText" rows="5" placeholder="粘贴微信 / QQ 转发的文字资料（30–200000 字）"></textarea>
-          <div class="capture-row">
-            <input class="input" id="captureTextTags" placeholder="标签（可选，逗号分隔）" />
-            <button class="btn btn-primary capture-submit" type="button" data-action="import-text" id="importTextBtn">${icon(
-              'file',
-            )}<span>收录文本</span></button>
-          </div>
-          <p class="capture-hint">${icon('info')}<span>适合群通知、口头通知等无链接内容；会生成源文件并编译词条。</span></p>
-          <div class="capture-results" id="captureTextResults"></div>
-        </div>
-
-        <div class="capture-panel" id="captureFilePanel" hidden>
-          <div class="dropzone capture-dropzone" id="dropzone" role="button" tabindex="0" aria-label="上传源文件">
-            <div class="dropzone-icon">${icon('upload')}</div>
-            <strong>拖拽文件到这里，或点击选择文件</strong>
-            <span>保存 → 解析 → LLM 编译词条（需要可用模型）</span>
-            <input type="file" id="fileInput" multiple hidden />
-          </div>
-          <p class="capture-hint" id="uploadHint">支持 md / txt / pdf / docx / xlsx / csv / json / html，单个文件 ≤ 20MB；上传后由 LLM 同步编译为 Wiki 词条。</p>
-          <div class="capture-row scan-dir-row">
-            <input class="input" id="scanDirPath" placeholder="扫描目录；留空 = 默认扫描目录（仓库 scan/ 或上次保存的目录）" />
-            <button class="btn btn-ghost capture-submit" type="button" data-action="scan-dir" id="scanDirBtn">${icon(
-              'folder',
-            )}<span>扫描并收录 / 更新</span></button>
-          </div>
-          <div class="capture-row scan-mode-row" role="radiogroup" aria-label="扫描模式">
-            <label class="scan-mode-item"><input type="radio" name="scanDirMode" value="skip" checked /><span>只导入新文件（同名 / 同内容跳过）</span></label>
-            <label class="scan-mode-item"><input type="radio" name="scanDirMode" value="update" /><span>更新已变更（同名内容变化 → 覆盖并重新编译）</span></label>
-          </div>
-          <p class="capture-hint" id="scanDirHint">${icon('info')}<span>留空路径即扫描默认目录（仓库 scan/）；填入其他目录并扫描成功后会自动记住。递归子目录（最多 4 层），仅管理员可用。</span></p>
-          <div class="upload-queue" id="uploadQueue" hidden></div>
-        </div>
-      </div>
-    </section>
-    </section>
 
     <section class="manage-panel" id="manageSourcesPanel" hidden>
       <section class="stats-grid manage-stats" id="wikiStats" aria-label="Wiki 统计"></section>
@@ -1955,11 +1901,12 @@ export function mountManage(root, context = {}) {
         <div class="manage-toolbar">
           <button class="btn btn-primary btn-sm" type="button" data-action="pick-file">${icon('upload')}<span>上传源文件</span></button>
           <button class="btn btn-ghost btn-sm" type="button" data-action="seed">${icon('download')}<span>导入快照</span></button>
-          <button class="btn btn-ghost btn-sm" type="button" data-action="rebuild-all">${icon('refresh')}<span>全部重建</span></button>
           <button class="btn btn-ghost btn-sm" type="button" data-action="refresh-docs">${icon('refresh')}<span>刷新</span></button>
+          <input class="input docs-filter" id="docsFilter" type="search" placeholder="按标题 / 文件名过滤" aria-label="过滤源文件" />
         </div>
+        <input type="file" id="fileInput" multiple hidden />
+        <div class="upload-queue" id="uploadQueue" hidden></div>
       </section>
-      <div class="build-banner" id="buildBanner" hidden></div>
       <section class="card docs-card">
         <header class="card-head">
           <div>
@@ -1998,19 +1945,16 @@ export function mountManage(root, context = {}) {
   const dropzone = root.querySelector('#dropzone');
   const fileInput = root.querySelector('#fileInput');
 
-  /* 快速收录：恢复折叠状态 / 默认模式 */
-  try {
-    state.capture.collapsed = localStorage.getItem('npu.capture.collapsed') === '1';
-  } catch {
-    state.capture.collapsed = false;
-  }
-  setCaptureCollapsed(state.capture.collapsed);
-  setCaptureMode('links');
-  renderCaptureResults();
-  refreshScanDirHint();
+  /* 源文件过滤：本地过滤即输即筛（渲染已分页，大数据量不卡） */
+  const docsFilterInput = root.querySelector('#docsFilter');
+  docsFilterInput?.addEventListener('input', () => {
+    state.docsFilter = docsFilterInput.value || '';
+    state.docsShown = DOCS_PAGE_SIZE;
+    renderDocs();
+  });
 
   const switchManageTab = (tab) => {
-    state.manageTab = ['capture', 'sources', 'pages'].includes(tab) ? tab : 'capture';
+    state.manageTab = ['pages', 'sources'].includes(tab) ? tab : 'pages';
     Object.entries(managePanels).forEach(([key, panel]) => {
       if (panel) panel.hidden = key !== state.manageTab;
     });
@@ -2022,7 +1966,7 @@ export function mountManage(root, context = {}) {
     if (state.manageTab === 'sources' && !state.docsLoaded && !state.docsError) loadDocs();
     if (state.manageTab === 'pages' && !state.pagesLoaded) loadPages();
   };
-  switchManageTab('capture');
+  switchManageTab('pages');
 
   /* 上传交互 */
   const pickFile = () => fileInput?.click();
@@ -2100,40 +2044,14 @@ export function mountManage(root, context = {}) {
         runSeed(trigger);
         break;
       case 'pick-file':
-        setCaptureCollapsed(false);
-        setCaptureMode('file');
-        window.setTimeout(pickFile, 60);
+        pickFile();
         break;
-      case 'toggle-capture':
-        setCaptureCollapsed(!state.capture.collapsed);
-        break;
-      case 'capture-mode':
-        setCaptureMode(trigger.dataset.mode);
-        break;
-      case 'import-links':
-        runImportLinks(trigger);
-        break;
-      case 'import-text':
-        runImportText(trigger);
-        break;
-      case 'copy-capture-url': {
-        const ok = await copyText(trigger.dataset.url || '');
-        toast(ok ? '链接已复制' : '复制失败，请手动选择链接复制', ok ? 'success' : 'error', { duration: 2400 });
-        break;
-      }
-      case 'use-text-import': {
-        setCaptureCollapsed(false);
-        setCaptureMode('text');
-        const textInput = document.getElementById('captureText');
-        textInput?.focus();
-        toast('已切换到「文本」收录：粘贴正文即可，无需担心网页抓取上限', 'info', { duration: 4000 });
-        break;
-      }
       case 'refresh-docs':
         loadDocs();
         break;
-      case 'rebuild-all':
-        runRebuildAll(trigger);
+      case 'docs-more':
+        state.docsShown = (state.docsShown || DOCS_PAGE_SIZE) + DOCS_PAGE_SIZE;
+        renderDocs();
         break;
       case 'doc-pages':
         openDocPages(trigger.dataset.id);
@@ -2150,13 +2068,6 @@ export function mountManage(root, context = {}) {
       case 'clear-uploads':
         state.uploads = state.uploads.filter((item) => item.status === 'uploading');
         renderUploads();
-        break;
-      case 'scan-dir':
-        runScanDirectory();
-        break;
-      case 'dismiss-build':
-        state.build = null;
-        renderBuildBanner();
         break;
       case 'retry':
         loadPages();
@@ -2215,13 +2126,6 @@ export function mount(root, context = {}) {
         <input class="input" id="wikiSearchInput" type="search" placeholder="搜索校园知识，如：国家奖学金、请假流程" aria-label="搜索词条" />
         <button class="btn btn-primary" type="submit" id="wikiSearchBtn">${icon('search')}<span>搜索</span></button>
       </form>
-      ${
-        context?.canManage
-          ? `<a class="btn btn-ghost btn-sm browse-manage-link" href="#/kb-admin">${icon(
-              'database',
-            )}<span>内容管理</span></a>`
-          : ''
-      }
     </section>
     <div class="tag-filter browse-tags" id="tagFilter" hidden></div>
     <div id="wikiSearchResult" hidden></div>

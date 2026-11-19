@@ -140,11 +140,15 @@
           </header>
           <div class="agent-body" id="agentBody"></div>
           <form class="agent-composer" id="agentForm">
+            <button class="icon-btn agent-attach" id="agentAttach" type="button" aria-label="上传文件到知识库" title="上传文件到知识库（后台编译为词条）" hidden>
+              <svg class="i" aria-hidden="true"><use href="#i-upload"></use></svg>
+            </button>
             <textarea id="agentInput" rows="2" placeholder="例如：现在有多少未处理的知识缺口？" aria-label="向管理助手提问"></textarea>
             <button class="btn btn-primary agent-send" id="agentSend" type="submit" aria-label="发送">
               <svg class="i" aria-hidden="true"><use href="#i-send"></use></svg>
             </button>
           </form>
+          <input type="file" id="agentFiles" multiple hidden />
         </aside>
       </div>
     </div>

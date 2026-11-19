@@ -1,20 +1,19 @@
 /**
  * views/ops-hub.js — 运维管理聚合页
  *
- * 任务与告警 / 运维 Agent（仅超级管理员）/ 审计日志。子视图复用现有模块，仅按角色显示入口。
+ * 任务与告警 / 审计日志。报错驱动的运维修复已并入右侧「管理助手」
+ * （ops_task_* 工具，仅超级管理员可见），不再单独设页面。
  */
 import { getAuthMe } from '../api.js';
 import { esc, loadingHtml, toast } from '../ui.js';
 
 const TABS = [
   { key: 'jobs', label: '任务与告警', permission: 'insights:read' },
-  { key: 'agent', label: '运维 Agent', permission: 'ops:manage' },
   { key: 'audit', label: '审计日志', permission: 'audit:read' },
 ];
 
 const LOADERS = {
   jobs: () => import('./jobs.js'),
-  agent: () => import('./ops-agent.js'),
   audit: () => import('./team.js'),
 };
 

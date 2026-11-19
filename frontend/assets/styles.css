@@ -7221,3 +7221,40 @@ body {
     box-shadow: var(--shadow-lg);
   }
 }
+
+/* ==================== 管理助手附件 / 源文件分页 ==================== */
+.agent-attach {
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.agent-attach .i {
+  width: 18px;
+  height: 18px;
+}
+
+.agent-attach:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.docs-filter {
+  max-width: 220px;
+  min-width: 140px;
+  margin-left: auto;
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .docs-filter {
+    max-width: none;
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+.docs-more {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 4px;
+}

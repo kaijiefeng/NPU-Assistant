@@ -50,7 +50,7 @@ const LEGACY_VIEWS = {
   manage: '#/kb-admin?tab=content',
   insights: '#/kb-admin?tab=desk',
   jobs: '#/ops?tab=jobs',
-  'ops-agent': '#/ops?tab=agent',
+  'ops-agent': '#/ops',
   models: '#/settings?tab=models',
   bots: '#/settings?tab=bots',
   team: '#/settings?tab=members',
