@@ -283,3 +283,43 @@ def test_agent_loop_handles_confirm_flow(monkeypatch):
     second = agent_chat.run_agent_chat(history, "确认", SUPER)
     assert second["reply"].startswith("该文档不存在")
     assert second["steps"][0]["ok"] is False
+
+
+# ---------------------------------------------------------------------------
+# 轻量维护工具（read_logs / read_file）
+# ---------------------------------------------------------------------------
+def test_maintenance_read_tools():
+    from app import config
+
+    # read_logs：关键词过滤 + 本机路径脱敏
+    config.LOG_DIR.mkdir(parents=True, exist_ok=True)
+    config.LOG_FILE.write_text(
+        "2026-11-19 10:00:00 | INFO | npu | line C:\\Users\\fkj92\\secret path\n"
+        "2026-11-19 10:00:01 | ERROR | npu | boom 失败\n"
+        "2026-11-19 10:00:02 | INFO | npu | other\n",
+        encoding="utf-8",
+    )
+    result = agent_tools.call_tool("read_logs", {"keyword": "ERROR", "lines": 10}, SUPER)
+    assert result["count"] == 1
+    assert "boom" in result["lines"][0]
+    no_path = agent_tools.call_tool("read_logs", {"lines": 10}, SUPER)
+    assert all("C:\\Users" not in line for line in no_path["lines"])
+    assert any("<path>" in line for line in no_path["lines"])
+
+    # read_file：仓库内合法路径
+    ok = agent_tools.call_tool("read_file", {"path": "backend/app/config.py"}, SUPER)
+    assert "DATA_DIR" in str(ok.get("content") or "")
+
+    # 拒绝：..、绝对路径、非文本扩展名、不存在
+    escape = agent_tools.call_tool("read_file", {"path": "../outside.txt"}, SUPER)
+    assert escape.get("error")
+    absolute = agent_tools.call_tool("read_file", {"path": "C:/Windows/win.ini"}, SUPER)
+    assert absolute.get("error")
+    binary = agent_tools.call_tool("read_file", {"path": "docs/screenshots/chat.png"}, SUPER)
+    assert binary.get("error") and "文本" in binary["error"]
+    missing = agent_tools.call_tool("read_file", {"path": "backend/no_such.py"}, SUPER)
+    assert missing.get("error")
+
+    # 权限：admin（无 ops:manage）不可用
+    denied = agent_tools.call_tool("read_logs", {}, ADMIN)
+    assert denied.get("error") and "权限不足" in denied["error"]

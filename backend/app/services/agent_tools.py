@@ -14,7 +14,9 @@ import json
 import logging
 import re
 import threading
+from collections import deque
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Callable
 
 from .. import db
@@ -742,3 +744,71 @@ def _get_ops_task(args: dict, principal: dict) -> dict:
         return ops_agent.get_task(_str(args, "task_id"))
     except ValueError as exc:
         raise ValueError(str(exc)) from exc
+
+
+# ---------------------------------------------------------------------------
+# 轻量维护（ops:manage，只读：报错解释 / 操作指导 / 修复前看现场）
+# ---------------------------------------------------------------------------
+_ALLOWED_FILE_EXTS = {
+    ".py", ".js", ".md", ".json", ".txt", ".html", ".css",
+    ".toml", ".yml", ".yaml", ".ps1", ".cfg", ".ini",
+}
+
+
+@tool(
+    "read_logs",
+    "读取服务运行日志尾部，用于解释报错、定位异常（仅超级管理员）。",
+    "ops:manage",
+    {"keyword": "可选，只返回包含该关键词的行", "lines": "可选，返回行数，默认 100，最多 500"},
+)
+def _read_logs(args: dict, principal: dict) -> dict:
+    from .. import config
+
+    if not config.LOG_FILE.is_file():
+        raise ValueError("日志文件尚未生成（服务刚启动且暂无输出）")
+    wanted = _limit(args, default=100, hi=500)
+    keyword = _str(args, "keyword")
+    with config.LOG_FILE.open("r", encoding="utf-8", errors="replace") as handle:
+        tail = deque(handle, maxlen=wanted * 3 if keyword else wanted)
+    picked = [
+        _clean_error(line.rstrip()) for line in tail if not keyword or keyword.lower() in line.lower()
+    ][-wanted:]
+    return {
+        "lines": picked,
+        "count": len(picked),
+        "file": "<data>/logs/app.log",
+        "note": "时间为本地时区；敏感路径已脱敏。" if picked else "没有匹配的日志行。",
+    }
+
+
+@tool(
+    "read_file",
+    "读取仓库内的一个文本源码/配置文件（排障用，只读；仅超级管理员）。",
+    "ops:manage",
+    {"path": "必填，仓库相对路径，如 backend/app/services/llm.py"},
+)
+def _read_file(args: dict, principal: dict) -> dict:
+    from .. import config
+
+    rel = _str(args, "path").replace("\\", "/")
+    candidate = Path(rel)
+    if not rel or candidate.is_absolute() or ".." in candidate.parts:
+        raise ValueError("只允许仓库内相对路径，禁止绝对路径或 ..")
+    resolved = (config.REPO_DIR / candidate).resolve()
+    if not str(resolved).startswith(str(config.REPO_DIR.resolve())):
+        raise ValueError("路径越出仓库范围")
+    if not resolved.is_file():
+        raise ValueError("文件不存在")
+    if resolved.suffix.lower() not in _ALLOWED_FILE_EXTS:
+        raise ValueError(f"仅支持文本类型：{' '.join(sorted(_ALLOWED_FILE_EXTS))}")
+    if resolved.stat().st_size > 200 * 1024:
+        raise ValueError("文件过大（>200KB），请指定更小的目标或用 read_logs 看运行日志")
+    lines = resolved.read_text(encoding="utf-8", errors="replace").splitlines()
+    if len(lines) > 800:
+        return {
+            "path": rel,
+            "truncated": True,
+            "total_lines": len(lines),
+            "content": "\n".join(lines[-800:]),
+        }
+    return {"path": rel, "truncated": False, "total_lines": len(lines), "content": "\n".join(lines)}

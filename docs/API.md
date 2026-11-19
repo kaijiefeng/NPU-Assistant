@@ -445,8 +445,22 @@ Invoke-RestMethod -Method Post ("http://127.0.0.1:8000/api/bots/channels/" + $co
 
 | 接口 | 鉴权 | 说明 |
 |---|---|---|
-| `POST /api/agent/chat` | 任意登录账号（open 模式放行） | SSE 流式对话。请求 `{"message": "...", "history": [{"role","content"}]}`（message ≤4000 字，超出或为空 400）；事件序列 `tool`（工具开始）→ `tool_result`（`{name, ok, summary}`）→ `delta`（`{text}` 回答）→ `done`（`{reply, steps}`，不含内部错误信息）；任一步失败发 `error`（`{detail}`）后结束；15s 无消息发 `: ping` 保活；限流 20 次/分钟/IP（429） |
+| `POST /api/agent/chat` | 任意登录账号（open 模式放行） | SSE 流式对话。请求 `{"message": "...", "conversation_id": "..."}`（conversation_id 空=自动新建；message ≤4000 字，超出或为空 400）；事件序列 `tool` → `tool_result`（`{name, ok, summary}`）→ `delta`（`{text}`）→ `done`（`{reply, steps, conversation_id, conversation_title}`，不含内部错误信息）；任一步失败发 `error` 后结束；15s `: ping` 保活；限流 20 次/分钟/IP（429）。消息落库到会话，历史由服务端组装（客户端回传 history 一律忽略） |
 | `GET /api/agent/tools` | 同上 | 当前账号可用的工具清单（外层 `{items: [{name, description, permission, write, dangerous}], total}`），按角色权限过滤 |
+| `GET /api/agent/conversations?limit=` | 同上 | 会话列表（`{id, title, message_count, last_message, updated_at}`，按更新时间倒序） |
+| `GET /api/agent/conversations/{id}` | 同上 | 会话详情 + 全部消息（含工具步骤 steps） |
+| `PATCH /api/agent/conversations/{id}` | 同上 | 改名 `{"title"}`；首条用户消息自动作为默认标题 |
+| `DELETE /api/agent/conversations/{id}` | 同上 | 删除会话及消息 |
+| `POST /api/agent/conversations/{id}/rewind` | 同上 | 回滚上下文 `{"message_id"}`：删除该消息及其之后；**仅回退对话内容，不撤销已执行的工具操作** |
+| `GET /api/agent/schedules` | 同上 | 定时任务列表 + 可用类型 `kinds` |
+| `POST /api/agent/schedules` | `content:write` | 新建：`{"name, kind, config, interval_minutes(15–10080)}`；kind 白名单 `subscription_check_all` / `gap_suggest_all`（config.limit 缺省 10）/ `agent_prompt`（config.prompt 必填） |
+| `PATCH /api/agent/schedules/{id}` | `content:write` | 改名/改配置/改间隔（重算下轮）/启停 |
+| `POST /api/agent/schedules/{id}/run` | `content:write` | 立即触发一次（不重置周期） |
+| `DELETE /api/agent/schedules/{id}` | `content:write` | 删除 |
+
+**会话与上下文**：`agent_conversations` / `agent_messages` 服务端持久化，压缩摘要（`summary` + rowid 水位）落会话行；组装上下文按 12000 字预算，超限时把最旧一半消息 LLM 压成纪要（LLM 不可用降级为截断纪要）。
+
+**定时任务**：60s tick 调度线程；到期原子抢占（`UPDATE ... WHERE next_run_at=?` 的 rowcount），错过多个周期只补跑一次；tick 只提交 jobs 队列（`subscription_check` / `gap_suggest` / `agent_prompt`），重活在 jobs worker；`agent_prompt` 以系统身份（super_admin/scheduler）执行预设指令一轮，结果落绑定会话（自动创建「定时任务·名称」）并生成 `category=agent` 的 info 告警。
 
 - **权限模型**：对话接口要求 `insights:read`（所有角色满足；open 演示模式下等同超级管理员，全部工具可用）；每个工具声明自己的权限键，执行时按调用者角色校验（`viewer` 只见查询类，`ops:*` 仅超级管理员），Agent 不越权代理。写工具全部记审计（`agent.tool.<name>`，含失败尝试）。
 - **高危确认**：删除文档 / 全量重建 / 批准运维修复标记 `dangerous`，服务端设确认门——首次调用返回 `{"need_confirm": true}`，模型复述参数并取得用户同意后带 `"confirm": true` 重调才真正执行。

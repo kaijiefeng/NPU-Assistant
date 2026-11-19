@@ -23,6 +23,9 @@ FRONTEND_DIR = REPO_DIR / "frontend"
 DATA_DIR = Path(os.environ.get("NPU_DATA_DIR", BASE_DIR / "data"))
 UPLOAD_DIR = DATA_DIR / "uploads"
 JOB_STAGING_DIR = DATA_DIR / "job_staging"
+# 运行日志（RotatingFileHandler 落盘）：管理助手 read_logs 工具的数据源
+LOG_DIR = DATA_DIR / "logs"
+LOG_FILE = Path(os.environ.get("NPU_LOG_FILE", LOG_DIR / "app.log"))
 # Seed documents are versioned content shipped with the repo (sources/seed at
 # the repository root) so they stay independent of NPU_DATA_DIR.  Deployments
 # upgraded from <= v0.2.1 keep working: if the new location is absent but the
@@ -213,5 +216,5 @@ OBSOLETE_SETTINGS = {"retrieval_top_k", "retrieval_min_score"}
 
 
 def ensure_dirs() -> None:
-    for path in (DATA_DIR, UPLOAD_DIR, SEED_DOCS_DIR, JOB_STAGING_DIR, SCAN_DEFAULT_DIR):
+    for path in (DATA_DIR, UPLOAD_DIR, LOG_DIR, SEED_DOCS_DIR, JOB_STAGING_DIR, SCAN_DEFAULT_DIR):
         path.mkdir(parents=True, exist_ok=True)

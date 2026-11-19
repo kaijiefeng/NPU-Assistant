@@ -349,4 +349,30 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 
+
+def _attach_file_log() -> None:
+    """运行日志同时落盘（供管理助手 read_logs 与事后排障使用）。"""
+    import logging.handlers
+
+    try:
+        config.LOG_DIR.mkdir(parents=True, exist_ok=True)
+        handler = logging.handlers.RotatingFileHandler(
+            config.LOG_FILE, maxBytes=2 * 1024 * 1024, backupCount=2, encoding="utf-8"
+        )
+        handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s | %(levelname)-7s | %(name)s | %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
+        logging.getLogger().addHandler(handler)
+    except OSError:
+        # 日志目录不可写等环境问题不应阻断启动，仅提示后继续
+        logging.getLogger("npu-assistant").warning(
+            "日志落盘不可用（%s），仅输出到控制台", config.LOG_FILE
+        )
+
+
+_attach_file_log()
+
 app = create_app()
