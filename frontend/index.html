@@ -130,7 +130,13 @@
               </div>
             </div>
             <div class="agent-head-actions">
-              <button class="icon-btn" id="agentClear" type="button" aria-label="清空对话" title="清空对话">
+              <button class="icon-btn" id="agentHistory" type="button" aria-label="会话历史" title="会话历史">
+                <svg class="i" aria-hidden="true"><use href="#i-history"></use></svg>
+              </button>
+              <button class="icon-btn" id="agentNew" type="button" aria-label="新会话" title="新会话">
+                <svg class="i" aria-hidden="true"><use href="#i-plus"></use></svg>
+              </button>
+              <button class="icon-btn" id="agentClear" type="button" aria-label="清空当前对话" title="清空当前对话（另开新会话）">
                 <svg class="i" aria-hidden="true"><use href="#i-trash"></use></svg>
               </button>
               <button class="icon-btn" id="agentClose" type="button" aria-label="收起管理助手" title="收起">
@@ -138,6 +144,15 @@
               </button>
             </div>
           </header>
+          <div class="agent-drawer" id="agentDrawer" hidden>
+            <div class="agent-drawer-head">
+              <strong>会话历史</strong>
+              <button class="icon-btn" id="agentDrawerClose" type="button" aria-label="关闭会话历史">
+                <svg class="i" aria-hidden="true"><use href="#i-x"></use></svg>
+              </button>
+            </div>
+            <div class="agent-drawer-body" id="agentConvList"></div>
+          </div>
           <div class="agent-body" id="agentBody"></div>
           <form class="agent-composer" id="agentForm">
             <button class="icon-btn agent-attach" id="agentAttach" type="button" aria-label="上传文件到知识库" title="上传文件到知识库（后台编译为词条）" hidden>

@@ -2,17 +2,22 @@
  * agent-panel.js — 右侧常驻「管理助手」面板
  *
  * 挂在壳层（.shell-main 内），不随路由切换销毁；通过 SSE 与后端
- * /api/agent/chat 对话，工具调用步骤内联展示；历史存 localStorage。
- * 未登录且非演示模式时整体隐藏，不打扰公开页访客。
+ * /api/agent/chat 对话，工具调用步骤内联展示。会话与历史由服务端
+ * 持久化（/api/agent/conversations），本地只记住当前会话 ID 与开合状态。
  */
-import { sendAgentStream, uploadDocument } from './api.js';
-import { esc, toast } from './ui.js';
+import {
+  deleteAgentConversation,
+  getAgentConversation,
+  listAgentConversations,
+  rewindAgentConversation,
+  sendAgentStream,
+  uploadDocument,
+} from './api.js';
+import { confirmDialog, esc, toast } from './ui.js';
 
-const HISTORY_KEY = 'npu_agent_history';
 const OPEN_KEY = 'npu_agent_open';
-const MAX_HISTORY = 50;
+const CONV_KEY = 'npu_agent_conv';
 const MAX_INPUT = 2000;
-const HISTORY_SEND = 12; // 每次请求回传的最近消息条数（后端还会再截断）
 const MAX_UPLOAD_FILES = 5; // 单次最多选择的文件数（防误选刷屏）
 
 const state = {
@@ -23,7 +28,9 @@ const state = {
   uploading: false,
   canUpload: false,
   uploadCard: null, // 上传进行中的独立展示卡（不与回答 draft 混排）
-  messages: [], // {role:'user'|'assistant', content, steps:[{name, ok, summary}]}
+  conversationId: '',
+  conversations: [],
+  drawerOpen: false,
   controller: null,
 };
 
@@ -44,15 +51,21 @@ export function initAgentPanel(authState) {
   dom.close = document.getElementById('agentClose');
   dom.attach = document.getElementById('agentAttach');
   dom.files = document.getElementById('agentFiles');
+  dom.historyBtn = document.getElementById('agentHistory');
+  dom.newBtn = document.getElementById('agentNew');
+  dom.drawer = document.getElementById('agentDrawer');
+  dom.drawerClose = document.getElementById('agentDrawerClose');
+  dom.convList = document.getElementById('agentConvList');
   if (!dom.root || !dom.toggle || !dom.form) return;
   state.ready = true;
   try {
     // 默认展开：只有明确关闭过（'0'）才收起
     state.open = localStorage.getItem(OPEN_KEY) !== '0';
+    state.conversationId = localStorage.getItem(CONV_KEY) || '';
   } catch {
     state.open = true;
+    state.conversationId = '';
   }
-  state.messages = loadHistory();
 
   dom.toggle.addEventListener('click', () => setOpen(!state.open));
   dom.close?.addEventListener('click', () => setOpen(false));
@@ -79,6 +92,24 @@ export function initAgentPanel(authState) {
     const picked = Array.from(dom.files?.files || []).slice(0, MAX_UPLOAD_FILES);
     dom.files.value = '';
     if (picked.length) void handleUploads(picked);
+  });
+  dom.historyBtn?.addEventListener('click', () => setDrawer(!state.drawerOpen));
+  dom.newBtn?.addEventListener('click', newConversation);
+  dom.drawerClose?.addEventListener('click', () => setDrawer(false));
+  // 抽屉内交互（打开/删除会话）
+  dom.convList?.addEventListener('click', (event) => {
+    const opener = event.target.closest('[data-conv-open]');
+    if (opener) {
+      void openConversation(opener.dataset.convOpen);
+      return;
+    }
+    const remover = event.target.closest('[data-conv-delete]');
+    if (remover) void removeConversation(remover.dataset.convDelete);
+  });
+  // 消息区：从这里重问（回滚）
+  dom.body.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-action="agent-rewind"]');
+    if (trigger) void rewindFrom(trigger.dataset.id);
   });
 
   refreshAgentPanel(authState);
@@ -118,31 +149,153 @@ function applyOpen() {
   dom.root.hidden = !visible;
   dom.toggle.setAttribute('aria-expanded', String(state.open));
   dom.toggle.classList.toggle('is-active', state.open);
-  if (visible) render();
+  if (!visible) return;
+  render();
+  if (state.conversationId && !state.messagesLoaded) void openConversation(state.conversationId, { silent: true });
+  if (!state.conversations.length) void loadConversations({ silent: true });
 }
 
-function loadHistory() {
+/* ------------------------------------------------------------------ */
+/* 会话                                                                */
+/* ------------------------------------------------------------------ */
+function setConversationId(id) {
+  state.conversationId = id || '';
   try {
-    const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
-    return Array.isArray(parsed) ? parsed.slice(-MAX_HISTORY) : [];
+    if (id) localStorage.setItem(CONV_KEY, id);
+    else localStorage.removeItem(CONV_KEY);
   } catch {
-    return [];
+    /* ignore */
   }
 }
 
-function persist() {
+async function loadConversations({ silent = false } = {}) {
   try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(state.messages.slice(-MAX_HISTORY)));
-  } catch {
-    /* 配额不足等异常忽略 */
+    const data = await listAgentConversations(30);
+    state.conversations = Array.isArray(data?.items) ? data.items : [];
+    renderDrawer();
+  } catch (err) {
+    if (!silent) toast(err?.message || '会话列表加载失败', 'error');
+  }
+}
+
+async function openConversation(id, { silent = false } = {}) {
+  try {
+    const data = await getAgentConversation(id);
+    const items = Array.isArray(data?.items) ? data.items : [];
+    state.messages = items.map((item) => ({
+      id: item.id,
+      role: item.role,
+      content: item.content || '',
+      steps: Array.isArray(item.steps) ? item.steps : [],
+    }));
+    state.messagesLoaded = true;
+    setConversationId(id);
+    render();
+    renderDrawer();
+    void loadConversations({ silent: true });
+  } catch (err) {
+    setConversationId('');
+    state.messages = [];
+    state.messagesLoaded = true;
+    render();
+    if (!silent) toast(err?.message || '会话加载失败，已回到新会话', 'warning');
+  }
+}
+
+function newConversation() {
+  if (state.sending || state.uploading) {
+    toast('请等当前回答完成后再开新会话', 'warning');
+    return;
+  }
+  setConversationId('');
+  state.messages = [];
+  state.messagesLoaded = true;
+  render();
+  renderDrawer();
+  dom.input?.focus();
+}
+
+async function removeConversation(id) {
+  const target = state.conversations.find((item) => item.id === id);
+  const ok = await confirmDialog({
+    title: '删除会话',
+    message: `确定删除「${target?.title || '该会话'}」吗？`,
+    detail: '对话记录与工具步骤将一并删除，不可恢复。',
+    confirmText: '删除',
+    danger: true,
+  });
+  if (!ok) return;
+  try {
+    await deleteAgentConversation(id);
+    if (id === state.conversationId) {
+      setConversationId('');
+      state.messages = [];
+      render();
+    }
+    await loadConversations({ silent: true });
+    renderDrawer();
+  } catch (err) {
+    toast(err?.message || '删除失败', 'error');
+  }
+}
+
+function setDrawer(open) {
+  state.drawerOpen = open;
+  if (dom.drawer) dom.drawer.hidden = !open;
+  if (open) {
+    void loadConversations({ silent: true });
+    renderDrawer();
+  }
+}
+
+function renderDrawer() {
+  if (!dom.convList) return;
+  if (!state.conversations.length) {
+    dom.convList.innerHTML = `<p class="agent-empty-note">还没有历史会话；新对话会自动保存。</p>`;
+    return;
+  }
+  dom.convList.innerHTML = state.conversations
+    .map(
+      (item) => `<div class="agent-conv ${item.id === state.conversationId ? 'is-active' : ''}">
+        <div class="agent-conv-main" data-conv-open="${esc(item.id)}" role="button" tabindex="0">
+          <span class="agent-conv-title">${esc(item.title)}</span>
+          <span class="agent-conv-meta">${esc(item.last_message || '')} · ${esc(
+            String(item.updated_at || '').slice(5, 16),
+          )}</span>
+        </div>
+        <button class="icon-btn" type="button" data-conv-delete="${esc(item.id)}" aria-label="删除会话" title="删除会话">
+          <svg class="i" aria-hidden="true"><use href="#i-trash"></use></svg>
+        </button>
+      </div>`,
+    )
+    .join('');
+}
+
+async function rewindFrom(messageId) {
+  if (!state.conversationId || state.sending || state.uploading) return;
+  const target = (state.messages || []).find((item) => item.id === messageId);
+  if (!target) return;
+  const ok = await confirmDialog({
+    title: '从这里重问',
+    message: '回滚到这条消息之前，并把原文放回输入框？',
+    detail: '仅回退对话内容；已执行的工具操作（收录、删除等）不会被撤销。',
+    confirmText: '回滚',
+    danger: true,
+  });
+  if (!ok) return;
+  try {
+    await rewindAgentConversation(state.conversationId, messageId);
+    if (dom.input && !dom.input.value.trim()) dom.input.value = target.content.slice(0, MAX_INPUT);
+    await openConversation(state.conversationId, { silent: true });
+    toast('已回滚，原文已放回输入框', 'success');
+  } catch (err) {
+    toast(err?.message || '回滚失败', 'error');
   }
 }
 
 function clearHistory() {
   if (state.sending || state.uploading) return;
-  state.messages = [];
-  persist();
-  render();
+  newConversation();
 }
 
 /* ------------------------------------------------------------------ */
@@ -161,7 +314,8 @@ function stepHtml(step) {
 
 function render(draft = null) {
   if (!dom.body) return;
-  const items = [...state.messages];
+  const messages = state.messages || [];
+  const items = [...messages];
   if (state.uploadCard) items.push(state.uploadCard);
   if (draft) items.push(draft);
   if (!items.length) {
@@ -171,16 +325,23 @@ function render(draft = null) {
         <li>「现在有多少未处理的知识缺口？」</li>
         <li>「给第一条缺口找备选资料」</li>
         <li>「检查所有订阅有没有新内容」</li>
-        <li>「触发一次全量词条重建」</li>
+        <li>「收录这个链接 …」</li>
       </ul>
-      <p class="agent-empty-note">删除、重建、批准修复等高危操作我会先和你确认再执行。</p>
+      <p class="agent-empty-note">📎 可直接上传文件；删除、重建、批准修复等高危操作我会先和你确认。会话自动保存，可随时在右上角「历史」中回看或回滚。</p>
     </div>`;
     return;
   }
   dom.body.innerHTML = items
     .map((message) => {
       if (message.role === 'user') {
-        return `<div class="agent-msg is-user"><div class="agent-bubble">${esc(message.content)}</div></div>`;
+        const rewind = message.id
+          ? `<button class="agent-rewind" type="button" data-action="agent-rewind" data-id="${esc(
+              message.id,
+            )}" title="从这里重问">↺ 重问</button>`
+          : '';
+        return `<div class="agent-msg is-user"><div class="agent-bubble">${esc(
+          message.content,
+        )}</div>${rewind}</div>`;
       }
       const steps = (message.steps || []).map(stepHtml).join('');
       const body = message.content
@@ -238,7 +399,7 @@ async function handleUploads(files) {
     }
     render();
   }
-  state.messages.push({
+  (state.messages = state.messages || []).push({
     role: 'assistant',
     content: '',
     steps: card.steps.map((step) => ({
@@ -247,7 +408,6 @@ async function handleUploads(files) {
       summary: step.summary || '',
     })),
   });
-  persist();
   state.uploadCard = null;
   state.uploading = false;
   dom.attach && (dom.attach.disabled = false);
@@ -278,8 +438,8 @@ async function submitText(text) {
     if (dom.input && !dom.input.value.trim()) dom.input.value = text;
     return;
   }
+  state.messages = state.messages || [];
   state.messages.push({ role: 'user', content: text });
-  persist();
   render();
 
   state.sending = true;
@@ -290,12 +450,8 @@ async function submitText(text) {
   state.controller = new AbortController();
 
   try {
-    const history = state.messages
-      .slice(0, -1)
-      .slice(-HISTORY_SEND)
-      .map((m) => ({ role: m.role, content: String(m.content || '').slice(0, 2000) }));
-    await sendAgentStream(
-      { message: text, history },
+    const done = await sendAgentStream(
+      { message: text, conversation_id: state.conversationId },
       {
         signal: state.controller.signal,
         onTool: (data) => {
@@ -317,6 +473,10 @@ async function submitText(text) {
         },
       },
     );
+    if (done?.conversation_id && done.conversation_id !== state.conversationId) {
+      setConversationId(done.conversation_id);
+      void loadConversations({ silent: true });
+    }
   } catch (err) {
     if (err?.name === 'AbortError') {
       draft.content = draft.content ? `${draft.content}\n（已停止）` : '（已停止）';
@@ -339,7 +499,6 @@ async function submitText(text) {
           summary: step.summary || '',
         })),
       });
-      persist();
     }
     render();
   }

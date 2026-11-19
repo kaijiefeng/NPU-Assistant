@@ -7258,3 +7258,112 @@ body {
   justify-content: center;
   padding: 12px 0 4px;
 }
+
+/* ==================== 管理助手：会话抽屉 / 回滚 ==================== */
+.agent-drawer {
+  display: flex;
+  flex-direction: column;
+  max-height: 46%;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+
+.agent-drawer[hidden] {
+  display: none;
+}
+
+.agent-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.agent-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overscroll-behavior: contain;
+}
+
+.agent-conv {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.agent-conv.is-active {
+  border-color: var(--npu-blue-400);
+  background: var(--npu-blue-50);
+}
+
+.agent-conv-main {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.agent-conv-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agent-conv-meta {
+  font-size: 11px;
+  color: var(--muted-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agent-rewind {
+  opacity: 0;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: opacity 0.15s var(--ease);
+}
+
+.agent-msg.is-user {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.agent-msg.is-user .agent-bubble {
+  max-width: 84%;
+}
+
+.agent-msg.is-user:hover .agent-rewind,
+.agent-rewind:focus-visible {
+  opacity: 1;
+}
+
+.agent-rewind:hover {
+  background: var(--npu-blue-50);
+  color: var(--npu-blue-700);
+}

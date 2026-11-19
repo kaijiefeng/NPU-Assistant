@@ -383,6 +383,27 @@ CREATE TABLE IF NOT EXISTS system_alerts (
     resolved_by TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_alerts_status ON system_alerts(status, created_at);
+
+CREATE TABLE IF NOT EXISTS agent_conversations (
+    id           TEXT PRIMARY KEY,
+    title        TEXT NOT NULL DEFAULT '',
+    summary      TEXT NOT NULL DEFAULT '',   -- 上下文压缩摘要（覆盖到 summary_upto 的历史）
+    summary_upto TEXT NOT NULL DEFAULT '',   -- 摘要水位：agent_messages.created_at
+    created_at   TEXT NOT NULL,
+    updated_at   TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_agent_conversations_updated ON agent_conversations(updated_at);
+
+CREATE TABLE IF NOT EXISTS agent_messages (
+    id               TEXT PRIMARY KEY,
+    conversation_id  TEXT NOT NULL,
+    role             TEXT NOT NULL,          -- user|assistant
+    content          TEXT NOT NULL DEFAULT '',
+    steps            TEXT NOT NULL DEFAULT '[]', -- [{name, ok, summary}]
+    created_at       TEXT NOT NULL,
+    FOREIGN KEY (conversation_id) REFERENCES agent_conversations(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_agent_messages_conv ON agent_messages(conversation_id, created_at);
 """
 
 

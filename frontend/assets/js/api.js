@@ -544,6 +544,19 @@ export const cleanupOpsTask = (id, payload = {}) =>
 /* ------------------------------------------------------------------ */
 export const listAgentTools = () => get('/agent/tools');
 
+/* 管理助手会话（服务端持久化） */
+export const listAgentConversations = (limit = 30) =>
+  get('/agent/conversations', { limit }, { skipAuthToast: true });
+export const getAgentConversation = (id) =>
+  get(`/agent/conversations/${encodeURIComponent(id)}`, undefined, { skipAuthToast: true });
+export const renameAgentConversation = (id, title) =>
+  request('PATCH', `/agent/conversations/${encodeURIComponent(id)}`, { body: { title } });
+export const deleteAgentConversation = (id) =>
+  del(`/agent/conversations/${encodeURIComponent(id)}`);
+/** 回滚：删除该消息及其之后（仅回退上下文，不撤销已执行的工具操作）。 */
+export const rewindAgentConversation = (id, messageId) =>
+  post(`/agent/conversations/${encodeURIComponent(id)}/rewind`, { message_id: messageId });
+
 /** SSE 流式管理助手对话；返回 done 事件的完整结果（reply/steps）。 */
 export async function sendAgentStream(payload, { onTool, onToolResult, onDelta, signal } = {}) {
   const headers = withAdminToken({ 'Content-Type': 'application/json' });
