@@ -48,26 +48,26 @@
       <nav class="nav" id="nav">
         <div class="nav-group">
           <span class="nav-group-label">使用</span>
-          <a class="nav-item" href="#/chat" data-view="chat">
+          <a class="nav-item" href="#/chat" data-view="chat" title="对话">
             <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-chat"></use></svg></span>
             <span class="nav-label">对话</span>
           </a>
-          <a class="nav-item" href="#/knowledge" data-view="knowledge">
+          <a class="nav-item" href="#/knowledge" data-view="knowledge" title="知识库">
             <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-book"></use></svg></span>
             <span class="nav-label">知识库</span>
           </a>
         </div>
         <div class="nav-group">
           <span class="nav-group-label">管理</span>
-          <a class="nav-item" href="#/kb-admin" data-view="kb-admin">
+          <a class="nav-item" href="#/kb-admin" data-view="kb-admin" title="知识库管理">
             <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-database"></use></svg></span>
             <span class="nav-label">知识库管理</span>
           </a>
-          <a class="nav-item" href="#/ops" data-view="ops">
+          <a class="nav-item" href="#/ops" data-view="ops" title="运维管理">
             <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-terminal"></use></svg></span>
             <span class="nav-label">运维管理</span>
           </a>
-          <a class="nav-item" href="#/settings" data-view="settings">
+          <a class="nav-item" href="#/settings" data-view="settings" title="设置">
             <span class="nav-ico"><svg class="i" aria-hidden="true"><use href="#i-settings"></use></svg></span>
             <span class="nav-label">设置</span>
           </a>
@@ -101,7 +101,7 @@
     <!-- ============================ 右侧主区 ============================ -->
     <div class="shell">
       <header class="topbar">
-        <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="打开导航">
+        <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="切换导航" aria-controls="sidebar">
           <svg class="i" aria-hidden="true"><use href="#i-menu"></use></svg>
         </button>
         <div class="topbar-title">
@@ -110,7 +110,7 @@
         </div>
         <div class="topbar-actions" id="topbarActions"></div>
         <button class="icon-btn agent-toggle" id="agentToggle" type="button" aria-label="打开管理助手" aria-expanded="false" aria-controls="agentPanel" hidden>
-          <svg class="i" aria-hidden="true"><use href="#i-sparkles"></use></svg>
+          <svg class="i" aria-hidden="true"><use href="#i-sparkles"></use></svg><span>管理助手</span>
         </button>
       </header>
       <div class="shell-main">
@@ -120,8 +120,9 @@
             <p>正在加载页面…</p>
           </div>
         </main>
+        <div class="agent-backdrop" id="agentBackdrop" hidden></div>
         <aside class="agent-panel" id="agentPanel" hidden aria-label="管理助手">
-          <div class="agent-resize" id="agentResize" aria-hidden="true" title="拖动调节宽度，双击复位"></div>
+          <div class="agent-resize" id="agentResize" role="separator" tabindex="0" aria-label="调整助手宽度" aria-orientation="vertical" aria-valuemin="320" aria-valuemax="720" aria-valuenow="360" title="拖动调节宽度，双击复位"></div>
           <header class="agent-head">
             <div class="agent-head-title">
               <svg class="i" aria-hidden="true"><use href="#i-sparkles"></use></svg>
@@ -157,16 +158,23 @@
             </div>
             <div class="agent-drawer-body" id="agentConvList"></div>
           </div>
-          <div class="agent-body" id="agentBody"></div>
+          <div class="agent-body" id="agentBody" role="log" aria-label="管理助手消息" aria-live="off"></div>
+          <button class="btn btn-ghost btn-sm agent-latest" id="agentLatest" type="button" hidden>回到最新内容 ↓</button>
           <form class="agent-composer" id="agentForm">
-            <button class="icon-btn agent-attach" id="agentAttach" type="button" aria-label="上传文件到知识库" title="上传文件到知识库（后台编译为词条）" hidden>
-              <svg class="i" aria-hidden="true"><use href="#i-upload"></use></svg>
-            </button>
-            <textarea id="agentInput" rows="2" placeholder="例如：现在有多少未处理的知识缺口？" aria-label="向管理助手提问"></textarea>
-            <button class="btn btn-primary agent-send" id="agentSend" type="submit" aria-label="发送">
-              <svg class="i" aria-hidden="true"><use href="#i-send"></use></svg>
-            </button>
+            <textarea id="agentInput" rows="3" placeholder="描述要处理的事，或添加资料附件…" aria-label="向管理助手提问"></textarea>
+            <div class="agent-composer-toolbar">
+              <button class="btn btn-ghost btn-sm agent-attach" id="agentAttach" type="button" aria-label="上传文件到知识库" title="上传文件到知识库（后台编译为词条）" hidden>
+                <svg class="i" aria-hidden="true"><use href="#i-plus"></use></svg><span>添加附件</span>
+              </button>
+              <div class="agent-composer-actions">
+                <button class="btn btn-ghost btn-sm agent-stop" id="agentStop" type="button" hidden aria-label="停止等待" title="停止等待，已执行工具不会撤销">停止</button>
+                <button class="btn btn-primary btn-sm agent-send" id="agentSend" type="submit" aria-label="发送">
+                  <svg class="i" aria-hidden="true"><use href="#i-send"></use></svg><span>发送</span>
+                </button>
+              </div>
+            </div>
           </form>
+          <p class="agent-composer-note">Enter 发送 · Shift + Enter 换行 · 附件收录至知识库</p>
           <input type="file" id="agentFiles" multiple hidden />
         </aside>
       </div>

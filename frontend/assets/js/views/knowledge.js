@@ -9,6 +9,7 @@
  *
  * 接口：/api/wiki/*、/api/knowledge/*
  */
+import { openScanFolderModal } from '../scan-folder.js';
 import {
   deleteDocument,
   deleteWikiPage,
@@ -100,6 +101,7 @@ const state = {
   pagesLoading: false,
   pagesError: '',
   activeTag: '',
+  tagsExpanded: false,
   search: { query: '', running: false, result: null, error: '' },
   docs: [],
   docsLoaded: false,
@@ -369,19 +371,15 @@ function renderTagFilter() {
     return;
   }
   holder.hidden = false;
-  const total = state.tree.reduce((sum, group) => sum + Number(group.count || 0), 0);
-  holder.innerHTML = `<button class="tag-filter-item ${state.activeTag ? '' : 'is-active'}" type="button" data-action="filter-tag" data-tag="">全部<b>${fmtNumber(
-    total,
-  )}</b></button>${state.tree
-    .map(
-      (group) =>
-        `<button class="tag-filter-item ${
-          state.activeTag === group.tag ? 'is-active' : ''
-        }" type="button" data-action="filter-tag" data-tag="${esc(group.tag)}">${esc(group.tag)}<b>${fmtNumber(
-          group.count || 0,
-        )}</b></button>`,
-    )
-    .join('')}`;
+  holder.classList.add('tag-filter-compact');
+  holder.innerHTML = `<div class="tag-filter-bar">
+    <button class="tag-filter-toggle" type="button" data-action="toggle-tags" aria-expanded="${state.tagsExpanded}" aria-controls="tagOptions">${icon('search')}<span>关键词筛选</span><span class="muted">${state.tree.length}</span>${icon('chevron-down')}</button>
+    ${state.activeTag ? `<button class="tag-filter-selection" type="button" data-action="filter-tag" data-tag="" aria-label="清除关键词 ${esc(state.activeTag)}">${esc(state.activeTag)} ${icon('x')}</button>` : '<span class="tag-filter-hint">按需展开，快速定位主题</span>'}
+    </div>
+    <div class="tag-filter-options" id="tagOptions" ${state.tagsExpanded ? '' : 'hidden'}>
+      <button class="tag-filter-item ${state.activeTag ? '' : 'is-active'}" type="button" data-action="filter-tag" data-tag="">全部</button>
+      ${state.tree.map((group) => `<button class="tag-filter-item ${state.activeTag === group.tag ? 'is-active' : ''}" type="button" data-action="filter-tag" data-tag="${esc(group.tag)}">${esc(group.tag)}<b>${fmtNumber(group.count || 0)}</b></button>`).join('')}
+    </div>`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -405,7 +403,7 @@ function pageCardHtml(page) {
     </div>
     <p class="wiki-summary">${esc(page.summary || '暂无摘要，点击查看正文与来源。')}</p>
     <div class="wiki-card-foot">
-      <div class="wiki-tags">${tagChips(page.tags)}</div>
+      <div class="wiki-tags">${tagChips(page.tags, 2)}${normalizeList(page.tags).length > 2 ? `<span class="tag-more" title="${esc(normalizeList(page.tags).slice(2).join('、'))}">+${normalizeList(page.tags).length - 2}</span>` : ''}</div>
       <span class="wiki-meta">${fmtNumber(page.source_count || 0)} 个来源 · ${esc(fmtRelative(page.updated_at))}</span>
     </div>
   </article>`;
@@ -474,7 +472,7 @@ function renderSearchResult() {
                 .join('')}</div></div>`
             : ''
         }`
-      : `<div class="search-hint">${icon('search')}<p>未命中任何词条</p><span>换个说法，或先在「源文件」Tab 上传 / 导入快照。</span></div>`;
+      : `<div class="search-hint">${icon('search')}<p>未命中任何词条</p><span>试试更短的关键词，或清除搜索浏览全部词条。</span></div>`;
   holder.innerHTML = `<div class="card search-result-card">
     <header class="search-result-head">
       <div class="search-result-title">
@@ -504,6 +502,10 @@ function renderPages() {
     body.innerHTML = loadingHtml('正在加载 Wiki 词条…');
     return;
   }
+  if (!state.pages.length && state.activeTag) {
+    body.innerHTML = emptyHtml({ icon: 'search', title: '当前筛选下没有词条', desc: '试试其他标签，或浏览全部词条。', action: '<button class="btn btn-ghost" type="button" data-action="clear-search">清空筛选</button>' });
+    return;
+  }
   if (!state.pages.length) {
     body.innerHTML = state.readOnly
       ? emptyHtml({
@@ -525,20 +527,23 @@ function renderPages() {
         });
     return;
   }
-  body.innerHTML = `<div class="wiki-grid">${state.pages.map(pageCardHtml).join('')}</div>
+  body.innerHTML = `<div class="list-result-count">${state.pages.length} 个词条${state.activeTag ? ` · ${esc(state.activeTag)}` : ''}</div><div class="wiki-grid">${state.pages.map(pageCardHtml).join('')}</div>
     <p class="table-note">${icon(
       'info',
     )} 词条由 LLM 从源文件编译生成，点击进入详情可查看「文件 · 章节 · 原文摘录」来源锚点。</p>`;
 }
 
 async function runWikiSearch(query) {
-  state.search = { query, running: true, result: null, error: '' };
+  const request = { query, running: true, result: null, error: '' };
+  state.search = request;
   renderPages();
   try {
     const data = await searchWiki(query);
+    if (state.search !== request) return;
     state.search = { query, running: false, result: data || {}, error: '' };
     renderPages();
   } catch (err) {
+    if (state.search !== request) return;
     state.search = { query, running: false, result: null, error: err?.message || '搜索失败' };
     renderPages();
     toast(state.search.error, 'error');
@@ -1367,6 +1372,7 @@ export function mountManage(root, context = {}) {
   const embed = context?.query?.get('embed') === '1';
   const requestedTab = context?.query?.get('tab');
   state.readOnly = false;
+  state.tagsExpanded = false;
   state.manageTab = ['pages', 'sources'].includes(requestedTab) ? requestedTab : 'pages';
   state.tab = 'pages';
   state.docsFilter = '';
@@ -1393,6 +1399,7 @@ export function mountManage(root, context = {}) {
       <section class="card manage-toolbar-card">
         <div class="manage-toolbar">
           <button class="btn btn-primary btn-sm" type="button" data-action="pick-file">${icon('upload')}<span>上传源文件</span></button>
+          <button class="btn btn-ghost btn-sm" type="button" data-action="scan-dir">${icon('folder')}<span>扫描文件夹</span></button>
           <button class="btn btn-ghost btn-sm" type="button" data-action="seed">${icon('download')}<span>导入快照</span></button>
           <button class="btn btn-ghost btn-sm" type="button" data-action="refresh-docs">${icon('refresh')}<span>刷新</span></button>
           <input class="input docs-filter" id="docsFilter" type="search" placeholder="按标题 / 文件名过滤" aria-label="过滤源文件" />
@@ -1491,7 +1498,15 @@ export function mountManage(root, context = {}) {
         loadTree();
         loadStats();
         break;
+      case 'toggle-tags':
+        state.tagsExpanded = !state.tagsExpanded;
+        renderTagFilter();
+        page.querySelector('[data-action="toggle-tags"]')?.focus();
+        break;
       case 'filter-tag':
+        state.tagsExpanded = false;
+        state.search = { query: '', running: false, result: null, error: '' };
+        if (searchInput) searchInput.value = '';
         state.activeTag = trigger.dataset.tag || '';
         renderTagFilter();
         loadPages();
@@ -1500,12 +1515,18 @@ export function mountManage(root, context = {}) {
         openWikiPage(trigger.dataset.id);
         break;
       case 'clear-search':
+        state.activeTag = '';
+        renderTagFilter();
+        loadPages();
         state.search = { query: '', running: false, result: null, error: '' };
         if (searchInput) searchInput.value = '';
         renderPages();
         break;
       case 'seed':
         runSeed(trigger);
+        break;
+      case 'scan-dir':
+        void openScanFolderModal();
         break;
       case 'pick-file':
         pickFile();
@@ -1579,6 +1600,7 @@ export function mount(root, context = {}) {
   let alive = true;
   const initialPageId = context?.query?.get('page') || '';
   state.readOnly = true;
+  state.tagsExpanded = false;
   state.tab = 'pages';
   state.search = { query: '', running: false, result: null, error: '' };
   state.build = null;
@@ -1616,7 +1638,15 @@ export function mount(root, context = {}) {
     if (!trigger || !page.contains(trigger)) return;
     const action = trigger.dataset.action;
     switch (action) {
+      case 'toggle-tags':
+        state.tagsExpanded = !state.tagsExpanded;
+        renderTagFilter();
+        page.querySelector('[data-action="toggle-tags"]')?.focus();
+        break;
       case 'filter-tag':
+        state.tagsExpanded = false;
+        state.search = { query: '', running: false, result: null, error: '' };
+        if (searchInput) searchInput.value = '';
         state.activeTag = trigger.dataset.tag || '';
         renderTagFilter();
         loadPages();
@@ -1625,6 +1655,9 @@ export function mount(root, context = {}) {
         openWikiPage(trigger.dataset.id);
         break;
       case 'clear-search':
+        state.activeTag = '';
+        renderTagFilter();
+        loadPages();
         state.search = { query: '', running: false, result: null, error: '' };
         if (searchInput) searchInput.value = '';
         renderPages();

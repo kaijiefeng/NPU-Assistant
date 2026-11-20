@@ -1,17 +1,17 @@
 /**
- * views/kb-admin.js — 知识库管理（macOS 设置页式布局）
+ * views/kb-admin.js — 知识库管理（任务分组导航）
  *
- * 左侧分组子导航（内容管理 / 服务台），右侧内容区。子页面以「外部投射」
- * 模式挂载（隐藏各自内部 tab，由本页子导航控制当前页）——整个应用层级
- * 始终只有两级：全局侧栏 + 页内子导航，不再是 tab 套 tab。
+ * 顶部按内容资料、服务台分组，当前组用选择器切换子页。
  */
 import { getAuthMe } from '../api.js';
+import { mountHubNavigation } from '../hub-navigation.js';
 import { esc, loadingHtml, toast } from '../ui.js';
 
-function deskItem(key, label) {
+function deskItem(key, label, section = '') {
   return {
     key,
     label,
+    section,
     permission: 'insights:read',
     module: () => import('./insights.js'),
     query: { section: key, embed: '1' },
@@ -20,7 +20,8 @@ function deskItem(key, label) {
 
 const GROUPS = [
   {
-    label: '内容管理',
+    key: 'content',
+    label: '内容资料',
     items: [
       {
         key: 'pages',
@@ -41,15 +42,16 @@ const GROUPS = [
     ],
   },
   {
+    key: 'desk',
     label: '服务台',
     items: [
       deskItem('overview', '概览'),
-      deskItem('handoffs', '待人工'),
-      deskItem('crisis', '危机'),
-      deskItem('gaps', '知识缺口'),
-      deskItem('feedback', '反馈'),
-      deskItem('freshness', '时效'),
-      deskItem('subscriptions', '订阅发现'),
+      deskItem('handoffs', '待人工', '人工处置'),
+      deskItem('crisis', '危机', '人工处置'),
+      deskItem('gaps', '知识缺口', '知识维护'),
+      deskItem('subscriptions', '订阅发现', '知识维护'),
+      deskItem('freshness', '时效', '知识维护'),
+      deskItem('feedback', '反馈', '知识维护'),
     ],
   },
 ];
@@ -65,26 +67,6 @@ function allowedGroups(me) {
   })).filter((group) => group.items.length);
 }
 
-function navHtml(groups, current) {
-  return groups
-    .map(
-      (group) => `<div class="hub-nav-group">
-        <span class="hub-nav-label">${esc(group.label)}</span>
-        ${group.items
-          .map(
-            (item) =>
-              `<button class="hub-nav-item ${
-                item.key === current ? 'is-active' : ''
-              }" type="button" data-hub-item="${esc(item.key)}" aria-current="${
-                item.key === current ? 'page' : 'false'
-              }">${esc(item.label)}</button>`,
-          )
-          .join('')}
-      </div>`,
-    )
-    .join('');
-}
-
 function writeHash(key) {
   const hash = key === 'pages' ? '#/kb-admin' : `#/kb-admin?tab=${key}`;
   history.replaceState(null, '', hash);
@@ -94,9 +76,11 @@ export async function mount(root, options = {}) {
   let alive = true;
   let current = null;
   let cleanup = null;
+  let switchToken = 0;
+  let navigation = null;
 
   root.innerHTML = `<div class="page hub-page settings-shell" id="kbAdminHub">
-    <aside class="hub-subnav" id="kbSubnav">${loadingHtml('加载中…', 'state-compact')}</aside>
+    <nav class="hub-navigation" id="kbSubnav">${loadingHtml('加载中…', 'state-compact')}</nav>
     <div class="hub-content" id="kbContent">${loadingHtml('正在加载知识库管理…')}</div>
   </div>`;
   const nav = root.querySelector('#kbSubnav');
@@ -123,13 +107,15 @@ export async function mount(root, options = {}) {
   }
 
   const allItems = groups.flatMap((group) => group.items);
-  const requested = options.query?.get('tab');
+  const legacy = options.query?.get('tab');
+  const requested = ({ content: 'pages', desk: 'overview' })[legacy] || legacy;
   current = allItems.some((item) => item.key === requested) ? requested : allItems[0].key;
-  nav.innerHTML = navHtml(groups, current);
+  navigation = mountHubNavigation(nav, { groups, current, label: '知识管理导航', onSelect: (key) => { void switchItem(key); } });
 
   async function switchItem(key, { updateHash = true } = {}) {
     const item = allItems.find((entry) => entry.key === key);
     if (!item) return;
+    const token = ++switchToken;
     if (typeof cleanup === 'function') {
       try {
         cleanup();
@@ -140,25 +126,25 @@ export async function mount(root, options = {}) {
     cleanup = null;
     current = key;
     if (updateHash) writeHash(key);
-    nav.querySelectorAll('[data-hub-item]').forEach((button) => {
-      const active = button.dataset.hubItem === key;
-      button.classList.toggle('is-active', active);
-      button.setAttribute('aria-current', active ? 'page' : 'false');
-    });
+    navigation.update(key);
     content.innerHTML = loadingHtml('正在加载…');
 
     try {
       const module = await item.module();
-      if (!alive || current !== key) return;
+      if (!alive || token !== switchToken) return;
       const mountName = item.mountName || 'mount';
       const mountFn = typeof module[mountName] === 'function' ? module[mountName] : module.mount;
-      const result = mountFn?.(content, {
+      const result = await mountFn?.(content, {
         query: new URLSearchParams(item.query || {}),
         canManage: true,
       });
+      if (!alive || token !== switchToken) {
+        if (typeof result === 'function') result();
+        return;
+      }
       cleanup = typeof result === 'function' ? result : null;
     } catch (err) {
-      if (!alive || current !== key) return;
+      if (!alive || token !== switchToken) return;
       content.innerHTML = `<div class="state state-error"><h3>页面加载失败</h3><p>${esc(
         err?.message || '请稍后重试',
       )}</p></div>`;
@@ -166,15 +152,11 @@ export async function mount(root, options = {}) {
     }
   }
 
-  nav.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-hub-item]');
-    if (button) void switchItem(button.dataset.hubItem);
-  });
-
   await switchItem(current, { updateHash: false });
 
   return () => {
     alive = false;
+    navigation?.destroy();
     if (typeof cleanup === 'function') {
       try {
         cleanup();

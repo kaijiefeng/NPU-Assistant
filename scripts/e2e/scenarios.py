@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 from pathlib import Path
 
@@ -45,6 +46,23 @@ async def _confirm(ctx: Context) -> None:
 
 async def _goto(ctx: Context, path: str) -> None:
     await ctx.browser.goto(f"{ctx.sandbox.base_url()}/{path}")
+    await ctx.browser.wait_dom_quiet()
+
+
+async def _settings_page(ctx: Context, key: str) -> None:
+    """通过分组与当前组选择器进入设置子页。"""
+    groups = {
+        "assistant": "assistant", "security": "assistant", "reply": "assistant",
+        "models": "models", "providers": "models", "bots": "bots",
+        "console": "bots", "bot-logs": "bots", "members": "account", "account": "account",
+    }
+    group = groups[key]
+    await ctx.browser.click(f'[data-hub-group="{group}"]')
+    await ctx.browser.evaluate(
+        "(() => { const select = document.querySelector('[data-hub-select]');"
+        f" if (select) {{ select.value = {json.dumps(key)};"
+        " select.dispatchEvent(new Event('change', {bubbles:true})); } })()"
+    )
     await ctx.browser.wait_dom_quiet()
 
 
@@ -139,9 +157,9 @@ async def knowledge_upload(ctx: Context) -> None:
 async def settings_pages(ctx: Context) -> None:
     async with ctx.step("打开设置页"):
         await _goto(ctx, "#/settings")
-        await ctx.expect_text("助手设置")
+        await ctx.expect_text("基础设置")
     async with ctx.step("切换到模型管理"):
-        await ctx.browser.click('[data-settings-tab="models"]')
+        await _settings_page(ctx, "models")
         await ctx.expect_text("Provider", timeout=15)
     async with ctx.step("模型列表出现 E2E Mock"):
         text = await ctx.browser.text()
@@ -413,7 +431,7 @@ async def models_crud(ctx: Context) -> None:
     async with ctx.step("打开 Provider 标签"):
         await _fresh(ctx, "#/settings?tab=models")
         await ctx.expect_text("Provider", timeout=20)
-        await ctx.browser.click('[data-action="models-tab"][data-tab="providers"]')
+        await _settings_page(ctx, "providers")
         await ctx.browser.wait_for_selector('[data-action="add-provider"]', timeout=15)
     async with ctx.step("新增 Provider"):
         await ctx.browser.click('[data-action="add-provider"]')
@@ -433,7 +451,7 @@ async def models_crud(ctx: Context) -> None:
         await _modal_submit(ctx)
         await asyncio.sleep(1.2)
     async with ctx.step("新增并测试模型"):
-        await ctx.browser.click('[data-action="models-tab"][data-tab="models"]')
+        await _settings_page(ctx, "models")
         await ctx.browser.wait_for_selector('[data-action="add-model"]', timeout=15)
         await ctx.browser.click('[data-action="add-model"]')
         await ctx.browser.wait_for_selector("#modelForm", timeout=10)
@@ -460,10 +478,10 @@ async def models_crud(ctx: Context) -> None:
         await ctx.browser.click('[data-action="delete-model"]')
         await _confirm(ctx)
         await asyncio.sleep(0.8)
-        await ctx.browser.click('[data-action="models-tab"][data-tab="providers"]')
+        await _settings_page(ctx, "providers")
         if not await ctx.browser.wait_for_selector('[data-action="delete-provider"]', timeout=8):
             await _fresh(ctx, "#/settings?tab=models")
-            await ctx.browser.click('[data-action="models-tab"][data-tab="providers"]')
+            await _settings_page(ctx, "providers")
             await ctx.browser.wait_for_selector('[data-action="delete-provider"]', timeout=15)
         await ctx.browser.click('[data-action="delete-provider"]')
         await _confirm(ctx)
@@ -549,10 +567,10 @@ async def team_account(ctx: Context) -> None:
         await _ensure_login(ctx)
         for _ in range(4):
             await _goto(ctx, "#/settings")
-            if await ctx.browser.wait_for_selector('[data-settings-tab="members"]', timeout=6):
+            if await ctx.browser.wait_for_selector('[data-hub-group="account"]', timeout=6):
                 break
             await asyncio.sleep(1.5)
-        await ctx.browser.click('[data-settings-tab="members"]')
+        await _settings_page(ctx, "members")
         await ctx.browser.wait_for_selector('[data-testid="user-add"]', timeout=20)
     async with ctx.step("新增并删除成员"):
         await ctx.browser.click('[data-testid="user-add"]')
@@ -587,7 +605,7 @@ async def bots_console(ctx: Context) -> None:
     async with ctx.step("打开机器人页"):
         await _fresh(ctx, "#/settings?tab=bots")
         await ctx.expect_text("机器人", timeout=20)
-        await ctx.browser.click('[data-action="bots-tab"][data-tab="channels"]')
+        await _settings_page(ctx, "bots")
     async with ctx.step("新增微信公众号通道"):
         await ctx.browser.click('[data-action="add-channel"]')
         await ctx.browser.wait_for_selector("#channelForm", timeout=10)
@@ -623,7 +641,7 @@ async def bots_console(ctx: Context) -> None:
         await asyncio.sleep(1.5)
         await ctx.browser.click('[data-action="clear-console"]')
     async with ctx.step("查看日志并清空管理员绑定"):
-        await ctx.browser.click('[data-action="bots-tab"][data-tab="logs"]')
+        await _settings_page(ctx, "bot-logs")
         if not await ctx.browser.wait_for_selector('[data-action="refresh-logs"]', timeout=5):
             await ctx.browser.evaluate(
                 "(() => { document.querySelectorAll('#botsChannelsPanel,#botsConsolePanel').forEach(p => p.hidden = true);"
@@ -631,7 +649,7 @@ async def bots_console(ctx: Context) -> None:
             )
             await ctx.browser.wait_for_selector('[data-action="refresh-logs"]', timeout=10)
         await ctx.browser.click('[data-action="refresh-logs"]')
-        await ctx.browser.click('[data-action="bots-tab"][data-tab="channels"]')
+        await _settings_page(ctx, "bots")
         await ctx.browser.click('[data-action="clear-admin"]')
         await asyncio.sleep(0.6)
     async with ctx.step("删除通道"):
@@ -648,11 +666,11 @@ async def bots_console(ctx: Context) -> None:
 async def settings_quick(ctx: Context) -> None:
     async with ctx.step("打开设置并切换安全页"):
         await _fresh(ctx, "#/settings")
-        await ctx.expect_text("助手设置", timeout=20)
-        await ctx.browser.click('[data-testid="settings-tab-security"]')
+        await ctx.expect_text("基础设置", timeout=20)
+        await _settings_page(ctx, "security")
         await asyncio.sleep(0.8)
     async with ctx.step("新增/删除快捷问题"):
-        await ctx.browser.click('[data-action="settings-tab"][data-tab="basic"]')
+        await _settings_page(ctx, "assistant")
         await ctx.browser.click('[data-action="add-quick"]')
         await asyncio.sleep(0.5)
         inputs = await ctx.browser.evaluate("document.querySelectorAll('#quickList input').length")
@@ -660,7 +678,9 @@ async def settings_quick(ctx: Context) -> None:
         await ctx.browser.type("#quickList input", "E2E 快捷问题")
         await ctx.browser.click('[data-action="remove-quick"]')
     async with ctx.step("打开手机扫码弹窗"):
-        await ctx.browser.click('[data-testid="settings-tab-security"]')
+        if await ctx.browser.evaluate("Boolean(document.getElementById('resetBtn') && !document.getElementById('resetBtn').disabled)"):
+            await ctx.browser.click("#resetBtn")
+        await _settings_page(ctx, "security")
         if not await ctx.browser.wait_for_selector('[data-action="open-mobile-access"]', timeout=5):
             await ctx.browser.evaluate(
                 "(() => { const p = document.getElementById('settingsSecurityPanel');"
@@ -694,7 +714,7 @@ async def settings_account(ctx: Context) -> None:
         await _fresh(ctx, "#/settings?tab=account")
         if not await ctx.browser.wait_for_text("我的账号", timeout=8):
             await ctx.browser.evaluate(
-                "document.querySelector('[data-settings-tab=\'account\']')?.click()"
+                "document.querySelector('[data-hub-group=\'account\']')?.click()"
             )
             await ctx.browser.expect_text("账号", timeout=10) if False else None
             await ctx.browser.wait_for_text("账号", timeout=10)
@@ -856,21 +876,15 @@ async def jobs_actions(ctx: Context) -> None:
 )
 async def insights_tabs(ctx: Context) -> None:
     async with ctx.step("打开服务台并刷新"):
-        await _fresh(ctx, "#/ops?tab=desk")
+        await _fresh(ctx, "#/kb-admin?tab=overview")
         await ctx.expect_text("服务台", timeout=20)
         await ctx.browser.click('[data-action="insights-reload"]')
         await asyncio.sleep(1.0)
-    async with ctx.step("切换服务台标签"):
-        tabs = await ctx.browser.evaluate(
-            "Array.from(document.querySelectorAll('[data-action=\\'insights-tab\\']'))"
-            ".map(n => n.dataset.tab)"
-        ) or []
-        for key in tabs[1:4]:
-            await ctx.browser.evaluate(
-                "(() => { const b = document.querySelector('[data-action=\\'insights-tab\\'][data-tab=\\'%s\\']');"
-                " if (b) b.click(); })()" % key
-            )
-            await asyncio.sleep(0.8)
+    async with ctx.step("切换服务台子页"):
+        for key in ["handoffs", "crisis", "feedback", "gaps", "freshness", "subscriptions"]:
+            await _goto(ctx, f"#/kb-admin?tab={key}")
+            await ctx.browser.wait_for_selector(".desk-board", timeout=15)
+
 
 @scenario(
     "insights.actions",
@@ -902,38 +916,40 @@ async def insights_actions(ctx: Context) -> None:
         )
         await asyncio.sleep(1.0)
     async with ctx.step("打开服务台并刷新"):
-        await _fresh(ctx, "#/ops?tab=desk")
+        await _fresh(ctx, "#/kb-admin?tab=overview")
         await ctx.expect_text("服务台", timeout=20)
         await ctx.browser.click('[data-action="insights-reload"]')
         await asyncio.sleep(1.5)
     async with ctx.step("工单：认领/复制/回复/解决"):
-        await ctx.browser.evaluate("document.querySelector('[data-action=\\'insights-tab\\'][data-tab=\\'handoffs\\']')?.click()")
+        await _goto(ctx, "#/kb-admin?tab=handoffs")
         await ctx.browser.wait_for_selector('[data-action="handoff-claim"]', timeout=15)
         await ctx.browser.click('[data-action="handoff-claim"]')
         await asyncio.sleep(0.8)
+        await ctx.browser.click(".desk-row summary")
         await ctx.browser.click('[data-action="handoff-copy"]')
         await ctx.browser.click('[data-action="handoff-reply"]')
         await ctx.browser.wait_for_selector("textarea", timeout=10)
         await ctx.browser.type("textarea", "E2E 工单回复内容")
-        await _modal_submit(ctx)
+        await ctx.browser.click('.modal form button[type="submit"]')
         await asyncio.sleep(1.0)
         await ctx.browser.click('[data-action="handoff-resolve"]')
         await _confirm(ctx)
     async with ctx.step("危机事件状态"):
-        await ctx.browser.evaluate("document.querySelector('[data-action=\\'insights-tab\\'][data-tab=\\'crisis\\']')?.click()")
+        await _goto(ctx, "#/kb-admin?tab=crisis")
         await ctx.browser.wait_for_selector('[data-action="crisis-status"]', timeout=15)
         await ctx.browser.click('[data-action="crisis-status"]')
         await asyncio.sleep(0.8)
     async with ctx.step("知识缺口处理"):
-        await ctx.browser.evaluate("document.querySelector('[data-action=\\'insights-tab\\'][data-tab=\\'gaps\\']')?.click()")
+        await _goto(ctx, "#/kb-admin?tab=gaps")
         await ctx.browser.wait_for_selector('[data-action="gap-resolve"]', timeout=15)
+        await ctx.browser.click(".desk-row summary")
         await ctx.browser.click('[data-action="gap-copy"]')
         await ctx.browser.click('[data-action="gap-resolve"]')
         await asyncio.sleep(0.8)
         if await ctx.browser.wait_for_selector('[data-action="gap-ignore"]', timeout=5):
             await ctx.browser.click('[data-action="gap-ignore"]')
     async with ctx.step("反馈处理"):
-        await ctx.browser.evaluate("document.querySelector('[data-action=\\'insights-tab\\'][data-tab=\\'feedback\\']')?.click()")
+        await _goto(ctx, "#/kb-admin?tab=feedback")
         await ctx.browser.wait_for_selector('[data-action="feedback-resolve"]', timeout=15)
         await ctx.browser.click('[data-action="feedback-resolve"]')
         await asyncio.sleep(0.8)
@@ -1121,11 +1137,11 @@ async def mobile_settings(ctx: Context) -> None:
     async with ctx.step("移动端设置与模型页"):
         await ctx.browser.set_viewport(390, 844, mobile=True)
         await _fresh(ctx, "#/settings")
-        await ctx.expect_text("助手设置")
-        await ctx.browser.tap('[data-action="settings-tab"][data-tab="basic"]')
+        await ctx.expect_text("基础设置")
+        await _settings_page(ctx, "assistant")
         await _goto(ctx, "#/settings?tab=models")
-        await ctx.browser.wait_for_selector('[data-action="models-tab"]', timeout=20)
-        await ctx.browser.tap('[data-action="models-tab"][data-tab="providers"]')
+        await ctx.browser.wait_for_selector('[data-hub-group="models"]', timeout=20)
+        await _settings_page(ctx, "providers")
         await asyncio.sleep(0.8)
         await _assert_no_overflow(ctx, "移动端模型页")
 

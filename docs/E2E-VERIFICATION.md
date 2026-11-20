@@ -75,7 +75,7 @@
 | `errors.retry` | 词条详情加载失败重试、设置加载失败重试 |
 
 
-覆盖度量：`coverage.json` 静态盘点各 view 的 `data-action`（当前 114 个），按场景 `covers` 统计，且只计入未失败场景。**当前动作覆盖率 100%（114/114）**，缺口按 view 列在 `coverage.json`；截图证据与逐场景覆盖表见 [E2E-COVERAGE.md](E2E-COVERAGE.md)（由 `--publish` 生成，截图在 `docs/screenshots/e2e/`）。
+覆盖度量：`coverage.json` 静态盘点各 view 的 `data-action`（当前 114 个），按场景 `covers` 统计，且只计入未失败场景。**当前动作覆盖率 100%（114/114）**，缺口按 view 列在 `coverage.json`；逐场景覆盖表见 [E2E-COVERAGE.md](E2E-COVERAGE.md)。截图只在本地生成（`docs/screenshots/e2e/` 已加入 `.gitignore`），不随仓库提交。
 
 ## 5. 确定性模型
 
@@ -107,7 +107,7 @@
 .\scripts\e2e.ps1 -Publish
 ```
 
-运行后把每一步截图复制到 `docs/screenshots/e2e/<场景>/`，并生成 [E2E-COVERAGE.md](E2E-COVERAGE.md)：场景状态、覆盖动作、可点击截图链接。
+运行后把每一步截图复制到 `docs/screenshots/e2e/<场景>/`（本地证据，已 gitignore），并生成 [E2E-COVERAGE.md](E2E-COVERAGE.md)：场景状态与覆盖动作摘要，不含截图链接。
 
 ## 10. 引擎单测
 

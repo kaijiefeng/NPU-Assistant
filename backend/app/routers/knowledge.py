@@ -25,11 +25,12 @@ import logging
 import mimetypes
 from pathlib import Path
 
-from fastapi import APIRouter, File, Form, HTTPException, Query, Response, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from .. import config, db
+from ..security import require_permission
 from ..services import importer, ingest, jobs, wiki_builder
 
 logger = logging.getLogger("npu-assistant")
@@ -237,8 +238,33 @@ class ScanDirRequest(BaseModel):
     )
 
 
+class ScanDirectorySetting(BaseModel):
+    path: str = Field(default="", max_length=4096)
+
+
+@router.get("/knowledge/scan-directory")
+def scan_directory_info(principal: dict = Depends(require_permission("content:write"))) -> dict:
+    return ingest.scan_directory_info()
+
+
+@router.put("/knowledge/scan-directory")
+def save_scan_directory(payload: ScanDirectorySetting, principal: dict = Depends(require_permission("content:write"))) -> dict:
+    try:
+        return ingest.save_scan_directory(payload.path)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/knowledge/scan-directory/preview")
+def preview_scan_directory(payload: ScanDirRequest, principal: dict = Depends(require_permission("content:write"))) -> dict:
+    try:
+        return ingest.preview_scan_directory(payload.path or "", recursive=payload.recursive)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @router.post("/knowledge/scan-dir", status_code=202)
-def scan_dir(payload: ScanDirRequest) -> dict:
+def scan_dir(payload: ScanDirRequest, principal: dict = Depends(require_permission("content:write"))) -> dict:
     """扫描服务器本地文件夹并批量收录（异步任务，返回 202 + job_id）。
 
     * 仅管理员可调用（全局 ``admin_guard`` 校验）；
@@ -248,8 +274,9 @@ def scan_dir(payload: ScanDirRequest) -> dict:
     """
     try:
         limit = max(1, int(config.SCAN_MAX_FILES))
+        root = ingest.resolve_scan_directory(payload.path or "")
         listed = ingest.list_scan_files(
-            payload.path or "", recursive=payload.recursive, max_files=limit + 1
+            root, recursive=payload.recursive, max_files=limit + 1
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -264,15 +291,15 @@ def scan_dir(payload: ScanDirRequest) -> dict:
     job = jobs.create_job(
         "scan_dir",
         {
-            "path": str(payload.path or ""),
+            "path": str(root),
             "recursive": bool(payload.recursive),
             "mode": mode,
         },
-        created_by="admin",
+        created_by=str(principal.get("username") or "admin"),
     )
     message = (
         f"发现 {len(files)} 个可收录文件，已开始后台收录（模式：{mode}）；"
-        "进度可在「任务与告警」查看。"
+        "进度可在「运维管理 → 任务」查看。"
     )
     if truncated:
         message = (
@@ -282,6 +309,7 @@ def scan_dir(payload: ScanDirRequest) -> dict:
     return {
         "job_id": job["id"],
         "status": "queued",
+        "path": str(root),
         "files": len(files),
         "truncated": truncated,
         "message": message,

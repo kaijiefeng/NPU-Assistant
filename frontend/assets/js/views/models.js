@@ -646,7 +646,7 @@ async function deleteProviderItem(id) {
 /* ------------------------------------------------------------------ */
 /* 视图入口                                                            */
 /* ------------------------------------------------------------------ */
-export function mount(root) {
+export function mount(root, options = {}) {
   let alive = true;
 
   root.innerHTML = `<div class="page models-page">
@@ -703,6 +703,9 @@ export function mount(root) {
       btn.setAttribute('aria-selected', active ? 'true' : 'false');
     });
   };
+
+  switchModelsTab(options.query?.get('tab') || 'models');
+  if (options.query?.get('embed') === '1') page.querySelector('.seg-tabs').hidden = true;
 
   page.addEventListener('click', (event) => {
     const trigger = event.target.closest('[data-action]');

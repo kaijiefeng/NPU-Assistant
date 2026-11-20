@@ -40,6 +40,7 @@ backend/data/job_staging/
 # --- Local tooling / scratch ---
 .trae-html-share-packages/
 .screenshots/
+docs/screenshots/e2e/
 sources/handbook/collect/inbox/
 sources/handbook/collect/session/
 .artifacts/

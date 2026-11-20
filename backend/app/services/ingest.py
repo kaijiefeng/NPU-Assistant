@@ -522,6 +522,8 @@ def resolve_scan_directory(path: str) -> Path:
         config.ensure_dirs()
         raw = str(config.SCAN_DEFAULT_DIR)
     candidate = Path(raw).expanduser()
+    if not candidate.is_absolute():
+        candidate = config.REPO_DIR / candidate
     try:
         candidate = candidate.resolve(strict=True)
     except (OSError, RuntimeError) as exc:
@@ -587,6 +589,60 @@ def list_scan_files(
     return files
 
 
+def scan_directory_info() -> dict:
+    """供内容管理员查询目录配置；失效配置也返回来源与诊断，不泄露给公开接口。"""
+    saved = str(db.get_setting("knowledge_scan_dir") or "").strip()
+    result = {
+        "saved_path": saved,
+        "default_path": str(config.SCAN_DEFAULT_DIR),
+        "project_root": str(config.REPO_DIR),
+        "source": "saved" if saved else "default",
+        "allowed_roots": [str(Path(root).resolve()) for root in config.SCAN_ROOTS],
+        "max_files": max(1, int(config.SCAN_MAX_FILES)),
+        "max_depth": max(1, int(config.SCAN_MAX_DEPTH)),
+        "supported_extensions": sorted(config.SUPPORTED_EXTS),
+        "path_scope": "server",
+        "relative_base": "project_root",
+    }
+    try:
+        result.update(path=str(resolve_scan_directory("")), accessible=True, error="")
+    except ValueError as exc:
+        result.update(path=saved or str(config.SCAN_DEFAULT_DIR), accessible=False, error=str(exc))
+    return result
+
+
+def save_scan_directory(path: str) -> dict:
+    """保存经过边界校验的绝对目录；空值清除自定义配置，恢复默认目录。"""
+    raw = str(path or "").strip().strip('"').strip("'")
+    if raw:
+        resolved = resolve_scan_directory(raw)
+    else:
+        # 恢复默认也须先校验，失败时保留原配置。
+        resolved = resolve_scan_directory(str(config.SCAN_DEFAULT_DIR))
+    db.set_setting("knowledge_scan_dir", str(resolved) if raw else "")
+    return scan_directory_info()
+
+
+def preview_scan_directory(path: str = "", *, recursive: bool = True, sample_limit: int = 12) -> dict:
+    """只列可收录文件，不读取正文、不创建编译任务。"""
+    root = resolve_scan_directory(path)
+    limit = max(1, int(config.SCAN_MAX_FILES))
+    files = list_scan_files(root, recursive=recursive, max_files=limit + 1)
+    selected = files[:limit]
+    samples = []
+    for item in selected[:max(1, min(int(sample_limit), 30))]:
+        try:
+            size = item.stat().st_size
+        except OSError:
+            size = None
+        samples.append({"name": str(item.relative_to(root)), "size_bytes": size})
+    return {
+        "path": str(root), "recursive": bool(recursive), "files": len(selected),
+        "truncated": len(files) > limit, "samples": samples,
+        "max_files": limit, "max_depth": max(1, int(config.SCAN_MAX_DEPTH)),
+    }
+
+
 __all__ = [
     "document_to_dict",
     "get_document",
@@ -599,4 +655,7 @@ __all__ = [
     "delete_document",
     "resolve_scan_directory",
     "list_scan_files",
+    "scan_directory_info",
+    "save_scan_directory",
+    "preview_scan_directory",
 ]

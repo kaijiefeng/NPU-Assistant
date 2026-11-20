@@ -842,7 +842,7 @@ function openAddChannelModal(preferredType = 'qq_official') {
 /* ------------------------------------------------------------------ */
 /* 视图入口                                                            */
 /* ------------------------------------------------------------------ */
-export function mount(root) {
+export function mount(root, options = {}) {
   let alive = true;
 
   root.innerHTML = `<div class="page bots-page">
@@ -964,6 +964,9 @@ export function mount(root) {
       btn.setAttribute('aria-selected', active ? 'true' : 'false');
     });
   };
+
+  switchBotsTab(options.query?.get('tab') || 'channels');
+  if (options.query?.get('embed') === '1') page.querySelector('.seg-tabs').hidden = true;
 
   page.addEventListener('click', async (event) => {
     const copyTrigger = event.target.closest('[data-copy]');

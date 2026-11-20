@@ -1,4 +1,4 @@
-# API 速览（LLM Wiki · v0.2.1）
+# API 速览（LLM Wiki · v0.2.2）
 
 > 本文件是接口的快速上手版本；**字段与行为的唯一事实源是 [WIKI-DESIGN.md](WIKI-DESIGN.md) §4 与 [CONTRACT.md](CONTRACT.md) §5**。启动服务后可访问交互式文档：
 >
@@ -301,6 +301,13 @@ Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/knowledge/import/batch 
 
 > 文档对象新增 `source_type`（`file|url|text`）与 `source_url`，在 `/knowledge/documents` 列表与详情中返回。
 
+**扫描目录配置与预览**（均需 `content:write`，目录不向匿名/只读账号返回）：
+
+- `GET /knowledge/scan-directory`：当前/默认目录、配置来源、项目根目录、允许根范围、扩展名、文件数与深度限制；旧配置失效时返回 `accessible=false` 和诊断信息。
+- `PUT /knowledge/scan-directory {"path":"..."}`：校验后保存绝对目录；空字符串恢复系统默认目录。
+- `POST /knowledge/scan-directory/preview {"path":"...","recursive":true}`：只预览，不入队；返回 `{path, files, truncated, samples:[{name,size_bytes}], max_files, max_depth}`，样例最多 12 条。
+- 路径在运行服务的电脑上解析；相对路径以项目根目录为基准。
+
 **扫描本地文件夹** `POST /knowledge/scan-dir`（管理员）
 
 ```powershell
@@ -311,12 +318,13 @@ Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/knowledge/scan-dir `
 
 ```jsonc
 // 202 Accepted：后台逐个解析/编译，进度见 GET /api/jobs/{job_id}
-{ "job_id": "…", "status": "queued", "files": 12,
-  "message": "发现 12 个可收录文件，已开始后台收录；进度可在「任务与告警」查看。" }
+{ "job_id": "…", "status": "queued", "path": "已解析的服务器目录", "files": 12,
+  "message": "发现 12 个可收录文件，已开始后台收录；进度可在「运维管理 → 任务」查看。" }
 ```
 
 - 目录必须存在且是文件夹；配置 `NPU_SCAN_ROOTS`（多个用 `os.pathsep` 分隔）时只允许扫描这些根目录下的文件夹；
 - 单次文件数上限 `NPU_SCAN_MAX_FILES`（默认 200），目录深度上限 `NPU_SCAN_MAX_DEPTH`（默认 4），跳过隐藏文件/临时文件与不支持的类型；
+- 任务固定使用提交时已解析的绝对目录，排队期间默认配置变化不会改变任务目标。
 - 任务结果：`{files, imported_count, failed_count, imported[], failed[]}`，单个文件失败不影响整批。
 
 ## 6. 对话（双层引用）
@@ -441,12 +449,12 @@ Invoke-RestMethod -Method Post ("http://127.0.0.1:8000/api/bots/channels/" + $co
 
 ## 10. 管理 Agent（右侧常驻面板）
 
-面向管理端的全站对话助手：把知识库收录/重建、服务台缺口与订阅、任务告警、运维 Agent 等页面接口封装为 tools，由 LLM 决定调用（提示词 + JSON 协议，非 function calling）。
+面向管理端的全站对话助手：把知识库收录/重建、服务台缺口与订阅、任务告警、运维 Agent 等页面接口封装为 tools，由 LLM 决定调用（提示词 + JSON 协议，兼容明确的单工具 DSML 输出，非原生 function calling）。
 
 | 接口 | 鉴权 | 说明 |
 |---|---|---|
-| `POST /api/agent/chat` | 任意登录账号（open 模式放行） | SSE 流式对话。请求 `{"message": "...", "conversation_id": "..."}`（conversation_id 空=自动新建；message ≤4000 字，超出或为空 400）；事件序列 `tool` → `tool_result`（`{name, ok, summary}`）→ `delta`（`{text}`）→ `done`（`{reply, steps, conversation_id, conversation_title}`，不含内部错误信息）；任一步失败发 `error` 后结束；15s `: ping` 保活；限流 20 次/分钟/IP（429）。消息落库到会话，历史由服务端组装（客户端回传 history 一律忽略） |
-| `GET /api/agent/tools` | 同上 | 当前账号可用的工具清单（外层 `{items: [{name, description, permission, write, dangerous}], total}`），按角色权限过滤 |
+| `POST /api/agent/chat` | 任意登录账号（open 模式放行） | SSE 流式对话。请求 `{"message": "...", "conversation_id": "..."}`（conversation_id 空=自动新建；message ≤4000 字，超出或为空 400）；事件包含 `conversation`（尽早返回会话ID）、`status`（`{phase,text,elapsed_ms}`，仅处理状态）、`tool`、`tool_result`（`{id,name,ok,status,summary,args,result,elapsed_ms}`）、`delta`、`done`（`{reply,steps,stop_reason,elapsed_ms,conversation_id,conversation_title}`）；所有正常/失败/超限路径都有最终正文与done，不含内部错误堆栈；15s `: ping` 保活；限流 20 次/分钟/IP（429）。消息落库到会话，历史由服务端组装（客户端回传 history 一律忽略） |
+| `GET /api/agent/tools` | 同上 | 当前账号可用的工具清单（外层 `{items: [{name, description, permission, write, dangerous, required, parameters}], total}`），按角色权限过滤 |
 | `GET /api/agent/conversations?limit=` | 同上 | 会话列表（`{id, title, message_count, last_message, updated_at}`，按更新时间倒序） |
 | `GET /api/agent/conversations/{id}` | 同上 | 会话详情 + 全部消息（含工具步骤 steps） |
 | `PATCH /api/agent/conversations/{id}` | 同上 | 改名 `{"title"}`；首条用户消息自动作为默认标题 |
@@ -458,7 +466,23 @@ Invoke-RestMethod -Method Post ("http://127.0.0.1:8000/api/bots/channels/" + $co
 | `POST /api/agent/schedules/{id}/run` | `content:write` | 立即触发一次（不重置周期） |
 | `DELETE /api/agent/schedules/{id}` | `content:write` | 删除 |
 
-**会话与上下文**：`agent_conversations` / `agent_messages` 服务端持久化，压缩摘要（`summary` + rowid 水位）落会话行；组装上下文按 12000 字预算，超限时把最旧一半消息 LLM 压成纪要（LLM 不可用降级为截断纪要）。
+**工具协议适配**：Agent请求使用JSON对象输出约束（OpenAI兼容服务response_format=json_object、Ollama format=json），其他模型调用默认不变；服务需支持对应选项，不支持时返回模型服务失败说明。标准 JSON 为内部工具协议；完整、唯一的 DSML `calls/function_calls → invoke → parameter` 先转换为内部 JSON，仍通过现有工具注册表、权限、重复保护和确认门执行。支持无参调用、JSON对象参数和显式字符串/JSON类型参数。残缺、混杂、重复参数、多个调用或实体声明返回 `stop_reason=invalid_protocol`，不执行也不当作成功回答；不识别的DSML不会透传正文。模型连续输出单个工具对象+预先回复对象时仅执行工具，丢弃未经执行的回复，待真实结果返回后生成正文。历史消息中的协议标记只给可读说明，不触发重放执行。
+
+**回复展示**：服务端将明确的 `reply` / `replay` 包装、中文结构引号、代码围栏和嵌套回复归一为正文，再发送 `delta` / `done.reply` 并保存会话；无法识别的内部协议返回格式提示。普通文本中的 JSON 示例保持原样，工具权限与确认机制不变。
+
+**本轮预算**：上下文总窗口为 **200,000 tokens**，预计总量达到 **180,000 tokens** 时压缩最旧历史，尽量保留完整近期消息，压缩后目标约 120,000 tokens。预算包含系统提示和工具目录、历史纪要/消息、本轮输入、工具回灌、4,096 tokens 输出预留及 2,048 tokens 模板余量。使用 `tiktoken/cl100k_base` 估算；分词资源不可用时按 UTF-8 字节数保守估算。不同厂商分词和模板不同，所选模型本身必须支持所需窗口。
+
+历史不再按最近 12 条/单条 4000 字符截断，也不再受 500 条展示分页限制。每次用户请求严格最多 200 次工具调用，另留一次最终回答机会（最多 201 次主循环模型调用，不含摘要调用）；单次输出上限 4,096 tokens，普通工具结果回填 2,400 字符，`read_file` / `search_repo` / `read_logs` 分别放宽到 16,000 / 10,000 / 10,000 字符，单轮输入校验仍为 4000 字符。
+
+**执行保护**：同一工具与参数首次重复时只提示模型改用已有结果，第二次重复才停止；连续3次工具失败停止，成功步骤重置失败计数；不再设置180秒累计执行时限，用户停止、单次网络请求超时与模型/工具错误仍生效。`read_file` / `read_logs` 单轮各最多 8 / 6 次，到量后要求模型基于已读内容作答。结构化工具结果保持合法JSON，优先保留错误、目录和任务号并标记裁剪。模型不可用时返回已取得信息及明确说明。确认门结果标记为confirmation，尚未执行。
+
+**模型异常恢复**：Provider 返回全空白正文（HTTP 200、finish_reason=stop）时自动重试，并降级为不带 JSON 输出约束的普通模式再请求一次；空正文不计入熔断，避免一次抖动锁死后续所有对话。模型输出残缺协议、参数别名（arguments/parameters/name/function）或工具与回复混杂时，先进行一次协议纠偏并重新生成；工具目录中的必填项与参数名在服务端校验，缺失或未知参数返回可纠正的错误。模型混入 `ds_safety` 等内部安全分类文本时拒绝展示并纠偏，历史中同类内容不回灌模型。
+
+**过程界面**：处理过程与工具项两级折叠，运行展开、完成收起，保留用户手动开合；只展示真实阶段、参数与结果摘要，不暴露内部推理。凭据字段脱敏，最终正文始终独立。前端兼容旧服务仅done.reply的响应，异常断流有可读反馈。
+
+**扫描工具**：`get_scan_directory`（查询/预览，`content:write`）、`set_scan_directory`（保存默认目录，写审计）、`scan_dir`（后台扫描）共享同一目录校验与解析逻辑。助手扫描前先查询目录，不猜用户设备路径。明确的默认目录问句直接读取运行配置，通常仅一次目录查询且无需模型；文件预览需显式preview=true或指定path，预览失败不抹掉目录信息。
+
+**会话与上下文**：`agent_conversations` / `agent_messages` 服务端持久化，压缩摘要（`summary` + rowid 水位）落会话行，原始消息不删除，回滚语义不变。普通对话与定时指令共享预算；每次工具后继续调用模型前重新检查预算，必要时压缩旧会话及本次请求内较旧的工具轨迹，保留原始任务与最新结果。长消息按约 32K tokens 分片摘要再合并，最终纪要最多 2048 tokens；失败降级为带标记的截断纪要。压缩耗费额外模型调用，未压缩消息保持完整；无法压缩的本轮输入若已超窗，返回可读提示，不发送超预算请求。
 
 **定时任务**：60s tick 调度线程；到期原子抢占（`UPDATE ... WHERE next_run_at=?` 的 rowcount），错过多个周期只补跑一次；tick 只提交 jobs 队列（`subscription_check` / `gap_suggest` / `agent_prompt`），重活在 jobs worker；`agent_prompt` 以系统身份（super_admin/scheduler）执行预设指令一轮，结果落绑定会话（自动创建「定时任务·名称」）并生成 `category=agent` 的 info 告警。
 

@@ -1,9 +1,11 @@
-# NPU-Assistant · LLM Wiki 设计与契约（v0.1.1，Lead 维护）
+# NPU-Assistant · LLM Wiki 设计与契约（v0.2.2，Lead 维护）
 
 > 本文件是 **LLM Wiki 改造**的唯一设计事实源。目标：**彻底移除经典 RAG**（切片 + 向量/BM25 检索），
 > 改为：源文件 → LLM 编译为结构化 **Wiki 词条** → 查询时通过「目录/别名/关键词/LLM 选页」导航到 1–3 个词条 → LLM 阅读词条作答，并给出「词条 + 原始文件章节」双层引用。
 >
-> 规模假设：几十~几百篇校园文件、<1000 个词条、单机 SQLite + FastAPI。**不使用 embedding、向量库、rerank。**
+> 规模假设：当前仓库快照为 **2,486 篇公开文档 / 3,477 条词条 / 4,838 个来源锚点**，单机 SQLite + FastAPI，检索约 50 ms。**不使用 embedding、向量库、rerank。**
+>
+> v0.2.2 说明：学生问答链路不变；管理助手是独立的工具编排层（见 [ARCHITECTURE.md](ARCHITECTURE.md) §9），其 200K/180K 上下文预算不改变 Wiki 编译与导航的引用契约。
 
 ---
 

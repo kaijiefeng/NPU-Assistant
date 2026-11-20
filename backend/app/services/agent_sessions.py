@@ -8,16 +8,14 @@ from __future__ import annotations
 
 import json
 import logging
-from collections import deque
 
 from .. import db
+from . import agent_context
 
 logger = logging.getLogger("npu-assistant")
 
 _ROLES = {"user", "assistant"}
-# 上下文预算（字符）：system 提示词 + 摘要 + 近期消息的总量级参考
-_CONTEXT_BUDGET = 12000
-_SUMMARY_CHARS = 600
+# 历史和完整请求统一使用 token 预算；原始消息保留在数据库中。
 
 
 def _row_to_conversation(row: dict) -> dict:
@@ -201,71 +199,42 @@ def truncate_from(conversation_id: str, message_id: str) -> dict:
 # 上下文组装与压缩
 # ---------------------------------------------------------------------------
 def _compact_chunk(messages: list[dict]) -> str:
-    """把一段旧消息交给 LLM 压成短摘要；失败降级为截断拼接（标注未经 AI 压缩）。"""
-    from . import llm
-
-    corpus = "\n".join(
-        f"[{'用户' if m['role'] == 'user' else '助手'}] {str(m.get('content') or '')[:400]}"
-        for m in messages
-    )
-    try:
-        response = llm.chat(
-            [
-                {
-                    "role": "system",
-                    "content": "你是对话压缩器。把管理助手会话的旧消息压缩成一段 300 字以内的纪要，保留：做过什么操作（工具名+对象）、关键结论、未完成事项。只输出纪要正文。",
-                },
-                {"role": "user", "content": corpus[:8000]},
-            ],
-            temperature=0.1,
-            max_tokens=500,
-        )
-        if not response.get("fallback") and str(response.get("content") or "").strip():
-            return str(response["content"]).strip()[:_SUMMARY_CHARS * 2]
-    except Exception:  # noqa: BLE001 - 压缩失败降级
-        logger.info("会话摘要压缩失败，降级为截断", exc_info=True)
-    lines = [f"[{'用户' if m['role'] == 'user' else '助手'}] {str(m.get('content') or '')[:80]}" for m in messages]
-    return "（旧消息截断纪要，未经 AI 压缩）\n" + "\n".join(lines)[:_SUMMARY_CHARS * 2]
+    return agent_context.summarize_history(messages)
 
 
-def build_context(conversation_id: str, *, budget: int = _CONTEXT_BUDGET) -> list[dict]:
-    """组装发给模型的上下文：既有摘要 + 水位之后的近期消息；超预算时压缩最旧一半。
-
-    返回 ``[{"role":"user"|"assistant", ...}]``（不含 system 提示词）；压缩摘要
-    以 ``{"role": "user", "content": "【此前会话纪要】..."}`` 的形式放在最前，
-    与既有 llm.chat 消息模型兼容。
-    """
+def build_context(
+    conversation_id: str,
+    *,
+    budget: int | None = None,
+    reserved_messages: list[dict] | None = None,
+) -> list[dict]:
+    """180K tokens 触发压缩，200K 窗口；预算包含调用方预留的系统与本轮消息。"""
     conv = _get_conversation(conversation_id)
     watermark = int(conv["summary_upto"] or 0)
-    messages = [m for m in get_messages(conversation_id, limit=500) if m["_rowid"] > watermark]
-    summary = conv["summary"]
-    total = len(summary) + sum(len(m["content"]) for m in messages)
-    if total <= budget or len(messages) <= 4:
-        context: list[dict] = []
-        if summary:
-            context.append({"role": "user", "content": f"【此前会话纪要】{summary}"})
-        context.extend({"role": m["role"], "content": m["content"]} for m in messages)
-        return context
-
-    # 超预算：把最旧一半压进摘要（含旧摘要），水位推进
-    keep = max(2, len(messages) // 2)
-    to_compress = messages[:-keep]
-    kept = messages[-keep:]
-    merged_summary = _compact_chunk(
-        ([{"role": "user", "content": f"【此前会话纪要】{summary}"}] if summary else [])
-        + to_compress
+    # 展示接口仍分页；给模型组装上下文时不能以 500 条展示上限静默丢历史。
+    rows = db.query(
+        "SELECT rowid AS _rowid, role, content FROM agent_messages "
+        "WHERE conversation_id = ? AND rowid > ? ORDER BY rowid",
+        (conversation_id, watermark),
     )
-    new_watermark = to_compress[-1]["_rowid"]
-    db.execute(
-        "UPDATE agent_conversations SET summary = ?, summary_upto = ?, updated_at = ? WHERE id = ?",
-        (merged_summary[: _SUMMARY_CHARS * 2], str(new_watermark), db.now(), conversation_id),
+    history = []
+    if conv["summary"]:
+        history.append({"role": "user", "content": agent_context.SUMMARY_PREFIX + conv["summary"]})
+    history.extend({"role": row["role"], "content": row["content"]} for row in rows)
+    compacted, consumed = agent_context.compact_history(
+        history,
+        reserved_messages,
+        threshold=agent_context.COMPACT_THRESHOLD if budget is None else budget,
+        summarizer=_compact_chunk,
     )
-    logger.info(
-        "会话 %s 上下文压缩：%d 条旧消息并入摘要（水位 %s）",
-        conversation_id,
-        len(to_compress),
-        new_watermark,
-    )
-    return [{"role": "user", "content": f"【此前会话纪要】{merged_summary}"}] + [
-        {"role": m["role"], "content": m["content"]} for m in kept
-    ]
+    if consumed:
+        summary_offset = 1 if conv["summary"] else 0
+        consumed_rows = consumed - summary_offset
+        new_watermark = int(rows[consumed_rows - 1]["_rowid"]) if consumed_rows > 0 else watermark
+        summary = compacted[0]["content"][len(agent_context.SUMMARY_PREFIX):]
+        db.execute(
+            "UPDATE agent_conversations SET summary = ?, summary_upto = ?, updated_at = ? WHERE id = ?",
+            (summary, str(new_watermark), db.now(), conversation_id),
+        )
+        logger.info("会话 %s 上下文压缩：%d 条消息，水位 %s", conversation_id, consumed_rows, new_watermark)
+    return compacted

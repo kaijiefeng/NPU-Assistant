@@ -1,11 +1,10 @@
 /**
- * views/ops-hub.js — 运维管理（macOS 设置页式布局）
+ * views/ops-hub.js — 运维管理（任务 / 告警 / 审计）
  *
- * 左侧分组子导航（任务与告警 / 运维），右侧内容区。任务与告警拆成
- * 两个独立子页（投射模式下隐藏 jobs.js 的内部 tab），层级始终两级。
- * 报错驱动的修复已并入右侧「管理助手」（ops_task_* 工具，仅超级管理员）。
+ * 三个直接入口复用现有子视图；修复任务继续交给管理助手。
  */
 import { getAuthMe } from '../api.js';
+import { mountHubNavigation } from '../hub-navigation.js';
 import { esc, loadingHtml, toast } from '../ui.js';
 
 const GROUPS = [
@@ -53,26 +52,6 @@ function allowedGroups(me) {
   })).filter((group) => group.items.length);
 }
 
-function navHtml(groups, current) {
-  return groups
-    .map(
-      (group) => `<div class="hub-nav-group">
-        <span class="hub-nav-label">${esc(group.label)}</span>
-        ${group.items
-          .map(
-            (item) =>
-              `<button class="hub-nav-item ${
-                item.key === current ? 'is-active' : ''
-              }" type="button" data-hub-item="${esc(item.key)}" aria-current="${
-                item.key === current ? 'page' : 'false'
-              }">${esc(item.label)}</button>`,
-          )
-          .join('')}
-      </div>`,
-    )
-    .join('');
-}
-
 function writeHash(key) {
   const hash = key === 'jobs' ? '#/ops' : `#/ops?tab=${key}`;
   history.replaceState(null, '', hash);
@@ -82,9 +61,11 @@ export async function mount(root, options = {}) {
   let alive = true;
   let current = null;
   let cleanup = null;
+  let switchToken = 0;
+  let navigation = null;
 
   root.innerHTML = `<div class="page hub-page settings-shell" id="opsHub">
-    <aside class="hub-subnav" id="opsSubnav">${loadingHtml('加载中…', 'state-compact')}</aside>
+    <nav class="hub-navigation" id="opsSubnav">${loadingHtml('加载中…', 'state-compact')}</nav>
     <div class="hub-content" id="opsContent">${loadingHtml('正在加载运维管理…')}</div>
   </div>`;
   const nav = root.querySelector('#opsSubnav');
@@ -113,11 +94,15 @@ export async function mount(root, options = {}) {
   const allItems = groups.flatMap((group) => group.items);
   const requested = options.query?.get('tab');
   current = allItems.some((item) => item.key === requested) ? requested : allItems[0].key;
-  nav.innerHTML = navHtml(groups, current);
+  navigation = mountHubNavigation(nav, {
+    groups: allItems.map((item) => ({ key: item.key, label: item.key === 'jobs' ? '任务' : item.key === 'audit' ? '审计' : item.label, items: [item] })),
+    current, label: '运维导航', onSelect: (key) => { void switchItem(key); },
+  });
 
   async function switchItem(key, { updateHash = true } = {}) {
     const item = allItems.find((entry) => entry.key === key);
     if (!item) return;
+    const token = ++switchToken;
     if (typeof cleanup === 'function') {
       try {
         cleanup();
@@ -128,22 +113,22 @@ export async function mount(root, options = {}) {
     cleanup = null;
     current = key;
     if (updateHash) writeHash(key);
-    nav.querySelectorAll('[data-hub-item]').forEach((button) => {
-      const active = button.dataset.hubItem === key;
-      button.classList.toggle('is-active', active);
-      button.setAttribute('aria-current', active ? 'page' : 'false');
-    });
+    navigation.update(key);
     content.innerHTML = loadingHtml('正在加载…');
 
     try {
       const module = await item.module();
-      if (!alive || current !== key) return;
-      const result = module.mount?.(content, {
+      if (!alive || token !== switchToken) return;
+      const result = await module.mount?.(content, {
         query: new URLSearchParams(item.query || {}),
       });
+      if (!alive || token !== switchToken) {
+        if (typeof result === 'function') result();
+        return;
+      }
       cleanup = typeof result === 'function' ? result : null;
     } catch (err) {
-      if (!alive || current !== key) return;
+      if (!alive || token !== switchToken) return;
       content.innerHTML = `<div class="state state-error"><h3>页面加载失败</h3><p>${esc(
         err?.message || '请稍后重试',
       )}</p></div>`;
@@ -151,15 +136,11 @@ export async function mount(root, options = {}) {
     }
   }
 
-  nav.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-hub-item]');
-    if (button) void switchItem(button.dataset.hubItem);
-  });
-
   await switchItem(current, { updateHash: false });
 
   return () => {
     alive = false;
+    navigation?.destroy();
     if (typeof cleanup === 'function') {
       try {
         cleanup();

@@ -107,6 +107,14 @@ def _record_success(key: str) -> None:
         _CIRCUIT.pop(key, None)
 
 
+def _record_failure_or_note(key: str, message: str) -> None:
+    """空正文是内容异常而非连接故障：重试后仍空也不熔断，避免一次抖动锁死全部请求。"""
+    if _content_empty(message):
+        logger.warning("模型返回空正文（不计入熔断）：%s", message)
+        return
+    _record_failure(key, message)
+
+
 def _strip_endpoint(url: str) -> str:
     """容忍用户把完整接口地址填进 base_url（如 .../v1/chat/completions）。"""
     value = str(url or "").strip().rstrip("/")
@@ -134,13 +142,21 @@ def circuit_status() -> dict:
         }
 
 
+def _content_empty(message: str) -> bool:
+    """Provider 正常应答但正文为空/全空白：属于可重试的内容异常，不应触发熔断。"""
+    text = str(message or "")
+    return "空回复" in text or "空内容" in text
+
+
 def _retryable(message: str) -> bool:
     text = str(message or "")
     if "api_key" in text or "认证失败" in text or "接口不存在" in text:
         return False
     return any(
         marker in text
-        for marker in ("超时", "无法连接", "429", "HTTP 5", "内部错误", "HTTPError")
+        for marker in (
+            "超时", "无法连接", "429", "HTTP 5", "内部错误", "HTTPError", "空回复", "空内容",
+        )
     )
 
 
@@ -319,6 +335,8 @@ def _chat_openai(
     messages: list[dict[str, str]],
     temperature: float | None,
     max_tokens: int | None,
+    *,
+    json_mode: bool = False,
 ) -> tuple[str, dict]:
     base_url = target.get("base_url") or ""
     api_key = (target.get("api_key") or "").strip()
@@ -328,6 +346,8 @@ def _chat_openai(
 
     url = _join_url(_strip_endpoint(base_url), "/chat/completions")
     payload: dict[str, Any] = {"model": model_name, "messages": messages, "stream": False}
+    if json_mode:
+        payload["response_format"] = {"type": "json_object"}
     if temperature is not None:
         payload["temperature"] = float(temperature)
     if max_tokens is not None:
@@ -357,7 +377,8 @@ def _chat_openai(
         )
     content = str(content or "").strip()
     if not content:
-        raise LLMError("模型服务返回了空回复")
+        finish = str(first.get("finish_reason") or "unknown")
+        raise LLMError(f"模型服务返回了空回复（finish_reason={finish}）")
 
     usage = data.get("usage") if isinstance(data.get("usage"), dict) else {}
     return content, usage
@@ -368,11 +389,15 @@ def _chat_ollama(
     messages: list[dict[str, str]],
     temperature: float | None,
     max_tokens: int | None,
+    *,
+    json_mode: bool = False,
 ) -> tuple[str, dict]:
     base_url = target.get("base_url") or DEFAULT_OLLAMA_BASE_URL
     model_name = target.get("model_name") or ""
     url = _join_url(base_url, "/api/chat")
     payload: dict[str, Any] = {"model": model_name, "messages": messages, "stream": False}
+    if json_mode:
+        payload["format"] = "json"
     options: dict[str, Any] = {}
     if temperature is not None:
         options["temperature"] = float(temperature)
@@ -420,6 +445,7 @@ def chat(
     model_id: str | None = None,
     temperature: float | None = None,
     max_tokens: int | None = None,
+    json_mode: bool = False,
 ) -> dict:
     """调用模型生成回复。
 
@@ -480,9 +506,9 @@ def chat(
 
     try:
         if provider_type == "openai":
-            content, usage = _chat_openai(target, cleaned, temperature, max_tokens)
+            content, usage = _chat_openai(target, cleaned, temperature, max_tokens, **({"json_mode": True} if json_mode else {}))
         elif provider_type == "ollama":
-            content, usage = _chat_ollama(target, cleaned, temperature, max_tokens)
+            content, usage = _chat_ollama(target, cleaned, temperature, max_tokens, **({"json_mode": True} if json_mode else {}))
         else:
             raise LLMError(f"不支持的 Provider 类型：{provider_type or '空'}")
     except LLMError as exc:
@@ -492,19 +518,19 @@ def chat(
             time.sleep(max(0.0, RETRY_BACKOFF_SECONDS))
             try:
                 if provider_type == "openai":
-                    content, usage = _chat_openai(target, cleaned, temperature, max_tokens)
+                    content, usage = _chat_openai(target, cleaned, temperature, max_tokens, **({"json_mode": True} if json_mode else {}))
                 elif provider_type == "ollama":
-                    content, usage = _chat_ollama(target, cleaned, temperature, max_tokens)
+                    content, usage = _chat_ollama(target, cleaned, temperature, max_tokens, **({"json_mode": True} if json_mode else {}))
                 else:  # pragma: no cover - 上面已拦截
                     raise LLMError(message)
             except LLMError as retry_exc:
                 message = str(retry_exc)
                 logger.warning("模型重试仍失败（%s / %s）：%s", target.get("provider_name"), model_name, message)
-                _record_failure(key, message)
+                _record_failure_or_note(key, message)
                 return _failure(message, target, started)
         else:
             logger.warning("模型调用失败（%s / %s）：%s", target.get("provider_name"), model_name, message)
-            _record_failure(key, message)
+            _record_failure_or_note(key, message)
             return _failure(message, target, started)
     except Exception as exc:  # pragma: no cover - 兜底，避免 500
         logger.exception("模型调用发生未预期错误")
@@ -747,7 +773,7 @@ def stream_chat(
             last_error = f"调用模型时发生未预期错误：{exc}"
             break
 
-    _record_failure(key, last_error or "流式调用失败")
+    _record_failure_or_note(key, last_error or "流式调用失败")
     return _failure(last_error or "流式调用失败", target, started)
 
 

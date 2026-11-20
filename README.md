@@ -5,25 +5,25 @@
 
 把学生手册、奖助政策、办事指南交给 LLM **编译成结构化 Wiki 词条**；学生提问时通过「目录 / 别名 / 关键词 / LLM 选页」定位词条，再由 LLM 阅读词条作答，并给出**词条 + 原始文件章节**双层引用——答案可核对、词条可编辑、系统可离线演示。后端 FastAPI + SQLite，前端纯静态，无 Node 构建、无向量库。
 
-> 当前版本：**v0.2.1**（2026-11-16 发布）· 变更见 [CHANGELOG.md](CHANGELOG.md) · QA 数据集见 [sources/handbook](sources/handbook/README.md)
+> 当前版本：**v0.2.2**（2026-11-20 发布）· 变更见 [CHANGELOG.md](CHANGELOG.md) · QA 数据集见 [sources/handbook](sources/handbook/README.md)
 >
 > 📘 **学生 / 辅导员请直接看 [图文使用手册](frontend/manual/index.html)**（手机截图、动图、常见问题）；服务启动后也可访问 <http://127.0.0.1:8000/manual/index.html>
 
 
-## 🚀 最新发布：v0.2.1（2026-11-16）
+## 🚀 最新发布：v0.2.2（2026-11-20）
 
-主题：**隐私优先的校园知识库整备版**。在 v0.2.0 的服务闭环之上，完成 2,500+ 篇公开文档的导入、脱敏与端到端验收；3,477 条词条下检索仍约 50 ms。
+主题：**管理助手可靠性与工作台体验版**。在 v0.2.1 的 2,486 篇文档 / 3,477 条词条与隐私整备基础上，重做全站导航与工作台，把管理助手做成可连续多轮、可查 45 个工具、可解释失败原因的日常操作入口。
 
 ### 本版更新公告
 
-- **隐私保护**：解析时即脱敏手机号、身份证号、个人邮箱与长数字；办公邮箱、`029-` 座机、办公人员姓名保留；名单/成绩类文档上传直接拒绝（400），存量 114 篇已清理；发布包 **0 个人信息**。
-- **知识库整备**：导入 2,500+ 篇公开文档，清理后 **2,486 篇文档 / 3,477 条词条 / 2,465 个源文件**；快照与源文件随仓库发布，空库启动自动导入。
-- **检索性能**：同规模关键词检索 **约 50 ms**（优化前约 7.9 s）；新增设置、页面、token 三层缓存，见 [docs/RETRIEVAL-PERFORMANCE.md](docs/RETRIEVAL-PERFORMANCE.md)。
-- **端到端验收**：交互覆盖 **114/114（100%）**，含移动端触摸场景；逐场景截图证据，RSI 门禁（7 个关键场景）纳入 CI。
-- **运维工具**：批量导入 `import_handbook_collect.py`、多 worker `job_worker.py`（原子任务抢占）、隐私复查 `audit_privacy.py`、存量清理 `redact_existing_data.py`。
-- **质量**：后端 **184 passed, 1 skipped**；桌面 + 移动端 E2E 在 `develop`/`master`/`release` 全绿。
+- **管理助手可连续多轮**：修复上游偶发“HTTP 200 但正文全空白”导致首轮后全部失败的问题；空正文自动重试、不计入熔断，并降级普通输出模式再请求。真实模型隔离验收连续 14 轮读写与排障均正常。
+- **工具协议更稳**：兼容 DSML 与 `arguments/parameters/function` 等写法，残缺协议先自动纠偏；工具目录声明必填项，服务端拦截缺失/未知参数；同参重复调用先提示模型改用已有结果。
+- **45 个内建工具 + 200 轮预算**：上下文 200K tokens、180K 自动压缩；新增只读 `search_repo`（关键词→文件/行号），`read_file` 支持 start/lines 分段并放宽代码/日志结果预算，排障不再反复翻页。
+- **全站工作台重构**：一级导航收敛为「对话 / 知识库 / 知识库管理 / 运维管理 / 设置」，二级页用分组选择器；服务台七类看板、任务/告警/审计改为紧凑列表，长内容收进详情；助手处理过程与工具记录两级折叠，可随时查看阶段、耗时与结果。
+- **扫描与知识运营**：源文件页恢复「扫描文件夹」，支持目录预览、保存默认、递归与 skip/update 模式；「知识完善」并入服务台，缺口 AI 找备选、订阅发现、反馈与时效统一入口。
+- **质量**：后端 **383 passed, 1 skipped**；新增全 45 工具端到端覆盖、真实模型多轮与危险操作确认门验收；静态缓存 v23。
 
-> 完整变更见 [CHANGELOG.md](CHANGELOG.md)；隐私规则见 [docs/PRIVACY.md](docs/PRIVACY.md)，来源审计见 [docs/SOURCE-PROVENANCE-AUDIT.md](docs/SOURCE-PROVENANCE-AUDIT.md)。
+> v0.2.1 的隐私保护、2,486 篇公开文档与约 50 ms 检索能力继续保留。完整变更见 [CHANGELOG.md](CHANGELOG.md)；隐私规则见 [docs/PRIVACY.md](docs/PRIVACY.md)，来源审计见 [docs/SOURCE-PROVENANCE-AUDIT.md](docs/SOURCE-PROVENANCE-AUDIT.md)。
 
 
 ---
@@ -52,7 +52,7 @@
 - 📱 **手机就能运营**：辅导员扫码打开，转发链接、粘贴文本、上传文件即可收录，LLM 自动编译成可编辑的 Wiki 词条。
 - 🤖 **微信 / QQ 机器人**：机器人与网页共用同一套问答链路；管理员在聊天里转发链接即可自动入库。
 - 🔁 **反馈闭环**：学生点「没帮助 + 原因」自动聚合成知识缺口，服务台按频次排序，"补资料 → 更新词条"形成闭环。
-- 💻 **单机可跑、可离线**：无需 Node.js 和数据库服务；冷启动自动导入**75 篇真实来源**的预编译 Wiki 快照，不配 API Key 也能完整演示。
+- 💻 **单机可跑、可离线**：无需 Node.js 和数据库服务；冷启动自动导入**2,486 篇公开来源 / 3,477 条词条**的预编译 Wiki 快照，不配 API Key 也能完整演示。
 
 ## 🧑‍🎓 学生：怎么用
 
@@ -107,25 +107,27 @@ python -m venv .venv
 
 ## 🖼️ 界面预览
 
-> 截图由 `.\scripts\ui_check.py` 自动生成，保存在 `docs/screenshots/`。
+> 以下为 v0.2.2 新版界面，使用隔离演示数据截取；截图存放在 `docs/screenshots/v0.2.2/`。
 
-**辅导员对话**：Wiki 词条回答 + 句末 `[n]` + 可展开的「来源 N」行。
+**辅导员对话**：两级导航、居中阅读列，Wiki 词条回答 + 句末 `[n]` + 可展开「来源 N」；右侧管理助手常驻。
 
-![辅导员对话](docs/screenshots/chat.png)
+![辅导员对话](docs/screenshots/v0.2.2/chat.png)
 
-**知识库**：学生浏览视图（搜索、分类筛选、词条卡片）；有权限的账号到「知识库管理」维护词条与源文件（收录内容走右侧管理助手）。
+**知识库**：搜索、标签筛选、词条卡片；管理入口走「知识库管理」。
 
-![知识库](docs/screenshots/knowledge.png)
+![知识库](docs/screenshots/v0.2.2/knowledge.png)
 
-![知识库管理](docs/screenshots/manage.png)
+**运维管理**：任务、告警、审计改为紧凑列表，状态筛选、进度与失败原因一屏可见。
 
-**运维管理**：任务与告警、审计日志；报错自动修复与日常管理操作都可通过右侧管理助手完成。
+![运维任务](docs/screenshots/v0.2.2/ops-tasks.png)
 
-![运营任务与告警](docs/screenshots/jobs.png)
+**设置**：助手设置、模型 / Provider、机器人、成员与账号按分组二级导航。
 
-**设置**：助手设置、模型、机器人、成员与权限、我的账号。
+![设置](docs/screenshots/v0.2.2/settings.png)
 
-![设置](docs/screenshots/settings.png)
+**手机端**：对话、知识库与扫码运维自适应，管理助手以浮层打开。
+
+<img src="docs/screenshots/v0.2.2/chat-mobile.png" alt="手机端对话" width="360" />
 
 ## 📚 文档导航
 
@@ -133,7 +135,7 @@ python -m venv .venv
 |--------|--------|
 | **学生 / 辅导员（使用）** | 📘 [图文使用手册](frontend/manual/index.html) · [产品能力总览](frontend/manual/product.html) |
 | **学院管理员 / 部署老师** | [管理员与运维手册](docs/ADMIN-OPS.md)（部署、令牌、模型、收录运营、备份、排障）· [机器人接入](docs/BOT-INTEGRATION.md) · [移动端运维](docs/MOBILE-OPS.md) |
-| **开发 / 交接** | [开发手册](docs/DEVELOPER.md)（目录结构、数据模型、测试）· [架构设计](docs/ARCHITECTURE.md) · [Wiki 设计](docs/WIKI-DESIGN.md) · [API 速览](docs/API.md) |
+| **开发 / 交接** | [开发手册](docs/DEVELOPER.md)（目录结构、数据模型、测试）· [架构设计](docs/ARCHITECTURE.md) · [Wiki 设计](docs/WIKI-DESIGN.md) · [API 速览](docs/API.md) · [v0.2.2 验收](docs/AGENT-MULTITURN-TOOLS-VERIFICATION.md) |
 | **评审 / 演示** | [5 分钟演示脚本](docs/DEMO.md) · [路线图](docs/ROADMAP.md) · [QA 数据集](sources/handbook/README.md) · [完整文档导航](docs/README.md) |
 
 技术原理一句话：**源文件 → LLM 编译词条 → 导航选页 → 词条阅读作答 → 双层引用**；与经典 RAG 的区别是**只需一个 LLM**、不用 embedding / 向量库 / rerank，知识被编译成人类可读、可编辑的词条，引用可逐字回溯到源文件章节；再叠加**反馈驱动的 RSI 闭环**（缺口 → 补料 → 重编译 → 时效治理），知识库随使用自我富集，而不是逐渐过期。设计细节见 [docs/WIKI-DESIGN.md](docs/WIKI-DESIGN.md)。

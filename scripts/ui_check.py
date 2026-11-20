@@ -173,9 +173,10 @@ async def main() -> None:
                 ("manage", "#/kb-admin", "词条维护"),
                 ("models", "#/settings?tab=models", "模型"),
                 ("bots", "#/settings?tab=bots", "机器人"),
-                ("settings", "#/settings", "助手设置"),
-                ("jobs", "#/ops?tab=jobs", "任务与告警"),
+                ("settings", "#/settings", "分身人设"),
+                ("jobs", "#/ops?tab=jobs", "后台任务"),
                 ("audit", "#/ops?tab=audit", "审计日志"),
+                ("desk", "#/kb-admin?tab=overview", "优先补充的问题"),
             ]:
                 await goto(path)
                 text = await cdp.evaluate("document.body.innerText") or ""
@@ -193,18 +194,18 @@ async def main() -> None:
 
             # 聚合页内切换：设置 → 模型 → 我的账号；运营 → 任务与告警
             await goto("#/settings")
-            await cdp.evaluate("document.querySelector('[data-settings-tab=\"models\"]')?.click(); true")
+            await cdp.evaluate("document.querySelector('[data-hub-group=\"models\"]')?.click(); true")
             await asyncio.sleep(2.0)
             text = await cdp.evaluate("document.body.innerText") or ""
             if "Provider" not in text:
                 raise SystemExit("设置聚合页切换到「模型」失败")
-            await cdp.evaluate("document.querySelector('[data-settings-tab=\"account\"]')?.click(); true")
+            await cdp.evaluate("document.querySelector('[data-hub-group=\"account\"]')?.click(); true")
             await asyncio.sleep(0.5)
             text = await cdp.evaluate("document.body.innerText") or ""
-            if "我的账号" not in text:
+            if "账号" not in text:
                 raise SystemExit("设置聚合页切换到「我的账号」失败")
             await goto("#/ops")
-            await cdp.evaluate("document.querySelector('[data-ops-tab=\"jobs\"]')?.click(); true")
+            await cdp.evaluate("document.querySelector('[data-hub-group=\"jobs\"]')?.click(); true")
             await asyncio.sleep(0.8)
             text = await cdp.evaluate("document.body.innerText") or ""
             if "后台任务" not in text:

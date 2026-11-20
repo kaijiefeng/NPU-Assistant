@@ -5,20 +5,28 @@
  * 只显示当前角色可访问的 tab；子视图复用现有模块。
  */
 import { changePassword, getAuthMe, logoutAdmin } from '../api.js';
-import { esc, icon, loadingHtml, openModal, toast } from '../ui.js';
+import { mountHubNavigation } from '../hub-navigation.js';
+import { confirmDialog, esc, icon, loadingHtml, openModal, toast } from '../ui.js';
 
-const TABS = [
-  { key: 'assistant', label: '助手设置', permission: 'settings:write', load: () => import('./settings.js') },
-  { key: 'models', label: '模型', permission: 'model:write', load: () => import('./models.js') },
-  { key: 'bots', label: '机器人', permission: 'bot:write', load: () => import('./bots.js') },
-  {
-    key: 'members',
-    label: '成员与权限',
-    permission: 'admin:manage',
-    load: () => import('./team.js'),
-    query: { tab: 'users', only: '1' },
-  },
-  { key: 'account', label: '我的账号' },
+const GROUPS = [
+  { key: 'assistant', label: '助手', items: [
+    { key: 'assistant', label: '基础设置', permission: 'settings:write', file: 'settings', tab: 'basic' },
+    { key: 'security', label: '移动访问与安全', permission: 'settings:write', file: 'settings', tab: 'security' },
+    { key: 'reply', label: '回复与引用', permission: 'settings:write', file: 'settings', tab: 'reply' },
+  ] },
+  { key: 'models', label: '模型', items: [
+    { key: 'models', label: '模型', permission: 'model:write', file: 'models', tab: 'models' },
+    { key: 'providers', label: 'Provider', permission: 'model:write', file: 'models', tab: 'providers' },
+  ] },
+  { key: 'bots', label: '机器人', items: [
+    { key: 'bots', label: '通道', permission: 'bot:write', file: 'bots', tab: 'channels' },
+    { key: 'console', label: '调试', permission: 'bot:write', file: 'bots', tab: 'console' },
+    { key: 'bot-logs', label: '消息日志', permission: 'bot:write', file: 'bots', tab: 'logs' },
+  ] },
+  { key: 'account', label: '账号', items: [
+    { key: 'members', label: '成员与权限', permission: 'admin:manage', file: 'team', tab: 'users' },
+    { key: 'account', label: '我的账号' },
+  ] },
 ];
 
 const ROLE_LABEL = {
@@ -32,19 +40,6 @@ function allowed(me, tab) {
   if (!tab.permission) return true;
   const perms = me?.permissions || [];
   return Boolean(me?.open_mode) || perms.includes('*') || perms.includes(tab.permission);
-}
-
-function tabsHtml(tabs, current) {
-  return `<div class="seg-tabs hub-tabs" role="tablist" aria-label="设置">
-    ${tabs
-      .map(
-        (tab) =>
-          `<button class="seg-tab ${tab.key === current ? 'is-active' : ''}" type="button" role="tab" aria-selected="${
-            tab.key === current
-          }" data-settings-tab="${tab.key}">${esc(tab.label)}</button>`,
-      )
-      .join('')}
-  </div>`;
 }
 
 function authModeLabel(me) {
@@ -74,7 +69,7 @@ function accountHtml(me) {
               'power',
             )}<span>退出登录</span></button>
           </div>`
-        : `<p class="muted">当前使用管理令牌。创建账号并登录后即可在此修改密码。</p>`
+        : `<p class="muted">${me?.open_mode ? '本机演示模式尚未启用账号。创建账号并登录后，可在此查看个人信息与修改密码。' : '当前使用管理令牌。创建账号并登录后即可在此修改密码。'}</p>`
     }
   </section>`;
 }
@@ -121,8 +116,11 @@ export async function mount(root, options = {}) {
   let alive = true;
   let current = null;
   let cleanup = null;
+  let switchToken = 0;
+  let confirming = false;
+  let navigation = null;
 
-  root.innerHTML = `<div class="page hub-page" id="settingsHub">${loadingHtml('正在加载设置…')}</div>`;
+  root.innerHTML = `<div class="page hub-page settings-shell" id="settingsHub">${loadingHtml('正在加载设置…')}</div>`;
   const shell = root.querySelector('#settingsHub');
 
   let me = null;
@@ -137,18 +135,31 @@ export async function mount(root, options = {}) {
   }
   if (!alive) return undefined;
 
-  const tabs = TABS.filter((tab) => allowed(me, tab));
+  const groups = GROUPS.map((group) => ({ ...group, items: group.items.filter((item) => allowed(me, item)) })).filter((group) => group.items.length);
+  const tabs = groups.flatMap((group) => group.items);
   if (!tabs.length) {
     shell.innerHTML = `<div class="state state-empty"><h3>当前账号没有设置权限</h3><p>请联系超级管理员。</p></div>`;
     return undefined;
   }
 
   const requested = options.query?.get('tab');
+  shell.innerHTML = `<nav class="hub-navigation" id="settingsTabs"></nav><div class="hub-content hub-body" id="settingsBody"></div>`;
+  const body = shell.querySelector('#settingsBody');
   current = tabs.some((tab) => tab.key === requested) ? requested : tabs[0].key;
+  navigation = mountHubNavigation(shell.querySelector('#settingsTabs'), { groups, current, label: '设置导航', onSelect: (key) => { void switchTab(key); } });
 
   async function switchTab(tab, { updateHash = true } = {}) {
     const target = tabs.find((item) => item.key === tab);
-    if (!target) return;
+    if (!target || confirming || (updateHash && current === tab)) return;
+    const reset = shell.querySelector('#resetBtn');
+    if (updateHash && reset && !reset.disabled) {
+      confirming = true;
+      const discard = await confirmDialog({ title: '设置尚未保存', message: '切换后会丢弃当前修改。', confirmText: '丢弃并切换' });
+      confirming = false;
+      if (!discard || !alive) { navigation.update(current); return; }
+    }
+    const token = ++switchToken;
+    navigation.update(tab);
     if (typeof cleanup === 'function') {
       try {
         cleanup();
@@ -159,13 +170,6 @@ export async function mount(root, options = {}) {
     cleanup = null;
     current = tab;
     if (updateHash) history.replaceState(null, '', `#/settings?tab=${tab}`);
-
-    shell.innerHTML = `<div id="settingsTabs">${tabsHtml(tabs, current)}</div>
-      <div class="hub-body" id="settingsBody"></div>`;
-    const body = shell.querySelector('#settingsBody');
-    shell.querySelectorAll('[data-settings-tab]').forEach((button) => {
-      button.addEventListener('click', () => switchTab(button.dataset.settingsTab));
-    });
 
     if (tab === 'account') {
       body.innerHTML = accountHtml(me);
@@ -183,13 +187,17 @@ export async function mount(root, options = {}) {
 
     body.innerHTML = loadingHtml('正在加载…');
     try {
-      const module = await target.load();
-      if (!alive || current !== tab) return;
-      const childQuery = new URLSearchParams(target.query || {});
-      const result = module.mount?.(body, { query: childQuery });
+      const module = await import(`./${target.file}.js`);
+      if (!alive || token !== switchToken) return;
+      const childQuery = new URLSearchParams({ tab: target.tab, embed: '1', only: '1' });
+      const result = await module.mount?.(body, { query: childQuery });
+      if (!alive || token !== switchToken) {
+        if (typeof result === 'function') result();
+        return;
+      }
       cleanup = typeof result === 'function' ? result : null;
     } catch (err) {
-      if (!alive || current !== tab) return;
+      if (!alive || token !== switchToken) return;
       body.innerHTML = `<div class="state state-error"><h3>页面加载失败</h3><p>${esc(
         err?.message || '请稍后重试',
       )}</p></div>`;
@@ -202,6 +210,7 @@ export async function mount(root, options = {}) {
 
   return () => {
     alive = false;
+    navigation?.destroy();
     if (typeof cleanup === 'function') {
       try {
         cleanup();

@@ -118,11 +118,11 @@ def test_agent_loop_tool_then_reply(monkeypatch):
     )
 
     assert result["reply"] == "当前有 3 篇文档、1 个未处理缺口。"
-    assert [kind for kind, _ in events] == ["tool", "tool_result", "delta"]
-    assert events[0][1]["name"] == "system_stats"
+    assert [kind for kind, _ in events if kind != "status"] == ["tool", "tool_result", "delta"]
+    assert next(data for kind, data in events if kind == "tool")["name"] == "system_stats"
     assert result["steps"][0]["name"] == "system_stats"
     assert result["steps"][0]["ok"] is True
-    assert result["steps"][0]["summary"] == ""
+    assert "源文件" in result["steps"][0]["summary"]
     # 第二轮模型输入包含工具结果回灌
     assert any("工具 system_stats 的执行结果" in item["content"] for item in calls[1])
     # 系统提示词含工具目录
@@ -173,6 +173,9 @@ def test_agent_tools_endpoint_open_mode(client):
     assert "delete_document" in names and "ops_task_approve" in names
     dangerous = [item for item in items if item["dangerous"]]
     assert {item["name"] for item in dangerous} >= {"delete_document", "rebuild_wiki", "ops_task_approve"}
+    document = next(item for item in items if item["name"] == "get_document")
+    assert document["required"] == ["document_id"]
+    assert "document_id" in document["parameters"]
 
 
 def test_agent_chat_sse_stream(client, monkeypatch):
@@ -262,11 +265,12 @@ def test_agent_loop_handles_confirm_flow(monkeypatch):
         ],
     )
     first = agent_chat.run_agent_chat([], "删掉 d1", SUPER)
-    assert first["reply"].startswith("将删除")
-    assert first["steps"] == [
-        {"name": "delete_document", "ok": True, "summary": first["steps"][0]["summary"]}
-    ]
-    assert "need_confirm" in first["steps"][0]["summary"] or "高危" in first["steps"][0]["summary"]
+    assert "确认" in first["reply"]
+    assert len(first["steps"]) == 1
+    assert first["steps"][0]["name"] == "delete_document"
+    assert first["steps"][0]["ok"] is False
+    assert first["steps"][0]["status"] == "confirmation"
+    assert "确认" in first["steps"][0]["summary"]
 
     # 第二轮：用户同意，模型带 confirm 重调（文档不存在 → 业务错误回报）
     _patch_llm(
@@ -315,7 +319,7 @@ def test_maintenance_read_tools():
     assert escape.get("error")
     absolute = agent_tools.call_tool("read_file", {"path": "C:/Windows/win.ini"}, SUPER)
     assert absolute.get("error")
-    binary = agent_tools.call_tool("read_file", {"path": "docs/screenshots/chat.png"}, SUPER)
+    binary = agent_tools.call_tool("read_file", {"path": "docs/screenshots/v0.2.2/chat.png"}, SUPER)
     assert binary.get("error") and "文本" in binary["error"]
     missing = agent_tools.call_tool("read_file", {"path": "backend/no_such.py"}, SUPER)
     assert missing.get("error")

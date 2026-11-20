@@ -2,8 +2,8 @@
 
 > 目标：在 5 分钟内完整展示「LLM Wiki 编译 → 词条导航 → 双层引用回答 → 多渠道机器人」四类核心能力。
 > 演示环境：Windows + 已安装依赖的 `.venv`，默认地址 <http://127.0.0.1:8000>；配置真实 DeepSeek 时问答质量最佳。
-> 当前演示库只保留真实校园公开资料；`backend/data/wiki_seed.json` 是 75 篇真实来源的快照。
-> 六个页面的实际界面截图见 `docs/screenshots/`（由 `scripts/ui_check.py` 自动生成），可先整体浏览再按下述脚本演示。
+> 当前演示库为 v0.2.2：`backend/data/wiki_seed.json` 含 **2,486 篇公开文档 / 3,477 条词条 / 4,838 个来源锚点**。
+> 新版界面截图见 `docs/screenshots/v0.2.2/`，可先整体浏览再按下述脚本演示。
 
 ## 0. 演示前检查（30 秒）
 
@@ -14,7 +14,7 @@ cd D:\Development\NPU-Assistant
 
 浏览器打开 <http://127.0.0.1:8000>，确认：
 
-- 顶部/侧栏显示分身名称「小南」，5 个导航入口（对话 / 知识库 / 模型 / 机器人 / 设置）均能打开；
+- 顶部/侧栏显示分身名称「小南」，5 个导航入口（对话 / 知识库 / 知识库管理 / 运维管理 / 设置）均能打开；
 - 浏览器开发者工具 Console 无红色报错；
 - 时间紧张时可直接用控制台命令快速确认后端：
 
@@ -41,7 +41,7 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 - 无需任何 API Key，词条可正常浏览（预编译快照已随仓库提供）；
 - 搜索返回 `method=exact` 或 `method=keyword`，命中「国家奖学金」相关词条；
 - 词条详情包含 `body_html` 渲染后的正文、别名/标签、来源锚点与相关词条；
-- 切换到「源文件」Tab，可看到 75 篇真实源文件与各自编译出的 `page_count`。
+- 切换到「源文件」Tab，可看到 2,486 篇公开源文件与各自编译出的 `page_count`。
 
 ## 2. 用 DeepSeek 问政策问题（约 90 秒）— 双层引用核心亮点
 
@@ -145,7 +145,7 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 | 测试隔离 | `conftest.py` | 临时 `NPU_DATA_DIR`/`NPU_DB_PATH`/`NPU_WIKI_SEED_PATH`；每用例重置数据库与上传目录；不污染 `backend/data/app.db` |
 | fake LLM / fake importer | `conftest.py` | fake LLM 按提示词分流（编译 / 合并 / 导航 / 回答 / 寒暄，含失败模式）；本地 `http.server` 提供公众号样式 HTML、4MB / 9MB / gzip 页面验证 URL 抓取上限；机器人入库用 fake importer（threading.Event 验证微信后台线程） |
 
-### 9.2 真实服务端到端（8000 + DeepSeek，30 项检查全部通过，总耗时约 16s）
+### 9.2 真实服务端到端（v0.1.x 历史记录：8000 + DeepSeek，30 项检查全部通过，总耗时约 16s）
 
 | 验证项 | 实测结果 |
 |--------|----------|
@@ -188,8 +188,8 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 
 ### 9.4 演示数据基线
 
-- 源文件：75 篇真实校园公开资料（网页导入 + 本地 PDF/DOC/DOCX）；
-- Wiki：28 个词条 / 30 条来源锚点 / 9 个标签分组（`backend/data/wiki_seed.json` 预编译快照，冷启动自动导入）；
+- 源文件：2,486 篇公开校园资料（网页导入 + 本地 PDF/DOC/DOCX）；
+- Wiki：3,477 个词条 / 4,838 条来源锚点（`backend/data/wiki_seed.json` 预编译快照，冷启动自动导入）；
 - 模型：默认 `DeepSeek Chat`；内置 mock 仅用于链路/降级演示（不能编译）；
 - 机器人：控制台调试通道默认可用；QQ / 微信通道按需创建；
 - 设置：`counselor_name=小南`、`wiki_max_pages=3`、`wiki_answer_max_chars=9000`、引用开启。
@@ -234,15 +234,15 @@ Invoke-RestMethod http://127.0.0.1:8000/api/wiki/stats
 - 使用真实 cloudflared 2026.8.2：`POST /api/mobile/tunnel/start` 约 4.7s 返回 `https://*.trycloudflare.com`；公网 HTTPS 访问 health、首页、手册均 200；无令牌写操作 401，带 `X-Admin-Token` 文本收录 201；`POST /tunnel/stop` 后公网返回 502。
 - 前端 CDP：顶栏「手机扫码」弹窗打开、二维码加载、地址切换、一键开启后自动切换公网二维码并提示；机器人页 3 张快速添加卡、创建后 Webhook 指引正常；390/1440 无横向滚动、console 0 错误。
 
-### 9.8 v0.1.2 UI / 信息架构重构（2026-10-24 实测）
+### 9.8 v0.1.2 UI / 信息架构重构（历史记录，2026-10-24 实测）
 
-- 六个页面：`#/chat`、`#/knowledge`、`#/manage`、`#/models`、`#/bots`、`#/settings`；侧栏分「使用 / 运维」两组。
+- 五个一级页面：`#/chat`、`#/knowledge`、`#/kb-admin`、`#/ops`、`#/settings`；侧栏分「使用 / 管理」两组。知识库管理内分「内容资料 / 服务台」，运维管理内分「任务 / 告警 / 审计」，设置内分「助手 / 模型服务 / 机器人 / 账号」。
 - 知识库只读浏览；内容管理拆「收录资料 / 源文件 / 词条维护」三 Tab；模型「模型 / Provider」、机器人「通道 / 调试 / 日志」、设置「基础 / 移动访问与安全 / 回复与引用」。
 - 移除全局顶栏扫码、版本号/API 文档/安装按钮、知识库统计卡与快速收录、设置实时预览/配置建议；扫码入口迁入设置。
 - 验收：`scripts/ui_check.py` 六页渲染 + 真实问答/来源折叠行通过，console **0 错误**；1440×960 与 390×844 均无横向滚动；内容管理移动端统计 2×2、源文件列表首屏可见；pytest **126 passed**。
 - 截图：`docs/screenshots/{chat,knowledge,manage,models,bots,settings}.png`；手册静态图与 2 个 GIF 已同步新界面。
 
-### 9.9 真实校园数据 / 初始知识库（2026-10-24 实测）
+### 9.9 真实校园数据 / 初始知识库（历史记录，2026-10-24 实测）
 
 - 初始 43 篇 + TDD 补齐 32 篇 = **75 篇真实数据**；来源含官网 HTML、PDF、DOCX/DOC、OCR 文本与官方内容清洗摘录。
 - 数据库达到 **75 篇真实源文件 / 203 个词条 / 241 个来源锚点**，全部 `ready`；`.doc` 使用纯 Python `legacy-doc` 解析，无需 Word/LibreOffice。

@@ -303,7 +303,7 @@ def publish_evidence(
     shots_dir: Path,
     doc_path: Path,
 ) -> None:
-    """把本轮截图复制到仓库目录，并生成可点击的覆盖率/证据文档。"""
+    """把本轮截图复制到本地证据目录，并生成不含截图链接的覆盖率摘要。"""
     shots_dir.mkdir(parents=True, exist_ok=True)
     for result in results:
         for shot in result.screenshots:
@@ -315,7 +315,7 @@ def publish_evidence(
             target.write_bytes(source.read_bytes())
 
     lines = [
-        "# E2E 覆盖率与截图证据",
+        "# E2E 覆盖率与验收摘要",
         "",
         f"- 生成时间：{time.strftime('%Y-%m-%d %H:%M:%S')}",
         f"- 沙箱：`{sandbox.root.name}`（临时目录，运行后删除）",
@@ -323,26 +323,24 @@ def publish_evidence(
         f"- 场景：PASS {sum(1 for r in results if r.status=='PASS')} / FAIL "
         f"{sum(1 for r in results if r.status=='FAIL')} / KNOWN {sum(1 for r in results if r.status=='KNOWN')}",
         "",
-        "## 场景与截图",
+        "## 场景与覆盖",
         "",
-        "| 场景 | 状态 | 覆盖动作 | 截图 |",
-        "|---|---|---|---|",
+        "| 场景 | 状态 | 覆盖动作 |",
+        "|---|---|---|",
     ]
     registry = {item.id: item for item in REGISTRY}
     for result in results:
         item = registry.get(result.id)
         covers = ", ".join(item.covers) if item and item.covers else "—"
-        shots = [
-            f"[{Path(shot).stem}](screenshots/e2e/{result.id}/{Path(shot).name})"
-            for shot in result.screenshots
-            if (shots_dir / result.id / Path(shot).name).is_file()
-        ]
-        lines.append(
-            f"| `{result.id}` | {result.status} | {covers} | {'<br>'.join(shots) or '—'} |"
-        )
+        lines.append(f"| `{result.id}` | {result.status} | {covers} |")
     lines += ["", "## 分视图覆盖", ""]
     for view, info in coverage["views"].items():
         lines.append(f"- **{view}**：{info['covered']}/{info['total']}")
+    lines += [
+        "",
+        "> 截图仅保留在本地证据目录（`.artifacts/e2e/` 与 `docs/screenshots/e2e/`，均不随仓库提交）；"
+        "需要取证时运行 `scripts/e2e.ps1 -Publish`。",
+    ]
     doc_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 

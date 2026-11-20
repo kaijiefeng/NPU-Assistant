@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import threading
 from collections import deque
@@ -37,6 +38,7 @@ class ToolSpec:
     handler: Callable[[dict, dict], dict]
     write: bool = False
     dangerous: bool = False
+    required: tuple[str, ...] = ()
 
 
 REGISTRY: dict[str, ToolSpec] = {}
@@ -44,7 +46,18 @@ REGISTRY: dict[str, ToolSpec] = {}
 
 def tool(name: str, description: str, permission: str, parameters: dict, *, write: bool = False, dangerous: bool = False):
     def decorator(fn: Callable[[dict, dict], dict]) -> Callable[[dict, dict], dict]:
-        REGISTRY[name] = ToolSpec(name, description, permission, parameters, fn, write, dangerous)
+        # 参数说明统一用「必填/可选」开头，注册时据此生成必填清单，提示词与校验共用一份定义。
+        required = tuple(key for key, desc in parameters.items() if "必填" in str(desc))
+        REGISTRY[name] = ToolSpec(
+            name=name,
+            description=description,
+            permission=permission,
+            parameters=parameters,
+            handler=fn,
+            write=write,
+            dangerous=dangerous,
+            required=required,
+        )
         return fn
 
     return decorator
@@ -60,6 +73,7 @@ def tool_catalog(specs: list[ToolSpec]) -> list[dict]:
         {
             "name": spec.name,
             "description": spec.description,
+            "required": list(spec.required),
             "parameters": spec.parameters,
             **({"dangerous": True} if spec.dangerous else {}),
         }
@@ -75,6 +89,14 @@ def call_tool(name: str, args: dict, principal: dict) -> dict:
     if not auth.has_permission(str((principal or {}).get("role") or ""), spec.permission):
         return {"error": f"权限不足：当前角色无法执行 {spec.name}（需要 {spec.permission}）"}
     clean_args = args if isinstance(args, dict) else {}
+    missing = [key for key in spec.required if key not in clean_args]
+    if missing:
+        hints = "；".join(f"{key}（{spec.parameters[key]}）" for key in missing)
+        return {"error": f"缺少必填参数：{'、'.join(missing)}。{hints}"}
+    unknown = sorted(set(clean_args) - set(spec.parameters) - {"confirm"})
+    if unknown:
+        supported = "、".join(spec.parameters) or "无参数"
+        return {"error": f"未知参数：{'、'.join(unknown)}。{spec.name} 支持：{supported}"}
     # 高危工具的服务端确认门：无论提示词怎么说，首次调用一律拦下，必须显式带 confirm
     if spec.dangerous and not _bool(clean_args, "confirm", False):
         return {
@@ -272,7 +294,7 @@ def _insights_overview(args: dict, principal: dict) -> dict:
     "list_feedback",
     "列出学生对回答的反馈（差评原因常提示知识缺口）。",
     "insights:read",
-    {"status": "可选，处理状态", "limit": "可选，默认 20"},
+    {"status": "可选，open/triaged/resolved/ignored，默认全部", "limit": "可选，默认 20"},
 )
 def _list_feedback(args: dict, principal: dict) -> dict:
     return insights.list_feedback(status=_str(args, "status"), limit=_limit(args))
@@ -302,7 +324,11 @@ def _get_subscription(args: dict, principal: dict) -> dict:
     "list_jobs",
     "列出后台任务（收录/扫描/重建/找备选/修复等）。",
     "content:read",
-    {"status": "可选，queued/running/succeeded/failed/cancelled/active", "kind": "可选，任务类型", "limit": "可选，默认 20"},
+    {
+        "status": "可选，queued/running/succeeded/failed/cancelled/active（active=排队+运行中）",
+        "kind": "可选，ingest_upload/reindex/rebuild/scan_dir/gap_suggest/subscription_check/agent_prompt/ops_analyze/ops_execute",
+        "limit": "可选，默认 20",
+    },
 )
 def _list_jobs(args: dict, principal: dict) -> dict:
     return jobs.list_jobs(status=_str(args, "status"), kind=_str(args, "kind"), limit=_limit(args))
@@ -325,7 +351,7 @@ def _get_job(args: dict, principal: dict) -> dict:
     "list_alerts",
     "列出系统告警（LLM 熔断、任务失败等）。",
     "insights:read",
-    {"status": "可选，open/acknowledged/resolved", "level": "可选，级别", "limit": "可选，默认 20"},
+    {"status": "可选，open/acknowledged/resolved", "level": "可选，info/warning/error/critical", "limit": "可选，默认 20"},
 )
 def _list_alerts(args: dict, principal: dict) -> dict:
     return alerts.list_alerts(status=_str(args, "status"), level=_str(args, "level"), limit=_limit(args))
@@ -400,8 +426,40 @@ def _import_text(args: dict, principal: dict) -> dict:
 
 
 @tool(
+    "get_scan_directory",
+    "查看服务器当前扫描目录、路径来源、项目根目录和限制；可选 path 预览该目录的可收录文件。相对路径以项目根目录为基准，不是浏览器电脑目录。",
+    "content:write",
+    {"path": "可选，服务器目录，留空检查已配置/默认目录", "recursive": "可选，是否递归，默认 true", "preview": "可选，true才预览文件；仅查询默认目录时不需要"},
+)
+def _get_scan_directory(args: dict, principal: dict) -> dict:
+    info = ingest.scan_directory_info()
+    path = _str(args, "path")
+    result = {"directory": info}
+    if _bool(args, "preview", False) or path:
+        try:
+            result["preview"] = ingest.preview_scan_directory(path, recursive=_bool(args, "recursive", True), sample_limit=6)
+        except (ValueError, OSError) as exc:
+            result["preview_error"] = _clean_error(str(exc))
+    result["message"] = f"默认扫描目录：{info['path']}；来源：{'已保存配置' if info['source'] == 'saved' else '系统默认'}。"
+    return result
+
+
+@tool(
+    "set_scan_directory",
+    "保存服务器默认扫描目录（先检查存在性与允许根范围）；path 留空恢复系统默认目录，不会扫描或编译。",
+    "content:write",
+    {"path": "必填，可访问的服务器目录路径；空字符串恢复默认"},
+    write=True,
+)
+def _set_scan_directory(args: dict, principal: dict) -> dict:
+    if "path" not in args:
+        raise ValueError("缺少 path；如需恢复默认，请显式传空字符串")
+    return ingest.save_scan_directory(_str(args, "path"))
+
+
+@tool(
     "scan_dir",
-    "扫描服务器本地文件夹批量收录（后台任务，返回 job_id）。",
+    "扫描服务器本地文件夹批量收录；先 get_scan_directory 确认目录，返回 job_id 后等待后台执行，后续按需 get_job 查询。",
     "content:write",
     {"path": "可选，服务器目录绝对路径，留空用默认扫描目录", "recursive": "可选，是否递归子目录，默认 true", "mode": "可选，skip=只收新文件 / update=同名变化也重编"},
     write=True,
@@ -409,7 +467,7 @@ def _import_text(args: dict, principal: dict) -> dict:
 def _scan_dir(args: dict, principal: dict) -> dict:
     from .. import config
 
-    path = _str(args, "path")
+    path = str(ingest.resolve_scan_directory(_str(args, "path")))
     recursive = _bool(args, "recursive", True)
     mode = "update" if _str(args, "mode").lower() == "update" else "skip"
     listed = ingest.list_scan_files(path, recursive=recursive, max_files=int(config.SCAN_MAX_FILES) + 1)
@@ -420,6 +478,8 @@ def _scan_dir(args: dict, principal: dict) -> dict:
     )
     return {
         "job_id": job["id"],
+        "path": path,
+        "truncated": len(listed) > int(config.SCAN_MAX_FILES),
         "files": min(len(listed), int(config.SCAN_MAX_FILES)),
         "message": f"已提交后台扫描任务（模式 {mode}），用 get_job 轮询 {job['id']}。",
     }
@@ -561,6 +621,8 @@ def _gap_collect(args: dict, principal: dict) -> dict:
     write=True,
 )
 def _gap_link(args: dict, principal: dict) -> dict:
+    if not _str(args, "document_id") and not _str(args, "page_id"):
+        raise ValueError("标记已关联至少需要 document_id 或 page_id")
     return insights.update_gap(
         _str(args, "gap_id"),
         "link",
@@ -783,9 +845,13 @@ def _read_logs(args: dict, principal: dict) -> dict:
 
 @tool(
     "read_file",
-    "读取仓库内的一个文本源码/配置文件（排障用，只读；仅超级管理员）。",
+    "读取仓库内的文本源码/配置文件（排障用，只读；仅超级管理员）。默认从第1行起返回100行，可用 start/lines 继续查看后续片段。",
     "ops:manage",
-    {"path": "必填，仓库相对路径，如 backend/app/services/llm.py"},
+    {
+        "path": "必填，仓库相对路径，如 backend/app/services/llm.py",
+        "start": "可选，起始行号（从1开始），默认1",
+        "lines": "可选，返回行数，默认100，最多200",
+    },
 )
 def _read_file(args: dict, principal: dict) -> dict:
     from .. import config
@@ -795,7 +861,7 @@ def _read_file(args: dict, principal: dict) -> dict:
     if not rel or candidate.is_absolute() or ".." in candidate.parts:
         raise ValueError("只允许仓库内相对路径，禁止绝对路径或 ..")
     resolved = (config.REPO_DIR / candidate).resolve()
-    if not str(resolved).startswith(str(config.REPO_DIR.resolve())):
+    if not resolved.is_relative_to(config.REPO_DIR.resolve()):
         raise ValueError("路径越出仓库范围")
     if not resolved.is_file():
         raise ValueError("文件不存在")
@@ -803,12 +869,100 @@ def _read_file(args: dict, principal: dict) -> dict:
         raise ValueError(f"仅支持文本类型：{' '.join(sorted(_ALLOWED_FILE_EXTS))}")
     if resolved.stat().st_size > 200 * 1024:
         raise ValueError("文件过大（>200KB），请指定更小的目标或用 read_logs 看运行日志")
+    try:
+        start = max(1, int(args.get("start") or 1))
+    except (TypeError, ValueError):
+        start = 1
+    try:
+        wanted = max(1, min(int(args.get("lines") or 100), 200))
+    except (TypeError, ValueError):
+        wanted = 100
     lines = resolved.read_text(encoding="utf-8", errors="replace").splitlines()
-    if len(lines) > 800:
-        return {
-            "path": rel,
-            "truncated": True,
-            "total_lines": len(lines),
-            "content": "\n".join(lines[-800:]),
-        }
-    return {"path": rel, "truncated": False, "total_lines": len(lines), "content": "\n".join(lines)}
+    if start > len(lines):
+        raise ValueError(f"起始行 {start} 超过文件总行数 {len(lines)}")
+    chunk = lines[start - 1:start - 1 + wanted]
+    end = start + len(chunk) - 1
+    return {
+        "path": rel,
+        "start": start,
+        "end": end,
+        "total_lines": len(lines),
+        "truncated": end < len(lines),
+        "next_start": end + 1 if end < len(lines) else None,
+        "content": "\n".join(chunk),
+    }
+
+
+_SEARCH_SKIP_DIRS = {
+    ".git", ".venv", "__pycache__", "node_modules", "data", "uploads",
+    "job_staging", ".worktrees", ".artifacts", ".zcode", "build", "dist",
+}
+
+
+@tool(
+    "search_repo",
+    "在仓库文本源码/配置中按关键词搜索（只读；仅超级管理员）。排障时先用它定位文件和行号，再用 read_file 读取上下文，避免反复整文件读取。",
+    "ops:manage",
+    {
+        "query": "必填，要搜索的纯文本关键词（不按正则解释），至少 2 个字符",
+        "path": "可选，仓库相对子目录，如 backend/app；留空搜索整个仓库",
+        "case_sensitive": "可选，是否区分大小写，默认 false",
+        "limit": "可选，最多返回多少条匹配，默认 30，最多 100",
+    },
+)
+def _search_repo(args: dict, principal: dict) -> dict:
+    from .. import config
+
+    query = _str(args, "query")
+    if len(query) < 2:
+        raise ValueError("搜索关键词至少需要 2 个字符")
+    rel = _str(args, "path").replace("\\", "/").strip("/")
+    candidate = Path(rel or ".")
+    if candidate.is_absolute() or ".." in candidate.parts:
+        raise ValueError("只允许仓库内相对子目录，禁止绝对路径或 ..")
+    root = (config.REPO_DIR / candidate).resolve()
+    repo = config.REPO_DIR.resolve()
+    if not root.is_relative_to(repo):
+        raise ValueError("路径越出仓库范围")
+    if not root.is_dir():
+        raise ValueError("搜索目录不存在")
+    limit = _limit(args, default=30, hi=100)
+    case_sensitive = _bool(args, "case_sensitive", False)
+    needle = query if case_sensitive else query.lower()
+    matches: list[dict] = []
+    scanned = 0
+    for current, dirnames, filenames in os.walk(root):
+        dirnames[:] = sorted(name for name in dirnames if name not in _SEARCH_SKIP_DIRS)
+        for filename in sorted(filenames):
+            if len(matches) >= limit or scanned >= 2000:
+                break
+            path = Path(current) / filename
+            if path.suffix.lower() not in _ALLOWED_FILE_EXTS:
+                continue
+            try:
+                if path.stat().st_size > 200 * 1024:
+                    continue
+                text = path.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            scanned += 1
+            for line_no, line in enumerate(text.splitlines(), 1):
+                haystack = line if case_sensitive else line.lower()
+                if needle in haystack:
+                    matches.append({
+                        "path": path.relative_to(repo).as_posix(),
+                        "line": line_no,
+                        "text": line.strip()[:240],
+                    })
+                    if len(matches) >= limit:
+                        break
+        if len(matches) >= limit or scanned >= 2000:
+            break
+    return {
+        "query": query,
+        "matches": matches,
+        "count": len(matches),
+        "scanned_files": scanned,
+        "truncated": len(matches) >= limit or scanned >= 2000,
+        "note": "匹配行为纯文本；查看上下文请用 read_file 的 start/lines。",
+    }

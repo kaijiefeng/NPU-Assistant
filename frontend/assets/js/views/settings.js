@@ -24,6 +24,9 @@ import {
 } from '../ui.js';
 import { openMobileAccessModal } from '../mobile-access.js';
 
+let mountGeneration = 0;
+let mountOptions = {};
+
 const state = {
   loaded: false,
   loading: false,
@@ -301,14 +304,20 @@ function renderShell() {
 }
 
 async function loadSettings({ silent = false } = {}) {
+  const generation = mountGeneration;
   const shell = document.getElementById('settingsShell');
   if (shell && !document.getElementById('settingsForm')) shell.innerHTML = loadingHtml('正在加载设置…');
   try {
     const settings = await getSettings();
+    if (generation !== mountGeneration || !shell?.isConnected) return;
     if (shell && !document.getElementById('settingsForm')) {
       shell.innerHTML = renderShell();
       bindForm();
       bindActions();
+      const embed = mountOptions.query?.get('embed') === '1';
+      const tab = mountOptions.query?.get('tab') || 'basic';
+      shell.querySelector(`[data-action="settings-tab"][data-tab="${tab}"]`)?.click();
+      if (embed) shell.querySelector('.seg-tabs').hidden = true;
     }
     state.loaded = true;
     state.error = '';
@@ -317,6 +326,7 @@ async function loadSettings({ silent = false } = {}) {
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) saveBtn.disabled = true;
   } catch (err) {
+    if (generation !== mountGeneration || !shell?.isConnected) return;
     state.loaded = false;
     state.error = err?.message || '设置加载失败';
     if (shell) {
@@ -680,9 +690,11 @@ function bindActions() {
 /* ------------------------------------------------------------------ */
 /* 视图入口                                                            */
 /* ------------------------------------------------------------------ */
-export function mount(root) {
+export function mount(root, options = {}) {
+  mountOptions = options;
+  const generation = ++mountGeneration;
   root.innerHTML = `<div class="page settings-page-wrap" id="settingsShell">${loadingHtml('正在加载设置…')}</div>`;
   state.loaded = false;
   loadSettings();
-  return () => {};
+  return () => { if (generation === mountGeneration) mountGeneration += 1; };
 }

@@ -93,6 +93,7 @@ const PROTECTED_GET_PREFIXES = [
   '/alerts',
   // 管理助手面板的工具清单
   '/agent',
+  '/knowledge/scan-directory',
 ];
 
 // 只有这三个登录入口不需要 CSRF（登录前还没有会话）；/auth/password 等写操作必须带
@@ -410,6 +411,9 @@ export const importText = (payload) => post('/knowledge/import/text', payload);
 export const importBatch = (payload) => post('/knowledge/import/batch', payload);
 /** 扫描服务器本地文件夹并批量收录（需管理员；返回 job_id）。 */
 export const scanKnowledgeFolder = (payload) => post('/knowledge/scan-dir', payload);
+export const getScanDirectory = () => get('/knowledge/scan-directory');
+export const saveScanDirectory = (payload) => put('/knowledge/scan-directory', payload);
+export const previewScanDirectory = (payload) => post('/knowledge/scan-directory/preview', payload);
 
 /** 导入预编译 Wiki 快照（/knowledge/seed 优先，404 时回退 /wiki/seed）。 */
 export async function seedWiki() {
@@ -566,7 +570,7 @@ export const deleteAgentSchedule = (id) => del(`/agent/schedules/${encodeURIComp
 export const runAgentSchedule = (id) => post(`/agent/schedules/${encodeURIComponent(id)}/run`);
 
 /** SSE 流式管理助手对话；返回 done 事件的完整结果（reply/steps）。 */
-export async function sendAgentStream(payload, { onTool, onToolResult, onDelta, signal } = {}) {
+export async function sendAgentStream(payload, { onTool, onToolResult, onDelta, onStatus, onConversation, signal } = {}) {
   const headers = withAdminToken({ 'Content-Type': 'application/json' });
   if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
   const response = await fetch(`${API_BASE}/agent/chat`, {
@@ -591,6 +595,7 @@ export async function sendAgentStream(payload, { onTool, onToolResult, onDelta, 
   const decoder = new TextDecoder('utf-8');
   let buffer = '';
   let done = null;
+  let streamError = null;
   const dispatch = (block) => {
     let event = 'message';
     const dataLines = [];
@@ -605,26 +610,41 @@ export async function sendAgentStream(payload, { onTool, onToolResult, onDelta, 
     } catch {
       return;
     }
-    if (event === 'tool') onTool?.(data);
+    if (event === 'status') onStatus?.(data);
+    else if (event === 'conversation') onConversation?.(data);
+    else if (event === 'tool') onTool?.(data);
     else if (event === 'tool_result') onToolResult?.(data);
     else if (event === 'delta') onDelta?.(String(data?.text || ''));
     else if (event === 'error') {
-      throw new ApiError(String(data?.detail || '管理助手响应失败'), { status: 0 });
+      streamError = new ApiError(String(data?.detail || '管理助手响应失败'), { status: 0 });
     } else if (event === 'done') done = data;
   };
-  while (true) {
-    const { value, done: finished } = await reader.read();
-    buffer += decoder.decode(value || new Uint8Array(), { stream: !finished });
-    let index = buffer.indexOf('\n\n');
-    while (index >= 0) {
-      const block = buffer.slice(0, index);
-      buffer = buffer.slice(index + 2);
-      if (block.trim()) dispatch(block);
-      index = buffer.indexOf('\n\n');
+  let completed = false;
+  try {
+    while (true) {
+      const { value, done: finished } = await reader.read();
+      buffer = (buffer + decoder.decode(value || new Uint8Array(), { stream: !finished })).replace(/\r\n/g, '\n');
+      let index = buffer.indexOf('\n\n');
+      while (index >= 0) {
+        const block = buffer.slice(0, index);
+        buffer = buffer.slice(index + 2);
+        if (block.trim()) dispatch(block);
+        index = buffer.indexOf('\n\n');
+      }
+      if (done) {
+        await reader.cancel();
+        break;
+      }
+      if (finished) break;
     }
-    if (finished) break;
+    if (!done && buffer.trim()) dispatch(buffer);
+    if (!done) throw streamError || new ApiError('管理助手响应意外中断，请重试', { status: 0 });
+    if (!String(done.reply || '').trim()) throw streamError || new ApiError('管理助手没有返回最终说明，请重试', { status: 0 });
+    completed = true;
+  } finally {
+    if (!completed) { try { await reader.cancel(); } catch { /* 连接已断开 */ } }
+    reader.releaseLock();
   }
-  if (buffer.trim()) dispatch(buffer);
-  if (!done) throw new ApiError('管理助手响应意外中断，请重试', { status: 0 });
+
   return done;
 }

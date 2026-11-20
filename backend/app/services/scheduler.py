@@ -252,7 +252,7 @@ def run_agent_prompt(schedule_id: str) -> dict:
             (json.dumps(config, ensure_ascii=False), db.now(), schedule_id),
         )
 
-    history = agent_sessions.build_context(conversation_id)
+    history = agent_chat.prepare_context(conversation_id, prompt, SCHED_PRINCIPAL)
     agent_sessions.append_message(conversation_id, "user", prompt)
     result = agent_chat.run_agent_chat(history, prompt, SCHED_PRINCIPAL)
     agent_sessions.append_message(

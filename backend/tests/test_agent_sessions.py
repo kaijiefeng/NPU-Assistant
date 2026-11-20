@@ -76,20 +76,20 @@ def test_build_context_under_budget_no_summary():
 
 def test_build_context_compacts_when_over_budget(fake_llm):
     conv = agent_sessions.create_conversation("大会话")
-    _fill(conv["id"], 8, "长" * 2900)  # 总量远超预算；保留一半后回到预算内
+    _fill(conv["id"], 8, "长" * 2900)  # 使用缩小的 token 阈值验证压缩
 
-    context = agent_sessions.build_context(conv["id"])
+    context = agent_sessions.build_context(conv["id"], budget=24_000)
     refreshed = agent_sessions.get_conversation(conv["id"])
 
-    # 最旧一半（4 条）并入摘要，保留最近 4 条 + 1 条纪要
+    # 旧前缀按 token 预算并入摘要，近期消息保持完整
     assert refreshed["summary"]
     assert refreshed["summary_upto"]
-    assert len(context) == 5
+    assert 1 < len(context) < 8
     assert context[0]["content"].startswith("【此前会话纪要】")
     assert context[-1]["content"].startswith("消息7")
 
     # 二次组装：摘要已在预算内，直接复用（纪要仍为首条，近期消息不丢）
-    context2 = agent_sessions.build_context(conv["id"])
+    context2 = agent_sessions.build_context(conv["id"], budget=24_000)
     assert context2[0]["content"].startswith("【此前会话纪要】")
     assert context2[-1]["content"].startswith("消息7")
 
@@ -97,10 +97,10 @@ def test_build_context_compacts_when_over_budget(fake_llm):
 def test_build_context_degrades_when_llm_broken(broken_llm):
     conv = agent_sessions.create_conversation("降级")
     _fill(conv["id"], 8, "长" * 2900)
-    context = agent_sessions.build_context(conv["id"])
+    context = agent_sessions.build_context(conv["id"], budget=24_000)
     refreshed = agent_sessions.get_conversation(conv["id"])
-    assert "未经 AI 压缩" in refreshed["summary"]
-    assert len(context) == 5
+    assert "压缩失败" in refreshed["summary"]
+    assert 1 < len(context) < 8
 
 
 # ---------------------------------------------------------------------------
@@ -119,7 +119,7 @@ def test_truncate_from_removes_following_messages():
 def test_truncate_resets_summary_watermark(fake_llm):
     conv = agent_sessions.create_conversation("水位")
     messages = _fill(conv["id"], 8, "长" * 3000)
-    agent_sessions.build_context(conv["id"])  # 触发压缩，水位在第 4 条
+    agent_sessions.build_context(conv["id"], budget=24_000)  # 触发压缩并推进 rowid 水位
     refreshed = agent_sessions.get_conversation(conv["id"])
     assert refreshed["summary_upto"]
 

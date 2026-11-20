@@ -26,7 +26,13 @@ ARTICLE_HTML = "<html><body><h1>标题</h1><p>{}</p></body></html>".format("正�
 
 
 def _patch_fetch(monkeypatch, seen: set[str] | None = None):
-    from app.services import importer
+    from app.services import discovery, importer
+
+    class AllowRobots:
+        def allowed(self, url):
+            return True
+
+    monkeypatch.setattr(discovery, "_robots", AllowRobots())
 
     def fake_fetch_url(url):
         if seen is not None:

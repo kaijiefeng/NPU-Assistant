@@ -1,6 +1,6 @@
 # NPU-Assistant 开发手册
 
-> 适用版本：v0.2.1（2026-11-16 发布）  
+> 适用版本：v0.2.2（2026-11-20 发布）
 > 读者：接手开发、二次开发、代码评审、交接同学  
 > 目标：读完能本地跑起来、看懂核心链路、知道改哪里、不踩已知坑。  
 > 先读：`docs/ARCHITECTURE.md`（架构）、`docs/WIKI-DESIGN.md`（知识层设计）、`docs/CONTRACT.md`（接口契约）、`docs/API.md`（接口速览）。
@@ -268,19 +268,30 @@ QQ/微信/控制台事件
 
 ## 6. 前端架构
 
-- `app.js`：hash 路由（`#/chat`、`#/knowledge`、`#/ops`、`#/settings`），挂载视图并兼容旧路由重定向。
+- `app.js`：hash 路由（`#/chat`、`#/knowledge`、`#/kb-admin`、`#/ops`、`#/settings`），挂载视图并兼容旧路由重定向。
 - `api.js`：统一 `fetch`，自动带 `X-Admin-Token`；401 提示；上传用 XHR 进度。
+- `hub-navigation.js`：轻量任务分组与子页选择器，导航确认和权限由所属页面处理。
 - `ui.js`：图标、toast、确认弹窗、空态、loading。
 - `views/chat.js`：会话、消息、引用折叠、历史抽屉、重试。
 - `views/knowledge.js`：知识库浏览（`mount`）+ 词条维护/源文件管理（`mountManage`，由 kb-admin 聚合页挂载；收录走右侧管理助手）。
-- `views/kb-admin.js`：知识库管理聚合（内容管理 + 服务台）。
+- `scan-folder.js`：源文件页扫描弹窗；`scan-compat.js` 处理前后端版本差异，目录接口404时仍可填写完整路径调用既有扫描提交接口，预览/保存需新版后端；其他权限和网络错误不降级。
+- `views/kb-admin.js`：知识库管理聚合，顶部仅「内容资料 / 服务台」两个分组；服务台包含概览；选择器用「人工处置」分组列出待人工/危机，用「知识维护」分组列出知识缺口/订阅发现/时效/反馈，子页URL与权限不变。
+- `ops-labels.js`：九类任务、告警类别和审计动作中文映射；`agent-reply.js`：历史回复包装的有限显示兼容。
+- `views/insights.js`：服务台数据和操作控制；`views/insights-board.js`：概览、待人工、危机、缺口、反馈、时效和订阅的统一紧凑队列，详情刷新保留，订阅新增使用弹窗。
 - `views/ops-hub.js`：运维管理聚合（任务与告警 / 审计日志）。
-- `agent-panel.js`：右侧常驻管理助手面板（SSE 对话 + 工具步骤 + 附件上传）。
-- `views/settings-hub.js`：设置聚合（助手设置 / 模型 / 机器人 / 成员与权限 / 我的账号）。
+- `services/agent_context.py`：200K token 窗口 / 180K 压缩 / 120K 目标；`tiktoken`估算、输出与模板预留、分片摘要，SSE与定时指令共用；无分词资源时字节估算降级。
+- `services/agent_protocol.py`：完整单工具DSML适配为内部JSON，拒绝混杂/残缺/多调用，仍经过统一执行保护；工具+预先回复双JSON只执行工具并丢弃未证实回复。Agent显式启用模型JSON对象输出，前后端历史显示屏蔽旧工具标记。
+- `agent-process.js`：中文工具状态与两级折叠，保留手动开合，参数/结果摘要显示；`services/agent_execution.py`：合法JSON裁剪、凭据脱敏、无模型时的证据总结。
+- `agent-panel.js`：管理页右侧常驻助手面板（对话、知识库与登录页隐藏）（SSE 对话 + 工具步骤 + 附件上传）；草稿增量更新、上滚暂停跟随、返回最新、停止等待，当前会话与面板偏好按账号保存。
+- `views/settings-hub.js`：设置聚合，顶部「助手 / 模型 / 机器人 / 账号」四个任务分组，当前组内选择具体子页；子视图用 `embed=1` 隐藏内部导航。
 - `views/models.js`：Provider/模型双 Tab。
 - `views/bots.js`：通道/调试/日志。
 - `views/settings.js`：助手设置（基础/移动访问与安全/回复与引用），由设置聚合页挂载。
 - `frontend/manual/*`：客户手册，共用 `manual.css`。
+
+**管理助手执行**：单请求最多200次工具及一次最终回答，取消180秒总时限；本轮工具轨迹与旧会话一起按180K阈值压缩，保留原始任务和最新结果。单次输出上限4096 tokens；普通工具结果回填2400字符，`read_file`/`search_repo`/`read_logs`放宽到16000/10000/10000字符。连续错误计数遇成功复位，重复保护（首次纠偏、二次停止）、读取次数上限与确认门保留。空正文自动重试且不计入熔断，JSON模式不可用时降级普通模式；协议错误最多纠偏两次，工具参数按目录中的required/parameters在服务端校验。
+
+**工作台交互**：知识列表显示结果数并支持清空筛选，关键词默认收起、卡片最多两个标签；运维使用对齐的紧凑列表、中文任务名称、状态过滤和展开详情，刷新保留筛选及详情；设置子页切换提醒未保存修改；弹窗/抽屉提供初始焦点与键盘焦点循环。助手分隔条支持方向键调宽，保留至少 600px 主区（含内边距）；壳层不足 940px 时以浮层打开。内容按容器宽度分栏，附件与发送按钮位于输入框下方工具栏。停止助手等待只中断前端接收，服务端可能继续执行，已执行工具不撤销。
 
 **无构建**：新增 JS 文件用原生 `import`；样式加到 `assets/styles.css`。改完刷新即可，注意 Service Worker 缓存（`service-worker.js`）版本号。
 
@@ -526,6 +537,8 @@ cd backend
 | 账号/角色/审计 | ✅ v0.2.0 M3 | 会话登录、4 角色、CSRF、审计 |
 | 时效性 | ✅ v0.2.0 M1 | 日期字段/学年/当前日期注入/过期降权 |
 | 异步/流式/告警 | ✅ v0.2.0 M4-M5 | 任务队列、异步上传、SSE、重试/熔断/告警 |
+| 隐私与知识库整备 | ✅ v0.2.1 | 2,486 篇公开文档、解析脱敏、检索约 50ms |
+| 管理助手与工作台 | ✅ v0.2.2 | 45 工具、200 轮、200K/180K、两级导航、服务台合并、扫描目录 |
 | embedding/向量库 | ❌ 非目标 | 设计上不做 |
 | 语音/图片 | ❌ 当前不做 | 路线图 v0.4.0 评估 |
 
@@ -534,7 +547,7 @@ cd backend
 ## 15. 已知坑与注意事项
 
 1. **单进程 SQLite**：不要用多 worker；写并发有限。生产扩展需评估 Postgres/外部队列。
-2. **上传同步编译**：大文件会阻塞请求；v0.2.0 异步化前，前端要提示等待，避免超时。
+2. **上传编译走后台任务**：大文件不会阻塞对话请求，但任务队列串行处理；前端应展示任务号与进度，避免误以为失败。
 3. **mock 不能编译**：`can_compile()` 为 False；测试用 fake LLM，不要依赖 mock 生成词条。
 4. **`needs_review` 不参与问答**：只展示；需人工编辑转 ready。
 5. **弱命中不返回**：为了避免无据引用；关键词阈值调低会增加误命中。
@@ -617,7 +630,7 @@ cd backend
 2. 在 `CHANGELOG.md` 顶部写发布章节，标题必须匹配 `## vX.Y.Z`：
 
    ```markdown
-   ## v0.2.1 — 2026-11-20（主题）
+   ## v0.2.2 — 2026-11-20（主题）
 
    主题：**一句话说明本版重点**。
 
@@ -628,12 +641,12 @@ cd backend
 3. 运行发布脚本：
 
    ```powershell
-   .\scripts\release.ps1 -Version 0.2.1 -Branch release
+   .\scripts\release.ps1 -Version 0.2.2 -Branch release
    ```
 
    脚本依次完成：检查工作区 / 分支 / 与远端同步（`git fetch` + 落后检查）/
    tag 是否重复 → 校验 CHANGELOG 章节 → 修改 `backend/app/config.py` 的
-   `APP_VERSION` → 跑 `pytest` → 提交 `chore: release v0.2.1` → 打 annotated
+   `APP_VERSION` → 跑 `pytest` → 提交 `chore: release v0.2.2` → 打 annotated
    tag → `git push --atomic` 一次性推送分支和 tag。
 4. 打开 **Actions → Release** 确认 Release 已创建。工作流会先校验 tag 与
    `APP_VERSION` 一致，再读取 CHANGELOG 章节作为正文。
@@ -645,7 +658,7 @@ cd backend
 `-DryRun`（只做检查，不改文件、不提交、不推送；仍会 `git fetch` 访问 origin、
 默认仍跑 `pytest`，可加 `-SkipTests` 加速）。
 
-预发布：`-Version 0.2.1-rc1` 时 CHANGELOG 章节要写成 `## v0.2.1-rc1`，
+预发布：`-Version 0.2.2-rc1` 时 CHANGELOG 章节要写成 `## v0.2.2-rc1`，
 `APP_VERSION` 也会写成 `0.2.1-rc1`；workflow 会把带 `-` 的 tag 标为 prerelease。
 
 常见失败与恢复：
@@ -688,8 +701,8 @@ notes。工作流是幂等的：已有 Release 时只更新标题和正文（有
 Actions 不可用时，可以手工生成正文并创建 Release：
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\release_notes.py --version v0.2.1 --output release-notes.md
-gh release create v0.2.1 --verify-tag --title v0.2.1 --notes-file release-notes.md
+.\.venv\Scripts\python.exe scripts\release_notes.py --version v0.2.2 --output release-notes.md
+gh release create v0.2.2 --verify-tag --title v0.2.2 --notes-file release-notes.md
 ```
 
 生成的正文首行是 `## vX.Y.Z — 日期（主题）`，与 Release 标题重复，属正常。
@@ -708,7 +721,7 @@ gh release create v0.2.1 --verify-tag --title v0.2.1 --notes-file release-notes.
 | `docs/BOT-INTEGRATION.md` | QQ/微信接入细节 |
 | `docs/MOBILE-OPS.md` | 手机访问、快速收录、移动运维 |
 | `docs/RETRIEVAL-CONTROL.md` | 完整性判断与远程兜底 |
-| `docs/PRD-v0.2.0.md` | 下一版本需求与设计 |
+| `docs/PRD-v0.2.0.md` | v0.2.0 历史需求与设计（归档参考） |
 | `docs/ROADMAP.md` | 特性排期与状态 |
 | `CHANGELOG.md` | 版本变更 |
 

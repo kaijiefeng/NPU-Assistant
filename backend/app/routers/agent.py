@@ -36,6 +36,8 @@ def list_agent_tools(principal: dict = Depends(require_admin_token)) -> dict:
                 "permission": spec.permission,
                 "write": spec.write,
                 "dangerous": spec.dangerous,
+                "required": list(spec.required),
+                "parameters": spec.parameters,
             }
             for spec in specs
         ],
@@ -186,31 +188,51 @@ def agent_chat_stream(payload: AgentChatRequest, principal: dict = Depends(requi
     holder: dict = {}
 
     def worker() -> None:
+        conversation = None
+        appended_user = False
+        streamed = []
+        live_steps = []
+        result = None
+
+        def emit(kind: str, data: dict) -> None:
+            if kind == "delta":
+                streamed.append(str(data.get("text") or ""))
+            elif kind == "tool_result":
+                live_steps.append(data)
+            if not stop.is_set():
+                queue.put((kind, data))
+
         try:
-            conversation = None
+            emit("status", {"phase": "preparing", "text": "正在加载会话与工具", "elapsed_ms": 0})
             if requested_conv:
                 conversation = agent_sessions.get_conversation(requested_conv)
-            if conversation is None:
+            else:
                 conversation = agent_sessions.create_conversation()
             holder["conversation"] = conversation
-            history = agent_sessions.build_context(conversation["id"])
+            emit("conversation", {"conversation_id": conversation["id"], "conversation_title": conversation.get("title") or ""})
+            history = agent_chat.prepare_context(conversation["id"], message, principal)
             agent_sessions.append_message(conversation["id"], "user", message)
-            holder["result"] = agent_chat.run_agent_chat(
-                history,
-                message,
-                principal,
-                on_event=lambda kind, data: (
-                    None if stop.is_set() else queue.put((kind, data))
-                ),
-            )
-            result = holder["result"] or {}
-            agent_sessions.append_message(
-                conversation["id"], "assistant", str(result.get("reply") or ""), result.get("steps") or []
-            )
-        except Exception:  # noqa: BLE001 - 任何异常都转为 SSE error
+            appended_user = True
+            result = agent_chat.run_agent_chat(history, message, principal, on_event=emit, should_stop=stop.is_set)
+        except Exception:  # noqa: BLE001 - 所有终止路径均有最终回复，不只留下工具步骤
             logger.exception("管理助手对话失败")
-            queue.put(("error", {"detail": "管理助手暂时不可用，请稍后重试"}))
+            result = {"reply": "管理助手本轮处理失败，请稍后重试；已执行的工具操作不会自动撤销。", "steps": live_steps, "stop_reason": "server_error"}
         finally:
+            result = result if isinstance(result, dict) else {}
+            reply = str(result.get("reply") or "").strip() or "本轮未收到有效回复，请重试。已执行的操作可在任务记录中核对。"
+            result["reply"] = reply
+            result["steps"] = result.get("steps") if isinstance(result.get("steps"), list) else []
+            result["conversation_id"] = (conversation or {}).get("id") or ""
+            result["conversation_title"] = (conversation or {}).get("title") or ""
+            if not streamed:
+                emit("delta", {"text": reply})
+            if conversation and appended_user:
+                try:
+                    agent_sessions.append_message(conversation["id"], "assistant", reply, result["steps"])
+                except Exception:  # noqa: BLE001
+                    logger.exception("管理助手最终消息保存失败")
+                    result["save_warning"] = "本轮回复未能保存，请复制保留。"
+            holder["result"] = result
             queue.put(("end", None))
 
     def event_stream():

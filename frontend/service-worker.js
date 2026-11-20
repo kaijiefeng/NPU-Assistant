@@ -10,20 +10,29 @@
  *
  * 说明：本文件由 index.html 通过 app.js 在 https 或 localhost 下注册。
  */
-const CACHE_VERSION = 'npu-assistant-static-v12';
+const CACHE_VERSION = 'npu-assistant-static-v23';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
   '/assets/styles.css',
   '/assets/js/app.js',
+  '/assets/js/agent-panel.js',
+  '/assets/js/agent-process.js',
+  '/assets/js/views/kb-admin.js',
   '/assets/js/api.js',
+  '/assets/js/scan-folder.js',
+  '/assets/js/scan-compat.js',
   '/assets/js/ui.js',
+  '/assets/js/hub-navigation.js',
+  '/assets/js/ops-labels.js',
+  '/assets/js/agent-reply.js',
   '/assets/js/mobile-access.js',
   '/assets/js/views/chat.js',
   '/assets/js/views/knowledge.js',
   '/assets/js/views/ops-hub.js',
   '/assets/js/views/insights.js',
+  '/assets/js/views/insights-board.js',
   '/assets/js/views/login.js',
   '/assets/js/views/jobs.js',
   '/assets/js/views/team.js',

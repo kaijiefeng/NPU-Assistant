@@ -7,7 +7,7 @@
  */
 import { getAuthMe, getHealth, setCsrfToken, setUnauthorizedHandler } from './api.js';
 import { esc, icon, toast } from './ui.js';
-import { initAgentPanel, refreshAgentPanel } from './agent-panel.js';
+import { initAgentPanel, refreshAgentPanel, setAgentPanelRoute } from './agent-panel.js';
 
 const ROUTES = {
   login: {
@@ -23,7 +23,7 @@ const ROUTES = {
   },
   knowledge: {
     title: '知识库',
-    subtitle: '浏览、收录与维护校园知识',
+    subtitle: '查找校园知识，核对政策与来源',
     load: () => import('./views/knowledge.js'),
   },
   'kb-admin': {
@@ -34,7 +34,7 @@ const ROUTES = {
   },
   ops: {
     title: '运维管理',
-    subtitle: '任务告警、运维 Agent 与审计',
+    subtitle: '跟进后台任务、处理告警与查看审计',
     load: () => import('./views/ops-hub.js'),
     permission: 'insights:read',
   },
@@ -47,8 +47,8 @@ const ROUTES = {
 };
 
 const LEGACY_VIEWS = {
-  manage: '#/kb-admin?tab=content',
-  insights: '#/kb-admin?tab=desk',
+  manage: '#/kb-admin',
+  insights: '#/kb-admin?tab=overview',
   jobs: '#/ops?tab=jobs',
   'ops-agent': '#/ops',
   models: '#/settings?tab=models',
@@ -179,7 +179,7 @@ async function renderRoute() {
 
   // 旧入口：知识库浏览页的管理模式已拆到独立的「知识库管理」页
   if (viewName === 'knowledge' && query.get('manage') === '1') {
-    location.replace('#/kb-admin?tab=content');
+    location.replace('#/kb-admin');
     return;
   }
 
@@ -189,6 +189,7 @@ async function renderRoute() {
     return;
   }
 
+  setAgentPanelRoute(viewName);
   await ensureAuth();
   const route = ROUTES[viewName];
   if (!canAccess(route)) {
@@ -228,6 +229,7 @@ async function renderRoute() {
   document.title = `${route.title} · NPU-Assistant`;
   closeSidebar();
   dom.view.innerHTML = '';
+  dom.view.dataset.route = viewName;
   dom.view.scrollTop = 0;
   if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
 
@@ -237,7 +239,7 @@ async function renderRoute() {
     const mountName = route.mountName || 'mount';
     const mountFn = typeof module[mountName] === 'function' ? module[mountName] : module.mount;
     const cleanup = mountFn
-      ? mountFn(dom.view, { query, canManage: can('content:write') })
+      ? await mountFn(dom.view, { query, canManage: can('content:write') })
       : undefined;
     if (token !== renderToken) {
       if (typeof cleanup === 'function') cleanup();
@@ -273,6 +275,8 @@ function bindShell() {
     // 桌面端：折叠 / 展开为图标窄栏；窄屏：仍为抽屉开关
     if (window.innerWidth >= 1024) {
       const collapsed = document.body.classList.toggle('sidebar-collapsed');
+      dom.menuBtn.setAttribute('aria-label', collapsed ? '展开导航' : '收起导航');
+      dom.menuBtn.setAttribute('aria-expanded', String(!collapsed));
       try {
         localStorage.setItem('npu.sidebar.collapsed', collapsed ? '1' : '0');
       } catch {
@@ -289,7 +293,7 @@ function bindShell() {
     if (event.key === 'Escape' && dom.sidebar.classList.contains('is-open')) closeSidebar();
   });
   window.addEventListener('resize', () => {
-    if (window.innerWidth > 1080) closeSidebar();
+    if (window.innerWidth >= 1024) closeSidebar();
   });
   window.addEventListener('hashchange', () => {
     renderRoute();

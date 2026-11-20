@@ -1,32 +1,24 @@
 # 界面截图
 
-本目录随仓库提供八个页面的界面截图（1440×960），由 `scripts/ui_check.py` 通过 Chrome DevTools Protocol 自动生成：
+`v0.2.2/` 为当前发布使用的界面截图（隔离演示数据，2026-11-20）：
 
-| 文件 | 对应页面 | 内容 |
-|------|----------|------|
-| `chat.png` | `#/chat` 对话 | 带 `[1]` 引用的回答 + 可展开的「来源 N」行（词条 + 来源文件·章节 + 原文摘录） |
-| `knowledge.png` | `#/knowledge` 知识库 | 浏览视图：搜索、分类筛选、词条卡片 |
-| `manage.png` | `#/knowledge?manage=1` 内容管理 | 收录资料 / 源文件 / 词条维护三个 Tab；快速收录与编译状态 |
-| `models.png` | `#/settings?tab=models` 设置 → 模型 | 模型 / Provider 双 Tab；Provider 卡片（Key 脱敏）+ 模型列表与默认模型高亮 |
-| `bots.png` | `#/settings?tab=bots` 设置 → 机器人 | 通道 / 调试 / 日志三个 Tab；通道卡片 + Webhook 地址 + 控制台模拟对话 |
-| `settings.png` | `#/settings` 设置 | 助手设置：基础 / 移动访问与安全 / 回复与引用；人设、令牌与 Wiki 参数 |
-| `jobs.png` | `#/ops?tab=jobs` 运营 → 任务与告警 | 后台任务进度与告警处理 |
-| `audit.png` | `#/ops?tab=audit` 运营 → 审计日志 | 账号、操作、对象、结果与 IP 追溯 |
+| 文件 | 页面 | 内容 |
+|------|------|------|
+| `chat.png` | 对话 | 两级导航、居中阅读列、双层引用；右侧管理助手常驻 |
+| `knowledge.png` | 知识库 | 搜索、标签筛选、词条卡片 |
+| `ops-tasks.png` | 运维管理 → 任务 | 紧凑任务列表、状态筛选、进度与失败原因 |
+| `settings.png` | 设置 | 助手 / 模型服务 / 机器人 / 账号分组导航 |
+| `chat-mobile.png` | 手机端对话 | 390×844 移动布局与快捷问题 |
 
-截图由 `scripts/ui_check.py` 在 **LLM Wiki 版**界面下生成；如界面有更新，按下方命令重跑即可覆盖。
+`e2e/` 为 RSI 端到端证据，可通过 `scripts/e2e_verify.py --publish` 重新生成；历次改版的临时验收截图不随发布包保留。
 
 ## 重新生成
 
-前置条件：NPU-Assistant 已在 <http://127.0.0.1:8000> 启动，本机安装 Chrome（或 Edge）。
+`scripts/ui_check.py` 通过 Chrome / Edge DevTools Protocol 做前端交互冒烟并生成页面截图：
 
 ```powershell
-# 1) 启动服务（另开一个终端）
 .\scripts\run.ps1
-
-# 2) 生成截图 + 前端交互冒烟（会检查 8 个页面的控制台错误）
 .\.venv\Scripts\python.exe scripts\ui_check.py
 ```
 
-脚本会输出各页面交互检查结果，并把截图写入本目录；如需换地址，请修改 `scripts/ui_check.py` 顶部的 `BASE` 常量。
-
-注意：截图仅用于文档展示，请勿包含真实 API Key、学生个人信息或内网地址。
+截图仅用于文档展示；请勿包含真实 API Key、学生个人信息、内网地址或个人目录。发布前应使用隔离演示数据，而不是正式运营库。

@@ -1,6 +1,6 @@
-# NPU-Assistant 架构设计（LLM Wiki · v0.1.1）
+# NPU-Assistant 架构设计（LLM Wiki · v0.2.2）
 
-本文说明 NPU-Assistant 在 **LLM Wiki 架构**下的整体结构、两条核心链路（编译 / 问答）、模块职责、数据模型与部署建议。设计与接口字段以 [WIKI-DESIGN.md](WIKI-DESIGN.md) 与 [CONTRACT.md](CONTRACT.md) 为准，本文侧重「系统如何组织起来」。
+本文说明 NPU-Assistant 在 **LLM Wiki 架构**下的整体结构、两条核心链路（编译 / 问答）、模块职责、数据模型与部署建议。设计与接口字段以 [WIKI-DESIGN.md](WIKI-DESIGN.md) 与 [CONTRACT.md](CONTRACT.md) 为准，本文侧重「系统如何组织起来」。v0.2.x 新增的管理助手、工作台与后台任务见 §9。
 
 ## 1. 设计目标
 
@@ -427,3 +427,29 @@ erDiagram
 - `backend/tests/conftest.py` 在导入应用前设置临时 `NPU_DATA_DIR` / `NPU_DB_PATH`，并提供 **fake LLM**（固定编译 JSON、固定回答文本、可切换失败），测试不调用真实 API；
 - 覆盖范围：Wiki 快照导入 / 目录 / 详情 / 搜索 / 编辑 / 删除 / 上传编译 / 合并去重 / 级联删除 / rebuild、对话双层引用与降级、模型管理、机器人、系统设置；
 - 全量命令：`.\scripts\check.ps1`；真实服务冒烟：`.\scripts\smoke.ps1`；前端交互与截图：`scripts/ui_check.py`。
+
+## 9. v0.2.x 增量架构
+
+### 9.1 管理助手（右侧常驻面板）
+
+- 入口：`routers/agent.py` 提供 SSE `/api/agent/chat`、会话 CRUD、工具清单与定时任务；前端 `agent-panel.js` 增量渲染。
+- 编排：`services/agent_chat.py` 负责「系统提示词 → 模型 JSON/DSML → 工具 → 结果回灌」循环；工具上限 200 轮，单次输出预留 4096 tokens。
+- 上下文：`services/agent_context.py` 按 200K 窗口、180K 阈值压缩旧历史与本轮工具轨迹，保留原始任务和最新结果；`services/agent_sessions.py` 以 rowid 水位持久化纪要与回滚。
+- 协议：`services/agent_protocol.py` 兼容完整单工具 DSML、双 JSON 与参数别名；`services/agent_reply.py` 归一回复外壳并拦截 DSML/`ds_safety` 等内部标记。
+- 工具：`services/agent_tools.py` 注册 45 个工具，权限 = 调用者角色；写操作审计 `agent.tool.*`，高危工具服务端 `need_confirm`；`agent_execution.py` 负责结果脱敏、裁剪与失败兜底。
+- 可靠性：空正文自动重试且不计入熔断；JSON 输出模式不可用时降级普通模式；协议错误最多纠偏两次；同参重复首次提示、二次停止。
+
+### 9.2 工作台与任务
+
+- 一级导航 5 个入口：对话 / 知识库 / 知识库管理 / 运维管理 / 设置；二级页面由 `hub-navigation.js` 的分组选择器承载，旧深链接自动映射。
+- 知识库管理分「内容资料 / 服务台」；服务台七类看板（概览、待人工、危机、缺口、反馈、时效、订阅发现）为单层紧凑队列，长内容收进 `<details>`。
+- 运维管理分「任务 / 告警 / 审计」；`services/jobs.py` 提供队列、原子抢占、重试/取消与 worker，`services/alerts.py` 负责告警去重与状态流转。
+- 账号与审计：`services/auth.py` 提供 4 角色、会话/CSRF、审计写入；机器人、模型、设置等写接口按权限过滤。
+
+### 9.3 新增数据表
+
+除 §5 的 Wiki 表外，v0.2.x 还使用：`admin_users` / `admin_sessions`（账号会话）、`jobs`（异步任务）、`system_alerts`（告警）、`answer_feedback` / `knowledge_gaps`（反馈与缺口）、`handoff_requests` / `crisis_events`（转人工与危机）、`subscriptions`（订阅发现）、`ops_tasks`（运维修复）、`agent_conversations` / `agent_messages` / `agent_schedules`（管理助手会话与定时指令）。迁移均在 `db.init_db()` 内向后兼容执行。
+
+### 9.4 客户端状态与缓存
+
+前端无构建链，视图按路由懒加载 ES Module；`service-worker.js` 仅缓存静态壳（v23），API 响应不缓存。设置、任务、服务台、助手会话均在视图中做清理与忙碌保护，切换页面不丢输入或重复提交。

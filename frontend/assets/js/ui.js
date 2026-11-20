@@ -231,41 +231,86 @@ export function toast(message, type = 'info', options = {}) {
 /* 弹窗 / 抽屉（带 Esc 关闭与焦点管理）                                 */
 /* ------------------------------------------------------------------ */
 const overlayStack = [];
+const FOCUSABLE = 'a[href], button, textarea, input:not([type="hidden"]), select, [tabindex], [contenteditable="true"]';
+
+function focusablesIn(panel) {
+  return [...panel.querySelectorAll(FOCUSABLE)].filter((node) =>
+    node.tabIndex >= 0 && !node.matches(':disabled') &&
+    !node.closest('[hidden], [inert], [aria-hidden="true"]') &&
+    node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden',
+  );
+}
+
+function focusOverlay(item, initial = false) {
+  const nodes = focusablesIn(item.panel);
+  const target = initial
+    ? nodes.find((node) => node.hasAttribute('autofocus')) ||
+      nodes.find((node) => item.body.contains(node) && node.matches('input, textarea, select')) ||
+      nodes.find((node) => item.footer.contains(node)) || nodes[0]
+    : nodes[0];
+  (target || item.panel).focus({ preventScroll: true });
+}
 
 function onGlobalKeydown(event) {
   const top = overlayStack[overlayStack.length - 1];
   if (!top) return;
   if (event.key === 'Escape') {
     event.preventDefault();
-    top.close();
+    event.stopPropagation();
+    if (top.closable) top.close();
     return;
   }
-  if (event.key === 'Tab') {
-    const focusables = top.panel.querySelectorAll(
-      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    );
-    if (!focusables.length) return;
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
+  if (event.key !== 'Tab') return;
+  const nodes = focusablesIn(top.panel);
+  const first = nodes[0];
+  const last = nodes[nodes.length - 1];
+  const active = document.activeElement;
+  if (!nodes.length) {
+    event.preventDefault();
+    top.panel.focus({ preventScroll: true });
+  } else if (!nodes.includes(active)) {
+    event.preventDefault();
+    (event.shiftKey ? last : first).focus({ preventScroll: true });
+  } else if (event.shiftKey && active === first) {
+    event.preventDefault();
+    last.focus({ preventScroll: true });
+  } else if (!event.shiftKey && active === last) {
+    event.preventDefault();
+    first.focus({ preventScroll: true });
   }
 }
 
+function onGlobalFocusin(event) {
+  const top = overlayStack[overlayStack.length - 1];
+  if (top && !top.panel.contains(event.target)) focusOverlay(top);
+}
+
 function pushOverlay(item) {
-  if (!overlayStack.length) document.addEventListener('keydown', onGlobalKeydown, true);
+  if (!overlayStack.length) {
+    document.addEventListener('keydown', onGlobalKeydown, true);
+    document.addEventListener('focusin', onGlobalFocusin, true);
+  }
+  item.panel.tabIndex = -1;
   overlayStack.push(item);
+  focusOverlay(item, true);
 }
 
 function popOverlay(item) {
   const index = overlayStack.indexOf(item);
   if (index >= 0) overlayStack.splice(index, 1);
-  if (!overlayStack.length) document.removeEventListener('keydown', onGlobalKeydown, true);
+  if (!overlayStack.length) {
+    document.removeEventListener('keydown', onGlobalKeydown, true);
+    document.removeEventListener('focusin', onGlobalFocusin, true);
+  }
+}
+
+function restoreOverlayFocus(previousActive) {
+  const top = overlayStack[overlayStack.length - 1];
+  if (previousActive?.isConnected && previousActive.getClientRects().length &&
+      !previousActive.closest('[hidden], [inert]') && !previousActive.matches(':disabled') &&
+      (!top || top.panel.contains(previousActive))) {
+    previousActive.focus({ preventScroll: true });
+  } else if (top) focusOverlay(top);
 }
 
 function lockBodyScroll(lock) {
@@ -320,24 +365,23 @@ export function openModal(options = {}) {
   if (footerEl.childNodes.length) footerEl.hidden = false;
   else footerEl.hidden = true;
 
+  let closing = false;
   const close = () => {
+    if (closing) return;
+    closing = true;
+    const wasTop = overlayStack[overlayStack.length - 1] === item;
     popOverlay(item);
     overlay.classList.add('is-closing');
+    overlay.inert = true;
+    if (wasTop) restoreOverlayFocus(previousActive);
     window.setTimeout(() => {
       overlay.remove();
       if (!overlayStack.length) lockBodyScroll(false);
-      if (previousActive && typeof previousActive.focus === 'function') {
-        try {
-          previousActive.focus({ preventScroll: true });
-        } catch {
-          /* ignore */
-        }
-      }
       onClose?.();
     }, 160);
   };
 
-  const item = { panel, close };
+  const item = { panel, body: bodyEl, footer: footerEl, close, closable };
   const modalRoot = document.getElementById('modalRoot') || document.body;
   modalRoot.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add('is-visible'));
@@ -355,10 +399,9 @@ export function openModal(options = {}) {
   };
 
   window.setTimeout(() => {
-    const target = bodyEl.querySelector(
-      'input:not([type=hidden]):not([disabled]), textarea:not([disabled]), select:not([disabled])',
-    );
-    if (target) target.focus({ preventScroll: true });
+    if (!closing && overlayStack[overlayStack.length - 1] === item && document.activeElement === panel) {
+      focusOverlay(item, true);
+    }
   }, 60);
 
   return { overlay, panel, body: bodyEl, footer: footerEl, close, setTitle };
@@ -411,7 +454,7 @@ export function confirmDialog(options = {}) {
  * 打开右侧抽屉。
  */
 export function openDrawer(options = {}) {
-  const { title = '', subtitle = '', body = '', footer = null, size = 'md', onClose = null } = options;
+  const { title = '', subtitle = '', body = '', footer = null, size = 'md', onClose = null, closable = true } = options;
   const previousActive = document.activeElement;
   const overlay = document.createElement('div');
   overlay.className = 'drawer-backdrop';
@@ -424,7 +467,7 @@ export function openDrawer(options = {}) {
           <h2 class="drawer-title">${esc(title)}</h2>
           ${subtitle ? `<p class="drawer-subtitle">${esc(subtitle)}</p>` : ''}
         </div>
-        <button class="icon-btn drawer-close" type="button" aria-label="关闭">${icon('x')}</button>
+        ${closable ? `<button class="icon-btn drawer-close" type="button" aria-label="关闭">${icon('x')}</button>` : ''}
       </header>
       <div class="drawer-body"></div>
       <div class="drawer-foot"></div>
@@ -439,23 +482,22 @@ export function openDrawer(options = {}) {
   if (footerEl.childNodes.length) footerEl.hidden = false;
   else footerEl.hidden = true;
 
+  let closing = false;
   const close = () => {
+    if (closing) return;
+    closing = true;
+    const wasTop = overlayStack[overlayStack.length - 1] === item;
     popOverlay(item);
     overlay.classList.add('is-closing');
+    overlay.inert = true;
+    if (wasTop) restoreOverlayFocus(previousActive);
     window.setTimeout(() => {
       overlay.remove();
       if (!overlayStack.length) lockBodyScroll(false);
-      if (previousActive && typeof previousActive.focus === 'function') {
-        try {
-          previousActive.focus({ preventScroll: true });
-        } catch {
-          /* ignore */
-        }
-      }
       onClose?.();
     }, 180);
   };
-  const item = { panel, close };
+  const item = { panel, body: bodyEl, footer: footerEl, close, closable };
   const drawerRoot = document.getElementById('drawerRoot') || document.body;
   drawerRoot.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add('is-visible'));
@@ -463,13 +505,12 @@ export function openDrawer(options = {}) {
   pushOverlay(item);
   overlay.querySelector('.drawer-close')?.addEventListener('click', close);
   overlay.addEventListener('mousedown', (event) => {
-    if (event.target === overlay) close();
+    if (event.target === overlay && closable) close();
   });
   window.setTimeout(() => {
-    const target = bodyEl.querySelector(
-      'input:not([type=hidden]):not([disabled]), textarea:not([disabled]), select:not([disabled])',
-    );
-    if (target) target.focus({ preventScroll: true });
+    if (!closing && overlayStack[overlayStack.length - 1] === item && document.activeElement === panel) {
+      focusOverlay(item, true);
+    }
   }, 180);
   return { overlay, panel, body: bodyEl, footer: footerEl, close };
 }

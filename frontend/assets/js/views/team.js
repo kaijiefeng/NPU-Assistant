@@ -13,14 +13,18 @@ import {
   updateAdminUser,
 } from '../api.js';
 import {
+  badge,
   confirmDialog,
   esc,
   fmtRelative,
+  fmtDateTime,
   icon,
   loadingHtml,
   openModal,
   toast,
 } from '../ui.js';
+
+import { auditActionLabel, auditResult } from '../ops-labels.js';
 
 const ROLE_LABEL = {
   super_admin: '超级管理员',
@@ -166,70 +170,44 @@ function usersHtml() {
 
 function auditHtml() {
   const { items, total, actions } = state.audit;
-  return `<section class="card">
-    <div class="card-head">
-      <h3>${icon('history')} 审计日志</h3>
-      <div class="chip-row">
-        <select class="input input-sm" id="auditDays">
-          ${[1, 7, 30, 90]
-            .map(
-              (days) =>
-                `<option value="${days}" ${state.auditDays === days ? 'selected' : ''}>近 ${days} 天</option>`,
-            )
-            .join('')}
-        </select>
-        <button class="btn btn-xs btn-ghost" type="button" data-action="audit-reload">${icon(
-          'refresh',
-        )}<span>刷新</span></button>
-      </div>
-    </div>
-    <div class="audit-filters">
-      <input class="input input-sm" id="auditUsername" placeholder="按账号筛选" value="${esc(
-        state.auditUsername,
-      )}" />
-      <select class="input input-sm" id="auditAction">
-        <option value="">全部操作</option>
-        ${(actions || [])
-          .map(
-            (action) =>
-              `<option value="${esc(action)}" ${
-                state.auditAction === action ? 'selected' : ''
-              }>${esc(action)}</option>`,
-          )
-          .join('')}
+  return `<section class="ops-board" aria-label="审计日志">
+    <header class="ops-toolbar"><div class="ops-board-title"><h2>审计日志</h2><span class="ops-count">${total} 条</span></div>
+      <button class="btn btn-ghost btn-sm" type="button" data-action="audit-reload">${icon('refresh')}<span>刷新</span></button>
+    </header>
+    <div class="ops-audit-filters">
+      <input class="input input-sm" id="auditUsername" aria-label="按账号筛选" placeholder="按账号筛选" value="${esc(state.auditUsername)}" />
+      <select class="input input-sm" id="auditAction" aria-label="按操作筛选"><option value="">全部操作</option>
+        ${(actions || []).map((action) => `<option value="${esc(action)}" ${state.auditAction === action ? 'selected' : ''}>${esc(auditActionLabel(action))}</option>`).join('')}
       </select>
-      <span class="muted">共 ${total} 条</span>
+      <select class="input input-sm" id="auditDays" aria-label="审计时间范围">${[1, 7, 30, 90].map((days) => `<option value="${days}" ${state.auditDays === days ? 'selected' : ''}>近 ${days} 天</option>`).join('')}</select>
     </div>
-    ${
-      items.length
-        ? `<div class="table-wrap">
-            <table class="table">
-              <thead><tr><th>时间</th><th>账号</th><th>操作</th><th>对象</th><th>结果</th><th>IP</th></tr></thead>
-              <tbody>${items
-                .map(
-                  (item) => `<tr>
-                    <td class="muted" title="${esc(item.created_at || '')}">${esc(
-                      fmtRelative(item.created_at) || item.created_at || '',
-                    )}</td>
-                    <td>${esc(item.username || '—')}<div class="muted" style="font-size:12px">${esc(
-                      ROLE_LABEL[item.role] || item.role || '',
-                    )}</div></td>
-                    <td><code class="code-inline">${esc(item.action)}</code></td>
-                    <td class="muted">${esc(item.target_id || item.target_type || '—')}</td>
-                    <td>${esc(item.detail || '—')}</td>
-                    <td class="muted">${esc(item.ip || '—')}</td>
-                  </tr>`,
-                )
-                .join('')}</tbody>
-            </table>
-          </div>`
-        : `<p class="muted">所选条件下暂无审计记录。</p>`
-    }
+    <div class="ops-list is-audit" role="table" aria-label="审计记录">
+      <div class="ops-list-head ops-audit-row" role="row">${['时间', '操作者', '操作', '对象', '结果'].map((label) => `<span role="columnheader">${label}</span>`).join('')}</div>
+      ${items.length ? items.map((item) => {
+        const result = auditResult(item);
+        const target = item.target_type === 'api' ? '接口请求' : item.target_type === 'agent_tool' ? '助手工具' : ({ user: '团队成员', session: '账号会话', document: '源文件', wiki_page: '知识词条' })[item.target_type] || '管理对象';
+        return `<div class="ops-list-row ops-audit-row" role="row">
+          <div class="ops-cell ops-time" role="cell" data-label="时间" title="${esc(fmtDateTime(item.created_at))}">${esc(fmtRelative(item.created_at))}</div>
+          <div class="ops-cell ops-primary" role="cell" data-label="操作者"><strong>${esc(item.username || '系统')}</strong><span class="ops-description">${esc(ROLE_LABEL[item.role] || '系统服务')}</span></div>
+          <div class="ops-cell ops-primary" role="cell" data-label="操作"><strong>${esc(auditActionLabel(item.action))}</strong></div>
+          <div class="ops-cell ops-object" role="cell" data-label="对象" title="${esc(item.target_id || target)}">${esc(target)}</div>
+          <div class="ops-cell ops-actions" role="cell" data-label="结果">${badge(result.label, result.tone)}</div>
+          <details class="ops-detail" data-detail-key="audit-${esc(item.id)}"><summary>详情</summary><dl>
+            <div><dt>时间</dt><dd>${esc(fmtDateTime(item.created_at))}</dd></div>
+            <div><dt>原始操作</dt><dd>${esc(item.action)}</dd></div>
+            <div><dt>对象编号</dt><dd>${esc(item.target_id || '—')}</dd></div>
+            <div><dt>响应状态</dt><dd>${esc(item.status_code || '—')}</dd></div>
+            <div><dt>来源 IP</dt><dd>${esc(item.ip || '—')}</dd></div>
+            <div><dt>详细记录</dt><dd>${esc(item.detail || '—')}</dd></div>
+          </dl></details>
+        </div>`;
+      }).join('') : '<div class="ops-empty">所选条件下暂无审计记录</div>'}
+    </div><footer class="ops-list-foot">显示最近 ${items.length} 条 · 记录管理操作与执行结果</footer>
   </section>`;
 }
 
 function bodyHtml() {
-  if (state.loading && !state.users.length) return loadingHtml('加载团队数据…');
+  if (state.loading && state.tab !== 'audit' && !state.users.length) return loadingHtml('加载团队数据…');
   if (state.tab === 'audit') return auditHtml();
   if (state.tab === 'account') return accountHtml();
   return usersHtml();
@@ -359,6 +337,7 @@ export function mount(root, options = {}) {
   state.locked = options.query?.get('only') === '1';
   const auditOnly = state.locked && state.tab === 'audit';
   let alive = true;
+  const opened = new Set();
   root.innerHTML = `<div class="insights-page" id="teamPage">
     ${
       auditOnly
@@ -382,7 +361,12 @@ export function mount(root, options = {}) {
 
   function render() {
     tabs.innerHTML = tabsHtml();
+    body.querySelectorAll('[data-detail-key]').forEach((node) => {
+      if (node.open) opened.add(node.dataset.detailKey); else opened.delete(node.dataset.detailKey);
+    });
     body.innerHTML = bodyHtml();
+    body.querySelectorAll('[data-detail-key]').forEach((node) => { node.open = opened.has(node.dataset.detailKey); });
+    bindFilters();
   }
 
   async function load() {
@@ -522,12 +506,9 @@ export function mount(root, options = {}) {
   });
 
   load();
-  // Filters are re-created on every render; bind after each render.
-  const observer = new MutationObserver(bindFilters);
-  observer.observe(body, { childList: true });
 
   return () => {
     alive = false;
-    observer.disconnect();
+
   };
 }

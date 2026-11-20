@@ -365,6 +365,7 @@ export function mount(root) {
         <div class="chat-messages" id="messageList"></div>
       </div>
 
+      <button class="btn btn-ghost btn-sm chat-latest" id="chatLatest" type="button" hidden>回到最新回答 ↓</button>
       <div class="chat-error" id="chatError" hidden></div>
 
       <form class="composer" id="chatForm" autocomplete="off">
@@ -374,6 +375,7 @@ export function mount(root) {
           ${icon('send')}<span>发送</span>
         </button>
       </form>
+      <div class="composer-footer"><span>回答附有来源，重要政策请核对原文</span><span>Enter 发送 · Shift + Enter 换行</span></div>
     </section>
   </div>`;
 
@@ -447,6 +449,14 @@ export function mount(root) {
     }
   }
 
+  let followLatest = true;
+  const latestButton = root.querySelector('#chatLatest');
+  chatScroll.addEventListener('scroll', () => {
+    followLatest = chatScroll.scrollHeight - chatScroll.scrollTop - chatScroll.clientHeight < 90;
+    latestButton.hidden = followLatest;
+  }, { passive: true });
+  latestButton.addEventListener('click', () => { followLatest = true; scrollToBottom(); latestButton.hidden = true; });
+
   /* ----------------------- 消息渲染 ----------------------- */
   function scrollToBottom(smooth = false) {
     if (!chatScroll) return;
@@ -474,7 +484,7 @@ export function mount(root) {
                 (question) =>
                   `<button class="quick-question" type="button" data-action="quick-question" data-question="${esc(
                     question,
-                  )}">${esc(question)}</button>`,
+                  )}">${icon('message')}<span>${esc(question)}</span></button>`,
               )
               .join('')}</div>`
           : ''
@@ -493,7 +503,8 @@ export function mount(root) {
       return;
     }
     messageList.innerHTML = state.messages.map((message, index) => messageHtml(message, index)).join('');
-    scrollToBottom(smooth);
+    if (followLatest || smooth) { followLatest = true; scrollToBottom(smooth); }
+    latestButton.hidden = followLatest;
   }
 
   function showTyping() {
@@ -554,6 +565,7 @@ export function mount(root) {
     input.disabled = state.sending;
     sendBtn.disabled = state.sending ? false : !input.value.trim();
     sendBtn.classList.toggle('is-busy', state.sending);
+    sendBtn.setAttribute('aria-label', state.sending ? '停止生成' : '发送');
     sendBtn.innerHTML = state.sending
       ? `${icon('power')}<span>停止</span>`
       : `${icon('send')}<span>发送</span>`;
